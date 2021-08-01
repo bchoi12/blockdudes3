@@ -1,33 +1,29 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/gin-gonic/gin"
+	_ "github.com/heroku/x/hmetrics/onload"
 )
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hi!")
-}
-
 func main() {
-	/*
-	http.HandleFunc("/view/", viewHandler)
-	http.HandleFunc("/chat/", chatHandler)
-	http.HandleFunc("/chatclient/", chatClientHandler)
-	*/
-
-	serveFiles("/")
-
 	port := os.Getenv("PORT")
+
 	if port == "" {
-		port = "8080"
-		log.Printf("Defaulting to port %s", port)
+		log.Fatal("$PORT must be set")
 	}
 
-	log.Printf("Listening on port %s", port)
-	if err := http.ListenAndServe(":" + port, nil); err != nil {
-		log.Fatal(err)
-	}
+	router := gin.New()
+	router.Use(gin.Logger())
+	router.LoadHTMLGlob("templates/*.tmpl.html")
+	router.Static("/static", "static")
+
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.tmpl.html", nil)
+	})
+
+	router.Run(":" + port)
 }
