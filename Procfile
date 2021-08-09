@@ -1,1 +1,1 @@
-web: bin\bm69.exe
+web: bin\bossman69
