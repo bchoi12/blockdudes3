@@ -1,1 +1,1 @@
-web: bin\bossman69
+web: bin/bossman69
