@@ -10,7 +10,7 @@ import (
 func serveFiles(dir string) {
 	http.HandleFunc(dir, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
-			fmt.Fprintf(w, "Hi!")
+			fmt.Fprintf(w, "Hi2!")
 			return
 		}
 		url := r.URL.Path[1:]
