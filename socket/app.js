@@ -5,7 +5,7 @@ $( document ).ready(function() {
 });
 
 function connect() {
-	window.ws = new WebSocket("ws://" + window.location.host + "/connection/");
+	window.ws = new WebSocket("wss://" + window.location.host + "/connection/");
 
 	window.ws.onmessage = function(event) {
 		console.log("got a message")
