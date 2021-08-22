@@ -5,9 +5,11 @@
     <title>game</title>
 
 	<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-	<script src="https://rawgit.com/kawanet/msgpack-lite/master/dist/msgpack.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+	<script src="/js/msgpack.min.js"></script>
 
-    <script type="module" src="/socket/app.js"></script>
+	<script src="/socket/constants.js"></script>
+	<script src="/socket/util.js"></script>
 </head>
 
 <body>
@@ -17,4 +19,5 @@
 
 		<div id="messages"></div>
 	</main>
+    <script src="/socket/app.js"></script>
 </body>
