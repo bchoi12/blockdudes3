@@ -1,10 +1,13 @@
 package main
 
 import (
+	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"os"
 )
+
+var upgrader = websocket.Upgrader{}
 
 func main() {
 	http.HandleFunc("/newclient/", newClientHandler)
@@ -20,4 +23,14 @@ func main() {
 	if err := http.ListenAndServe(":" + port, nil); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func newClientHandler(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("Failed to create websocket: %v", err)
+		return
+	}
+
+	createOrJoinRoom("room", ws)
 }

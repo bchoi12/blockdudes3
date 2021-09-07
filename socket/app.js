@@ -1,4 +1,16 @@
+var scene, camera, renderer;
 $( document ).ready(function() {
+	var width = $(document).width();
+	var height = $(document).height();
+
+	scene = new THREE.Scene();
+	camera = new THREE.PerspectiveCamera( 75, width / height, 0.1, 1000 );
+	camera.position.z = 5;
+
+	renderer = new THREE.WebGLRenderer();
+	renderer.setSize(width, height);
+	$("body").append( renderer.domElement );
+
 	connect();
 
 	$("#send").click(function() {
@@ -6,11 +18,17 @@ $( document ).ready(function() {
 			return;
 		}
 
-		var payload = {T: 1, Chat: {
+		var payload = {T: chatType, Chat: {
 			M: $("#message").val().trim(),
 		}}
 		sendMessage(payload);
 	});
+
+	const animate = function () {
+		renderer.render( scene, camera );
+		requestAnimationFrame( animate );
+	};
+	animate();
 });
 
 function connect() {
@@ -19,12 +37,9 @@ function connect() {
 
 	window.ws.onopen = function() {
 		ws.binaryType = "arraybuffer";
-		debug("connected");
-		$("#messages").append("Connected<br>")
+		chat("Connected!");
 	};
 	window.ws.onmessage = function(event) {
-		debug("RECEIVED EVENT")
-		debug(event)
 		var payload = msgpack.decode(new Uint8Array(event.data));
 		handlePayload(payload)
 	};
@@ -40,26 +55,66 @@ function connect() {
 	*/
 }
 
-function handlePayload(payload) {
-	debug("PARSING PAYLOAD")
-	debug(payload);
 
+var keys = new Set();
+$(document).keydown(function(e) {
+	e = e || window.event;
+
+	if (!keyMap.has(e.keyCode)) {
+		return;
+	}
+
+	var key = keyMap.get(e.keyCode);
+	if (!keys.has(key)) {
+		keys.add(key);
+		sendMessage({T: keyType, Key: { K: getKeys() }});
+	}
+});
+
+$(document).keyup(function(e) {
+	e = e || window.event;
+
+	if (!keyMap.has(e.keyCode)) {
+		return;
+	}
+
+	var key = keyMap.get(e.keyCode);
+	if (keys.has(key)) {
+		keys.delete(key);
+		sendMessage({T: keyType, Key: {K: getKeys() }});
+	}
+});
+
+function getKeys() {
+	return Array.from(keys);
+}
+
+function handlePayload(payload) {
 	if (typeof payload.T === 'undefined') {
-		console.log("Error! Missing type for payload");
+		debug("Error! Missing type for payload");
 		return;
 	}
 
 	switch(payload.T) {
-		case 1:
-			$("#messages").append(payload.M + "<br>");
+		case initType:
+			initPlayers(payload);
 			break;
 
-		case 2:
-			$("#messages").append("slide to " + payload.X + "<br>");
+		case joinType:
+		case leftType:
+			updatePlayers(payload);
+			break;
+
+		case chatType:
+			chat(payload.M);
+			break;
+
+		case stateType:
+			updateState(payload);
 			return;
 
 		default:
-			console.log("Error, unknown type " + payload.T)
+			debug("Error, unknown type " + payload.T)
 			return
 	}
 }
@@ -75,50 +130,59 @@ function sendMessage(payload) {
 	$("#message").focus();
 }
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+function chat(m) {
+	$("#messages").append(m + "<br>");
+}
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize( window.innerWidth, window.innerHeight );
-$("body").append( renderer.domElement );
-
+const players = new Map();
+const playerRenders = new Map();
 const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-const cube = new THREE.Mesh( geometry, material );
-scene.add( cube );
+const meMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+const otherMaterial = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 
-camera.position.z = 5;
+var myId;
+function initPlayers(payload) {
+	myId = payload.Id;
+	chat("Your ID is " + payload.Id + ", all IDs: " + payload.Ids)
+	while(scene.children.length > 0){ 
+    	scene.remove(scene.children[0]); 
+	}
+	players.clear();
+	playerRenders.clear();
+	for (const id of payload.Ids) {
+		newPlayer(id);
+	}
+}
 
-const animate = function () {
-	cube.rotation.x += 0.01;
-	cube.rotation.y += 0.01;
+function updatePlayers(payload) {
+	var id = payload.Id;
+	switch(payload.T) {
+		case joinType:
+			chat("New client with ID " + payload.Id + ", all IDs: " + payload.Ids)
+			newPlayer(id);
+			break;
 
-	renderer.render( scene, camera );
-	requestAnimationFrame( animate );
-};
+		case leftType:
+			chat("Client with ID " + payload.Id + " left, all IDs: " + payload.Ids)
+			players.delete(id);
+			scene.remove(playerRenders.get(id));
+			playerRenders.delete(id);
+			break;
+	}
+}
 
-animate();
+function newPlayer(id) {
+	players.set(id, {});
+	playerRenders.set(id, new THREE.Mesh(geometry, id == myId ? meMaterial : otherMaterial));
+	scene.add(playerRenders.get(id));
+}
 
-document.onkeydown = checkKey;
-
-function checkKey(e) {
-
-    e = e || window.event;
-
-    if (e.keyCode == '38') {
-        // up arrow
-    }
-    else if (e.keyCode == '40') {
-        // down arrow
-    }
-    else if (e.keyCode == '37') {
-       cube.position.x -= 0.1;
-    }
-    else if (e.keyCode == '39') {
-       cube.position.x += 0.1;
-    } else {
-    	return;
-    }
-
-    sendMessage({T: 2, Pos: {X: cube.position.x, Y: 0}})
+function updateState(payload) {
+	for (const p of payload.P) {
+		players.set(p.Id, p);
+		playerRenders.get(p.Id).position.x = p.Pos.X;
+		playerRenders.get(p.Id).position.y = p.Pos.Y;
+		playerRenders.get(p.Id).rotation.x += p.Vel.X / 100;
+		playerRenders.get(p.Id).rotation.y += p.Vel.Y / 100;
+	}
 }
