@@ -4,6 +4,13 @@ function debug(msg) {
 	}
 }
 
+function debugDiv(msg) {
+    if (dev) {
+        $("#debug").css("display", "block");
+        $("#debug").append("DEBUG: " + msg + "<br>");
+    }
+}
+
 function waitUntilTrue(predicate, retryTime, callback) {
     setTimeout(
         function () {

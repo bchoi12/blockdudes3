@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>game</title>
+
+    <link href="/game/style.css" rel="stylesheet">
+
+	<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+	<script src="/js/msgpack.min.js"></script>
+
+	<script src="/game/constants.js"></script>
+	<script src="/game/util.js"></script>
+	<script src="/game/game.js"></script>
+    <script src="/game/app.js"></script>
+</head>
+
+<body>
+	<main>
+		<div id="debug"></div>
+		<div id="div-login">
+			<iframe name="iframe-empty" style="display:none"></iframe>
+			<form id="form-login" action="about:blank" target="iframe-empty" onsubmit="connect();">
+				<input id="name" type="text" placeholder="name" maxlength="16" required>
+				<input id="room" type="text" placeholder="room" maxlength="10" required>
+				<input id="login" type="submit" value="enter">
+			</form>
+		</div>
+		<div id="div-game">
+			<div>	
+				<canvas id="game" width="800" height="600">
+			</div>
+			<div id="messages"></div>
+			<form id="form-send-message" action="about:blank" target="iframe-empty" onsubmit="sendChatMessage();">
+				<input id="message" type="text" placeholder="message" maxlength="256" required>
+				<input id="send-message" type="submit" value="send">
+			</form>
+			<div id="people"></div>
+		</div>
+	</main>
+</body>

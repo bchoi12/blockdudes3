@@ -9,11 +9,11 @@ import (
 const (
 	upAcc float64 = 16.0
 	downAcc float64 = -upAcc
-	maxVerticalVel = 4.0
+	maxVerticalVel = 6.0
 
 	leftAcc float64 = -16.0
 	rightAcc float64 = -leftAcc
-	maxHorizontalVel = 4.0
+	maxHorizontalVel = 6.0
 
 	minStopSpeedSquared float64 = 0.2 * 0.2
 
@@ -24,8 +24,10 @@ type Client struct {
 	room *Room
 	ws *websocket.Conn
 
-	pd PData
 	id int
+	name string
+
+	pd PData
 	keys map[int]bool
 }
 
@@ -44,23 +46,14 @@ func (c *Client) send(data []byte) {
 }
 
 func (c* Client) init(r *Room) {
-	r.clients[c] = true
-
-	imsg := InitMsg{
-		T: initType,
-		Id: c.id,
-		Ids: make([]int, 0),
-	}
-	for client := range r.clients {
-		imsg.Ids = append(imsg.Ids, client.id)
-	}
-
-	b, err := msgpack.Marshal(&imsg)
+	msg := r.createClientMsg(initType, c)
+	b, err := msgpack.Marshal(&msg)
 	if err != nil {
-		log.Printf("%v", err)
+		return
 	}
 	c.send(b)
 
+	r.clients[c] = true
 	c.pd.Id = c.id
 	c.pd.Pos.X = float64(c.id)
 
@@ -87,27 +80,19 @@ func (c *Client) run() {
 		_, b, err := c.ws.ReadMessage()
 
 		if err != nil {
-			if e, ok := err.(*websocket.CloseError); ok {
-				switch e.Code {
-					case websocket.CloseNormalClosure,
-					websocket.CloseGoingAway,
-					websocket.CloseNoStatusReceived:
-						log.Printf("lost connection: %v", err)
-						return
-				}
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("unexpected socket error: %v", err)
 			}
-
-			log.Printf("error reading incoming message: %v", err)
-			continue
+			return
 		}
 
 		log.Printf("Received bytes: %v", string(b))
 
-		cmsg := ClientMsg{
+		imsg := IncomingMsg{
 			b: b,
 			client: c,
 		}
-		c.room.incoming <- cmsg
+		c.room.incoming <- imsg
 	}
 }
 

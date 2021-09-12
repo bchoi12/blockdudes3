@@ -27,24 +27,16 @@ const (
 	rightKey int = 4
 )
 
-type InitMsg struct {
+type ClientMsg struct {
 	T int
 	Id int
+	C ClientData
 	Ids []int
+	Cs map[int]ClientData
 }
 
-// New client joined
-type JoinMsg struct {
-	T int
-	Id int
-	Ids []int
-}
-
-// Someone left
-type LeftMsg struct {
-	T int
-	Id int
-	Ids []int
+type ClientData struct {
+	N string
 }
 
 // output only
@@ -55,6 +47,7 @@ type StateMsg struct {
 
 type ChatMsg struct {
 	T int
+	N string
 	M string // message
 }
 
@@ -69,8 +62,8 @@ type Msg struct {
 	T int
 	Chat ChatMsg
 	Key KeyMsg
-	Join JoinMsg
-	Left LeftMsg
+	Join ClientMsg
+	Left ClientMsg
 }
 
 
@@ -81,43 +74,45 @@ type Room struct {
 	nextClientId int
 	chatQueue []ChatMsg
 
-	incoming chan ClientMsg
+	incoming chan IncomingMsg
 	ticker *time.Ticker
 	register chan *Client
 	unregister chan *Client
 }
 
-type ClientMsg struct {
+type IncomingMsg struct {
 	b []byte
 	client *Client
 }
 
 var rooms = make(map[string]*Room)
 
-func createOrJoinRoom(name string, ws *websocket.Conn) {
-	if rooms[name] == nil {
-		rooms[name] = &Room {
-			id: name,
+func createOrJoinRoom(roomId string, name string, ws *websocket.Conn) {
+	if rooms[roomId] == nil {
+		rooms[roomId] = &Room {
+			id: roomId,
 			clients: make(map[*Client]bool),
 			nextClientId: 0,
 			chatQueue: make([]ChatMsg, 0),
 
-			incoming: make(chan ClientMsg),
+			incoming: make(chan IncomingMsg),
 			ticker: time.NewTicker(frameTime),
 			register: make(chan *Client),
 			unregister: make(chan *Client),
 		}
 
-		go rooms[name].run()
+		go rooms[roomId].run()
 	}
 
 	client := &Client {
-		room: rooms[name],
+		room: rooms[roomId],
 		ws: ws,
-		id: rooms[name].getClientId(),
+
+		name: name,
+		id: rooms[roomId].getClientId(),
 		keys: make(map[int]bool, 0),
 	}
-	rooms[name].register <- client
+	rooms[roomId].register <- client
 }
 
 func (r *Room) run() {
@@ -129,8 +124,8 @@ func (r *Room) run() {
 	for {
 		select {
 			case client := <-r.register:
-				r.sendJoin(client)
 				client.init(r)
+				r.sendJoin(client)
 				log.Printf("New client, %d total", len(r.clients))
 			case client := <-r.unregister:
 				if _, ok := r.clients[client]; ok {
@@ -167,6 +162,7 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 		// parse it or whatever
 		outMsg := ChatMsg {
 			T: chatType,
+			N: c.name,
 			M: msg.Chat.M,
 		}
 		r.chatQueue = append(r.chatQueue, outMsg)
@@ -197,16 +193,28 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 	}
 }
 
-func (r *Room) sendJoin(c *Client) {
-	msg := JoinMsg {
-		T: joinType,
+func (r *Room) createClientMsg(msgType int, c *Client) ClientMsg {
+	msg := ClientMsg {
+		T: msgType,
 		Id: c.id,
+		C: ClientData {
+			N: c.name,
+		},
 		Ids: make([]int, 0),
-	} 
-	msg.Ids = append(msg.Ids, c.id)
+		Cs: make(map[int]ClientData, 0),
+	}
 	for client := range r.clients {
 		msg.Ids = append(msg.Ids, client.id)
+		msg.Cs[client.id] = ClientData {N: client.name}
 	}
+
+	log.Printf("Client msg: %+v", msg)
+
+	return msg
+}
+
+func (r *Room) sendJoin(c *Client) {
+	msg := r.createClientMsg(joinType, c)
 	b, err := msgpack.Marshal(&msg)
 	if err != nil {
 		return
@@ -215,14 +223,7 @@ func (r *Room) sendJoin(c *Client) {
 }
 
 func (r *Room) sendLeft(c *Client) {
-	msg := LeftMsg {
-		T: leftType,
-		Id: c.id,
-		Ids: make([]int, 0),
-	}
-	for client := range r.clients {
-		msg.Ids = append(msg.Ids, client.id)
-	}	
+	msg := r.createClientMsg(leftType, c)
 	b, err := msgpack.Marshal(&msg)
 	if err != nil {
 		return

@@ -14,7 +14,16 @@ const leftKey = 3
 const rightKey = 4
 
 const keyMap = new Map()
-keyMap.set(38, 1)
-keyMap.set(40, 2)
-keyMap.set(37, 3)
-keyMap.set(39, 4)
+keyMap.set(38, upKey)
+keyMap.set(87, upKey)
+keyMap.set(40, downKey)
+keyMap.set(83, downKey)
+keyMap.set(37, leftKey)
+keyMap.set(65, leftKey)
+keyMap.set(39, rightKey)
+keyMap.set(68, rightKey)
+
+const renderWidth = 800;
+const renderHeight = 600;
+
+const invalidId = -1;
