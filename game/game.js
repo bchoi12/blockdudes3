@@ -92,15 +92,18 @@ function startGame() {
 	}
 	initKeyListeners(keys);
 
+	var animateFrames = 0;
 	function animate() {
 		renderer.render( scene, camera );
+		animateFrames++;
 		requestAnimationFrame( animate );
 	}
 	animate();
 
 	function calcFps() {
-		$("#fps").html(playerStateUpdates + " fps");
+		$("#fps").html("server @" + playerStateUpdates + " fps, drawing @" + animateFrames + " fps");
 		playerStateUpdates = 0;
+		animateFrames = 0;
 		setTimeout(calcFps, 1000);
 	}
 	calcFps();
