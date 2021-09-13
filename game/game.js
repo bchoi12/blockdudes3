@@ -2,6 +2,8 @@ const meMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
 const otherMaterial = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 const staticMaterial = new THREE.MeshBasicMaterial( {color: 0x777777 } );
 
+var playerStateUpdates = 0;
+
 function startGame() {
 	$("#div-login").css("display", "none");
 	$("#div-game").css("display", "block");
@@ -96,6 +98,13 @@ function startGame() {
 	}
 	animate();
 
+	function calcFps() {
+		$("#fps").html(playerStateUpdates + " fps");
+		playerStateUpdates = 0;
+		setTimeout(calcFps, 1000);
+	}
+	calcFps();
+
 	return {
 		id: invalidId,
 		keys: keys,
@@ -173,6 +182,8 @@ function deletePlayer(id, game) {
 }
 
 function updatePlayerState(payload, game) {
+	playerStateUpdates++;
+
 	for (const id of payload.Ids) {
 		var p = payload.Ps[id];
 
