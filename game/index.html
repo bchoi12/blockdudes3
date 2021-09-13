@@ -18,6 +18,7 @@
 
 <body>
 	<main>
+		<div id="js-check">Javascript could not be loaded.</div>
 		<div id="debug"></div>
 		<div id="div-login">
 			<iframe name="iframe-empty" style="display:none"></iframe>
@@ -29,14 +30,22 @@
 		</div>
 		<div id="div-game">
 			<div>	
-				<canvas id="game" width="800" height="600">
+				<canvas id="renderer" width="800" height="600">
 			</div>
-			<div id="messages"></div>
-			<form id="form-send-message" action="about:blank" target="iframe-empty" onsubmit="sendChatMessage();">
-				<input id="message" type="text" placeholder="message" maxlength="256" required>
-				<input id="send-message" type="submit" value="send">
-			</form>
-			<div id="people"></div>
+			<div id="div-chat">
+				<div id="div-messages">
+					<div id="messages"></div>
+				</div>
+				<div id="div-people">
+					<div id="people"></div>
+				</div>
+			</div>
+			<div id="div-send-message">
+				<form id="form-send-message" action="about:blank" target="iframe-empty" onsubmit="sendChatMessage();">
+					<input id="message" type="text" placeholder="Press enter to chat" maxlength="256">
+					<input id="send-message" type="submit" value="send">
+				</form>
+			</div>
 		</div>
 	</main>
 </body>

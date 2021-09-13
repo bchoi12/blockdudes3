@@ -1,7 +1,46 @@
+body {
+}
+
 #debug {
 	display: none;
 }
 
 #div-game {
 	display: none;
+}
+
+#div-chat {
+	height: 300px;
+	display: flex;
+}
+
+#div-messages {
+	width: 70%;
+	overflow-y: scroll;
+}
+
+#messages {
+}
+
+#message {
+	width: 65%;
+}
+
+#div-people {
+	padding: 2px;
+	width: 30%;
+	overflow-y: scroll;
+}
+
+.people-me {
+	font-weight: bold;
+}
+
+.anim-blink {
+  animation: blinker 0.7s linear 0s 2;
+}
+@keyframes blinker {
+	50% {
+		opacity: 0.5;
+	}
 }

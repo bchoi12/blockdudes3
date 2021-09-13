@@ -6,12 +6,15 @@ const leftType  = 6
 
 const chatType = 2
 const keyType = 3
-const stateType = 4
+const playerStateType = 4
+const staticStateType =7
 
 const upKey = 1
 const downKey = 2
 const leftKey = 3
 const rightKey = 4
+
+const chatKeyCode = 13;
 
 const keyMap = new Map()
 keyMap.set(38, upKey)

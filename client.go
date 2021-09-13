@@ -27,35 +27,43 @@ type Client struct {
 	id int
 	name string
 
-	pd PData
+	pd PlayerData
 	keys map[int]bool
 }
 
-type PData struct {
-	Id int
-	Pos Vec2
-	Vel Vec2
-	Acc Vec2
-}
-
-func (c *Client) send(data []byte) {
+func (c *Client) send(data []byte) error {
 	err := c.ws.WriteMessage(websocket.BinaryMessage, data)
+
 	if err != nil {
 		log.Printf("error writing out message: %v", err)
 	}
+	return err
 }
 
 func (c* Client) init(r *Room) {
-	msg := r.createClientMsg(initType, c)
-	b, err := msgpack.Marshal(&msg)
+	cmsg := r.createClientMsg(initType, c)
+	b, err := msgpack.Marshal(&cmsg)
 	if err != nil {
 		return
 	}
-	c.send(b)
+	err = c.send(b)
+	if err != nil {
+		log.Printf("error initializing client: %v", err)
+		return
+	}
+
+	ssmsg := r.createStaticStateMsg()
+	b, err = msgpack.Marshal(&ssmsg)
+	if err != nil {
+		return
+	}
+	err = c.send(b)
+	if err != nil {
+		log.Printf("error sending map to client %v", err)
+		return
+	}
 
 	r.clients[c] = true
-	c.pd.Id = c.id
-	c.pd.Pos.X = float64(c.id)
 
 	// Populate chat messages
 	for _, chatMsg := range r.chatQueue {

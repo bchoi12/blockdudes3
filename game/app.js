@@ -1,20 +1,26 @@
 $(document).ready(function() {
 	if (dev) {
-		debugDiv("JS compiled!");
-
 		$("#name").val("b");
 		$("#room").val("room");
 	}
+
+	$("#js-check").css("display", "none");
 });
 
 function connect() {
+	if (typeof window.ws != 'undefined') {
+		debug("Requested connection when one already exists.")
+		return;
+	}
+
 	var prefix = dev ? "ws://" : "wss://"
 	var endpoint = prefix + window.location.host + "/newclient/room=room&name=" + $("#name").val().trim();
 	debug("starting connection to " + endpoint);
 	window.ws = new WebSocket(endpoint);
+	window.ws.binaryType = "arraybuffer";
 
 	window.ws.onopen = function() {
-		ws.binaryType = "arraybuffer";
+		debug("starting game");
 		window.game = startGame();
 	};
 	window.ws.onmessage = function(event) {
@@ -23,6 +29,7 @@ function connect() {
 	};
 	window.ws.onclose = function() {
 		debug("connection closed, opening a new one")
+		delete window.ws;
 		connect();
 	};
 }
@@ -57,8 +64,13 @@ function handlePayload(payload) {
 			chat(payload.N + ": " + payload.M);
 			break;
 
-		case stateType:
-			updateState(payload, window.game);
+		case playerStateType:
+			updatePlayerState(payload, window.game);
+			return;
+
+		case staticStateType:
+			debug(payload);
+			updateStaticState(payload, window.game);
 			return;
 
 		default:
