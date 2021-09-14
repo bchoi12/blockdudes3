@@ -53,8 +53,8 @@ func (c* Client) init(r *Room) {
 		return
 	}
 
-	ssmsg := r.createStaticStateMsg()
-	b, err = msgpack.Marshal(&ssmsg)
+	osmsg := r.createObjectStateMsg()
+	b, err = msgpack.Marshal(&osmsg)
 	if err != nil {
 		return
 	}
@@ -123,7 +123,7 @@ func (c *Client) setState() {
 	}
 }
 
-func (c *Client) updateState(timeStep time.Duration) {
+func (c *Client) updateState(timeStep time.Duration, objects []ObjectData) {
 	ts := float64(timeStep) / float64(time.Second)
 
 	c.pd.Vel.add(c.pd.Acc, ts)
@@ -139,4 +139,22 @@ func (c *Client) updateState(timeStep time.Duration) {
 	c.pd.Vel.clampY(-maxVerticalVel, maxVerticalVel)
 	
 	c.pd.Pos.add(c.pd.Vel, ts)
+
+	for _, s := range(objects) {
+		me := Rec2 {
+			Pos: c.pd.Pos,
+			W: 1,
+			H: 1,
+		}
+		wall := Rec2 {
+			Pos: s.Pos,
+			W: 1,
+			H: 1,
+		}
+
+		if me.overlap(wall) {
+			me.snap(wall, &c.pd.Vel)
+			c.pd.Pos = me.Pos
+		}
+	}
 }

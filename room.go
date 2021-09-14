@@ -19,7 +19,7 @@ const (
 	chatType int = 2
 	keyType int = 3
 	playerStateType int = 4
-	staticStateType int = 7
+	objectStateType int = 7
 
 	upKey int = 1
 	downKey int = 2
@@ -51,13 +51,15 @@ type PlayerData struct {
 	Acc Vec2
 }
 
-type StaticStateMsg struct {
+type ObjectStateMsg struct {
 	T int
-	Ss []StaticData
+	Ss []ObjectData
 }
 
-type StaticData struct {
+type ObjectData struct {
 	Pos Vec2
+	W float64
+	H float64
 }
 
 type ChatMsg struct {
@@ -88,7 +90,7 @@ type Room struct {
 	clients map[*Client]bool
 	nextClientId int
 
-	statics []StaticData
+	objects []ObjectData
 	chatQueue []ChatMsg
 
 	incoming chan IncomingMsg
@@ -112,7 +114,7 @@ func createOrJoinRoom(roomId string, name string, ws *websocket.Conn) {
 			clients: make(map[*Client]bool),
 			nextClientId: 0,
 
-			statics: make([]StaticData, 0),
+			objects: make([]ObjectData, 0),
 			chatQueue: make([]ChatMsg, 0),
 
 			incoming: make(chan IncomingMsg),
@@ -122,7 +124,7 @@ func createOrJoinRoom(roomId string, name string, ws *websocket.Conn) {
 		}
 
 		// TODO: make this async? or something
-		rooms[roomId].statics = loadMap()
+		rooms[roomId].objects = loadMap()
 
 		go rooms[roomId].run()
 	}
@@ -271,7 +273,7 @@ func (r* Room) setState() {
 
 func (r* Room) updateState(timeStep time.Duration) {
 	for c := range r.clients {
-		c.updateState(timeStep)
+		c.updateState(timeStep, r.objects)
 	}
 }
 
@@ -295,24 +297,48 @@ func (r* Room) sendState() {
 	r.send(b)
 }
 
-func (r* Room) createStaticStateMsg() StaticStateMsg {
-	msg := StaticStateMsg {
-		T: staticStateType,
-		Ss: r.statics,
+func (r* Room) createObjectStateMsg() ObjectStateMsg {
+	msg := ObjectStateMsg {
+		T: objectStateType,
+		Ss: r.objects,
 	}
 
 	return msg
 }
 
-func loadMap() []StaticData {
-	s := StaticData {
-		Pos: Vec2 {
-			X: 1,
-			Y: 1,
+func loadMap() []ObjectData {
+	return []ObjectData {
+		ObjectData {
+			Pos: Vec2 {
+				X: 1,
+				Y: 1,
+			},
+		},
+		ObjectData {
+			Pos: Vec2 {
+				X: 2,
+				Y: 1,
+			},
+		},
+		ObjectData {
+			Pos: Vec2 {
+				X: 3,
+				Y: 1,
+			},
+		},
+		ObjectData {
+			Pos: Vec2 {
+				X: 1,
+				Y: 2,
+			},
+		},
+		ObjectData {
+			Pos: Vec2 {
+				X: 3,
+				Y: 2,
+			},
 		},
 	}
-
-	return []StaticData { s }
 }
 
 // Send bytes to all clients
