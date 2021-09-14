@@ -14,7 +14,7 @@ function debugDiv(msg) {
 function waitUntilTrue(predicate, retryTime, callback) {
     setTimeout(
         function () {
-            if (predicate()) {
+            if (predicate) {
                 if (callback != null){
                     callback();
                 }
@@ -23,4 +23,12 @@ function waitUntilTrue(predicate, retryTime, callback) {
                 return;
             }
         }, retryTime);
+}
+
+function defined(object) {
+    return typeof object != 'undefined';
+}
+
+function gameTime() {
+    return defined(window.game) && window.game.id != invalidId;
 }

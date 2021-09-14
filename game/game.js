@@ -94,9 +94,14 @@ function startGame() {
 
 	var animateFrames = 0;
 	function animate() {
-		renderer.render( scene, camera );
+		if (defined(window.game)) {
+			previewPlayers(window.game);
+			updateCamera(window.game);
+		}
+		renderer.render(scene, camera);
 		animateFrames++;
-		requestAnimationFrame( animate );
+
+		requestAnimationFrame(animate);
 	}
 	animate();
 
@@ -117,38 +122,28 @@ function startGame() {
 		renderer: renderer,
 
 		players: new Map(),
+		lastPlayerUpdate: Date.now(),
 		playerRenders: new Map(),
 		statics: [],
 		staticRenders: [],
 	}
 }
 
-function chat(m) {
-	$("#messages").append("<span class='anim-blink'>" + m + "<br></span>");
-	$("#div-messages").scrollTop($("#div-messages")[0].scrollHeight);
-}
-
 function initState(payload, game) {
 	game.id = payload.Id;
 
-	game.playerRenders.forEach(function(val, key, map) {
-		game.scene.remove(val);
+	game.playerRenders.forEach(function(render) {
+		game.scene.remove(render);
 	})
 	game.players.clear();
 	game.playerRenders.clear();
-
-	// Create all other players
-	for (const id of payload.Ids) {
-		newPlayer(id, game);
-	}
 }
 
-function updatePlayers(payload, game) {
+function updateClients(payload, game) {
 	var id = payload.Id;
 	switch(payload.T) {
 		case joinType:
 			chat(payload.C.N + " #" + payload.Id + " just joined!")
-			newPlayer(id, game);
 			break;
 
 		case leftType:
@@ -170,13 +165,6 @@ function updatePlayers(payload, game) {
 	}
 }
 
-function newPlayer(id, game) {
-	game.players.set(id, {});
-
-	game.playerRenders.set(id, new THREE.Mesh(new THREE.BoxGeometry(), id == game.id ? meMaterial : otherMaterial));
-	game.scene.add(game.playerRenders.get(id));
-}
-
 function deletePlayer(id, game) {
 	game.players.delete(id);
 
@@ -190,13 +178,16 @@ function updatePlayerState(payload, game) {
 	for (const id of payload.Ids) {
 		var p = payload.Ps[id];
 
+		if (!game.players.has(id)) {
+			game.playerRenders.set(id, new THREE.Mesh(new THREE.BoxGeometry(), id == game.id ? meMaterial : otherMaterial));
+			game.scene.add(game.playerRenders.get(id));
+		}
+
 		game.players.set(id, p);
 		game.playerRenders.get(id).position.x = p.Pos.X;
 		game.playerRenders.get(id).position.y = p.Pos.Y;
 	}
-
-	game.camera.position.x = game.playerRenders.get(game.id).position.x;
-	game.camera.position.y = game.playerRenders.get(game.id).position.y;
+	game.lastPlayerUpdate = Date.now();
 }
 
 function updateStaticState(payload, game) {
@@ -213,7 +204,23 @@ function updateStaticState(payload, game) {
 		game.staticRenders.push(obj);
 		game.scene.add(obj);
 	}
+}
 
-	debug(game.statics);
-	debug(game.staticRenders);
+function previewPlayers(game) {
+	var timeStepSec = (Date.now() - game.lastPlayerUpdate) / 1000;
+	if (timeStepSec > 0.1) return;
+
+	game.playerRenders.forEach(function(render, id) {
+		var player = game.players.get(id);
+		render.position.x = player.Pos.X  + player.Vel.X * timeStepSec
+		render.position.y = player.Pos.Y + player.Vel.Y * timeStepSec
+	})	
+}
+
+function updateCamera(game) {
+	if (game.id == invalidId) return; 
+	if (!game.playerRenders.has(game.id)) return;
+
+	window.game.camera.position.x = game.playerRenders.get(game.id).position.x;
+	window.game.camera.position.y = game.playerRenders.get(game.id).position.y;
 }

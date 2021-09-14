@@ -11,8 +11,6 @@ import (
 const (
 	maxChatMsgs int = 50
 
-	fps int = 40
-	frame float64 = 1.0 / float64(fps)
 	frameTime time.Duration = 25 * time.Millisecond
 
 	initType int = 1
@@ -95,6 +93,7 @@ type Room struct {
 
 	incoming chan IncomingMsg
 	ticker *time.Ticker
+	lastUpdateTime time.Time
 	register chan *Client
 	unregister chan *Client
 }
@@ -171,7 +170,15 @@ func (r *Room) run() {
 				log.Printf("Parsed message: %+v", msg)
 				r.processMsg(msg, cmsg.client)
 			case _ = <-r.ticker.C:
-				r.updateState()
+				var timeStep time.Duration
+				if r.lastUpdateTime.IsZero() {
+					timeStep = 0
+					r.lastUpdateTime = time.Now()
+				} else {
+					timeStep = time.Now().Sub(r.lastUpdateTime)
+					r.lastUpdateTime = time.Now()
+				}
+				r.updateState(timeStep)
 				r.sendState()
 		}
 	}
@@ -262,9 +269,9 @@ func (r* Room) setState() {
 	}
 }
 
-func (r* Room) updateState() {
+func (r* Room) updateState(timeStep time.Duration) {
 	for c := range r.clients {
-		c.updateState()
+		c.updateState(timeStep)
 	}
 }
 

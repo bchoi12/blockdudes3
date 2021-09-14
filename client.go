@@ -4,6 +4,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/vmihailenco/msgpack/v5"
 	"log"
+	"time"
 )
 
 const (
@@ -17,7 +18,7 @@ const (
 
 	minStopSpeedSquared float64 = 0.2 * 0.2
 
-	friction = 0.15
+	friction float64 = 0.85
 )
 
 type Client struct {
@@ -122,8 +123,10 @@ func (c *Client) setState() {
 	}
 }
 
-func (c *Client) updateState() {
-	c.pd.Vel.add(c.pd.Acc, frame)
+func (c *Client) updateState(timeStep time.Duration) {
+	ts := float64(timeStep) / float64(time.Second)
+
+	c.pd.Vel.add(c.pd.Acc, ts)
 	if dot(c.pd.Vel, c.pd.Acc) <= 0 {
 		c.pd.Vel.scale(friction)
 	}
@@ -132,6 +135,8 @@ func (c *Client) updateState() {
 		c.pd.Vel.scale(0)
 	}
 
-	c.pd.Vel.clamp(maxHorizontalVel, maxVerticalVel)
-	c.pd.Pos.add(c.pd.Vel, frame)
+	c.pd.Vel.clampX(-maxHorizontalVel, maxHorizontalVel)
+	c.pd.Vel.clampY(-maxVerticalVel, maxVerticalVel)
+	
+	c.pd.Pos.add(c.pd.Vel, ts)
 }

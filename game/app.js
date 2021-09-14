@@ -57,7 +57,7 @@ function handlePayload(payload) {
 
 		case joinType:
 		case leftType:
-			updatePlayers(payload, window.game);
+			updateClients(payload, window.game);
 			break;
 
 		case chatType:
@@ -87,4 +87,9 @@ function sendPayload(payload) {
 	var buffer = msgpack.encode(payload);
 	window.ws.send(buffer);
 	return true;
+}
+
+function chat(m) {
+	$("#messages").append("<span class='anim-blink'>" + m + "<br></span>");
+	$("#div-messages").scrollTop($("#div-messages")[0].scrollHeight);
 }

@@ -19,18 +19,28 @@ func (v *Vec2) scale(scale float64) {
 	v.Y *= scale
 }
 
-func (v *Vec2) clamp(xclamp float64, yclamp float64) {
-	if v.X < -xclamp {
-		v.X = -xclamp
-	} else if v.X > xclamp {
-		v.X = xclamp
+func (v *Vec2) clampX(min float64, max float64) bool {
+	if v.X < min {
+		v.X = min
+		return true
+	} 
+	if v.X > max {
+		v.X = max
+		return true
 	}
+	return false
+}
 
-	if v.Y < -yclamp {
-		v.Y = -yclamp
-	} else if v.Y > yclamp {
-		v.Y = yclamp
+func (v *Vec2) clampY(min float64, max float64) bool {
+	if v.Y < min {
+		v.Y = min
+		return true
+	} 
+	if v.Y > max {
+		v.Y = max
+		return true
 	}
+	return false
 }
 
 func (v Vec2) isZero() bool {
