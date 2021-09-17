@@ -173,17 +173,14 @@ func (r *Room) run() {
 				}
 			case client := <-r.unregister:
 				if _, ok := r.clients[client.id]; ok {
-					r.sendLeft(client)
 					r.game.deletePlayer(client)
 					delete(r.clients, client.id)
+					r.sendLeft(client)
 					log.Printf("Unregistering client %d total", len(r.clients))
 				}
-
-				/*
 				if len(r.clients) == 0 {
 					return
 				}
-				*/
 			case cmsg := <-r.incoming:
 				msg := Msg{}
 				err := msgpack.Unmarshal(cmsg.b, &msg)

@@ -19,7 +19,13 @@ html, body {
 
 #div-game div {
 	position: absolute;
+}
+.ui {
 	margin: 6px 12px 6px 12px;
+}
+#div-canvas {
+	margin: 0;
+	padding: 0;
 }
 
 #fps {

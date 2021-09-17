@@ -5,7 +5,7 @@
     <title>game</title>
 
     <link href="/game/style.css" rel="stylesheet">
- 	<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Lato:regular,italic,bold,bolditalic" />
+ 	<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Lato:regular,italic,bold,bolditalic" />
 
 	<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -30,14 +30,14 @@
 			</form>
 		</div>
 		<div id="div-game">
-			<div>	
+			<div id="div-canvas">	
 				<canvas id="renderer" width="800" height="600">Your browser is too old</canvas>
 			</div>
-			<div id="fps" class="no-select"></div>
-			<div id="people" class="no-select"></div>
+			<div id="fps" class="no-select ui"></div>
+			<div id="people" class="no-select ui"></div>
 			<div id="messages" class="no-select chat-hide"></div>
-			<div id="form-send-message" class="no-select">
-				<form action="about:blank" target="iframe-empty" onsubmit="sendChatMessage();">
+			<div id="form-send-message" class="no-select ui">
+				<form action="about:blank" target="iframe-empty" onsubmit="return false;">
 					<input id="message-box" type="text" placeholder="Press enter to chat" maxlength="256">
 					<input type="submit" value="" style="display: none;">
 				</form>
