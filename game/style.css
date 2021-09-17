@@ -1,4 +1,12 @@
-body {
+html, body {
+	margin: 0;
+	padding: 0;
+
+	height: 100%;
+	overflow: hidden;
+
+	font-family: 'Lato';
+	font-size: 2vh;
 }
 
 #debug {
@@ -9,32 +17,69 @@ body {
 	display: none;
 }
 
-#div-chat {
-	height: 300px;
-	display: flex;
+#div-game div {
+	position: absolute;
+	margin: 6px 12px 6px 12px;
+}
+
+#fps {
+	right: 0;
 }
 
 #div-messages {
-	width: 70%;
-	overflow-y: scroll;
+	height: 200px;
+
+	left: 0;
+	bottom: 0;
 }
 
 #messages {
+	width: 24em;
+	height: 12em;
+	overflow-y: scroll;
+}
+#message-box {
+	padding: 0;
+	margin: 0;	
+}
+#form-send-message {
+	display: none;
+	bottom: 0;
+	position: absolute;
 }
 
-#message {
-	width: 65%;
-}
-
-#div-people {
-	padding: 2px;
-	width: 30%;
+#people {
+	left: 0;
 	overflow-y: scroll;
 }
 
 .people-me {
 	font-weight: bold;
 }
+
+.chat-hide {
+	opacity: 0.7;
+}
+
+.message-name {
+	font-weight: bold;
+}
+
+.resizable {
+  min-height: 30px;
+  min-width: 30px;
+  resize: both;
+  overflow: auto;
+  max-height: fit-content;
+  max-width: fit-content;
+}
+.no-select {
+	user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+} 
 
 .anim-blink {
   animation: blinker 0.7s linear 0s 2;
@@ -43,4 +88,9 @@ body {
 	50% {
 		opacity: 0.5;
 	}
+}
+
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent; /* make scrollbar transparent */
 }

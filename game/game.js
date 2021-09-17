@@ -1,6 +1,6 @@
 const meMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
 const otherMaterial = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-const staticMaterial = new THREE.MeshBasicMaterial( {color: 0x777777 } );
+const objectMaterial = new THREE.MeshBasicMaterial( {color: 0x777777 } );
 
 var playerStateUpdates = 0;
 
@@ -9,10 +9,26 @@ function startGame() {
 	$("#div-game").css("display", "block");
 
 	var scene = new THREE.Scene();
-	var camera = new THREE.PerspectiveCamera( 75, renderWidth / renderHeight, 0.1, 1000 );
+	var camera = new THREE.PerspectiveCamera( 75, $("#renderer").width() / $("#renderer").height(), 0.1, 1000 );
+	var renderer = new THREE.WebGLRenderer( {canvas: $("#renderer")[0]});
+	renderer.setClearColor(0xffffff);
 	camera.position.z = 5;
-	renderer = new THREE.WebGLRenderer( {canvas: $("#renderer")[0]});
-	renderer.setSize(renderWidth, renderHeight);
+
+	function resizeCanvas() {
+		var width = $(window).width();
+		var height = $(window).height();
+		
+		$("#renderer").width(width).height(height);
+		renderer.setSize(width, height);
+
+		camera.aspect = width / height;
+		camera.updateProjectionMatrix();
+
+		$("#messages").css("bottom", ($("#form-send-message").height()+4) + "px");
+		$("#message-box").css("width", $("#messages").width() + "px");
+	}
+	resizeCanvas();
+	$(window).resize(resizeCanvas);
 
 	var keys = new Set();
 	function initKeyListeners(keys) {
@@ -27,7 +43,7 @@ function startGame() {
 			if (!keyMap.has(e.keyCode)) {
 				return;
 			}
-			if ($("#message").is(":focus")) {
+			if ($("#message-box").is(":focus")) {
 				return;
 			}
 
@@ -44,7 +60,7 @@ function startGame() {
 			if (!keyMap.has(e.keyCode)) {
 				return;
 			}
-			if ($("#message").is(":focus")) {
+			if ($("#message-box").is(":focus")) {
 				return;
 			}
 
@@ -56,34 +72,49 @@ function startGame() {
 		});
 
 		function sendChatMessage() {
-			if (!$("#message").is(":focus")) {
+			function showChat() {
+				$("#messages").removeClass("chat-hide");
+				$("#messages").removeClass("no-select");
+				$("#form-send-message").css("display", "block");
+				$("#message-box").focus();
+				pointerUnlock();
+			}
+			function hideChat() {
+				$("#messages").addClass("chat-hide");
+				$("#messages").addClass("no-select");
+				$("#form-send-message").css("display", "none");
+				$("#message-box").blur();
+				pointerLock();
+			}
+
+			if ($("#messages").hasClass("chat-hide")) {
 				if (keys.size > 0) {
 					keys.clear();
 					sendKeyMessage();
 				}
-				$("#message").focus();
+				showChat();
 				return;
 			}
 
-			if ($("#message").val().length === 0) {
-				$("#message").blur();
+			if ($("#message-box").val().length === 0) {
+				hideChat();
 				return;
 			}
 
 			if (typeof window.ws === 'undefined') {
-				chat("Unable to send message, connection to server lost.");
+				gameMessage("Unable to send message, connection to server lost.");
 				return;
 			}
 
 			var payload = {T: chatType, Chat: {
-				M: $("#message").val().trim(),
+				M: $("#message-box").val().trim(),
 			}}
 
 			if (sendPayload(payload)) {
-				$("#message").val("");
-				$("#message").blur();
+				$("#message-box").val("");
+				hideChat();
 			} else {
-				chat("Failed to send chat message!");
+				gameMessage("Failed to send chat message!");
 			}
 		}
 		function sendKeyMessage() {
@@ -106,7 +137,7 @@ function startGame() {
 	animate();
 
 	function calcFps() {
-		$("#fps").html("server @" + playerStateUpdates + " fps, drawing @" + animateFrames + " fps");
+		$("#fps").text("UPS: " + playerStateUpdates + " | FPS: " + animateFrames);
 		playerStateUpdates = 0;
 		animateFrames = 0;
 		setTimeout(calcFps, 1000);
@@ -124,13 +155,13 @@ function startGame() {
 		players: new Map(),
 		lastPlayerUpdate: Date.now(),
 		playerRenders: new Map(),
-		statics: [],
-		staticRenders: [],
+		objects: new Map(),
+		objectRenders: new Map(),
 	}
 }
 
 function initState(payload, game) {
-	game.id = payload.Id;
+	game.id = "" + payload.Id;
 
 	game.playerRenders.forEach(function(render) {
 		game.scene.remove(render);
@@ -139,29 +170,28 @@ function initState(payload, game) {
 	game.playerRenders.clear();
 }
 
-function updateClients(payload, game) {
-	var id = payload.Id;
+function updatePlayers(payload, game) {
+	debug(payload);
+
+	var id = "" + payload.Id;
 	switch(payload.T) {
 		case joinType:
-			chat(payload.C.N + " #" + payload.Id + " just joined!")
+			gameMessage(payload.C.N + " #" + id + " just joined!")
 			break;
 
 		case leftType:
-			chat(payload.C.N + " #" + payload.Id + " left")
+			gameMessage(payload.C.N + " #" + id + " left")
 			deletePlayer(id, game);
 			break;
 	}
 
-	$("#people").html("People<br>");
-
-	for (const id of payload.Ids) {
-		var name = payload.Cs[id].N + " #" + id;
-		var html = name;
-		if (id === game.id) {
-			html = "<span class='people-me'>" + html + "</span>";
-		}
-		html += "<br>";
+	$("#people").html("");
+	for (let [id, client] of Object.entries(payload.Cs)) {
+		var name = client.N + " #" + id;
+		var html = id == game.id ? $("<span class='people-me'></span>") : $("<span></span>");
+		html.text(name)
 		$("#people").append(html);
+		$("#people").append("<br>");
 	}
 }
 
@@ -175,9 +205,7 @@ function deletePlayer(id, game) {
 function updatePlayerState(payload, game) {
 	playerStateUpdates++;
 
-	for (const id of payload.Ids) {
-		var p = payload.Ps[id];
-
+	for (let [id, p] of Object.entries(payload.Ps)) {
 		if (!game.players.has(id)) {
 			game.playerRenders.set(id, new THREE.Mesh(new THREE.BoxGeometry(), id == game.id ? meMaterial : otherMaterial));
 			game.scene.add(game.playerRenders.get(id));
@@ -190,19 +218,21 @@ function updatePlayerState(payload, game) {
 	game.lastPlayerUpdate = Date.now();
 }
 
-function updateStaticState(payload, game) {
-	for (const render of game.staticRenders) {
+function initObjects(payload, game) {
+	for (const render of game.objectRenders) {
 		game.scene.remove(render);
 	}
+	game.objects.clear();
+	game.objectRenders.clear();
 
-	game.statics = payload.Ss;
-	game.staticRenders = [];
-	for (const s of game.statics) {
-		var obj = new THREE.Mesh(new THREE.BoxGeometry(), staticMaterial);
-		obj.position.x = s.Pos.X;
-		obj.position.y = s.Pos.Y;
-		game.staticRenders.push(obj);
-		game.scene.add(obj);
+	for (let [id, object] of Object.entries(payload.Os)) {
+		game.objects.set(id, object);
+
+		var mesh = new THREE.Mesh(new THREE.BoxGeometry(), objectMaterial);
+		mesh.position.x = object.Pos.X;
+		mesh.position.y = object.Pos.Y;
+		game.objectRenders.set(id, mesh);
+		game.scene.add(mesh);
 	}
 }
 
@@ -223,4 +253,30 @@ function updateCamera(game) {
 
 	window.game.camera.position.x = game.playerRenders.get(game.id).position.x;
 	window.game.camera.position.y = game.playerRenders.get(game.id).position.y;
+}
+
+function gameMessage(message) {
+	chat("", message);
+}
+
+function requestFullScreen() {
+	var canvas = document.getElementById("renderer");
+
+	canvas.requestFullScreen = canvas.requestFullScreen || canvas.webkitRequestFullScreen || canvas.mozRequestFullScreen;
+	canvas.requestFullScreen();
+}
+
+function pointerLock() {
+	var canvas = document.getElementById("renderer");
+	canvas.requestPointerLock = canvas.requestPointerLock ||
+		     canvas.mozRequestPointerLock ||
+		     canvas.webkitRequestPointerLock;
+	canvas.requestPointerLock();
+}
+
+function pointerUnlock() {
+	document.exitPointerLock = document.exitPointerLock ||
+				   document.mozExitPointerLock ||
+				   document.webkitExitPointerLock;
+	document.exitPointerLock();	
 }

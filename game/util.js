@@ -28,7 +28,3 @@ function waitUntilTrue(predicate, retryTime, callback) {
 function defined(object) {
     return typeof object != 'undefined';
 }
-
-function gameTime() {
-    return defined(window.game) && window.game.id != invalidId;
-}

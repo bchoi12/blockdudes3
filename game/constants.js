@@ -6,8 +6,9 @@ const leftType  = 6
 
 const chatType = 2
 const keyType = 3
+const playerInitType = 8
 const playerStateType = 4
-const staticStateType =7
+const objectInitType =7
 
 const upKey = 1
 const downKey = 2
@@ -26,7 +27,4 @@ keyMap.set(65, leftKey)
 keyMap.set(39, rightKey)
 keyMap.set(68, rightKey)
 
-const renderWidth = 800;
-const renderHeight = 600;
-
-const invalidId = -1;
+const invalidId = '';

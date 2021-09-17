@@ -8,7 +8,7 @@ $(document).ready(function() {
 });
 
 function connect() {
-	if (typeof window.ws != 'undefined') {
+	if (defined(window.ws)) {
 		debug("Requested connection when one already exists.")
 		return;
 	}
@@ -35,17 +35,17 @@ function connect() {
 }
 
 function handlePayload(payload) {
-	if (typeof payload.T === 'undefined') {
+	if (!defined(payload.T)) {
 		debug("Error! Missing type for payload");
 		return;
 	}
 
-	if (typeof window.game === 'undefined') {
+	if (!defined(window.game)) {
 		debug("Error! Game is not loaded");
 		return;
 	}
 
-	if (payload.T != initType && window.game.id === invalidId) {
+	if (payload.T != initType && window.game.id == invalidId) {
 		debug("Error! Failed to initialize");
 		return;
 	}
@@ -57,20 +57,19 @@ function handlePayload(payload) {
 
 		case joinType:
 		case leftType:
-			updateClients(payload, window.game);
+			updatePlayers(payload, window.game);
 			break;
 
 		case chatType:
-			chat(payload.N + ": " + payload.M);
+			chat(payload.N + " #" + payload.Id, payload.M);
 			break;
 
 		case playerStateType:
 			updatePlayerState(payload, window.game);
 			return;
 
-		case staticStateType:
-			debug(payload);
-			updateStaticState(payload, window.game);
+		case objectInitType:
+			initObjects(payload, window.game);
 			return;
 
 		default:
@@ -80,7 +79,7 @@ function handlePayload(payload) {
 }
 
 function sendPayload(payload) {
-	if (typeof window.ws === 'undefined') {
+	if (!defined(window.ws)) {
 		return false;
 	}
 
@@ -89,7 +88,18 @@ function sendPayload(payload) {
 	return true;
 }
 
-function chat(m) {
-	$("#messages").append("<span class='anim-blink'>" + m + "<br></span>");
-	$("#div-messages").scrollTop($("#div-messages")[0].scrollHeight);
+function chat(from, message) {
+	if (!defined(message) || message.length == 0) return;
+
+	if (from.length > 0) {
+		var name = $("<span class='message-name'></span>");
+		name.text(from + ": ");
+		$("#messages").append(name);
+	}
+
+	var msg = $("<span></span>");
+	msg.text(message);
+	$("#messages").append(msg);
+	$("#messages").append("<br>");
+	$("#messages").scrollTop($("#messages")[0].scrollHeight);
 }
