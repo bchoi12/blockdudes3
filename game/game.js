@@ -77,14 +77,12 @@ function startGame() {
 				$("#messages").removeClass("no-select");
 				$("#form-send-message").css("display", "block");
 				$("#message-box").focus();
-				pointerUnlock();
 			}
 			function hideChat() {
 				$("#messages").addClass("chat-hide");
 				$("#messages").addClass("no-select");
 				$("#form-send-message").css("display", "none");
 				$("#message-box").blur();
-				pointerLock();
 			}
 
 			if ($("#messages").hasClass("chat-hide")) {
