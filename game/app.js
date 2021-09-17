@@ -55,6 +55,10 @@ function handlePayload(payload) {
 			initState(payload, window.game);
 			break;
 
+		case pingType:
+			recordPing(window.game);
+			break;
+
 		case joinType:
 		case leftType:
 			updatePlayers(payload, window.game);

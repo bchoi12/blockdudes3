@@ -1,5 +1,6 @@
 const dev = location.hostname === "localhost" || location.hostname === "127.0.0.1";
 
+const pingType = 9
 const initType = 1
 const joinType = 5
 const leftType  = 6

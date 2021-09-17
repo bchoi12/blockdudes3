@@ -3,7 +3,6 @@ const otherMaterial = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 const objectMaterial = new THREE.MeshBasicMaterial( {color: 0x777777 } );
 
 var playerStateUpdates = 0;
-
 function startGame() {
 	$("#div-login").css("display", "none");
 	$("#div-game").css("display", "block");
@@ -134,17 +133,26 @@ function startGame() {
 	}
 	animate();
 
-	function calcFps() {
-		$("#fps").text("UPS: " + playerStateUpdates + " | FPS: " + animateFrames);
+	function calcStats() {
+		var ping = 0;
+		if (defined(window.game)) {
+			ping = window.game.ping;
+			sendPayload({T: pingType });
+			window.game.lastPing = Date.now();
+		}
+		$("#fps").text("Ping: " + ping + " | UPS: " + playerStateUpdates + " | FPS: " + animateFrames);
+
 		playerStateUpdates = 0;
 		animateFrames = 0;
-		setTimeout(calcFps, 1000);
+		setTimeout(calcStats, 1000);
 	}
-	calcFps();
+	calcStats();
 
 	return {
 		id: invalidId,
 		keys: keys,
+		ping: 0,
+		lastPing: Date.now(),
 
 		scene: scene,
 		camera: camera,
@@ -169,8 +177,6 @@ function initState(payload, game) {
 }
 
 function updatePlayers(payload, game) {
-	debug(payload);
-
 	var id = "" + payload.Id;
 	switch(payload.T) {
 		case joinType:
@@ -255,6 +261,9 @@ function updateCamera(game) {
 
 function gameMessage(message) {
 	chat("", message);
+}
+function recordPing(game) {
+	game.ping = Date.now() - game.lastPing;
 }
 
 function requestFullScreen() {

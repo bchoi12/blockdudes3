@@ -12,6 +12,7 @@ const (
 	maxChatMsgLength int = 256
 	frameTime time.Duration = 25 * time.Millisecond
 
+	pingType int = 9
 	initType int = 1
 	joinType int = 5
 	leftType int = 6
@@ -22,6 +23,10 @@ const (
 	playerInitType int = 8
 	objectInitType int = 7
 )
+
+type PingMsg struct {
+	T int
+}
 
 type ClientMsg struct {
 	T int
@@ -85,6 +90,7 @@ type KeyMsg struct {
 type Msg struct {
 	//	_msgpack struct{} `msgpack:",omitempty"`
 	T int
+	Ping PingMsg
 	Chat ChatMsg
 	Key KeyMsg
 	Join ClientMsg
@@ -200,6 +206,15 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 	var err error
 
 	switch(msg.T) {
+	case pingType:
+		outMsg := PingMsg {
+			T: pingType,
+		}
+		b, err = msgpack.Marshal(&outMsg)
+		if err != nil {
+			break
+		}
+		c.send(b)
 	case chatType:
 		newMsg := replacer.Replace(msg.Chat.M)
 		if len(newMsg) > maxChatMsgLength {
