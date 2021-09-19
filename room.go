@@ -10,7 +10,7 @@ import (
 
 const (
 	maxChatMsgLength int = 256
-	frameTime time.Duration = 25 * time.Millisecond
+	frameTime time.Duration = 20 * time.Millisecond
 
 	pingType int = 9
 	initType int = 1
@@ -46,32 +46,13 @@ type PlayerInitMsg struct {
 
 type PlayerStateMsg struct {
 	T int
+	Int int
 	Ps map[int]PlayerData
-}
-
-type PlayerInitData struct {
-	Pos Vec2
-	Dim Vec2
-}
-
-type PlayerData struct {
-	Pos Vec2
-	Vel Vec2
-	Acc Vec2
 }
 
 type ObjectInitMsg struct {
 	T int
 	Os map[int]ObjectInitData
-}
-
-type ObjectInitData struct {
-	Pos Vec2
-	Dim Vec2
-}
-
-type ObjectData struct {
-	Pos Vec2
 }
 
 type ChatMsg struct {
@@ -179,9 +160,9 @@ func (r *Room) run() {
 				}
 			case client := <-r.unregister:
 				if _, ok := r.clients[client.id]; ok {
+					r.sendLeft(client)
 					r.game.deletePlayer(client)
 					delete(r.clients, client.id)
-					r.sendLeft(client)
 					log.Printf("Unregistering client %d total", len(r.clients))
 				}
 				if len(r.clients) == 0 {
@@ -297,6 +278,9 @@ func (r *Room) createClientMsg(msgType int, c *Client) ClientMsg {
 		Cs: make(map[int]ClientData, 0),
 	}
 	for id, client := range r.clients {
+		if msgType == leftType && id == c.id {
+			continue
+		}
 		msg.Cs[id] = ClientData {N: client.name}
 	}
 

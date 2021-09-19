@@ -2,7 +2,6 @@ const meMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
 const otherMaterial = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 const objectMaterial = new THREE.MeshBasicMaterial( {color: 0x777777 } );
 
-var playerStateUpdates = 0;
 function startGame() {
 	$("#div-login").css("display", "none");
 	$("#div-game").css("display", "block");
@@ -12,6 +11,30 @@ function startGame() {
 	var renderer = new THREE.WebGLRenderer( {canvas: $("#renderer")[0]});
 	renderer.setClearColor(0xffffff);
 	camera.position.z = 5;
+
+	window.game = {
+		id: invalidId,
+		keys: new Set(),
+
+		scene: scene,
+		camera: camera,
+		renderer: renderer,
+
+		players: new Map(),
+		playerRenders: new Map(),
+		objects: new Map(),
+		objectRenders: new Map(),		
+	};
+	window.timing = {
+		ping: 0,
+		lastPing: Date.now(),
+
+		animateFrames: 0,
+
+		serverUpdates: 0,	// delete later
+		lastUpdate: Date.now(),
+		intervalDiff: 0,
+	};
 
 	function resizeCanvas() {
 		var width = $(window).width();
@@ -29,8 +52,8 @@ function startGame() {
 	resizeCanvas();
 	$(window).resize(resizeCanvas);
 
-	var keys = new Set();
-	function initKeyListeners(keys) {
+	function initKeyListeners() {
+		var keys = window.game.keys;
 		$(document).keydown(function(e) {
 			e = e || window.event;
 
@@ -118,52 +141,28 @@ function startGame() {
 			sendPayload({T: keyType, Key: {K: Array.from(keys) }});
 		}
 	}
-	initKeyListeners(keys);
+	initKeyListeners();
 
-	var animateFrames = 0;
 	function animate() {
-		if (defined(window.game)) {
-			previewPlayers(window.game);
-			updateCamera(window.game);
-		}
+		previewPlayers(window.game, window.timing);
+		updateCamera(window.game);
 		renderer.render(scene, camera);
-		animateFrames++;
+		window.timing.animateFrames++;
 
 		requestAnimationFrame(animate);
 	}
 	animate();
 
-	function calcStats() {
-		var ping = 0;
-		if (defined(window.game)) {
-			ping = window.game.ping;
-			sendPayload({T: pingType });
-			window.game.lastPing = Date.now();
-		}
-		$("#fps").text("Ping: " + ping + " | UPS: " + playerStateUpdates + " | FPS: " + animateFrames);
+	function updateTimings(timing) {
+		$("#fps").text("Ping: " + window.timing.ping + " | Diff: " + window.timing.intervalDiff + " | UPS: " + window.timing.serverUpdates + " | FPS: " + window.timing.animateFrames);
 
-		playerStateUpdates = 0;
-		animateFrames = 0;
-		setTimeout(calcStats, 1000);
+		sendPayload({T: pingType });
+		window.timing.lastPing = Date.now();
+		window.timing.serverUpdates = 0;
+		window.timing.animateFrames = 0;
+		setTimeout(updateTimings, 1000);
 	}
-	calcStats();
-
-	return {
-		id: invalidId,
-		keys: keys,
-		ping: 0,
-		lastPing: Date.now(),
-
-		scene: scene,
-		camera: camera,
-		renderer: renderer,
-
-		players: new Map(),
-		lastPlayerUpdate: Date.now(),
-		playerRenders: new Map(),
-		objects: new Map(),
-		objectRenders: new Map(),
-	}
+	updateTimings();
 }
 
 function initState(payload, game) {
@@ -206,9 +205,7 @@ function deletePlayer(id, game) {
 	game.playerRenders.delete(id);	
 }
 
-function updatePlayerState(payload, game) {
-	playerStateUpdates++;
-
+function updatePlayerState(payload, game, timing) {
 	for (let [id, p] of Object.entries(payload.Ps)) {
 		if (!game.players.has(id)) {
 			game.playerRenders.set(id, new THREE.Mesh(new THREE.BoxGeometry(), id == game.id ? meMaterial : otherMaterial));
@@ -219,7 +216,9 @@ function updatePlayerState(payload, game) {
 		game.playerRenders.get(id).position.x = p.Pos.X;
 		game.playerRenders.get(id).position.y = p.Pos.Y;
 	}
-	game.lastPlayerUpdate = Date.now();
+	timing.serverUpdates++;
+	timing.intervalDiff = payload.Int - (Date.now() - timing.lastUpdate);
+	timing.lastUpdate = Date.now();
 }
 
 function initObjects(payload, game) {
@@ -240,8 +239,8 @@ function initObjects(payload, game) {
 	}
 }
 
-function previewPlayers(game) {
-	var timeStepSec = (Date.now() - game.lastPlayerUpdate) / 1000;
+function previewPlayers(game, timing) {
+	var timeStepSec = (Date.now() - timing.lastUpdate) / 1000;
 	if (timeStepSec > 0.1) return;
 
 	game.playerRenders.forEach(function(render, id) {
@@ -255,15 +254,15 @@ function updateCamera(game) {
 	if (game.id == invalidId) return; 
 	if (!game.playerRenders.has(game.id)) return;
 
-	window.game.camera.position.x = game.playerRenders.get(game.id).position.x;
-	window.game.camera.position.y = game.playerRenders.get(game.id).position.y;
+	game.camera.position.x = game.playerRenders.get(game.id).position.x;
+	game.camera.position.y = game.playerRenders.get(game.id).position.y;
 }
 
 function gameMessage(message) {
 	chat("", message);
 }
-function recordPing(game) {
-	game.ping = Date.now() - game.lastPing;
+function recordPing(timing) {
+	timing.ping = Date.now() - timing.lastPing;
 }
 
 function requestFullScreen() {

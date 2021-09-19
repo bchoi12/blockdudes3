@@ -16,7 +16,9 @@ type Game struct {
 	chatQueue []ChatMsg
 
 	lastUpdateTime time.Time
+	updateInterval time.Duration
 }
+
 func newGame() *Game {
 	game := &Game {
 		players: make(map[int]*Player, 0),
@@ -35,6 +37,15 @@ type Object struct {
 	Profile
 
 	static bool
+}
+
+type ObjectInitData struct {
+	Pos Vec2
+	Dim Vec2
+}
+
+type ObjectData struct {
+	Pos Vec2
 }
 
 func (g *Game) addPlayer(c *Client) {
@@ -81,6 +92,7 @@ func (g *Game) updateState() {
 		timeStep = time.Now().Sub(g.lastUpdateTime)
 	}
 	g.lastUpdateTime = time.Now()
+	g.updateInterval = timeStep
 
 	for _, p := range(g.players) {
 		p.updateState(timeStep)
@@ -133,6 +145,7 @@ func (g *Game) createObjectInitMsg() ObjectInitMsg {
 func (g *Game) createPlayerStateMsg() PlayerStateMsg {
 	msg := PlayerStateMsg{
 		T: playerStateType,
+		Int: int(g.updateInterval / time.Millisecond),
 		Ps: make(map[int]PlayerData, 0),
 	}
 

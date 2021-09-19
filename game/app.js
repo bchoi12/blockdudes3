@@ -21,7 +21,7 @@ function connect() {
 
 	window.ws.onopen = function() {
 		debug("starting game");
-		window.game = startGame();
+		startGame();
 	};
 	window.ws.onmessage = function(event) {
 		var payload = msgpack.decode(new Uint8Array(event.data));
@@ -56,7 +56,7 @@ function handlePayload(payload) {
 			break;
 
 		case pingType:
-			recordPing(window.game);
+			recordPing(window.timing);
 			break;
 
 		case joinType:
@@ -69,7 +69,7 @@ function handlePayload(payload) {
 			break;
 
 		case playerStateType:
-			updatePlayerState(payload, window.game);
+			updatePlayerState(payload, window.game, window.timing);
 			return;
 
 		case objectInitType:

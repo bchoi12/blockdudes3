@@ -29,6 +29,17 @@ type Player struct {
 	keys map[int]bool
 }
 
+type PlayerInitData struct {
+	Pos Vec2
+	Dim Vec2
+}
+
+type PlayerData struct {
+	Pos Vec2
+	Vel Vec2
+	Acc Vec2
+}
+
 func (p *Player) setState() {
 	acc := NewVec2(0, 0)
 
