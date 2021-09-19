@@ -217,7 +217,7 @@ function updatePlayerState(payload, game, timing) {
 		game.playerRenders.get(id).position.y = p.Pos.Y;
 	}
 	timing.serverUpdates++;
-	timing.intervalDiff = payload.Int - (Date.now() - timing.lastUpdate);
+	timing.intervalDiff = (Date.now() - timing.lastUpdate) - payload.Int;
 	timing.lastUpdate = Date.now();
 }
 
@@ -240,8 +240,8 @@ function initObjects(payload, game) {
 }
 
 function previewPlayers(game, timing) {
-	var timeStepSec = (Date.now() - timing.lastUpdate) / 1000;
-	if (timeStepSec > 0.1) return;
+	var timeStepSec = (Date.now() - (timing.lastUpdate - timing.intervalDiff)) / 1000;
+	if (timeStepSec > 0.25) return;
 
 	game.playerRenders.forEach(function(render, id) {
 		var player = game.players.get(id);
