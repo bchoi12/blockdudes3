@@ -217,7 +217,7 @@ function updatePlayerState(payload, game, timing) {
 		game.playerRenders.get(id).position.y = p.Pos.Y;
 	}
 	timing.serverUpdates++;
-	timing.intervalDiff = (Date.now() - timing.lastUpdate) - payload.Int;
+	timing.intervalDiff = Math.max((Date.now() - timing.lastUpdate) - payload.Int, 0);
 	timing.lastUpdate = Date.now();
 }
 
@@ -241,12 +241,12 @@ function initObjects(payload, game) {
 
 function previewPlayers(game, timing) {
 	var timeStepSec = (Date.now() - (timing.lastUpdate - timing.intervalDiff)) / 1000;
-	if (timeStepSec > 0.25) return;
+	if (timeStepSec > 0.3) return;
 
 	game.playerRenders.forEach(function(render, id) {
 		var player = game.players.get(id);
-		render.position.x = player.Pos.X  + player.Vel.X * timeStepSec
-		render.position.y = player.Pos.Y + player.Vel.Y * timeStepSec
+		render.position.x = player.Pos.X  + player.Vel.X * timeStepSec + 0.5 * player.Acc.X * timeStepSec * timeStepSec
+		render.position.y = player.Pos.Y + player.Vel.Y * timeStepSec + 0.5 * player.Acc.X * timeStepSec * timeStepSec
 	})	
 }
 
