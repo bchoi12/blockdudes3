@@ -153,11 +153,15 @@ function startGame() {
 	}
 	animate();
 
-	function updateTimings(timing) {
-		$("#fps").text("Ping: " + window.timing.ping + " | Diff: " + window.timing.intervalDiff + " | UPS: " + window.timing.serverUpdates + " | FPS: " + window.timing.animateFrames);
-
+	function ping() {
 		sendPayload({T: pingType });
 		window.timing.lastPing = Date.now();
+		setTimeout(ping, 1000);
+	}
+	ping();
+
+	function updateTimings() {
+		$("#fps").text("Ping: " + window.timing.ping + " | Diff: " + window.timing.intervalDiff + " | UPS: " + window.timing.serverUpdates + " | FPS: " + window.timing.animateFrames);
 		window.timing.serverUpdates = 0;
 		window.timing.animateFrames = 0;
 		setTimeout(updateTimings, 1000);

@@ -20,7 +20,7 @@ function connect() {
 	window.ws.binaryType = "arraybuffer";
 
 	window.ws.onopen = function() {
-		debug("starting game");
+		initWebRTC();
 		startGame();
 	};
 	window.ws.onmessage = function(event) {
@@ -30,8 +30,59 @@ function connect() {
 	window.ws.onclose = function() {
 		debug("connection closed, opening a new one")
 		delete window.ws;
-		connect();
+		//connect();
 	};
+}
+
+function initWebRTC() {
+	function onIceCandidate(event){
+		if (event && event.candidate) {
+			sendPayload({T: candidateType, JSON: event.candidate.toJSON() });
+		}
+	}
+	function onOfferCreated(description) {
+		window.wrtc.setLocalDescription(description);
+		sendPayload({T: offerType, JSON: description });
+	}
+
+	var config = { iceServers: [{ url: 'stun:stun.l.google.com:19302' }] };
+	window.wrtc = new RTCPeerConnection(config);
+	const dataChannelConfig = { ordered: false, maxRetransmits: 0 };
+	window.dataChannel = window.wrtc.createDataChannel('data', dataChannelConfig);
+	const sdpConstraints = {
+	    mandatory: {
+	      OfferToReceiveAudio: false,
+	      OfferToReceiveVideo: false,
+	    },
+	};
+	window.wrtc.onicecandidate = onIceCandidate;
+	window.wrtc.createOffer(onOfferCreated, () => {}, sdpConstraints);
+
+	window.wrtc.ondatachannel = function(event) {
+		function onMessage(event) {
+			var payload = msgpack.decode(new Uint8Array(event.data));
+			handlePayload(payload);
+		}
+		window.dataChannel = event.channel;
+		window.dataChannel.onmessage = onMessage;
+	}
+}
+
+function setRemoteDescription(payload) {
+	var options = {
+		type: "answer",
+		sdp: payload.JSON["SDP"],
+	}
+	window.wrtc.setRemoteDescription(new RTCSessionDescription(options));
+}
+
+function addIceCandidate(payload) {
+	var options = {
+		candidate: payload.JSON["Candidate"],
+		sdpMid: payload.JSON["SDPMid"],
+		sdpMLineIndex: payload.JSON["SDPMLineIndex"],
+	}
+    window.wrtc.addIceCandidate(new RTCIceCandidate(options));
 }
 
 function handlePayload(payload) {
@@ -45,18 +96,22 @@ function handlePayload(payload) {
 		return;
 	}
 
-	if (payload.T != initType && window.game.id == invalidId) {
-		debug("Error! Failed to initialize");
-		return;
-	}
-
 	switch(payload.T) {
-		case initType:
-			initState(payload, window.game);
+		case pingType:
+			debug(payload);
+			recordPing(window.timing);
 			break;
 
-		case pingType:
-			recordPing(window.timing);
+		case answerType:
+			setRemoteDescription(payload);
+			break;
+
+		case candidateType:
+			addIceCandidate(payload);
+			break;
+
+		case initType:
+			initState(payload, window.game);
 			break;
 
 		case joinType:
@@ -70,11 +125,11 @@ function handlePayload(payload) {
 
 		case playerStateType:
 			updatePlayerState(payload, window.game, window.timing);
-			return;
+			break;
 
 		case objectInitType:
 			initObjects(payload, window.game);
-			return;
+			break;
 
 		default:
 			debug("Error, unknown type " + payload.T)
@@ -86,7 +141,6 @@ function sendPayload(payload) {
 	if (!defined(window.ws)) {
 		return false;
 	}
-
 	var buffer = msgpack.encode(payload);
 	window.ws.send(buffer);
 	return true;

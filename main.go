@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/pion/webrtc/v3"
 	"log"
 	"net/http"
 	"os"
@@ -31,21 +32,30 @@ func main() {
 }
 
 func newClientHandler(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Printf("Failed to create websocket: %v", err)
-		return
-	}
-
 	stuff := strings.Split(r.URL.Path[len(newClient):], "&")
 	if len(stuff) != 2 {
 		log.Printf("Malformed request: %s", r.URL.Path)
 		return
 	}
 
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("Failed to create websocket: %v", err)
+		return
+	}
+
+	config := webrtc.Configuration{
+		ICEServers: []webrtc.ICEServer{
+			{
+				URLs: []string{"stun:stun.l.google.com:19302"},
+			},
+		},
+	}
+	wrtc, err := webrtc.NewPeerConnection(config)
+
 	const (
-		roomPrefix = "room="
-		namePrefix = "name="
+		roomPrefix string = "room="
+		namePrefix string = "name="
 	)
 	var room string
 	var name string
@@ -69,5 +79,5 @@ func newClientHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createOrJoinRoom(room, name, ws)
+	createOrJoinRoom(room, name, ws, wrtc)
 }

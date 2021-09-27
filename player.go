@@ -44,21 +44,17 @@ func (p *Player) setState() {
 	acc := NewVec2(0, 0)
 
 	if p.keys[upKey] {
-		acc.Y = upAcc
-	} else if p.keys[downKey] {
-		acc.Y = downAcc
-	} else {
-		acc.Y = 0
+		acc.Y += upAcc
+	} 
+	if p.keys[downKey] {
+		acc.Y += downAcc
 	}
-
 	if p.keys[leftKey] {
-		acc.X = leftAcc
-	} else if p.keys[rightKey] {
-		acc.X = rightAcc
-	} else {
-		acc.X = 0
+		acc.X += leftAcc
 	}
-
+	if p.keys[rightKey] {
+		acc.X += rightAcc
+	}
 	p.Profile.SetAcc(acc)
 }
 
