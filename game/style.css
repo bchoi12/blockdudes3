@@ -9,14 +9,9 @@ html, body {
 	font-size: 2vh;
 }
 
-#debug {
-	display: none;
-}
-
 #div-game {
 	display: none;
 }
-
 #div-game div {
 	position: absolute;
 }
@@ -28,9 +23,8 @@ html, body {
 	padding: 0;
 }
 
-#fps {
+#stats {
 	right: 0;
-
 	font-size: 0.8em;
 }
 

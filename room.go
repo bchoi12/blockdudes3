@@ -122,7 +122,7 @@ var replacer = strings.NewReplacer(
     "shit", "poop",
 )
 
-func createOrJoinRoom(roomId string, name string, ws *websocket.Conn, wrtc *webrtc.PeerConnection) {
+func createOrJoinRoom(roomId string, name string, ws *websocket.Conn) {
 	if rooms[roomId] == nil {
 		rooms[roomId] = &Room {
 			id: roomId,
@@ -144,7 +144,6 @@ func createOrJoinRoom(roomId string, name string, ws *websocket.Conn, wrtc *webr
 	client := &Client {
 		room: rooms[roomId],
 		ws: ws,
-		wrtc: wrtc,
 		id: rooms[roomId].nextClientId,
 		name: name,
 	}

@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/gorilla/websocket"
-	"github.com/pion/webrtc/v3"
 	"log"
 	"net/http"
 	"os"
@@ -44,15 +43,6 @@ func newClientHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config := webrtc.Configuration{
-		ICEServers: []webrtc.ICEServer{
-			{
-				URLs: []string{"stun:stun.l.google.com:19302"},
-			},
-		},
-	}
-	wrtc, err := webrtc.NewPeerConnection(config)
-
 	const (
 		roomPrefix string = "room="
 		namePrefix string = "name="
@@ -79,5 +69,5 @@ func newClientHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createOrJoinRoom(room, name, ws, wrtc)
+	createOrJoinRoom(room, name, ws)
 }

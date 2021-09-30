@@ -1,17 +1,10 @@
-function debug(msg) {
+function debug(msg : string) : void {
 	if (dev) {
 		console.log(msg)
 	}
 }
 
-function debugDiv(msg) {
-    if (dev) {
-        $("#debug").css("display", "block");
-        $("#debug").append("DEBUG: " + msg + "<br>");
-    }
-}
-
-function waitUntilTrue(predicate, retryTime, callback) {
+function waitUntilTrue(predicate, retryTime : number, callback) : void {
     setTimeout(
         function () {
             if (predicate) {
@@ -25,6 +18,13 @@ function waitUntilTrue(predicate, retryTime, callback) {
         }, retryTime);
 }
 
-function defined(object) {
+function defined(object : any) : boolean {
     return typeof object != 'undefined';
+}
+
+function elm(id : string) : HTMLElement {
+    return document.getElementById(id);
+}
+function inputElm(id : string) : HTMLInputElement {
+    return (<HTMLInputElement>document.getElementById(id));
 }
