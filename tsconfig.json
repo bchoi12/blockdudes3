@@ -11,6 +11,7 @@
         "ts/connection.ts",
         "ts/constants.ts",
         "ts/game.ts",
+        "ts/renderer.ts",
         "ts/ui.ts",
         "ts/util.ts",
     ]

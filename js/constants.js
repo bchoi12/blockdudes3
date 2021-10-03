@@ -1,17 +1,1 @@
 const dev = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-const pingType = 9;
-const candidateType = 10;
-const offerType = 11;
-const answerType = 12;
-const initType = 1;
-const joinType = 5;
-const leftType = 6;
-const chatType = 2;
-const keyType = 3;
-const playerInitType = 8;
-const playerStateType = 4;
-const objectInitType = 7;
-const upKey = 1;
-const downKey = 2;
-const leftKey = 3;
-const rightKey = 4;

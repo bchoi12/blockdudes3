@@ -5,79 +5,20 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pion/webrtc/v3"
 	"log"
-	"strings"
 	"time"
 )
 
 const (
-	maxChatMsgLength int = 256
 	frameTime time.Duration = 25 * time.Millisecond
-
-	pingType int = 9
-	candidateType int = 10
-	offerType int = 11
-	answerType int = 12
-
-	initType int = 1
-	joinType int = 5
-	leftType int = 6
-	chatType int = 2
-	keyType int = 3
-
-	playerStateType int = 4
-	playerInitType int = 8
-	objectInitType int = 7
 )
 
-type PingMsg struct {
-	T int
+// Incoming client message to parse
+type IncomingMsg struct {
+	b []byte
+	client *Client
 }
 
-type JSONMsg struct {
-	T int
-	JSON interface{}
-}
-
-type ClientMsg struct {
-	T int
-	Id int
-	C ClientData
-	Cs map[int]ClientData
-}
-
-type ClientData struct {
-	N string
-}
-
-type PlayerInitMsg struct {
-	T int
-	Ps map[int]PlayerInitData
-}
-
-type PlayerStateMsg struct {
-	T int
-	Int int
-	Ps map[int]PlayerData
-}
-
-type ObjectInitMsg struct {
-	T int
-	Os map[int]ObjectInitData
-}
-
-type ChatMsg struct {
-	T int
-	Id int
-	N string
-	M string // message
-}
-
-type KeyMsg struct {
-	T int
-	K []int // keys
-}
-
-// Incoming client message to parse into
+// Parsed message, only one struct will be set
 type Msg struct {
 	T int
 	Ping PingMsg
@@ -88,7 +29,6 @@ type Msg struct {
 	Left ClientMsg
 }
 
-
 type Room struct {
 	id string
 
@@ -96,6 +36,7 @@ type Room struct {
 	clients map[int]*Client
 
 	game *Game
+	chat *Chat
 
 	incoming chan IncomingMsg
 	ticker *time.Ticker
@@ -103,24 +44,7 @@ type Room struct {
 	unregister chan *Client
 }
 
-type IncomingMsg struct {
-	b []byte
-	client *Client
-}
-
 var rooms = make(map[string]*Room)
-var replacer = strings.NewReplacer(
-    "\r\n", "",
-    "\r", "",
-    "\n", "",
-    "\v", "",
-    "\f", "",
-    "\u0085", "",
-    "\u2028", "",
-    "\u2029", "",
-    "fuck", "duck",
-    "shit", "poop",
-)
 
 func createOrJoinRoom(roomId string, name string, ws *websocket.Conn) {
 	if rooms[roomId] == nil {
@@ -131,6 +55,7 @@ func createOrJoinRoom(roomId string, name string, ws *websocket.Conn) {
 			clients: make(map[int]*Client),
 
 			game: newGame(),
+			chat: newChat(),
 
 			incoming: make(chan IncomingMsg),
 			ticker: time.NewTicker(frameTime),
@@ -199,25 +124,14 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 		}
 		c.send(&outMsg)
 	case offerType:
-		err = r.processWebRTCOffer(c, msg)
+		err = r.processWebRTCOffer(c, msg.JSON)
 	case candidateType:
-		err = r.processWebRTCCandidate(c, msg)
+		err = r.processWebRTCCandidate(c, msg.JSON)
 	case chatType:
-		newMsg := replacer.Replace(msg.Chat.M)
-		if len(newMsg) > maxChatMsgLength {
-			newMsg = newMsg[:256]
-		}
-
-		outMsg := ChatMsg {
-			T: chatType,
-			Id: c.id,
-			N: c.name,
-			M: newMsg,
-		}
-		r.game.addChatMsg(outMsg)
+		outMsg := r.chat.processChatMsg(c, msg.Chat)
 		r.send(&outMsg)
 	case keyType:
-		r.game.updateKeys(c.id, msg.Key)
+		r.game.processKeyMsg(c.id, msg.Key)
 	default:
 		log.Printf("Unknown message type %d", msg.T)
 	}
@@ -228,10 +142,10 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 	}
 }
 
-func (r *Room) processWebRTCOffer(c *Client, msg Msg) error {
-	offer, ok := msg.JSON.(map[string]interface{})
+func (r *Room) processWebRTCOffer(c *Client, json interface{}) error {
+	offer, ok := json.(map[string]interface{})
 	if !ok {
-		return fmt.Errorf("Unable to parse offer: %+v", msg.JSON)
+		return fmt.Errorf("Unable to parse offer: %+v", json)
 	}
 	var err error
 
@@ -271,10 +185,10 @@ func (r *Room) processWebRTCOffer(c *Client, msg Msg) error {
 	return nil
 }
 
-func (r *Room) processWebRTCCandidate(c *Client, msg Msg) error {
-	candidate, ok := msg.JSON.(map[string]interface{})
+func (r *Room) processWebRTCCandidate(c *Client, json interface{}) error {
+	candidate, ok := json.(map[string]interface{})
 	if !ok {
-		return fmt.Errorf("Unable to parse offer message: %+v", msg.JSON)
+		return fmt.Errorf("Unable to parse offer message: %+v", json)
 	}
 	var err error
 
@@ -332,7 +246,7 @@ func (r *Room) initClient(c *Client) error {
 		return err
 	}
 
-	for _, chatMsg := range(r.game.chatQueue) {
+	for _, chatMsg := range(r.chat.chatQueue) {
 		c.send(&chatMsg)
 	}
 
@@ -341,7 +255,7 @@ func (r *Room) initClient(c *Client) error {
 		return err
 	}
 	r.nextClientId++
-	r.game.addPlayer(c)
+	r.game.addPlayer(c.id)
 	go c.run()
 
 	return nil
@@ -353,7 +267,7 @@ func (r *Room) deleteClient(c *Client) error {
 		if err != nil {
 			return err
 		}
-		r.game.deletePlayer(c)
+		r.game.deletePlayer(c.id)
 		delete(r.clients, c.id)
 		log.Printf("Unregistering client %d total", len(r.clients))
 	}

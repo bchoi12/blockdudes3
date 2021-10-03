@@ -6,9 +6,9 @@ var InputMode;
 })(InputMode || (InputMode = {}));
 class UI {
     constructor(div, connection) {
-        this._statsInterval = 500;
         this._chatKeyCode = 13;
-        this._div = elm(div);
+        this._div = div;
+        this._renderer = new Renderer(elm("renderer"));
         this._connection = connection;
         this.initHandlers();
         this._id = -1;
@@ -26,19 +26,19 @@ class UI {
     }
     addDiv(div) {
     }
+    renderer() {
+        return this._renderer;
+    }
     displayGame() {
         elm("div-login").style.display = "none";
         this._div.style.display = "block";
         elm("messages").style.bottom = (elm("form-send-message").offsetHeight + 4) + "px";
         elm("message-box").style.width = elm("messages").offsetWidth + "px";
-        const self = this;
-        function updateStats() {
-            elm("stats").textContent = "Ping: " + self._connection.ping();
-            setTimeout(updateStats, self._statsInterval);
-        }
-        updateStats();
         this.changeInputMode(InputMode.GAME);
         this.initKeyListeners();
+    }
+    updateStats(ping, fps) {
+        elm("stats").textContent = "Ping : " + ping + " | FPS: " + fps;
     }
     updateClients(msg) {
         const id = "" + msg.Id;
@@ -78,11 +78,11 @@ class UI {
         }
     }
     requestFullScreen() {
-        const canvas = document.getElementById("renderer");
+        const canvas = this._renderer.elm();
         canvas.requestFullscreen();
     }
     pointerLock() {
-        const canvas = document.getElementById("renderer");
+        const canvas = this._renderer.elm();
         canvas.requestPointerLock();
     }
     pointerUnlock() { document.exitPointerLock(); }

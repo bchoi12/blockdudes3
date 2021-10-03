@@ -1,5 +1,3 @@
-declare var msgpack: any;
-
 type MessageHandler = (msg : any) => void;
 class Connection {
 	private readonly _pingInterval = 1000;

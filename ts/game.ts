@@ -1,66 +1,65 @@
-declare var THREE: any;
-
 enum GameState {
 	UNKNOWN = 0,
 }
 
+enum ObjectType {
+	UNKNOWN = 0,
+	PLAYER = 1,
+	OBJECT = 2,
+}
+
 class Game {
+	private readonly _statsInterval = 500;
+
 	private readonly _meMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
 	private readonly _otherMaterial = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 	private readonly _objectMaterial = new THREE.MeshBasicMaterial( {color: 0x777777 } );
 	
-	private _canvas : HTMLElement
+	private _ui : UI;
+	private _renderer : Renderer;
 	private _connection : Connection;
 
-	private _scene : any;
-	private _camera : any;
-	private _renderer : any;
-
 	private _id : number;
-	private _players : Map<number, any>;
-	private _playerRenders : Map<number, any>;
 	private _objects : Map<number, any>;
-	private _objectRenders : Map<number, any>;
-
-	private _fps : number;
+	private _lastPlayerUpdate : number;
 	private _animateFrames : number;
-	private _lastStateUpdate : number;
 
-	constructor(canvas : HTMLElement, connection : Connection) {
-		this._canvas = canvas;
+	constructor(ui : UI, connection : Connection) {
+		this._ui = ui;
+		this._renderer = this._ui.renderer();
 		this._connection = connection;
 
-		this.reset();
-		this.initHandlers();
+		this._id = -1;
+		this._objects = new Map();
+		this._lastPlayerUpdate = 0;
+		this._animateFrames = 0;
 
-		this.resizeCanvas();
-		window.onresize = () => { this.resizeCanvas(); };
+		this.initHandlers();
 	}
 
-	animate() : void {
-		this.previewPlayers();
+	start() : void {
+		this._ui.displayGame();
+		this.animate();
+
+		const self = this;
+		function updateStats() {
+			const ping = self._connection.ping();
+			const fps = self._animateFrames * 1000 / self._statsInterval;
+			self._ui.updateStats(ping, fps);
+
+			self._animateFrames = 0;
+			setTimeout(updateStats, self._statsInterval);		
+		}
+		updateStats();
+	}
+
+	private animate() : void {
+		this.updateState();
 		this.updateCamera();
-		this._renderer.render(this._scene, this._camera);
+		this._renderer.render();
 		this._animateFrames++;
 
 		requestAnimationFrame(() => { this.animate(); });
-	}
-
-	private reset() : void {
-		this._scene = new THREE.Scene();
-		this._camera = new THREE.PerspectiveCamera( 75, this._canvas.offsetWidth / this._canvas.offsetHeight, 0.1, 1000 );
-		this._camera.position.z = 5;
-		this._renderer = new THREE.WebGLRenderer( {canvas: this._canvas});
-		this._renderer.setClearColor(0xffffff);
-
-		this._id = -1;
-		this._players = new Map();
-		this._playerRenders = new Map();
-		this._objects = new Map();
-		this._objectRenders = new Map();
-		this._lastStateUpdate = Date.now();
-
-		this.animate();
 	}
 
 	private initHandlers() : void {
@@ -73,25 +72,26 @@ class Game {
 	}
 
 	private updatePlayers(msg : any) : void {
-		const createPlayer = (id : number) => {
-			this._players.set(id, {});
+		const addPlayer = (id : number) => {
+			this._renderer.addObject(ObjectType.PLAYER, id, new THREE.Mesh(new THREE.BoxGeometry(), id == this._id ? this._meMaterial : this._otherMaterial));
+			wasmAddPlayer(id);
 		}
 		const deletePlayer = (id : number) => {
-			this._players.delete(id);
-			this._scene.remove(this._playerRenders.get(id));
-			this._playerRenders.delete(id);				
+			this._renderer.deleteObject(ObjectType.PLAYER, id);
+			wasmDeletePlayer(id);
 		}
 
 		switch(msg.T) {
 			case initType:
-				this.reset();
 				this._id = msg.Id;
 				for (const [stringId, client] of Object.keys(msg.Cs) as [string, any]) {
-					createPlayer(Number(stringId));
+					// Add all other players, self will be added in join
+					if (this._id == Number(stringId)) continue;
+					addPlayer(Number(stringId));
 				}
 				break;
 			case joinType:
-				createPlayer(msg.Id);
+				addPlayer(msg.Id);
 				break;
 			case leftType:
 				deletePlayer(msg.Id);
@@ -100,29 +100,21 @@ class Game {
 	}
 
 	private updatePlayerState(msg : any) : void {
+		if (this._lastPlayerUpdate > msg.TS) return;
+
 		for (const [stringId, player] of Object.entries(msg.Ps) as [string, any]) {
 			const id = Number(stringId);
 
-			if (!this._players.has(id)) continue;
-
-			if (!this._playerRenders.has(id)) {
-				this._playerRenders.set(id, new THREE.Mesh(new THREE.BoxGeometry(), id == this._id ? this._meMaterial : this._otherMaterial));
-				this._scene.add(this._playerRenders.get(id));
-			}
-
-			this._players.set(id, player);
-			this._playerRenders.get(id).position.x = player.Pos.X;
-			this._playerRenders.get(id).position.y = player.Pos.Y;
+			wasmSetPlayerData(id, player);
+			this._renderer.updateObject(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
 		}
-		this._lastStateUpdate = Date.now();
+
+		this._lastPlayerUpdate = msg.TS;
 	}
 
 	private initObjects(msg :any) : void {
-		for (const render of this._objectRenders) {
-			this._scene.remove(render);
-		}
+		this._renderer.clearObjects(ObjectType.OBJECT);
 		this._objects.clear();
-		this._objectRenders.clear();
 
 		for (const [stringId, object] of Object.entries(msg.Os) as [string, any]) {
 			const id = Number(stringId);
@@ -130,40 +122,26 @@ class Game {
 			this._objects.set(id, object);
 
 			const mesh = new THREE.Mesh(new THREE.BoxGeometry(), this._objectMaterial);
-			mesh.position.x = object.Pos.X;
-			mesh.position.y = object.Pos.Y;
-			this._objectRenders.set(id, mesh);
-			this._scene.add(mesh);
+			this._renderer.addObject(ObjectType.OBJECT, id, mesh);
+			this._renderer.updateObject(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
 		}
 	}
 
-	private resizeCanvas() : void {
-		const width = window.innerWidth;
-		const height = window.innerHeight;
-		this._canvas.style.width = width + "px";
-		this._canvas.style.height = height + "px";
-
-		this._camera.aspect = width / height;
-		this._camera.updateProjectionMatrix();
-	}
-
 	private updateCamera() : void {
-		if (!this._playerRenders.has(this._id)) return;
+		if (!this._renderer.hasObject(ObjectType.PLAYER, this._id)) return;
 
-		const playerRender = this._playerRenders.get(this._id);
-		this._camera.position.x = playerRender.position.x;
-		this._camera.position.y = playerRender.position.y;
+		const playerRender = this._renderer.getObject(ObjectType.PLAYER, this._id);
+		this._renderer.setCamera(playerRender.position.x, playerRender.position.y);
 	}
 
-	private previewPlayers() {
-		const timeStepSec = (Date.now() - this._lastStateUpdate) / 1000;
-		if (timeStepSec > 0.2) return;
+	private updateState() {
+		const state = JSON.parse(wasmUpdateState());
 
-		this._playerRenders.forEach((render : any, id : number) => {
-			const player = this._players.get(id);
-			render.position.x = player.Pos.X  + player.Vel.X * timeStepSec;
-			render.position.y = player.Pos.Y + player.Vel.Y * timeStepSec;
-		})	
+		for (const [stringId, player] of Object.entries(state.Ps) as [string, any]) {
+			const id = Number(stringId);
+			if (!this._renderer.hasObject(ObjectType.PLAYER, id)) continue;
+
+			this._renderer.updateObject(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
+		}
 	}
-
 }

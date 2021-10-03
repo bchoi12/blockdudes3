@@ -5,10 +5,10 @@ enum InputMode {
 }
 
 class UI {
-	private readonly _statsInterval = 500;
 	private readonly _chatKeyCode = 13;
 
 	private _div : HTMLElement;
+	private _renderer : Renderer;
 	private _connection : Connection;
 
 	private _id : number;
@@ -16,10 +16,10 @@ class UI {
 	private _keys : Set<number>;
 	private _keyMap : Map<number, number>;
 
-	constructor(div : string, connection : Connection) {
+	constructor(div : HTMLElement, connection : Connection) {
 		// TODO: set up game divs programatically
-		this._div = elm(div);
-
+		this._div = div;
+		this._renderer = new Renderer(elm("renderer"));
 		this._connection = connection;
 		this.initHandlers();
 
@@ -42,21 +42,22 @@ class UI {
 		// TODO
 	}
 
+	renderer() : Renderer {
+		return this._renderer;
+	}
+
 	displayGame() : void {
 		elm("div-login").style.display = "none";
 		this._div.style.display = "block";
 		elm("messages").style.bottom = (elm("form-send-message").offsetHeight + 4) + "px";
 		elm("message-box").style.width = elm("messages").offsetWidth + "px";
 
-		const self = this;
-		function updateStats() {
-			elm("stats").textContent = "Ping: " + self._connection.ping();
-			setTimeout(updateStats, self._statsInterval);		
-		}
-		updateStats();
-
 		this.changeInputMode(InputMode.GAME);
 		this.initKeyListeners();
+	}
+
+	updateStats(ping : number, fps : number) {
+		elm("stats").textContent = "Ping : " + ping + " | FPS: " + fps;
 	}
 
 	updateClients(msg : any) : void {
@@ -100,11 +101,11 @@ class UI {
 	}
 
 	requestFullScreen() {
-		const canvas = document.getElementById("renderer");
+		const canvas = this._renderer.elm();
 		canvas.requestFullscreen();
 	}
 	pointerLock() {
-		const canvas = document.getElementById("renderer");
+		const canvas = this._renderer.elm();
 		canvas.requestPointerLock();
 	}
 	pointerUnlock() { document.exitPointerLock(); }

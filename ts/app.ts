@@ -1,5 +1,8 @@
+declare var Go: any;
 declare var msgpack: any;
+declare var THREE: any;
 
+const go = new Go();
 document.addEventListener('DOMContentLoaded', (event) => {
 	if (dev) {
 		inputElm("name").value = "b";
@@ -7,6 +10,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
 	}
 
 	elm("js-check").style.display = "none";
+
+	WebAssembly.instantiateStreaming(fetch("/wasm/game.wasm"), go.importObject).then((result) => {
+		go.run(result.instance);
+	});
 })
 
 function connect() {
@@ -14,8 +21,8 @@ function connect() {
 	const name = inputElm("name").value.trim();
 
 	const connection = new Connection(room, name);
-	const ui = new UI("div-game", connection);
-	ui.displayGame();
+	const ui = new UI(elm("div-game"), connection);
+	const game = new Game(ui, connection);
 
-	const game = new Game(elm("renderer"), connection);
+	game.start();
 }

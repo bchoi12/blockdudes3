@@ -1,21 +1,28 @@
 const dev : boolean = location.hostname === "localhost" || location.hostname === "127.0.0.1";
 
-const pingType : number = 9;
-const candidateType : number = 10
-const offerType : number = 11
-const answerType : number = 12
+/* WASM variables */
+declare var pingType: any;
+declare var candidateType : any;
+declare var offerType : any;
+declare var answerType : any;
+declare var initType : any;
+declare var joinType : any;
+declare var leftType : any;
+declare var chatType : any;
+declare var keyType : any;
+declare var playerInitType : any;
+declare var playerStateType : any;
+declare var objectInitType : any;
 
-const initType : number = 1
-const joinType : number = 5
-const leftType : number = 6
+declare var upKey : any;
+declare var downKey : any;
+declare var leftKey : any;
+declare var rightKey : any;
 
-const chatType : number = 2
-const keyType : number = 3
-const playerInitType : number = 8
-const playerStateType : number = 4
-const objectInitType : number = 7
-
-const upKey : number = 1
-const downKey : number = 2
-const leftKey : number = 3
-const rightKey : number = 4
+/* WASM API */
+declare var wasmAddPlayer : any;
+declare var wasmSetPlayerData : any;
+declare var wasmDeletePlayer : any;
+declare var wasmPressKey : any;
+declare var wasmReleaseKey : any;
+declare var wasmUpdateState : any;
