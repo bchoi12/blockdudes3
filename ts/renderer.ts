@@ -54,11 +54,15 @@ class Renderer {
 
 	deleteObject(type : ObjectType, id : number) : void {
 		const map = this.getMap(type);
+		this._scene.remove(map.get(id));
 		map.delete(id);
 	}
 
 	clearObjects(type : ObjectType) : void {
 		const map = this.getMap(type);
+		map.forEach((id, object) => {
+			this._scene.remove(map.get(object));
+		});
 		map.clear();
 	}
 

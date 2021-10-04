@@ -9,6 +9,37 @@ type Vec2 struct {
 	Y float64
 }
 
+func Max(a float64, b float64) float64 {
+	if a > b {
+		return a
+	} 
+	return b
+}
+
+func Min(a float64, b float64) float64 {
+	if a < b {
+		return a
+	} 
+	return b
+}
+
+func Abs(f float64) float64 {
+	if f < 0 {
+		return -f
+	}
+	return f
+}
+
+func Sign(n float64) int {
+	if n == 0 {
+		return 0
+	} else if n < 0 {
+		return -1
+	} else {
+		return 1
+	}
+}
+
 func NewVec2(x float64, y float64) Vec2 {
 	return Vec2 {
 		X: x,

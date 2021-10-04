@@ -82,6 +82,41 @@ func (g *Grid) getNearbyObjects(prof Profile) map[int]*Object {
 			objects[id] = object
 		}
 	}
-
 	return objects
+}
+
+func (g *Grid) getPrimaryCollider(prof Profile) (int, *Object) {
+	var colliderId int
+	var collider *Object
+	maxOverlap := 0.0
+
+	for id, object := range(g.getNearbyObjects(prof)) {
+		if prof.Overlap(object.Profile) {
+			overlap := prof.OverlapX(object.Profile) * prof.OverlapY(object.Profile)
+
+			if overlap > maxOverlap {
+				colliderId = id
+				collider = object
+				maxOverlap = overlap
+			}
+		}
+	}
+
+	return colliderId, collider
+}
+
+func (g *Grid) getColliders(prof Profile) ObjectHeap {
+	objectHeap := make(ObjectHeap, 0)
+
+	for id, object := range(g.getNearbyObjects(prof)) {
+		if prof.Overlap(object.Profile) {
+			item := &ObjectItem {
+				id: id,
+				object: object,
+			}
+			objectHeap.Push(item)
+			objectHeap.priority(item, prof.OverlapX(object.Profile) * prof.OverlapY(object.Profile))
+		}
+	}
+	return objectHeap
 }

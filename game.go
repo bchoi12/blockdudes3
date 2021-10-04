@@ -73,19 +73,16 @@ func (g *Game) processKeyMsg(id int, keyMsg KeyMsg) {
 func (g *Game) pressKey(id int, key int) {
 	p := g.players[id]
 	p.keys[key] = true
-	p.setState()
 }
 
 func (g *Game) releaseKey(id int, key int) {
 	p := g.players[id]
 	delete(p.keys, key)
-	p.setState()
 }
 
 func (g *Game) updateKeys(id int, keys map[int]bool) {
 	p := g.players[id]
 	p.keys = keys
-	p.setState()
 }
 
 func (g *Game) setPlayerData(id int, data PlayerData) {
@@ -106,15 +103,7 @@ func (g *Game) updateState() {
 	g.lastUpdateTime = time.Now()
 
 	for _, p := range(g.players) {
-		p.updateState(timeStep)
-	}
-
-	for _, p := range(g.players) {
-		for _, obj := range(g.grid.getNearbyObjects(p.Profile)) {
-			if p.Profile.Overlap(obj.Profile) {
-				p.Profile.Snap(obj.Profile)
-			}
-		}
+		p.updateState(g.grid, timeStep)
 	}
 }
 
@@ -134,6 +123,39 @@ func (g *Game) loadTestMap() {
 			static: true,
 		}
 	}
+
+	for i := 0; i < 10; i++ {
+		g.objects[i + 10] = &Object {
+			Profile: &Rec2 {
+				pos: Vec2 {
+					X: 5.0,
+					Y: float64(i),
+				},
+				dim: Vec2 {
+					X: 1.0,
+					Y: 1.0,
+				},
+			},
+			static: true,
+		}
+	}
+
+	for i := 0; i < 10; i++ {
+		g.objects[i + 20 ] = &Object {
+			Profile: &Rec2 {
+				pos: Vec2 {
+					X: 2.0,
+					Y: float64(i + 1),
+				},
+				dim: Vec2 {
+					X: 1.0,
+					Y: 1.0,
+				},
+			},
+			static: true,
+		}
+	}
+
 	g.grid.setObjects(g.objects)
 }
 

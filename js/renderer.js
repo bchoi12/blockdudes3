@@ -35,10 +35,14 @@ class Renderer {
     }
     deleteObject(type, id) {
         const map = this.getMap(type);
+        this._scene.remove(map.get(id));
         map.delete(id);
     }
     clearObjects(type) {
         const map = this.getMap(type);
+        map.forEach((id, object) => {
+            this._scene.remove(map.get(object));
+        });
         map.clear();
     }
     getMap(type) {

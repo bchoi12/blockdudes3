@@ -1,20 +1,20 @@
 package main
 
 const (
-	pingType int = 9
-	candidateType int = 10
-	offerType int = 11
-	answerType int = 12
+	pingType int = iota
+	candidateType
+	offerType
+	answerType
 
-	initType int = 1
-	joinType int = 5
-	leftType int = 6
-	chatType int = 2
-	keyType int = 3
+	initType
+	joinType
+	leftType
+	chatType
+	keyType
 
-	playerStateType int = 4
-	playerInitType int = 8
-	objectInitType int = 7
+	playerStateType
+	playerInitType
+	objectInitType
 
 	// next: 13
 )
