@@ -7,14 +7,9 @@ import (
 )
 
 const (
-	upKey int = 1
-	downKey int = 2
-	leftKey int = 3
-	rightKey int = 4
-
 	jumpVel float64 = 6.6
 	wallJumpVel float64 = 5.2
-	wallJumpMultiplier float64 = 0.7
+	wallJumpMultiplier float64 = 0.64
 	gravityAcc = -10.0
 
 	downAcc float64 = -10.0
@@ -158,14 +153,14 @@ func (p *Player) updateState(grid *Grid, timeStep time.Duration) {
 		if p.grounded {
 			vel.Y = jumpVel
 		} else if p.walled != 0 && p.keyPressed(upKey) {
+			if p.wallJumps > 0 && p.lastWallJump != p.walled {
+				p.wallJumps = 0
+			}
 			vel.Y = math.Pow(wallJumpMultiplier, float64(p.wallJumps)) * wallJumpVel
 			vel.X = float64(-Sign(acc.X)) * wallJumpVel * 2.0
 			acc.X = 0
 
 			p.wallJumps += 1
-			if p.lastWallJump != p.walled {
-				p.wallJumps -= 1
-			}
 			p.lastWallJump = p.walled
 		}
 	}

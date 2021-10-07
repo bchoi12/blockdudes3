@@ -5,11 +5,13 @@ class Renderer {
         this.resizeCanvas();
         window.onresize = () => { this.resizeCanvas(); };
     }
-    elm() {
-        return this._canvas;
-    }
-    render() {
-        this._renderer.render(this._scene, this._camera);
+    elm() { return this._canvas; }
+    render() { this._renderer.render(this._scene, this._camera); }
+    getMouse(mouse) {
+        mouse.unproject(this._camera);
+        mouse.sub(this._camera.position).normalize();
+        var distance = -this._camera.position.z / mouse.z;
+        return this._camera.position.clone().add(mouse.multiplyScalar(distance));
     }
     addObject(type, id, mesh) {
         const map = this.getMap(type);

@@ -2,8 +2,17 @@ class Connection {
     constructor(room, name) {
         this._pingInterval = 1000;
         this._handlers = new Map();
+        this._senders = new Map();
+        this._room = room;
+        this._name = name;
+        this._ping = 0;
+        this._lastPingTime = Date.now();
+    }
+    connect() {
+        if (defined(this._ws))
+            return;
         const prefix = dev ? "ws://" : "wss://";
-        const endpoint = prefix + window.location.host + "/newclient/room=" + room + "&name=" + name;
+        const endpoint = prefix + window.location.host + "/newclient/room=" + this._room + "&name=" + this._name;
         this.initWebSocket(endpoint);
     }
     addHandler(type, handler) {
@@ -15,25 +24,66 @@ class Connection {
         }
         return true;
     }
+    addSender(type, sender, timeout) {
+        if (this._senders.has(type)) {
+            return false;
+        }
+        this._senders.set(type, sender);
+        const loop = () => {
+            if (!this._senders.has(type)) {
+                return;
+            }
+            this._senders.get(type)();
+            setTimeout(loop, timeout);
+        };
+        loop();
+        return true;
+    }
+    deleteSender(type) {
+        this._senders.delete(type);
+    }
+    id() {
+        return this._id;
+    }
     ping() {
         return defined(this._ping) ? this._ping : 0;
     }
     send(msg) {
-        if (!this.canSend())
+        if (!this.wsReady()) {
+            debug("Trying to send message (type " + msg.T + ") before connection is ready!");
             return false;
+        }
         const buffer = msgpack.encode(msg);
         this._ws.send(buffer);
         return true;
     }
-    canSend() { return this._ws.readyState === 1; }
-    canReceive() { return this._ws.readyState == 1 && this._dc.readyState == "open"; }
-    ready() { return this.canSend() && this.canReceive(); }
+    sendData(msg) {
+        if (!this.dcReady()) {
+            debug("Trying to send message (type " + msg.T + ") before data channel is ready!");
+            return false;
+        }
+        const buffer = msgpack.encode(msg);
+        this._dc.send(buffer);
+        return true;
+    }
+    wsReady() {
+        return defined(this._ws) && this._ws.readyState == 1;
+    }
+    dcReady() {
+        return defined(this._dc) && this._dc.readyState == "open";
+    }
+    ready() {
+        return defined(this._id) && this.wsReady() && this.dcReady();
+    }
     initWebSocket(endpoint) {
         this._ws = new WebSocket(endpoint);
         this._ws.binaryType = "arraybuffer";
         this._ws.onopen = () => {
             debug("successfully connected to " + endpoint);
-            this.addHandler(pingType, () => {
+            this.addHandler(initType, (msg) => {
+                this._id = msg.Id;
+            });
+            this.addHandler(pingType, (msg) => {
                 this._ping = Date.now() - this._lastPingTime;
             });
             const self = this;
@@ -52,13 +102,19 @@ class Connection {
             this.handlePayload(event.data);
         };
         this._ws.onclose = () => {
-            this._ws = null;
-            this._wrtc = null;
+            debug("Websocket closed");
         };
     }
     initWebRTC() {
         const config = {
-            'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }]
+            "iceServers": [
+                {
+                    urls: [
+                        "stun:stun1.l.google.com:19302",
+                        "stun:stun2.l.google.com:19302",
+                    ]
+                }
+            ]
         };
         this._wrtc = new RTCPeerConnection(config);
         const dataChannelConfig = {
@@ -76,6 +132,7 @@ class Connection {
             this.send({ T: offerType, JSON: description });
         }, () => { });
         this._wrtc.ondatachannel = (event) => {
+            debug("successfully created data channel");
             this._dc = event.channel;
             this._dc.onmessage = (event) => { this.handlePayload(event.data); };
         };

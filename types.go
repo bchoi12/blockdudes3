@@ -1,26 +1,47 @@
 package main
 
+import (
+	"time"
+)
+
 const (
-	pingType int = iota
+	frameTime time.Duration = 16 * time.Millisecond
+	frameMillis int = 16
+)
+
+const (
+	unknownType int = iota
+
+	pingType
 	candidateType
 	offerType
 	answerType
-
 	initType
+
 	joinType
 	leftType
 	chatType
 	keyType
-
 	playerStateType
+
 	playerInitType
 	objectInitType
+)
 
-	// next: 13
+const (
+	unknown int = iota
+	
+	upKey
+	downKey
+	leftKey
+	rightKey
+
+	mouseClick
 )
 
 type PingMsg struct {
 	T int
+	N int // number
 }
 
 type JSONMsg struct {
@@ -65,4 +86,5 @@ type ObjectInitMsg struct {
 type KeyMsg struct {
 	T int
 	K []int // keys
+	M Vec2 // mouse
 }

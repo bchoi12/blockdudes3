@@ -11,9 +11,9 @@ class UI {
         this._renderer = new Renderer(elm("renderer"));
         this._connection = connection;
         this.initHandlers();
-        this._id = -1;
         this._mode = InputMode.DEFAULT;
         this._keys = new Set();
+        this._mouse = new THREE.Vector3();
         this._keyMap = new Map();
         this._keyMap.set(38, upKey);
         this._keyMap.set(87, upKey);
@@ -26,15 +26,29 @@ class UI {
     }
     addDiv(div) {
     }
-    renderer() {
-        return this._renderer;
+    mouse() { return this._mouse; }
+    keys() { return this._keys; }
+    createKeyMsg() {
+        const mouse = this._renderer.getMouse(this._mouse);
+        return {
+            T: keyType,
+            Key: {
+                K: Array.from(this._keys),
+                M: {
+                    X: mouse.x,
+                    Y: mouse.y,
+                },
+            },
+        };
     }
+    renderer() { return this._renderer; }
     displayGame() {
         elm("div-login").style.display = "none";
         this._div.style.display = "block";
         elm("messages").style.bottom = (elm("form-send-message").offsetHeight + 4) + "px";
         elm("message-box").style.width = elm("messages").offsetWidth + "px";
         this.changeInputMode(InputMode.GAME);
+        this.initMouseListener();
         this.initKeyListeners();
     }
     updateStats(ping, fps) {
@@ -43,9 +57,6 @@ class UI {
     updateClients(msg) {
         const id = "" + msg.Id;
         switch (msg.T) {
-            case initType:
-                this._id = msg.Id;
-                return;
             case joinType:
                 this.system(msg.C.N + " #" + id + " just joined!");
                 break;
@@ -113,40 +124,54 @@ class UI {
     }
     initHandlers() {
         this._connection.addHandler(chatType, (msg) => { this.chat(msg); });
-        this._connection.addHandler(initType, (msg) => { this.updateClients(msg); });
         this._connection.addHandler(joinType, (msg) => { this.updateClients(msg); });
         this._connection.addHandler(leftType, (msg) => { this.updateClients(msg); });
     }
+    initMouseListener() {
+        const recordMouse = (e) => {
+            this._mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            this._mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            this._mouse.z = 0.5;
+        };
+        const recordMouseDown = (e) => {
+            if (!this._keys.has(mouseClick)) {
+                this._keys.add(mouseClick);
+            }
+        };
+        const recordMouseUp = (e) => {
+            this._keys.delete(mouseClick);
+        };
+        document.addEventListener('mousemove', recordMouse);
+        document.onmousedown = recordMouseDown;
+        document.onmouseup = recordMouseUp;
+    }
     initKeyListeners() {
-        const self = this;
-        function recordKey(e) {
+        const recordKey = (e) => {
             if (e.repeat)
                 return;
-            if (e.keyCode == self._chatKeyCode) {
-                self.handleChat();
+            if (e.keyCode == this._chatKeyCode) {
+                this.handleChat();
                 return;
             }
-            if (self._mode != InputMode.GAME)
+            if (this._mode != InputMode.GAME)
                 return;
-            if (!self._keyMap.has(e.keyCode))
+            if (!this._keyMap.has(e.keyCode))
                 return;
-            const key = self._keyMap.get(e.keyCode);
-            if (!self._keys.has(key)) {
-                self._keys.add(key);
-                self.sendKeyMessage();
+            const key = this._keyMap.get(e.keyCode);
+            if (!this._keys.has(key)) {
+                this._keys.add(key);
             }
-        }
-        function releaseKey(e) {
-            if (self._mode != InputMode.GAME)
+        };
+        const releaseKey = (e) => {
+            if (this._mode != InputMode.GAME)
                 return;
-            if (!self._keyMap.has(e.keyCode))
+            if (!this._keyMap.has(e.keyCode))
                 return;
-            const key = self._keyMap.get(e.keyCode);
-            if (self._keys.has(key)) {
-                self._keys.delete(key);
-                self.sendKeyMessage();
+            const key = this._keyMap.get(e.keyCode);
+            if (this._keys.has(key)) {
+                this._keys.delete(key);
             }
-        }
+        };
         document.addEventListener('keydown', recordKey);
         document.addEventListener('keyup', releaseKey);
     }
@@ -155,7 +180,6 @@ class UI {
             this.changeInputMode(InputMode.CHAT);
             if (this._keys.size > 0) {
                 this._keys.clear();
-                this.sendKeyMessage();
             }
             return;
         }
@@ -163,7 +187,7 @@ class UI {
             this.changeInputMode(InputMode.GAME);
             return;
         }
-        if (!this._connection.canSend()) {
+        if (!this._connection.ready()) {
             this.system("Unable to send message, not connected to server!");
         }
         const message = {
@@ -179,8 +203,5 @@ class UI {
         else {
             this.system("Failed to send chat message!");
         }
-    }
-    sendKeyMessage() {
-        this._connection.send({ T: keyType, Key: { K: Array.from(this._keys) } });
     }
 }

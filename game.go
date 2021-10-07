@@ -37,17 +37,11 @@ type ObjectData struct {
 	Pos Vec2
 }
 
-func (g *Game) addPlayer(id int) {
+func (g *Game) addPlayer(id int, initData PlayerInitData) {
 	g.players[id] = &Player {
 		Profile: &Rec2 {
-			pos: Vec2 {
-				X: 0,
-				Y: 0,
-			},
-			dim: Vec2 {
-				X: 1.0,
-				Y: 1.0,
-			},
+			pos: initData.Pos,
+			dim: initData.Dim,
 		},
 		keys: make(map[int]bool, 0),
 	}
@@ -157,6 +151,34 @@ func (g *Game) loadTestMap() {
 	}
 
 	g.grid.setObjects(g.objects)
+}
+
+func (g* Game) createPlayerInitMsg() PlayerInitMsg {
+	players := make(map[int]PlayerInitData, len(g.players))
+
+	for id, player := range(g.players) {
+		players[id] = PlayerInitData {
+			Pos: player.Profile.Pos(),
+			Dim: player.Profile.Dim(),
+		}
+	}
+
+	return PlayerInitMsg{
+		T: playerInitType,
+		Ps: players,
+	}
+}
+
+func (g* Game) createPlayerJoinMsg(id int) PlayerInitMsg {
+	players := make(map[int]PlayerInitData, 1)
+	players[id] = PlayerInitData {
+		Pos: g.players[id].Profile.Pos(),
+		Dim: g.players[id].Profile.Dim(),
+	}
+	return PlayerInitMsg{
+		T: playerInitType,
+		Ps: players,
+	}
 }
 
 func (g *Game) createObjectInitMsg() ObjectInitMsg {

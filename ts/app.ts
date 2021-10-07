@@ -24,5 +24,14 @@ function connect() {
 	const ui = new UI(elm("div-game"), connection);
 	const game = new Game(ui, connection);
 
-	game.start();
+	connection.connect();
+	
+	function startGame() {
+		if (connection.ready()) {
+			game.start();
+		} else {
+			setTimeout(startGame, 100);
+		}
+	}
+	startGame();
 }

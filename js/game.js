@@ -17,14 +17,14 @@ class Game {
         this._ui = ui;
         this._renderer = this._ui.renderer();
         this._connection = connection;
-        this._id = -1;
         this._objects = new Map();
         this._lastPlayerUpdate = 0;
         this._animateFrames = 0;
-        this.initHandlers();
+        this.initServerTalk();
     }
     start() {
         this._ui.displayGame();
+        this._id = this._connection.id();
         this.animate();
         const self = this;
         function updateStats() {
@@ -43,17 +43,23 @@ class Game {
         this._animateFrames++;
         requestAnimationFrame(() => { this.animate(); });
     }
-    initHandlers() {
+    initServerTalk() {
         this._connection.addHandler(initType, (msg) => { this.updatePlayers(msg); });
-        this._connection.addHandler(joinType, (msg) => { this.updatePlayers(msg); });
+        this._connection.addHandler(playerInitType, (msg) => { this.updatePlayers(msg); });
         this._connection.addHandler(leftType, (msg) => { this.updatePlayers(msg); });
         this._connection.addHandler(playerStateType, (msg) => { this.updatePlayerState(msg); });
         this._connection.addHandler(objectInitType, (msg) => { this.initObjects(msg); });
+        this._connection.addSender(keyType, () => {
+            const msg = this._ui.createKeyMsg();
+            this._connection.sendData(msg);
+        }, frameMillis);
     }
     updatePlayers(msg) {
-        const addPlayer = (id) => {
+        const addPlayer = (id, initData) => {
+            if (wasmHasPlayer(id))
+                return;
             this._renderer.addObject(ObjectType.PLAYER, id, new THREE.Mesh(new THREE.BoxGeometry(), id == this._id ? this._meMaterial : this._otherMaterial));
-            wasmAddPlayer(id);
+            wasmAddPlayer(id, initData);
         };
         const deletePlayer = (id) => {
             this._renderer.deleteObject(ObjectType.PLAYER, id);
@@ -62,14 +68,11 @@ class Game {
         switch (msg.T) {
             case initType:
                 this._id = msg.Id;
-                for (const [stringId, client] of Object.keys(msg.Cs)) {
-                    if (this._id == Number(stringId))
-                        continue;
-                    addPlayer(Number(stringId));
-                }
                 break;
-            case joinType:
-                addPlayer(msg.Id);
+            case playerInitType:
+                for (const [stringId, initData] of Object.entries(msg.Ps)) {
+                    addPlayer(Number(stringId), initData);
+                }
                 break;
             case leftType:
                 deletePlayer(msg.Id);

@@ -1,15 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/pion/webrtc/v3"
 	"log"
 	"time"
-)
-
-const (
-	frameTime time.Duration = 25 * time.Millisecond
 )
 
 // Incoming client message to parse
@@ -34,6 +28,7 @@ type Room struct {
 
 	nextClientId int
 	clients map[int]*Client
+	msgQueue []IncomingMsg
 
 	game *Game
 	chat *Chat
@@ -46,13 +41,14 @@ type Room struct {
 
 var rooms = make(map[string]*Room)
 
-func createOrJoinRoom(roomId string, name string, ws *websocket.Conn) {
-	if rooms[roomId] == nil {
-		rooms[roomId] = &Room {
-			id: roomId,
+func createOrJoinRoom(room string, name string, ws *websocket.Conn) {
+	if _, ok := rooms[room]; !ok {
+		rooms[room] = &Room {
+			id: room,
 
 			nextClientId: 0,
 			clients: make(map[int]*Client),
+			msgQueue: make([]IncomingMsg, 0),
 
 			game: newGame(),
 			chat: newChat(),
@@ -63,16 +59,11 @@ func createOrJoinRoom(roomId string, name string, ws *websocket.Conn) {
 			unregister: make(chan *Client),
 		}
 
-		go rooms[roomId].run()
+		go rooms[room].run()
 	}
 
-	client := &Client {
-		room: rooms[roomId],
-		ws: ws,
-		id: rooms[roomId].nextClientId,
-		name: name,
-	}
-	rooms[roomId].register <- client
+	client := NewClient(rooms[room], ws, name)
+	rooms[room].register <- client
 }
 
 func (r *Room) run() {
@@ -84,15 +75,15 @@ func (r *Room) run() {
 	for {
 		select {
 			case client := <-r.register:
+				client.initWebRTC()
 				r.clients[client.id] = client
-				err := r.initClient(client)
-
+				err := r.addClient(client)
 				if err != nil {
+					log.Printf("Failed to add client to room: %v", err)
 					delete(r.clients, client.id)
-					log.Printf("Failed to create new client: %v", err)
-				} else {
-					log.Printf("New client for %s, %d total", r.id, len(r.clients))
+					continue
 				}
+				log.Printf("New client for %s, %d total", r.id, len(r.clients))
 			case client := <-r.unregister:
 				err := r.deleteClient(client)
 				if err != nil {
@@ -100,16 +91,25 @@ func (r *Room) run() {
 				} else if len(r.clients) == 0 {
 					return
 				}
-			case cmsg := <-r.incoming:
-				msg := Msg{}
-				err := Unpack(cmsg.b, &msg)
-				if err != nil {
-					continue
-				}
-				r.processMsg(msg, cmsg.client)
+			case imsg := <-r.incoming:
+				r.msgQueue = append(r.msgQueue, imsg)
 			case _ = <-r.ticker.C:
 				r.game.updateState()
 				r.sendState()
+			default:
+				if len(r.msgQueue) == 0 {
+					continue
+				}
+				for _, imsg := range(r.msgQueue) {
+					msg := Msg{}
+					err := Unpack(imsg.b, &msg)
+					if err != nil {
+						log.Printf("error unpacking: %v", err)
+						continue
+					}
+					r.processMsg(msg, imsg.client)
+				}
+				r.msgQueue = r.msgQueue[:0]
 		}
 	}
 }
@@ -124,9 +124,9 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 		}
 		c.send(&outMsg)
 	case offerType:
-		err = r.processWebRTCOffer(c, msg.JSON)
+		err = c.processWebRTCOffer(msg.JSON)
 	case candidateType:
-		err = r.processWebRTCCandidate(c, msg.JSON)
+		err = c.processWebRTCCandidate(msg.JSON)
 	case chatType:
 		outMsg := r.chat.processChatMsg(c, msg.Chat)
 		r.send(&outMsg)
@@ -142,106 +142,27 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 	}
 }
 
-func (r *Room) processWebRTCOffer(c *Client, json interface{}) error {
-	offer, ok := json.(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("Unable to parse offer: %+v", json)
-	}
+// Add client to room
+func (r *Room) addClient(c *Client) error {
 	var err error
 
-	desc := webrtc.SessionDescription {
-		Type: webrtc.SDPTypeOffer,
-		SDP: offer["sdp"].(string),
-	}
-	err = c.wrtc.SetRemoteDescription(desc)
 	if err != nil {
 		return err
 	}
 
-	answer, err := c.wrtc.CreateAnswer(nil)
-	if err != nil {
-		return err
-	}
-	c.wrtc.SetLocalDescription(answer)
-
-	answerMsg := JSONMsg {
-		T: answerType,
-		JSON: answer,
-	}
-	c.send(&answerMsg)
-
-	c.wrtc.OnICECandidate(func(ice *webrtc.ICECandidate) {
-		if ice == nil {
-			return
-		}
-
-		candidateMsg := JSONMsg {
-			T: candidateType,
-			JSON: ice.ToJSON(),
-		}
-		c.send(&candidateMsg)		
-	})
-
-	return nil
-}
-
-func (r *Room) processWebRTCCandidate(c *Client, json interface{}) error {
-	candidate, ok := json.(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("Unable to parse offer message: %+v", json)
-	}
-	var err error
-
-	sdpMid := candidate["sdpMid"].(string)
-	sdpMLineIndex := uint16(candidate["sdpMLineIndex"].(int8))
-	candidateInit := webrtc.ICECandidateInit {
-		Candidate: candidate["candidate"].(string),
-		SDPMid: &sdpMid,
-		SDPMLineIndex: &sdpMLineIndex,
-	}
-	err = c.wrtc.AddICECandidate(candidateInit)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *Room) initClient(c *Client) error {
-	err := r.updateClients(initType, c)
+	err = r.updateClients(initType, c)
 	if err != nil {
 		return err
 	}
 
-	config := webrtc.Configuration{
-		ICEServers: []webrtc.ICEServer{
-			{
-				URLs: []string{"stun:stun.l.google.com:19302"},
-			},
-		},
-	}
-	c.wrtc, err = webrtc.NewPeerConnection(config)
+	playerInitMsg := r.game.createPlayerInitMsg()
+	err = c.send(&playerInitMsg)
 	if err != nil {
 		return err
 	}
 
-	c.wrtc.OnConnectionStateChange(func(s webrtc.PeerConnectionState) {
-		log.Printf("Client data channel for %d has changed: %s", c.id, s.String())
-	})
-
-	ordered := false
-	maxRetransmits := uint16(0)
-	dcInit := &webrtc.DataChannelInit {
-		Ordered: &ordered,
-		MaxRetransmits: &maxRetransmits,
-	}
-	c.dc, err = c.wrtc.CreateDataChannel("data", dcInit)
-
-	c.dc.OnOpen(func() {
-		log.Printf("Opened data channel for client %d: %s-%d", c.id, c.dc.Label(), c.dc.ID())
-	})
-
-	mmsg := r.game.createObjectInitMsg()
-	err = c.send(&mmsg)
+	objectMsg := r.game.createObjectInitMsg()
+	err = c.send(&objectMsg)
 	if err != nil {
 		return err
 	}
@@ -254,9 +175,13 @@ func (r *Room) initClient(c *Client) error {
 	if err != nil {
 		return err
 	}
-	r.nextClientId++
-	r.game.addPlayer(c.id)
-	go c.run()
+
+	r.game.addPlayer(c.id, PlayerInitData {
+		Pos: NewVec2(0, 0),
+		Dim: NewVec2(1.0, 1.0),
+	})
+	playerJoinMsg := r.game.createPlayerJoinMsg(c.id)
+	r.send(&playerJoinMsg)
 
 	return nil
 }

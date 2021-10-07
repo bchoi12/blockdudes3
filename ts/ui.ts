@@ -11,10 +11,10 @@ class UI {
 	private _renderer : Renderer;
 	private _connection : Connection;
 
-	private _id : number;
 	private _mode : InputMode;
 	private _keys : Set<number>;
 	private _keyMap : Map<number, number>;
+	private _mouse : any;
 
 	constructor(div : HTMLElement, connection : Connection) {
 		// TODO: set up game divs programatically
@@ -23,9 +23,9 @@ class UI {
 		this._connection = connection;
 		this.initHandlers();
 
-		this._id = -1;
 		this._mode = InputMode.DEFAULT;
 		this._keys = new Set();
+		this._mouse = new THREE.Vector3();
 
 		this._keyMap = new Map();
 		this._keyMap.set(38, upKey)
@@ -42,9 +42,23 @@ class UI {
 		// TODO
 	}
 
-	renderer() : Renderer {
-		return this._renderer;
+	mouse() : any { return this._mouse; }
+	keys() : Set<number> { return this._keys; }
+	createKeyMsg() : any {
+   		const mouse = this._renderer.getMouse(this._mouse);
+		return {
+			T: keyType,
+			Key: {
+				K: Array.from(this._keys),
+				M: {
+					X: mouse.x,
+					Y: mouse.y,
+				},
+			},
+		};		
 	}
+
+	renderer() : Renderer { return this._renderer; }
 
 	displayGame() : void {
 		elm("div-login").style.display = "none";
@@ -53,6 +67,7 @@ class UI {
 		elm("message-box").style.width = elm("messages").offsetWidth + "px";
 
 		this.changeInputMode(InputMode.GAME);
+		this.initMouseListener();
 		this.initKeyListeners();
 	}
 
@@ -63,9 +78,6 @@ class UI {
 	updateClients(msg : any) : void {
 		const id = "" + msg.Id;
 		switch (msg.T) {
-			case initType:
-				this._id = msg.Id;
-				return;
 			case joinType:
 				this.system(msg.C.N + " #" + id + " just joined!");
 				break;
@@ -142,40 +154,57 @@ class UI {
 
 	private initHandlers() : void {
 		this._connection.addHandler(chatType, (msg : any) => { this.chat(msg) })
-		this._connection.addHandler(initType, (msg : any) => { this.updateClients(msg)});
-		this._connection.addHandler(joinType, (msg : any) => { this.updateClients(msg) });
+ 		this._connection.addHandler(joinType, (msg : any) => { this.updateClients(msg) });
 		this._connection.addHandler(leftType, (msg : any) => { this.updateClients(msg) });
 	}
 
+	private initMouseListener() : void {
+		const recordMouse = (e : any) => {
+			this._mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    		this._mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    		this._mouse.z = 0.5;
+		};
+		const recordMouseDown = (e : any) => {
+			if (!this._keys.has(mouseClick)) {
+				this._keys.add(mouseClick);
+			}
+		};
+		const recordMouseUp = (e : any) => {
+			this._keys.delete(mouseClick);
+		};
+
+
+		document.addEventListener('mousemove', recordMouse);
+		document.onmousedown = recordMouseDown;
+		document.onmouseup = recordMouseUp;
+	}
+
 	private initKeyListeners() : void {
-		const self = this;
-		function recordKey(e) {
+		const recordKey = (e : any) => {
 			if (e.repeat) return;
 
-			if (e.keyCode == self._chatKeyCode) {
-				self.handleChat();
+			if (e.keyCode == this._chatKeyCode) {
+				this.handleChat();
 				return;
 			}
 
-			if (self._mode != InputMode.GAME) return;
-			if (!self._keyMap.has(e.keyCode)) return;
+			if (this._mode != InputMode.GAME) return;
+			if (!this._keyMap.has(e.keyCode)) return;
 
-			const key = self._keyMap.get(e.keyCode);
-			if (!self._keys.has(key)) {
-				self._keys.add(key);
-				self.sendKeyMessage();
+			const key = this._keyMap.get(e.keyCode);
+			if (!this._keys.has(key)) {
+				this._keys.add(key);
 			}
-		}
-		function releaseKey(e) {
-			if (self._mode != InputMode.GAME) return;
-			if (!self._keyMap.has(e.keyCode)) return;
+		};
+		const releaseKey = (e : any) => {
+			if (this._mode != InputMode.GAME) return;
+			if (!this._keyMap.has(e.keyCode)) return;
 
-			const key = self._keyMap.get(e.keyCode);
-			if (self._keys.has(key)) {
-				self._keys.delete(key);
-				self.sendKeyMessage();
+			const key = this._keyMap.get(e.keyCode);
+			if (this._keys.has(key)) {
+				this._keys.delete(key);
 			}
-		}
+		};
 
 		document.addEventListener('keydown', recordKey);
 		document.addEventListener('keyup', releaseKey);
@@ -186,7 +215,6 @@ class UI {
 			this.changeInputMode(InputMode.CHAT);
 			if (this._keys.size > 0) {
 				this._keys.clear();
-				this.sendKeyMessage();
 			}
 			return;
 		}
@@ -196,7 +224,7 @@ class UI {
 			return;
 		}
 
-		if (!this._connection.canSend()) {
+		if (!this._connection.ready()) {
 			this.system("Unable to send message, not connected to server!")
 		}
 
@@ -213,9 +241,5 @@ class UI {
 		} else {
 			this.system("Failed to send chat message!");
 		}
-	}
-
-	private sendKeyMessage() : void {
-		this._connection.send({T: keyType, Key: {K: Array.from(this._keys) }});		
 	}
 }

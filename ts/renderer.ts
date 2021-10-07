@@ -17,12 +17,16 @@ class Renderer {
 		window.onresize = () => { this.resizeCanvas(); };
 	}
 
-	elm() : HTMLElement {
-		return this._canvas; 
-	}
+	elm() : HTMLElement { return this._canvas; }
 
-	render() : void {
-		this._renderer.render(this._scene, this._camera);
+	render() : void { this._renderer.render(this._scene, this._camera); }
+
+	getMouse(mouse : any) : any {
+		mouse.unproject(this._camera);
+		mouse.sub(this._camera.position).normalize();
+
+		var distance = -this._camera.position.z / mouse.z;
+		return this._camera.position.clone().add(mouse.multiplyScalar(distance));
 	}
 
 	addObject(type : ObjectType, id : number, mesh : any) : void {
