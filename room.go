@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+const (
+	isWasm bool = false
+)
+
 // Incoming client message to parse
 type IncomingMsg struct {
 	b []byte
@@ -58,6 +62,8 @@ func createOrJoinRoom(room string, name string, ws *websocket.Conn) {
 			register: make(chan *Client),
 			unregister: make(chan *Client),
 		}
+
+		rooms[room].game.loadTestMap()
 
 		go rooms[room].run()
 	}
@@ -224,7 +230,7 @@ func (r *Room) updateClients(msgType int, c *Client) error {
 }
 
 func (r* Room) sendState() {
-	msg := r.game.createPlayerStateMsg()
+	msg := r.game.createGameStateMsg()
 	r.sendUDP(&msg)
 }
 

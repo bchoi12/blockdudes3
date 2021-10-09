@@ -1,5 +1,6 @@
 class Renderer {
     constructor(canvas) {
+        this._lineMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
         this._canvas = canvas;
         this.reset();
         this.resizeCanvas();
@@ -56,6 +57,17 @@ class Renderer {
             default:
                 debug("Unknown object type " + type);
         }
+    }
+    renderShots(shots) {
+        shots.forEach((shot) => {
+            const points = [
+                new THREE.Vector3(shot.O.X, shot.O.Y, 0),
+                new THREE.Vector3(shot.E.X, shot.E.Y, 0),
+            ];
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const line = new THREE.Line(geometry, this._lineMaterial);
+            this._scene.add(line);
+        });
     }
     setCamera(x, y) {
         this._camera.position.x = x;

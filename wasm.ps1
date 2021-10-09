@@ -1,4 +1,4 @@
-[string[]]$src_files = @("game.go", "grid.go", "object.go", "player.go", "profile.go", "structs.go", "types.go", "util.go")
+[string[]]$src_files = @("game.go", "grid.go", "log.go", "object.go", "player.go", "profile.go", "structs.go", "types.go", "updatebuffer.go", "util.go", "weapon.go")
 
 foreach ($file in $src_files) {
 	cp "$($file)" "wasm/tmp_$($file)"

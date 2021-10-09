@@ -5,158 +5,92 @@ import (
 )
 
 type Game struct {
-	players map[int]*Player
-	objects map[int]*Object
 	grid *Grid
 
-	lastUpdateTime time.Time
+	updateBuffer *UpdateBuffer
+	updates int
 }
 
 func newGame() *Game {
 	game := &Game {
-		players: make(map[int]*Player, 0),
-		objects: make(map[int]*Object, 0),
-		grid: newGrid(),
+		grid: NewGrid(),
+		updates: 0,
 	}
-
-	game.loadTestMap()
 	return game
 }
 
-type Object struct {
-	Profile
-	static bool
-}
-
-type ObjectInitData struct {
-	Pos Vec2
-	Dim Vec2
-}
-
-type ObjectData struct {
-	Pos Vec2
-}
-
 func (g *Game) addPlayer(id int, initData PlayerInitData) {
-	g.players[id] = &Player {
-		Profile: &Rec2 {
-			pos: initData.Pos,
-			dim: initData.Dim,
-		},
-		keys: make(map[int]bool, 0),
-	}
+	g.grid.addPlayer(id, initData)
 }
 
 func (g *Game) hasPlayer(id int) bool {
-	_, ok := g.players[id]
-	return ok
+	return g.grid.hasPlayer(id)
 }
 
 func (g *Game) deletePlayer(id int) {
-	delete(g.players, id)
-}
-
-func (g *Game) processKeyMsg(id int, keyMsg KeyMsg) {
-	keys := make(map[int]bool, len(keyMsg.K))
-	for _, key := range(keyMsg.K) {
-		keys[key] = true
-	}
-	g.updateKeys(id, keys)
-}
-
-func (g *Game) pressKey(id int, key int) {
-	p := g.players[id]
-	p.keys[key] = true
-}
-
-func (g *Game) releaseKey(id int, key int) {
-	p := g.players[id]
-	delete(p.keys, key)
-}
-
-func (g *Game) updateKeys(id int, keys map[int]bool) {
-	p := g.players[id]
-	p.keys = keys
+	g.grid.deletePlayer(id)
 }
 
 func (g *Game) setPlayerData(id int, data PlayerData) {
-	prof := g.players[id].Profile
+	g.grid.setPlayerData(id, data)
+}
 
-	prof.SetPos(data.Pos)
-	prof.SetVel(data.Vel)
-	prof.SetAcc(data.Acc)
+func (g *Game) processKeyMsg(id int, keyMsg KeyMsg) {
+	g.grid.players[id].updateKeys(keyMsg)
+}
+
+func (g *Game) addObject(id int, initData ObjectInitData) {
+	object := NewObject(initData.Pos, initData.Dim)
+	g.grid.addObject(id, object)
+}
+
+func (g *Game) setObjects(objectInitData map[int]ObjectInitData) {
+	objects := make(map[int]*Object, 0)
+	for id, objectInit := range(objectInitData) {
+		objects[id] = NewObject(objectInit.Pos, objectInit.Dim)
+	}
+	g.grid.setObjects(objects)
 }
 
 func (g *Game) updateState() {
-	var timeStep time.Duration
-	if g.lastUpdateTime.IsZero() {
-		timeStep = 0
-	} else {
-		timeStep = time.Now().Sub(g.lastUpdateTime)
-	}
-	g.lastUpdateTime = time.Now()
+	g.updateBuffer = NewUpdateBuffer()
 
-	for _, p := range(g.players) {
-		p.updateState(g.grid, timeStep)
+	now := time.Now()
+	for _, p := range(g.grid.players) {
+		p.updateState(g.grid, g.updateBuffer, now)
 	}
+	g.updates++
 }
 
 func (g *Game) loadTestMap() {
+	objects := make(map[int]ObjectInitData)
+
 	for i := 0; i < 10; i++ {
-		g.objects[i] = &Object {
-			Profile: &Rec2 {
-				pos: Vec2 {
-					X: float64(i - 5),
-					Y: float64(-i/2),
-				},
-				dim: Vec2 {
-					X: 1.0,
-					Y: 1.0,
-				},
-			},
-			static: true,
+		objects[i] = ObjectInitData {
+			Pos: NewVec2(float64(i-5), float64(-i/2)),
+			Dim: NewVec2(1.0, 1.0),
+		}
+	}
+	for i := 0; i < 10; i++ {
+		objects[i + 10] = ObjectInitData {
+			Pos: NewVec2(5.0, float64(i)),
+			Dim: NewVec2(1.0, 1.0),
+		}
+	}
+	for i := 0; i < 10; i++ {
+		objects[i + 20] = ObjectInitData {
+			Pos: NewVec2(2.0, float64(i + 1)),
+			Dim: NewVec2(1.0, 1.0),
 		}
 	}
 
-	for i := 0; i < 10; i++ {
-		g.objects[i + 10] = &Object {
-			Profile: &Rec2 {
-				pos: Vec2 {
-					X: 5.0,
-					Y: float64(i),
-				},
-				dim: Vec2 {
-					X: 1.0,
-					Y: 1.0,
-				},
-			},
-			static: true,
-		}
-	}
-
-	for i := 0; i < 10; i++ {
-		g.objects[i + 20 ] = &Object {
-			Profile: &Rec2 {
-				pos: Vec2 {
-					X: 2.0,
-					Y: float64(i + 1),
-				},
-				dim: Vec2 {
-					X: 1.0,
-					Y: 1.0,
-				},
-			},
-			static: true,
-		}
-	}
-
-	g.grid.setObjects(g.objects)
+	g.setObjects(objects)
 }
 
 func (g* Game) createPlayerInitMsg() PlayerInitMsg {
-	players := make(map[int]PlayerInitData, len(g.players))
+	players := make(map[int]PlayerInitData, len(g.grid.players))
 
-	for id, player := range(g.players) {
+	for id, player := range(g.grid.players) {
 		players[id] = PlayerInitData {
 			Pos: player.Profile.Pos(),
 			Dim: player.Profile.Dim(),
@@ -172,8 +106,8 @@ func (g* Game) createPlayerInitMsg() PlayerInitMsg {
 func (g* Game) createPlayerJoinMsg(id int) PlayerInitMsg {
 	players := make(map[int]PlayerInitData, 1)
 	players[id] = PlayerInitData {
-		Pos: g.players[id].Profile.Pos(),
-		Dim: g.players[id].Profile.Dim(),
+		Pos: g.grid.players[id].Profile.Pos(),
+		Dim: g.grid.players[id].Profile.Dim(),
 	}
 	return PlayerInitMsg{
 		T: playerInitType,
@@ -182,9 +116,9 @@ func (g* Game) createPlayerJoinMsg(id int) PlayerInitMsg {
 }
 
 func (g *Game) createObjectInitMsg() ObjectInitMsg {
-	objs := make(map[int]ObjectInitData, len(g.objects))
+	objs := make(map[int]ObjectInitData, len(g.grid.objects))
 
-	for id, obj := range(g.objects) {
+	for id, obj := range(g.grid.objects) {
 		objs[id] = ObjectInitData {
 			Pos: obj.Profile.Pos(),
 			Dim: obj.Profile.Dim(),
@@ -197,20 +131,19 @@ func (g *Game) createObjectInitMsg() ObjectInitMsg {
 	}
 }
 
-func (g *Game) createPlayerStateMsg() PlayerStateMsg {
-	msg := PlayerStateMsg{
-		T: playerStateType,
-		TS: time.Now().UnixNano() / 1000,
+func (g *Game) createGameStateMsg() GameStateMsg {
+	msg := GameStateMsg{
+		T: gameStateType,
+		S: g.updates,
 		Ps: make(map[int]PlayerData, 0),
+		Ss: make([]ShotData, 0),
 	}
 
-	for id, p := range(g.players) {
-		msg.Ps[id] = PlayerData {
-			Pos: p.Profile.Pos(),
-			Vel: p.Profile.Vel(),
-			Acc: p.Profile.Acc(),
-		}
+	if g.updateBuffer == nil {
+		return msg
 	}
 
+	msg.Ps = g.updateBuffer.players
+	msg.Ss = g.updateBuffer.shots
 	return msg
 }

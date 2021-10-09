@@ -20,8 +20,8 @@ class Game {
 	private _connection : Connection;
 
 	private _id : number;
-	private _objects : Map<number, any>;
-	private _lastPlayerUpdate : number;
+	private _keyUpdates : number;
+	private _lastGameUpdate : number;
 	private _animateFrames : number;
 
 	constructor(ui : UI, connection : Connection) {
@@ -29,8 +29,8 @@ class Game {
 		this._renderer = this._ui.renderer();
 		this._connection = connection;
 
-		this._objects = new Map();
-		this._lastPlayerUpdate = 0;
+		this._keyUpdates = 0;
+		this._lastGameUpdate = 0;
 		this._animateFrames = 0;
 
 		this.initServerTalk();
@@ -64,14 +64,16 @@ class Game {
 
 	private initServerTalk() : void {
 		this._connection.addHandler(initType, (msg : any) => { this.updatePlayers(msg); });
-		this._connection.addHandler(playerInitType, (msg : any) => { this.updatePlayers(msg); });
 		this._connection.addHandler(leftType, (msg : any) => { this.updatePlayers(msg); });
 
-		this._connection.addHandler(playerStateType, (msg : any) => { this.updatePlayerState(msg); });
+		this._connection.addHandler(gameStateType, (msg : any) => { this.updateGameState(msg); });
+		this._connection.addHandler(playerInitType, (msg : any) => { this.updatePlayers(msg); });
 		this._connection.addHandler(objectInitType, (msg : any) => { this.initObjects(msg); });
 
 		this._connection.addSender(keyType, () => {
 			const msg = this._ui.createKeyMsg();
+			this._keyUpdates++;
+			msg.Key.S = this._keyUpdates;
 			this._connection.sendData(msg);
 		}, frameMillis);
 	}
@@ -104,8 +106,8 @@ class Game {
 		}
 	}
 
-	private updatePlayerState(msg : any) : void {
-		if (this._lastPlayerUpdate > msg.TS) return;
+	private updateGameState(msg : any) : void {
+		if (this._lastGameUpdate >= msg.S) return;
 
 		for (const [stringId, player] of Object.entries(msg.Ps) as [string, any]) {
 			const id = Number(stringId);
@@ -114,18 +116,21 @@ class Game {
 			this._renderer.updateObject(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
 		}
 
-		this._lastPlayerUpdate = msg.TS;
+		if (msg.Ss.length > 0) {
+			debug(msg.Ss);
+			this._renderer.renderShots(msg.Ss);
+		}
+
+		this._lastGameUpdate = msg.S;
 	}
 
 	private initObjects(msg :any) : void {
 		this._renderer.clearObjects(ObjectType.OBJECT);
-		this._objects.clear();
 
 		for (const [stringId, object] of Object.entries(msg.Os) as [string, any]) {
 			const id = Number(stringId);
 
-			this._objects.set(id, object);
-
+			wasmAddObject(id, object);
 			const mesh = new THREE.Mesh(new THREE.BoxGeometry(), this._objectMaterial);
 			this._renderer.addObject(ObjectType.OBJECT, id, mesh);
 			this._renderer.updateObject(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);

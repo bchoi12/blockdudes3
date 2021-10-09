@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	frameTime time.Duration = 16 * time.Millisecond
 	frameMillis int = 16
+	frameTime time.Duration = 16 * time.Millisecond
 )
 
 const (
@@ -22,7 +22,7 @@ const (
 	leftType
 	chatType
 	keyType
-	playerStateType
+	gameStateType
 
 	playerInitType
 	objectInitType
@@ -67,15 +67,16 @@ type ChatMsg struct {
 	M string // message
 }
 
+type GameStateMsg struct {
+	T int
+	S int // seq num
+	Ps map[int]PlayerData
+	Ss []ShotData
+}
+
 type PlayerInitMsg struct {
 	T int
 	Ps map[int]PlayerInitData
-}
-
-type PlayerStateMsg struct {
-	T int
-	TS int64
-	Ps map[int]PlayerData
 }
 
 type ObjectInitMsg struct {
@@ -85,6 +86,7 @@ type ObjectInitMsg struct {
 
 type KeyMsg struct {
 	T int
+	S int // seq num
 	K []int // keys
 	M Vec2 // mouse
 }

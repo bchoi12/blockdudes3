@@ -1,33 +1,52 @@
 package main
 
-const (
-	floatEpsilon float64 = 1e-6
+import (
+	"math"
 )
 
-type Vec2 struct {
-	X float64
-	Y float64
+const (
+	floatEpsilon float64 = 1e-8
+)
+
+func Mod(a, b int) int {
+    return (a % b + b) % b
 }
 
-func Max(a float64, b float64) float64 {
+func Max(a, b float64) float64 {
 	if a > b {
 		return a
 	} 
 	return b
 }
 
-func Min(a float64, b float64) float64 {
+func Min(a, b float64) float64 {
 	if a < b {
 		return a
 	} 
 	return b
 }
 
-func Abs(f float64) float64 {
-	if f < 0 {
-		return -f
+// Round up when positive, round down when negative
+func IntOut(n float64) int {
+	if n < 0 {
+		return int(math.Floor(n))
 	}
-	return f
+	return int(math.Ceil(n))
+}
+
+// Round down when positive and negative
+func IntLeft(n float64) int {
+	if n < 0 {
+		return int(n-1)
+	}
+	return int(n)
+}
+
+func Abs(n float64) float64 {
+	if n < 0 {
+		return -n
+	}
+	return n
 }
 
 func Sign(n float64) int {
@@ -38,6 +57,61 @@ func Sign(n float64) int {
 	} else {
 		return 1
 	}
+}
+
+type Line struct {
+	O Vec2 // origin
+	R Vec2 // ray
+}
+
+func NewLine(origin Vec2, ray Vec2) Line {
+	if ray.X == 0 && ray.Y == 0 {
+		ray.X = 1
+	}
+
+	return Line {
+		O: origin,
+		R: ray,
+	}
+}
+
+func (l Line) Intersects(o Line) (bool, float64) {
+	c := l.R.X * o.R.Y - l.R.Y * o.R.X
+
+    if Abs(c) < floatEpsilon {
+    	return false, -1
+    } 
+
+    s := (-l.R.Y * (l.O.X - o.O.X) + l.R.X * (l.O.Y - o.O.Y)) / c
+    t := ( o.R.X * (l.O.Y - o.O.Y) - o.R.Y * (l.O.X - o.O.X)) / c
+
+    if s >= 0 && s <= 1 && t >= 0 && t <= 1 {
+    	return true, t
+    }
+    return false, -1
+}
+
+func (l Line) Point(scale float64) Vec2 {
+	point := l.O
+	point.Add(l.R, scale)
+	return point
+}
+
+func (l Line) Endpoint() Vec2 {
+	return l.Point(1.0)
+}
+
+func (l *Line) Normalize() {
+	l.R.Normalize()
+}
+
+func (l *Line) Scale(scale float64) {
+	l.R.Scale(scale)
+}
+
+type Vec2 struct {
+	X float64
+	Y float64
 }
 
 func NewVec2(x float64, y float64) Vec2 {
@@ -52,9 +126,23 @@ func (v *Vec2) Add(other Vec2, scale float64) {
 	v.Y += other.Y * scale
 }
 
+func (v *Vec2) Sub(other Vec2, scale float64) {
+	v.X -= other.X * scale
+	v.Y -= other.Y * scale
+}
+
 func (v *Vec2) Scale(scale float64) {
 	v.X *= scale
 	v.Y *= scale
+}
+
+func (v *Vec2) Normalize() {
+	v.Scale(1.0 / v.Len())
+}
+
+func (v *Vec2) Negate() {
+	v.X = -v.X
+	v.Y = -v.Y
 }
 
 func (v *Vec2) ClampX(min float64, max float64) bool {
@@ -82,7 +170,11 @@ func (v *Vec2) ClampY(min float64, max float64) bool {
 }
 
 func (v Vec2) IsZero() bool {
-	return -floatEpsilon < v.X && v.X < floatEpsilon && -floatEpsilon < v.Y && v.Y < floatEpsilon
+	return Abs(v.X) < floatEpsilon && Abs(v.Y) < floatEpsilon
+}
+
+func (v Vec2) Len() float64 {
+	return math.Sqrt(v.LenSquared())
 }
 
 func (v Vec2) LenSquared() float64 {

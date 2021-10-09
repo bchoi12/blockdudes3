@@ -29,7 +29,7 @@ class UI {
     mouse() { return this._mouse; }
     keys() { return this._keys; }
     createKeyMsg() {
-        const mouse = this._renderer.getMouse(this._mouse);
+        const mouse = this._renderer.getMouse(this._mouse.clone());
         return {
             T: keyType,
             Key: {

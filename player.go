@@ -7,26 +7,29 @@ import (
 )
 
 const (
-	jumpVel float64 = 6.6
-	wallJumpVel float64 = 5.2
-	wallJumpMultiplier float64 = 0.64
-	gravityAcc = -10.0
+	gravityAcc = -15.0
+	walledAcc = -9.0
+	downAcc = -10.0
+	rightAcc = 16.0
+	leftAcc = -rightAcc
+	turnMultiplier = 3.0
 
-	downAcc float64 = -10.0
-	maxVerticalVel = 20.0
+	maxUpwardVel = 8.0
+	maxHorizontalVel = 8.0
+	maxDownwardVel = -24.0
+	jumpVel float64 = 8.0
+	wallJumpVel = 5.2
+	wallJumpMultiplier = 0.64
 
-	leftAcc float64 = -20.0
-	rightAcc float64 = -leftAcc
-	turnMultiplier float64 = 2.5
-	maxHorizontalVel = 7.2
-
-	minStopSpeedSquared float64 = 0.15 * 0.15
-
-	friction float64 = 0.4
+	friction = 0.4
+	airResistance = 0.92
 )
 
 type Player struct {
 	Profile
+	id int
+	weapon *Weapon
+	lastUpdateTime time.Time
 
 	grounded bool
 	walled int
@@ -34,7 +37,10 @@ type Player struct {
 	wallJumps int
 
 	keys map[int]bool
+	// Keys held down during last update cycle
 	lastKeys map[int] bool
+	lastKeyUpdate int
+	mouse Vec2
 }
 
 type PlayerInitData struct {
@@ -48,12 +54,12 @@ type PlayerData struct {
 	Acc Vec2
 }
 
-func newPlayer(pos Vec2, dim Vec2) *Player {
+func NewPlayer(id int, pos Vec2, dim Vec2) *Player {
 	return &Player {
-		Profile: &Rec2 {
-			pos: pos,
-			dim: dim,
-		},
+		Profile: NewRec2(pos, dim),
+		id: id,
+		weapon: NewWeapon(),
+		lastUpdateTime: time.Time{},
 
 		grounded: false,
 		walled: 0,
@@ -62,6 +68,16 @@ func newPlayer(pos Vec2, dim Vec2) *Player {
 
 		keys: make(map[int]bool, 0),
 		lastKeys: make(map[int]bool, 0),
+		lastKeyUpdate: -1,
+		mouse: pos,
+	}
+}
+
+func (p *Player) getPlayerData() PlayerData {
+	return PlayerData {
+		Pos: p.Profile.Pos(),
+		Vel: p.Profile.Vel(),
+		Acc: p.Profile.Acc(),
 	}
 }
 
@@ -69,6 +85,20 @@ func (p *Player) respawn() {
 	p.Profile.SetPos(NewVec2(0, 0))
 	p.Profile.SetVel(NewVec2(0, 0))
 	p.Profile.SetAcc(NewVec2(0, 0))
+}
+
+func (p *Player) updateKeys(keyMsg KeyMsg) {
+	if keyMsg.S <= p.lastKeyUpdate {
+		return
+	}
+	p.lastKeyUpdate = keyMsg.S
+
+	keys := make(map[int]bool, len(keyMsg.K))
+	for _, key := range(keyMsg.K) {
+		keys[key] = true
+	}
+	p.keys = keys
+	p.mouse = keyMsg.M
 }
 
 func (p *Player) keyDown(key int) bool {
@@ -79,19 +109,16 @@ func (p *Player) keyPressed(key int) bool {
 	return p.keys[key] && !p.lastKeys[key]
 }
 
-// delete?
-func (p *Player) checkCollision(grid *Grid, acc Vec2, ts float64) ObjectHeap {
-	prof := p.Profile
-	vel := NewVec2(0, 0)
-	vel.Add(acc, ts)
-	vel.Scale(ts)
-	prof.AddPos(vel)
-	return grid.getColliders(prof)
-}
+func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
+	var timeStep time.Duration
+	if p.lastUpdateTime.IsZero() {
+		timeStep = 0
+	} else {
+		timeStep = now.Sub(p.lastUpdateTime)
+	}
+	p.lastUpdateTime = now
 
-func (p *Player) updateState(grid *Grid, timeStep time.Duration) {
 	ts := float64(timeStep) / float64(time.Second)
-
 	pos := p.Profile.Pos()
 	vel := p.Profile.Vel()
 	acc := p.Profile.Acc()
@@ -121,34 +148,49 @@ func (p *Player) updateState(grid *Grid, timeStep time.Duration) {
 		if vel.Y > 0 && !p.keyDown(upKey) {
 			acc.Y += downAcc
 		}
-		if vel.Y < 0 {
+		if vel.Y <= 0 {
 			acc.Y += downAcc
 		}
 		if p.keyDown(downKey) {
 			acc.Y += downAcc
 		}
-	} else {
+		if acc.X == 0 {
+			vel.X *= airResistance
+		}
+	}
+	// Shooting
+	if p.keyDown(mouseClick) && !p.weapon.reloading(now) {
+		mouse := p.mouse
+		mouse.Sub(p.Profile.Pos(), 1.0)
+		line := NewLine(p.Profile.Pos(), mouse)
+		shot := p.weapon.shoot(p.id, line, grid, now)
+
+		if shot != nil {
+			buffer.shots = append(buffer.shots, shot.getShotData())
+			acc.Add(shot.recoil, 1)
+		}
+	}
+
+	// Stopping
+	if p.grounded {
+		vel.Y = 0
+		p.wallJumps = 0
+
 		// Friction
 		if Dot(vel, acc) <= 0 {
 			vel.Scale(friction)
 		}
 	}
-
-	// Stopping
-	if acc.IsZero() && vel.LenSquared() <= minStopSpeedSquared {
-		vel.Scale(0)
+	if p.walled != 0 && vel.Y < 0 {
+		acc.Y = Max(acc.Y, walledAcc)
 	}
 
 	// Calculate velocity & position
 	vel.Add(acc, ts)
 	vel.ClampX(-maxHorizontalVel, maxHorizontalVel)
-	vel.ClampY(-maxVerticalVel, maxVerticalVel)
+	vel.ClampY(maxDownwardVel, maxUpwardVel)
 
 	// Instantaneous adjustments
-	if p.grounded {
-		vel.Y = 0
-		p.wallJumps = 0
-	}
 	if p.keyDown(upKey) {
 		if p.grounded {
 			vel.Y = jumpVel
@@ -189,6 +231,8 @@ func (p *Player) updateState(grid *Grid, timeStep time.Duration) {
 			p.grounded = true
 		}
 	}
+
+	buffer.players[p.id] = p.getPlayerData()
 
 	// Save state
 	p.lastKeys = p.keys

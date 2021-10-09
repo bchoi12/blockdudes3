@@ -17,8 +17,8 @@ class Game {
         this._ui = ui;
         this._renderer = this._ui.renderer();
         this._connection = connection;
-        this._objects = new Map();
-        this._lastPlayerUpdate = 0;
+        this._keyUpdates = 0;
+        this._lastGameUpdate = 0;
         this._animateFrames = 0;
         this.initServerTalk();
     }
@@ -45,12 +45,14 @@ class Game {
     }
     initServerTalk() {
         this._connection.addHandler(initType, (msg) => { this.updatePlayers(msg); });
-        this._connection.addHandler(playerInitType, (msg) => { this.updatePlayers(msg); });
         this._connection.addHandler(leftType, (msg) => { this.updatePlayers(msg); });
-        this._connection.addHandler(playerStateType, (msg) => { this.updatePlayerState(msg); });
+        this._connection.addHandler(gameStateType, (msg) => { this.updateGameState(msg); });
+        this._connection.addHandler(playerInitType, (msg) => { this.updatePlayers(msg); });
         this._connection.addHandler(objectInitType, (msg) => { this.initObjects(msg); });
         this._connection.addSender(keyType, () => {
             const msg = this._ui.createKeyMsg();
+            this._keyUpdates++;
+            msg.Key.S = this._keyUpdates;
             this._connection.sendData(msg);
         }, frameMillis);
     }
@@ -79,22 +81,25 @@ class Game {
                 break;
         }
     }
-    updatePlayerState(msg) {
-        if (this._lastPlayerUpdate > msg.TS)
+    updateGameState(msg) {
+        if (this._lastGameUpdate >= msg.S)
             return;
         for (const [stringId, player] of Object.entries(msg.Ps)) {
             const id = Number(stringId);
             wasmSetPlayerData(id, player);
             this._renderer.updateObject(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
         }
-        this._lastPlayerUpdate = msg.TS;
+        if (msg.Ss.length > 0) {
+            debug(msg.Ss);
+            this._renderer.renderShots(msg.Ss);
+        }
+        this._lastGameUpdate = msg.S;
     }
     initObjects(msg) {
         this._renderer.clearObjects(ObjectType.OBJECT);
-        this._objects.clear();
         for (const [stringId, object] of Object.entries(msg.Os)) {
             const id = Number(stringId);
-            this._objects.set(id, object);
+            wasmAddObject(id, object);
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(), this._objectMaterial);
             this._renderer.addObject(ObjectType.OBJECT, id, mesh);
             this._renderer.updateObject(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);

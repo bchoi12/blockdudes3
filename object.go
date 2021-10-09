@@ -4,6 +4,23 @@ import (
 	"container/heap"
 )
 
+type Object struct {
+	Profile
+	static bool
+}
+
+type ObjectInitData struct {
+	Pos Vec2
+	Dim Vec2
+}
+
+func NewObject(pos Vec2, dim Vec2) *Object {
+	return &Object {
+		Profile: NewRec2(pos, dim),
+		static: true,
+	}
+}
+
 type ObjectItem struct {
 	id int
 	object *Object

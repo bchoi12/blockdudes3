@@ -13,9 +13,9 @@ declare var joinType : number;
 declare var leftType : number;
 declare var chatType : number;
 declare var keyType : number;
-declare var playerInitType : number;
+declare var gameStateType : number;
 
-declare var playerStateType : number;
+declare var playerInitType : number;
 declare var objectInitType : number;
 
 declare var upKey : number;
@@ -29,6 +29,5 @@ declare var wasmAddPlayer : any;
 declare var wasmHasPlayer : any;
 declare var wasmSetPlayerData : any;
 declare var wasmDeletePlayer : any;
-declare var wasmPressKey : any;
-declare var wasmReleaseKey : any;
+declare var wasmAddObject : any;
 declare var wasmUpdateState : any;

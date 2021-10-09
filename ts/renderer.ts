@@ -1,4 +1,6 @@
 class Renderer {
+	private readonly _lineMaterial = new THREE.LineBasicMaterial( { color: 0x0000ff } );
+
 	private _canvas : HTMLElement
 
 	private _scene : any;
@@ -81,6 +83,18 @@ class Renderer {
 			default:
 				debug("Unknown object type " + type);
 		}
+	}
+
+	renderShots(shots : Array<any>) : void {
+		shots.forEach((shot) => {
+			const points = [
+				new THREE.Vector3(shot.O.X, shot.O.Y, 0),
+				new THREE.Vector3(shot.E.X, shot.E.Y, 0),
+			];
+			const geometry = new THREE.BufferGeometry().setFromPoints(points);
+			const line = new THREE.Line(geometry, this._lineMaterial);
+			this._scene.add(line);
+		})
 	}
 
 	setCamera(x : number, y : number) : void {
