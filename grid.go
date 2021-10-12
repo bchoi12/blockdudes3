@@ -34,7 +34,7 @@ func NewGrid() *Grid {
 }
 
 func (g *Grid) addPlayer(id int, initData PlayerInitData) {
-	g.players[id] = NewPlayer(id, initData.Pos, initData.Dim)
+	g.players[id] = NewPlayer(id, initData)
 }
 
 func (g *Grid) hasPlayer(id int) bool {

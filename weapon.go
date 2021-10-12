@@ -12,6 +12,7 @@ const (
 type Weapon struct {
 	t int
 
+	phasePlayers bool
 	dist float64
 	reload time.Duration
 	recoilFactor float64
@@ -22,6 +23,7 @@ type Weapon struct {
 type Shot struct {
 	id int
 	line Line
+	phasePlayers bool
 
 	recoil Vec2
 	hits map[int]Vec2
@@ -47,6 +49,7 @@ func NewWeapon() *Weapon {
 	return &Weapon {
 		t: spaceGun,
 
+		phasePlayers: false,
 		dist: 30.0,
 		reload: 80 * time.Millisecond,
 		recoilFactor: 45.0,
@@ -67,6 +70,7 @@ func (w *Weapon) shoot(id int, mouse Line, grid *Grid, now time.Time) *Shot {
 	shot := Shot {
 		id: id,
 		line: mouse,
+		phasePlayers: w.phasePlayers,
 		hits: make(map[int]Vec2),
 		recoil: NewVec2(0, 0),
 	}

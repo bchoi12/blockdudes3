@@ -35,13 +35,14 @@ const (
 	downKey
 	leftKey
 	rightKey
+	dashKey
 
 	mouseClick
 )
 
 type PingMsg struct {
 	T int
-	N int // number
+	S int // seq num
 }
 
 type JSONMsg struct {

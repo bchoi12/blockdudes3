@@ -1,4 +1,4 @@
-function debug(msg : string) : void {
+function debug(msg : any) : void {
 	if (dev) {
 		console.log(msg)
 	}

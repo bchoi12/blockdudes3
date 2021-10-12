@@ -17,6 +17,10 @@ const (
 	maxUpwardVel = 8.0
 	maxHorizontalVel = 8.0
 	maxDownwardVel = -24.0
+	maxVelMultiplier = 0.9
+
+	dashVel = 16.0
+
 	jumpVel float64 = 8.0
 	wallJumpVel = 5.2
 	wallJumpMultiplier = 0.64
@@ -31,6 +35,7 @@ type Player struct {
 	weapon *Weapon
 	lastUpdateTime time.Time
 
+	canDash bool
 	grounded bool
 	walled int
 	lastWallJump int
@@ -52,15 +57,18 @@ type PlayerData struct {
 	Pos Vec2
 	Vel Vec2
 	Acc Vec2
+
+	Dir Vec2
 }
 
-func NewPlayer(id int, pos Vec2, dim Vec2) *Player {
+func NewPlayer(id int, initData PlayerInitData) *Player {
 	return &Player {
-		Profile: NewRec2(pos, dim),
+		Profile: NewRec2(initData.Pos, initData.Dim),
 		id: id,
 		weapon: NewWeapon(),
 		lastUpdateTime: time.Time{},
 
+		canDash: true,
 		grounded: false,
 		walled: 0,
 		lastWallJump: 0,
@@ -69,20 +77,24 @@ func NewPlayer(id int, pos Vec2, dim Vec2) *Player {
 		keys: make(map[int]bool, 0),
 		lastKeys: make(map[int]bool, 0),
 		lastKeyUpdate: -1,
-		mouse: pos,
+		mouse: initData.Pos,
 	}
 }
 
 func (p *Player) getPlayerData() PlayerData {
+	dir := p.mouse
+	dir.Sub(p.Profile.Pos(), 1.0)
+	dir.Normalize()
 	return PlayerData {
 		Pos: p.Profile.Pos(),
 		Vel: p.Profile.Vel(),
 		Acc: p.Profile.Acc(),
+		Dir: dir,
 	}
 }
 
 func (p *Player) respawn() {
-	p.Profile.SetPos(NewVec2(0, 0))
+	p.Profile.SetPos(NewVec2(5, 5))
 	p.Profile.SetVel(NewVec2(0, 0))
 	p.Profile.SetAcc(NewVec2(0, 0))
 }
@@ -175,6 +187,7 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 	if p.grounded {
 		vel.Y = 0
 		p.wallJumps = 0
+		p.canDash = true
 
 		// Friction
 		if Dot(vel, acc) <= 0 {
@@ -187,8 +200,15 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 
 	// Calculate velocity & position
 	vel.Add(acc, ts)
-	vel.ClampX(-maxHorizontalVel, maxHorizontalVel)
-	vel.ClampY(maxDownwardVel, maxUpwardVel)
+	if Abs(vel.X) > maxHorizontalVel {
+		vel.X *= maxVelMultiplier
+	}
+	if vel.Y < maxDownwardVel {
+		vel.Y *= maxVelMultiplier
+	}
+	if vel.Y > maxUpwardVel {
+		vel.Y *= maxVelMultiplier
+	}
 
 	// Instantaneous adjustments
 	if p.keyDown(upKey) {
@@ -198,12 +218,32 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 			if p.wallJumps > 0 && p.lastWallJump != p.walled {
 				p.wallJumps = 0
 			}
-			vel.Y = math.Pow(wallJumpMultiplier, float64(p.wallJumps)) * wallJumpVel
-			vel.X = float64(-Sign(acc.X)) * wallJumpVel * 2.0
+			vel.Y = Max(vel.Y, math.Pow(wallJumpMultiplier, float64(p.wallJumps)) * wallJumpVel)
+			vel.X = float64(-Sign(float64(p.walled))) * wallJumpVel * 2.0
 			acc.X = 0
 
 			p.wallJumps += 1
 			p.lastWallJump = p.walled
+		}
+	}
+
+	if p.keyPressed(dashKey) && !p.grounded && p.canDash {
+		dash := NewVec2(0, 0)
+		if p.keyDown(leftKey) {
+			dash.X -= dashVel
+		}
+		if p.keyDown(rightKey) {
+			dash.X += dashVel
+		}
+		if p.keyDown(upKey) {
+			dash.Y += dashVel
+		}
+		if p.keyDown(downKey) {
+			dash.Y -= dashVel
+		}
+		if !dash.IsZero() {
+			vel = dash
+			p.canDash = false
 		}
 	}
 
@@ -225,7 +265,7 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 		}
 		xadj, yadj := p.Profile.Snap(collider.Profile)
 		if xadj != 0 {
-			p.walled = int(Sign(xadj))
+			p.walled = -int(Sign(xadj))
 		}
 		if yadj > 0 {
 			p.grounded = true

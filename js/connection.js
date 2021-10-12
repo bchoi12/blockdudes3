@@ -1,12 +1,9 @@
 class Connection {
     constructor(room, name) {
-        this._pingInterval = 1000;
         this._handlers = new Map();
         this._senders = new Map();
         this._room = room;
         this._name = name;
-        this._ping = 0;
-        this._lastPingTime = Date.now();
     }
     connect() {
         if (defined(this._ws))
@@ -14,6 +11,7 @@ class Connection {
         const prefix = dev ? "ws://" : "wss://";
         const endpoint = prefix + window.location.host + "/newclient/room=" + this._room + "&name=" + this._name;
         this.initWebSocket(endpoint);
+        this._pinger = new Pinger(this);
     }
     addHandler(type, handler) {
         if (this._handlers.has(type)) {
@@ -46,7 +44,7 @@ class Connection {
         return this._id;
     }
     ping() {
-        return defined(this._ping) ? this._ping : 0;
+        return this._pinger.ping();
     }
     send(msg) {
         if (!this.wsReady()) {
@@ -83,17 +81,6 @@ class Connection {
             this.addHandler(initType, (msg) => {
                 this._id = msg.Id;
             });
-            this.addHandler(pingType, (msg) => {
-                this._ping = Date.now() - this._lastPingTime;
-            });
-            const self = this;
-            function sendPing() {
-                self.send({ T: pingType });
-                self._lastPingTime = Date.now();
-                setTimeout(sendPing, self._pingInterval);
-            }
-            ;
-            sendPing();
             this.addHandler(answerType, (msg) => { this.setRemoteDescription(msg); });
             this.addHandler(candidateType, (msg) => { this.addIceCandidate(msg); });
             this.initWebRTC();

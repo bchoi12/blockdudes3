@@ -127,6 +127,7 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 	case pingType:
 		outMsg := PingMsg {
 			T: pingType,
+			S: msg.Ping.S,
 		}
 		c.send(&outMsg)
 	case offerType:
@@ -183,8 +184,8 @@ func (r *Room) addClient(c *Client) error {
 	}
 
 	r.game.addPlayer(c.id, PlayerInitData {
-		Pos: NewVec2(0, 0),
-		Dim: NewVec2(1.0, 1.0),
+		Pos: NewVec2(5, 5),
+		Dim: NewVec2(0.8, 1.0),
 	})
 	playerJoinMsg := r.game.createPlayerJoinMsg(c.id)
 	r.send(&playerJoinMsg)

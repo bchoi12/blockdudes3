@@ -11,9 +11,9 @@ enum ObjectType {
 class Game {
 	private readonly _statsInterval = 500;
 
-	private readonly _meMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
-	private readonly _otherMaterial = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-	private readonly _objectMaterial = new THREE.MeshBasicMaterial( {color: 0x777777 } );
+	private readonly _meMaterial = new THREE.MeshToonMaterial( { color: 0xff0000 } );
+	private readonly _otherMaterial = new THREE.MeshToonMaterial( { color: 0x00ff00 } );
+	private readonly _objectMaterial = new THREE.MeshToonMaterial( {color: 0x777777 } );
 	
 	private _ui : UI;
 	private _renderer : Renderer;
@@ -55,6 +55,7 @@ class Game {
 
 	private animate() : void {
 		this.updateState();
+		this._renderer.updateCursor();
 		this.updateCamera();
 		this._renderer.render();
 		this._animateFrames++;
@@ -82,7 +83,17 @@ class Game {
 		const addPlayer = (id : number, initData : any) => {
 			if (wasmHasPlayer(id)) return;
 
-			this._renderer.addObject(ObjectType.PLAYER, id, new THREE.Mesh(new THREE.BoxGeometry(), id == this._id ? this._meMaterial : this._otherMaterial));
+			const material = id == this._id ? this._meMaterial : this._otherMaterial
+			const playerMesh = new THREE.Mesh(new THREE.BoxGeometry(initData.Dim.X, initData.Dim.Y, 0.3), material);
+			const hand = new THREE.Mesh( new THREE.SphereGeometry(0.1), material);
+			playerMesh.add(hand);
+
+			hand.castShadow = true;
+			hand.receiveShadow = true;
+			playerMesh.castShadow = true;
+			playerMesh.receiveShadow = true;
+
+			this._renderer.addObject(ObjectType.PLAYER, id, playerMesh);
 			wasmAddPlayer(id, initData);
 		}
 		const deletePlayer = (id : number) => {
@@ -113,11 +124,10 @@ class Game {
 			const id = Number(stringId);
 
 			wasmSetPlayerData(id, player);
-			this._renderer.updateObject(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
+			this._renderer.updatePlayer(id, player);
 		}
 
 		if (msg.Ss.length > 0) {
-			debug(msg.Ss);
 			this._renderer.renderShots(msg.Ss);
 		}
 
@@ -131,7 +141,11 @@ class Game {
 			const id = Number(stringId);
 
 			wasmAddObject(id, object);
-			const mesh = new THREE.Mesh(new THREE.BoxGeometry(), this._objectMaterial);
+			const mesh = new THREE.Mesh(new THREE.BoxGeometry(object.Dim.X, object.Dim.Y, 1.0), this._objectMaterial);
+			
+			mesh.castShadow = true;
+			mesh.receiveShadow = true;
+
 			this._renderer.addObject(ObjectType.OBJECT, id, mesh);
 			this._renderer.updateObject(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
 		}
@@ -141,7 +155,13 @@ class Game {
 		if (!this._renderer.hasObject(ObjectType.PLAYER, this._id)) return;
 
 		const playerRender = this._renderer.getObject(ObjectType.PLAYER, this._id);
-		this._renderer.setCamera(playerRender.position.x, playerRender.position.y);
+		const mouse = this._renderer.getMouse();
+
+		if (defined(mouse)) {
+			this._renderer.setCamera(playerRender.position, this._renderer.getMouse());
+		} else {
+			this._renderer.setCamera(playerRender.position, playerRender.position);
+		}
 	}
 
 	private updateState() {

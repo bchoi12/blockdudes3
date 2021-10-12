@@ -22,6 +22,7 @@ declare var upKey : number;
 declare var downKey : number;
 declare var leftKey : number;
 declare var rightKey : number;
+declare var dashKey : number;
 declare var mouseClick : number;
 
 /* WASM API */

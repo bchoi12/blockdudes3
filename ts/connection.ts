@@ -1,8 +1,6 @@
 type MessageHandler = (msg : any) => void;
 type MessageSender = () => void;
 class Connection {
-	private readonly _pingInterval = 1000;
-
 	private _handlers : Map<number, MessageHandler[]>;
 	private _senders : Map<number, MessageSender>;
 
@@ -10,21 +8,16 @@ class Connection {
 	private _name : string;
 	private _id : number;
 
-	private _ping : number;
-	private _lastPingTime : number;
-
 	private _ws : WebSocket;
 	private _wrtc : RTCPeerConnection;
 	private _dc : RTCDataChannel;
+	private _pinger : Pinger;
 
 	constructor(room : string, name : string) {
 		this._handlers = new Map();
 		this._senders = new Map();
 		this._room = room;
 		this._name = name;
-
-		this._ping = 0;
-		this._lastPingTime = Date.now();
 	}
 
 	connect() : void {
@@ -33,6 +26,7 @@ class Connection {
 		const prefix = dev ? "ws://" : "wss://"
 		const endpoint = prefix + window.location.host + "/newclient/room=" + this._room + "&name=" + this._name;
 		this.initWebSocket(endpoint);
+		this._pinger = new Pinger(this);
 	}
 
 	addHandler(type : number, handler : MessageHandler) : boolean {
@@ -69,7 +63,7 @@ class Connection {
 	}
 
 	ping() : number {
-		return defined(this._ping) ? this._ping : 0;
+		return this._pinger.ping();
 	}
 
 	send(msg : any) : boolean {
@@ -113,18 +107,6 @@ class Connection {
 			this.addHandler(initType, (msg : any) => {
 				this._id = msg.Id;
 			});
- 			this.addHandler(pingType, (msg : any) => {
-				this._ping = Date.now() - this._lastPingTime;
-			});
-
-			const self = this;
-			function sendPing() {
-				// TODO: use data channel?
-				self.send({T: pingType});
-				self._lastPingTime = Date.now();
-				setTimeout(sendPing, self._pingInterval);
-			};
-			sendPing();
 
 			this.addHandler(answerType, (msg : any) => { this.setRemoteDescription(msg); });
 			this.addHandler(candidateType, (msg : any) => { this.addIceCandidate(msg); });

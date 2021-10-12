@@ -137,6 +137,10 @@ func (v *Vec2) Scale(scale float64) {
 }
 
 func (v *Vec2) Normalize() {
+	if (v.Len() < floatEpsilon) {
+		return
+	}
+
 	v.Scale(1.0 / v.Len())
 }
 

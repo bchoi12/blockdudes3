@@ -65,25 +65,18 @@ func (g *Game) updateState() {
 func (g *Game) loadTestMap() {
 	objects := make(map[int]ObjectInitData)
 
-	for i := 0; i < 10; i++ {
-		objects[i] = ObjectInitData {
-			Pos: NewVec2(float64(i-5), float64(-i/2)),
-			Dim: NewVec2(1.0, 1.0),
-		}
+	objects[0] = ObjectInitData {
+		Pos: NewVec2(5, 0.9),
+		Dim: NewVec2(20.0, 0.2),
 	}
-	for i := 0; i < 10; i++ {
-		objects[i + 10] = ObjectInitData {
-			Pos: NewVec2(5.0, float64(i)),
-			Dim: NewVec2(1.0, 1.0),
-		}
+	objects[1] = ObjectInitData {
+		Pos: NewVec2(10, 8),
+		Dim: NewVec2(0.5, 11),
 	}
-	for i := 0; i < 10; i++ {
-		objects[i + 20] = ObjectInitData {
-			Pos: NewVec2(2.0, float64(i + 1)),
-			Dim: NewVec2(1.0, 1.0),
-		}
+	objects[2] = ObjectInitData {
+		Pos: NewVec2(12, 8),
+		Dim: NewVec2(0.5, 11),
 	}
-
 	g.setObjects(objects)
 }
 
