@@ -8,6 +8,8 @@ var InputMode;
 class UI {
     constructor(div, connection) {
         this._chatKeyCode = 13;
+        this._cursorWidth = 20;
+        this._cursorHeight = 20;
         this._div = div;
         this._renderer = new Renderer(elm("renderer"));
         this._connection = connection;
@@ -37,7 +39,7 @@ class UI {
                 M: {},
             },
         };
-        const mouse = this._renderer.getMouse();
+        const mouse = this._renderer.getMouseWorld();
         if (defined(mouse)) {
             msg.Key.M = {
                 X: mouse.x,
@@ -186,10 +188,12 @@ class UI {
     initMouseListener() {
         const recordMouse = (e) => {
             if (!this.pointerLocked()) {
+                elm("cursor").style.visibility = "hidden";
                 this._mouse.x = e.clientX;
                 this._mouse.y = e.clientY;
             }
             else {
+                elm("cursor").style.visibility = "visible";
                 this._mouse.x += e.movementX;
                 this._mouse.y += e.movementY;
             }
@@ -205,7 +209,9 @@ class UI {
             else if (this._mouse.y < 0) {
                 this._mouse.y = 0;
             }
-            this._renderer.setMouseFromScreen(this._mouse);
+            elm("cursor").style.left = (this._mouse.x - this._cursorWidth / 2) + "px";
+            elm("cursor").style.top = (this._mouse.y - this._cursorHeight / 2) + "px";
+            this._renderer.setMouseFromPixels(this._mouse);
         };
         document.addEventListener('mousemove', recordMouse);
         document.onmousedown = (e) => {

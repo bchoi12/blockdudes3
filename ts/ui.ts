@@ -8,6 +8,9 @@ enum InputMode {
 class UI {
 	private readonly _chatKeyCode = 13;
 
+	private readonly _cursorWidth = 20;
+	private readonly _cursorHeight = 20;
+
 	private _div : HTMLElement;
 	private _renderer : Renderer;
 	private _connection : Connection;
@@ -29,15 +32,15 @@ class UI {
 		this._mouse = new THREE.Vector3();
 		this._keys = new Set();
 		this._keyMap = new Map();
-		this._keyMap.set(38, upKey)
-		this._keyMap.set(87, upKey)
-		this._keyMap.set(40, downKey)
-		this._keyMap.set(83, downKey)
-		this._keyMap.set(37, leftKey)
-		this._keyMap.set(65, leftKey)
-		this._keyMap.set(39, rightKey)
-		this._keyMap.set(68, rightKey)
-		this._keyMap.set(32, dashKey)
+		this._keyMap.set(38, upKey);
+		this._keyMap.set(87, upKey);
+		this._keyMap.set(40, downKey);
+		this._keyMap.set(83, downKey);
+		this._keyMap.set(37, leftKey);
+		this._keyMap.set(65, leftKey);
+		this._keyMap.set(39, rightKey);
+		this._keyMap.set(68, rightKey);
+		this._keyMap.set(32, dashKey);
 	}
 
 	addDiv(div : HTMLElement) : void {
@@ -53,7 +56,7 @@ class UI {
 				M: {},
 			},
 		};
-   		const mouse = this._renderer.getMouse();
+   		const mouse = this._renderer.getMouseWorld();
 		if (defined(mouse)) {
 			msg.Key.M = {
 				X: mouse.x,
@@ -222,9 +225,11 @@ class UI {
 	private initMouseListener() : void {
 		const recordMouse = (e : any) => {
     		if (!this.pointerLocked()) {
+				elm("cursor").style.visibility = "hidden";
     			this._mouse.x = e.clientX;
     			this._mouse.y = e.clientY;
     		} else {
+				elm("cursor").style.visibility = "visible";
 				this._mouse.x += e.movementX;
 				this._mouse.y += e.movementY;
 	    	}
@@ -240,7 +245,9 @@ class UI {
     			this._mouse.y = 0;
     		}
 
-    		this._renderer.setMouseFromScreen(this._mouse);
+    		elm("cursor").style.left = (this._mouse.x - this._cursorWidth / 2) + "px";
+    		elm("cursor").style.top = (this._mouse.y - this._cursorHeight / 2) + "px";
+    		this._renderer.setMouseFromPixels(this._mouse);
     	};
     	document.addEventListener('mousemove', recordMouse);
 

@@ -2,19 +2,14 @@ class Renderer {
 	private readonly _cameraOffsetY = 0.6;
 	private readonly _cameraOffsetZ = 6.0;
 	private readonly _lineMaterial = new THREE.LineBasicMaterial( { color: 0xffff00 } );
-	private readonly _cursorMaterial = new THREE.LineBasicMaterial( { color: 0xff00ff } );
-
-	private readonly _extendCameraX = 3.2;
-	private readonly _extendCameraY = 1.6;
 
 	private _canvas : HTMLElement
 
 	private _scene : any;
 	private _camera : any;
 	private _renderer : any;
-	private _mouseScreen : any;
+	private _mousePixels : any;
 	private _mouseWorld : any;
-	private _cursor : any;
 
 	private _spotLight : any;
 
@@ -29,14 +24,31 @@ class Renderer {
 
 		window.onresize = () => { this.resizeCanvas(); };
 		
-		this._mouseScreen = new THREE.Vector3(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2, 0);
+		this._mousePixels = new THREE.Vector3(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2, 0);
 	}
 
 	elm() : HTMLElement { return this._canvas; }
 	render() : void { this._renderer.render(this._scene, this._camera); }
 	
-	setMouseFromScreen(mouse : any) : void { this._mouseScreen = mouse.clone(); }
-	getMouse() : any { return this._mouseWorld }
+	setMouseFromPixels(mouse : any) : void { this._mousePixels = mouse.clone(); }
+	getMouseScreen() : any {
+		const mouse = this._mousePixels.clone();
+		mouse.x -= window.innerWidth / 2;
+		mouse.y -= window.innerHeight / 2;
+		mouse.x /= window.innerWidth / 2;
+		mouse.y /= -window.innerHeight / 2;
+		return mouse;
+	}
+	getMouseWorld() : any {
+		const mouse = this.getMouseScreen();
+		mouse.unproject(this._camera.clone());
+		mouse.sub(this._camera.position).normalize();
+
+		const distance = -this._camera.position.z / mouse.z;
+		const mouseWorld = this._camera.position.clone();
+		mouseWorld.add(mouse.multiplyScalar(distance));
+		return mouseWorld;
+	}
 
 	addObject(type : ObjectType, id : number, mesh : any) : void {
 		const map = this.getMap(type);
@@ -64,8 +76,11 @@ class Renderer {
 		object.position.x = msg.Pos.X;
 		object.position.y = msg.Pos.Y;
 
-		object.children[0].position.x = msg.Dir.X * 0.8;
-		object.children[0].position.y = msg.Dir.Y * 0.8;
+		// TODO: need player class
+		object.children[0].position.x = msg.Dir.X * 0.65;
+		object.children[0].position.y = msg.Dir.Y * 0.65;
+		object.children[1].position.x = msg.Dir.X * 0.15;
+		object.children[1].position.y = msg.Dir.Y * 0.15;
 	}
 
 	updateObject(type : ObjectType, id : number, x : number, y : number) : void {
@@ -114,44 +129,11 @@ class Renderer {
 		})
 	}
 
-	setCamera(player : any, mouse : any) : void {
-		const scale = 4.0;
-
-		let xdiff = (mouse.x - player.x) / scale;
-		let ydiff = (mouse.y - player.y) / scale;
-
-		if (Math.abs(xdiff) <= this._extendCameraX / scale) {
-			xdiff = 0;
-		} else {
-			xdiff -= Math.sign(xdiff) * this._extendCameraX / scale;
-		}
-		if (Math.abs(ydiff) <= this._extendCameraY / scale) {
-			ydiff = 0;
-		} else {
-			ydiff -= Math.sign(ydiff) * this._extendCameraY / scale;
-		}
-
-		this._camera.position.x = player.x + xdiff;
-		this._camera.position.y = player.y + ydiff + this._cameraOffsetY;
-	}
-
-	updateCursor() : void {
+	setCamera(player : any, adj : any) : void {
+		this._camera.position.x = player.x + adj.x;
+		this._camera.position.y = player.y + adj.y + this._cameraOffsetY;
 		this._spotLight.position.set(this._camera.position.x, this._camera.position.y, this._camera.position.z);
 		this._spotLight.target.position.set(this._camera.position.x, this._camera.position.y, 0);
-
-		const mouse = this._mouseScreen.clone();
-		mouse.x -= window.innerWidth / 2;
-		mouse.y -= window.innerHeight / 2;
-		mouse.x /= window.innerWidth / 2;
-		mouse.y /= -window.innerHeight / 2;
-
-		mouse.unproject(this._camera.clone());
-		mouse.sub(this._camera.position).normalize();
-
-		const distance = -this._camera.position.z / mouse.z;
-		this._mouseWorld = this._camera.position.clone();
-		this._mouseWorld.add(mouse.multiplyScalar(distance));
-		this._cursor.position.set(this._mouseWorld.x, this._mouseWorld.y, this._mouseWorld.z);
 	}
 
 	private reset() : void {
@@ -160,11 +142,6 @@ class Renderer {
 		this._camera.position.z = this._cameraOffsetZ;
 		this._renderer = new THREE.WebGLRenderer( {canvas: this._canvas, antialias: true});
 		this._renderer.setPixelRatio(window.devicePixelRatio)
-
-		this._cursor = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.04), this._cursorMaterial);
-		this._cursor.renderOrder = 1;
-		this._cursor.material.depthTest = false;
-		this._scene.add(this._cursor);
 
 		this._renderer.setClearColor(0xaaaaff);
 

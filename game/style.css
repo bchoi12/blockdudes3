@@ -60,6 +60,11 @@ html, body {
 	font-weight: bold;
 }
 
+#cursor {
+	position: absolute;
+	visibility: hidden;
+}
+
 #overlay {
 	text-align:  center;
 

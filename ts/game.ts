@@ -11,6 +11,11 @@ enum ObjectType {
 class Game {
 	private readonly _statsInterval = 500;
 
+	private readonly _extendCameraXThreshold = 0.8;
+	private readonly _extendCameraYThreshold = 0.8;
+	private readonly _extendCameraX = 0.0;
+	private readonly _extendCameraY = 0.0;
+
 	private readonly _meMaterial = new THREE.MeshToonMaterial( { color: 0xff0000 } );
 	private readonly _otherMaterial = new THREE.MeshToonMaterial( { color: 0x00ff00 } );
 	private readonly _objectMaterial = new THREE.MeshToonMaterial( {color: 0x777777 } );
@@ -55,11 +60,10 @@ class Game {
 
 	private animate() : void {
 		this.updateState();
-		this._renderer.updateCursor();
 		this.updateCamera();
 		this._renderer.render();
-		this._animateFrames++;
 
+		this._animateFrames++;
 		requestAnimationFrame(() => { this.animate(); });
 	}
 
@@ -85,13 +89,20 @@ class Game {
 
 			const material = id == this._id ? this._meMaterial : this._otherMaterial
 			const playerMesh = new THREE.Mesh(new THREE.BoxGeometry(initData.Dim.X, initData.Dim.Y, 0.3), material);
-			const hand = new THREE.Mesh( new THREE.SphereGeometry(0.1), material);
-			playerMesh.add(hand);
-
-			hand.castShadow = true;
-			hand.receiveShadow = true;
 			playerMesh.castShadow = true;
 			playerMesh.receiveShadow = true;
+
+			const outerHand = new THREE.Mesh(new THREE.SphereGeometry(0.1), material);
+			outerHand.position.z = 0.4;
+			outerHand.castShadow = true;
+			outerHand.receiveShadow = true;
+			playerMesh.add(outerHand);
+
+			const innerHand = new THREE.Mesh(new THREE.SphereGeometry(0.1), material);
+			innerHand.position.z = 0.4;
+			innerHand.castShadow = true;
+			innerHand.receiveShadow = true;
+			playerMesh.add(innerHand);
 
 			this._renderer.addObject(ObjectType.PLAYER, id, playerMesh);
 			wasmAddPlayer(id, initData);
@@ -155,13 +166,18 @@ class Game {
 		if (!this._renderer.hasObject(ObjectType.PLAYER, this._id)) return;
 
 		const playerRender = this._renderer.getObject(ObjectType.PLAYER, this._id);
-		const mouse = this._renderer.getMouse();
 
-		if (defined(mouse)) {
-			this._renderer.setCamera(playerRender.position, this._renderer.getMouse());
-		} else {
-			this._renderer.setCamera(playerRender.position, playerRender.position);
+		const mouse = this._renderer.getMouseScreen();
+		const adj = new THREE.Vector3();
+
+		if (Math.abs(mouse.x) > this._extendCameraXThreshold) {
+			adj.x = Math.sign(mouse.x) * (Math.abs(mouse.x) - this._extendCameraXThreshold) / (1 - this._extendCameraXThreshold) * this._extendCameraX;
 		}
+		if (Math.abs(mouse.y) > this._extendCameraYThreshold) {
+			adj.y = Math.sign(mouse.y) * (Math.abs(mouse.y) - this._extendCameraYThreshold) / (1 - this._extendCameraYThreshold) * this._extendCameraY;
+		}
+
+		this._renderer.setCamera(playerRender.position, adj);
 	}
 
 	private updateState() {
