@@ -65,7 +65,7 @@ func NewPlayer(id int, initData PlayerInitData) *Player {
 	return &Player {
 		Profile: NewRec2(initData.Pos, initData.Dim),
 		id: id,
-		weapon: NewWeapon(),
+		weapon: NewWeapon(id),
 		lastUpdateTime: time.Time{},
 
 		canDash: true,
@@ -175,7 +175,7 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 		mouse := p.mouse
 		mouse.Sub(p.Profile.Pos(), 1.0)
 		line := NewLine(p.Profile.Pos(), mouse)
-		shot := p.weapon.shoot(p.id, line, grid, now)
+		shot := p.weapon.shoot(line, grid, now)
 
 		if shot != nil {
 			buffer.shots = append(buffer.shots, shot.getShotData())

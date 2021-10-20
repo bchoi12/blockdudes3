@@ -41,7 +41,7 @@ class Game {
         updateStats();
     }
     animate() {
-        this.updateState();
+        this.extrapolateState();
         this.updateCamera();
         this._renderer.render();
         this._animateFrames++;
@@ -121,7 +121,7 @@ class Game {
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             this._renderer.addObject(ObjectType.OBJECT, id, mesh);
-            this._renderer.updateObject(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
+            this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
         }
     }
     updateCamera() {
@@ -138,13 +138,13 @@ class Game {
         }
         this._renderer.setCamera(playerRender.position, adj);
     }
-    updateState() {
+    extrapolateState() {
         const state = JSON.parse(wasmUpdateState());
         for (const [stringId, player] of Object.entries(state.Ps)) {
             const id = Number(stringId);
             if (!this._renderer.hasObject(ObjectType.PLAYER, id))
                 continue;
-            this._renderer.updateObject(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
+            this._renderer.updatePosition(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
         }
     }
 }

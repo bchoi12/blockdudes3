@@ -10,6 +10,7 @@ const (
 )
 
 type Weapon struct {
+	id int
 	t int
 
 	phasePlayers bool
@@ -26,27 +27,54 @@ type Shot struct {
 	phasePlayers bool
 
 	recoil Vec2
-	hits map[int]Vec2
+	hits map[int]*Hit
 }
 
-func (s *Shot) getShotData() ShotData {
-	return ShotData {
-		Id: s.id,
-		O: s.line.O,
-		E: s.line.Endpoint(),
-		Hs: s.hits,
-	}
+type Hit struct {
+	idSpace int
+	id int
+	t float64
+	hit Vec2
 }
 
 type ShotData struct {
 	Id int
 	O Vec2
 	E Vec2
-	Hs map[int]Vec2
+	Hs map[int]HitData
 }
 
-func NewWeapon() *Weapon {
+type HitData struct {
+	IS int
+	Id int
+	H Vec2
+}
+
+func (s *Shot) getShotData() ShotData {
+	hits := make(map[int]HitData, len(s.hits))
+	for id, hit := range(s.hits) {
+		hits[id] = hit.getHitData()
+	}
+
+	return ShotData {
+		Id: s.id,
+		O: s.line.O,
+		E: s.line.Endpoint(),
+		Hs: hits,
+	}
+}
+
+func (h *Hit) getHitData() HitData {
+	return HitData {
+		IS: h.idSpace,
+		Id: h.id,
+		H: h.hit,
+	}
+}
+
+func NewWeapon(id int) *Weapon {
 	return &Weapon {
+		id: id,
 		t: spaceGun,
 
 		phasePlayers: false,
@@ -62,16 +90,24 @@ func (w *Weapon) reloading(now time.Time) bool {
 	return now.Sub(w.lastShot) < w.reload
 }
 
-func (w *Weapon) shoot(id int, mouse Line, grid *Grid, now time.Time) *Shot {
+func (w *Weapon) defaultLineColliderOptions() LineColliderOptions {
+	return LineColliderOptions {
+		selfId: w.id,
+		hitPlayers: true,
+		hitObjects: true,
+	}
+}
+
+func (w *Weapon) shoot(mouse Line, grid *Grid, now time.Time) *Shot {
 	if w.reloading(now) {
 		return nil
 	}
 
 	shot := Shot {
-		id: id,
+		id: w.id,
 		line: mouse,
 		phasePlayers: w.phasePlayers,
-		hits: make(map[int]Vec2),
+		hits: make(map[int]*Hit),
 		recoil: NewVec2(0, 0),
 	}
 
@@ -83,10 +119,10 @@ func (w *Weapon) shoot(id int, mouse Line, grid *Grid, now time.Time) *Shot {
 	shot.recoil.Scale(w.recoilFactor)
 
 	w.lastShot = now
-	hit, id, _, t := grid.getLineCollider(shot.line)
-	if hit {
-		shot.hits[id] = shot.line.Point(t)
-		shot.line.Scale(t)
+	collision, hit := grid.getLineCollider(shot.line, w.defaultLineColliderOptions())
+	if collision {
+		shot.hits[w.id] = hit
+		shot.line.Scale(hit.t)
 	}
 
 	return &shot

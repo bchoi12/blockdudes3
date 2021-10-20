@@ -1,6 +1,11 @@
 package main
 
 const (
+	objectIdSpace int = iota
+	playerIdSpace
+)
+
+const (
 	gridUnitLength int = 4
 	gridUnitHeight int = 4
 )
@@ -115,24 +120,54 @@ func (g *Grid) getColliders(prof Profile) ObjectHeap {
 	return objectHeap
 }
 
-func (g *Grid) getLineCollider(line Line) (bool, int, *Object, float64) {
-	var collider *Object
-	colliderId := -1
-	closest := 1.0
+type LineColliderOptions struct {
+	selfId int
+	hitPlayers bool
+	hitObjects bool
+}
+
+func (g *Grid) getLineCollider(line Line, options LineColliderOptions) (bool, *Hit) {
+	var collision bool
+	hit := &Hit {
+		t: 1.0,
+	}
+
+	if options.hitPlayers {
+		for id, player := range(g.players) {
+			_, t := player.Profile.Intersects(line)
+			if t < hit.t {
+				if id == options.selfId {
+					continue
+				}
+
+				hit.id = id
+				hit.idSpace = playerIdSpace
+				hit.t = t
+				hit.hit = line.Point(t)
+				collision = true
+			}
+		}
+	}
+
+	if !options.hitObjects {
+		return collision, hit
+	}
 
 	coord := g.getCoord(line.O)
 	for {
 		for id, object := range(g.grid[coord]) {
-			collision, t := object.Profile.Intersects(line)
-			if collision && t < closest {
-				colliderId = id
-				collider = object 
-				closest = t
+			_, t := object.Profile.Intersects(line)
+			if t < hit.t {
+				hit.id = id
+				hit.idSpace = objectIdSpace
+				hit.t = t
+				hit.hit = line.Point(t)
+				collision = true
 			}
 		}
 
-		if collider != nil {
-			return true, colliderId, collider, closest
+		if collision {
+			return true, hit
 		}
 
 		xstart := NewVec2(float64(coord.x), float64(coord.y))
@@ -155,13 +190,19 @@ func (g *Grid) getLineCollider(line Line) (bool, int, *Object, float64) {
 		}
 		if xcollide && (xt <= yt || !ycollide) {
 			coord.advance(int(Sign(line.R.X)), 0)
+			if hit.t < xt {
+				break
+			}
 		}
 		if ycollide && (yt <= xt || !xcollide) {
 			coord.advance(0, int(Sign(line.R.Y)))
+			if hit.t < yt {
+				break
+			}
 		}
 	}
 
-	return false, colliderId, collider, closest
+	return false, nil
 }
 
 func (g* Grid) getCoord(point Vec2) GridCoord {

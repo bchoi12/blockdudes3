@@ -59,7 +59,7 @@ class Game {
 	}
 
 	private animate() : void {
-		this.updateState();
+		this.extrapolateState();
 		this.updateCamera();
 		this._renderer.render();
 
@@ -158,7 +158,7 @@ class Game {
 			mesh.receiveShadow = true;
 
 			this._renderer.addObject(ObjectType.OBJECT, id, mesh);
-			this._renderer.updateObject(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
+			this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
 		}
 	}
 
@@ -169,25 +169,24 @@ class Game {
 
 		const mouse = this._renderer.getMouseScreen();
 		const adj = new THREE.Vector3();
-
 		if (Math.abs(mouse.x) > this._extendCameraXThreshold) {
 			adj.x = Math.sign(mouse.x) * (Math.abs(mouse.x) - this._extendCameraXThreshold) / (1 - this._extendCameraXThreshold) * this._extendCameraX;
 		}
 		if (Math.abs(mouse.y) > this._extendCameraYThreshold) {
 			adj.y = Math.sign(mouse.y) * (Math.abs(mouse.y) - this._extendCameraYThreshold) / (1 - this._extendCameraYThreshold) * this._extendCameraY;
 		}
-
 		this._renderer.setCamera(playerRender.position, adj);
 	}
 
-	private updateState() {
+	private extrapolateState() {
 		const state = JSON.parse(wasmUpdateState());
 
 		for (const [stringId, player] of Object.entries(state.Ps) as [string, any]) {
 			const id = Number(stringId);
 			if (!this._renderer.hasObject(ObjectType.PLAYER, id)) continue;
 
-			this._renderer.updateObject(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
+			// TODO: smoothing for mouse movement
+			this._renderer.updatePosition(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
 		}
 	}
 }

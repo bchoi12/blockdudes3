@@ -4,6 +4,8 @@ foreach ($file in $src_files) {
 	cp "$($file)" "wasm/tmp_$($file)"
 }
 
+cp "wasm/wasm_main.go" "wasm/wasm_main_copy.txt"
+
 $env:GOOS="js"
 $env:GOARCH="wasm"
 cd wasm

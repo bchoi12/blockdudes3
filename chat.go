@@ -24,8 +24,6 @@ func newChat() *Chat {
 	    "\u0085", "",
 	    "\u2028", "",
 	    "\u2029", "",
-	    "fuck", "duck",
-	    "shit", "poop",
 	)
 
 	return &Chat {
