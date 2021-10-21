@@ -40,14 +40,14 @@ func (g *Game) processKeyMsg(id int, keyMsg KeyMsg) {
 }
 
 func (g *Game) addObject(id int, initData ObjectInitData) {
-	object := NewObject(initData.Pos, initData.Dim)
+	object := NewObject(id, initData)
 	g.grid.addObject(id, object)
 }
 
 func (g *Game) setObjects(objectInitData map[int]ObjectInitData) {
 	objects := make(map[int]*Object, 0)
-	for id, objectInit := range(objectInitData) {
-		objects[id] = NewObject(objectInit.Pos, objectInit.Dim)
+	for id, initData := range(objectInitData) {
+		objects[id] = NewObject(id, initData)
 	}
 	g.grid.setObjects(objects)
 }
@@ -56,6 +56,9 @@ func (g *Game) updateState() {
 	g.updateBuffer = NewUpdateBuffer()
 
 	now := time.Now()
+	for _, o := range(g.grid.objects) {
+		o.updateState(g.grid, g.updateBuffer, now)
+	}
 	for _, p := range(g.grid.players) {
 		p.updateState(g.grid, g.updateBuffer, now)
 	}
@@ -65,19 +68,89 @@ func (g *Game) updateState() {
 func (g *Game) loadTestMap() {
 	objects := make(map[int]ObjectInitData)
 
-	objects[0] = ObjectInitData {
+	i := 0
+	objects[i] = ObjectInitData {
 		Pos: NewVec2(5, 0.9),
 		Dim: NewVec2(20.0, 0.2),
 	}
-	objects[1] = ObjectInitData {
-		Pos: NewVec2(10, 8),
-		Dim: NewVec2(0.5, 11),
+
+	i++
+	objects[i] = ObjectInitData {
+		Pos: NewVec2(1, 3),
+		Dim: NewVec2(3.0, 0.2),
 	}
-	objects[2] = ObjectInitData {
-		Pos: NewVec2(12, 8),
-		Dim: NewVec2(0.5, 11),
+
+	i++
+	objects[i] = ObjectInitData {
+		Pos: NewVec2(4.5, 5),
+		Dim: NewVec2(3.0, 0.2),
 	}
+
 	g.setObjects(objects)
+
+	i++
+	movingPlatform := ObjectInitData {
+		Pos: NewVec2(8, 3),
+		Dim: NewVec2(3.0, 0.2),
+		dynamic: true,
+	}
+	g.addObject(i, movingPlatform)
+	g.grid.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
+		switch prof := (o.Profile).(type) {
+		case *Rec2:
+			pos := prof.Pos()
+			vel := prof.Vel()
+			if vel.IsZero() {
+				vel.X = 1
+			}
+			if prof.Pos().X > 11 && vel.X > 0 {
+				vel.X = -1
+			}
+			if prof.Pos().X < 4 && vel.X < 0 {
+				vel.X = 1
+			}
+			pos.Add(vel, ts)
+			prof.SetVel(vel)
+			prof.SetPos(pos)
+
+			grid.updateObject(o.id, o)
+			buffer.objects[o.id] = o.getObjectData()
+		default:
+			return
+		}
+	}
+
+	i++
+	platform2 := ObjectInitData {
+		Pos: NewVec2(10, 5),
+		Dim: NewVec2(3.0, 0.2),
+		dynamic: true,
+	}
+	g.addObject(i, platform2)
+	g.grid.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
+		switch prof := (o.Profile).(type) {
+		case *Rec2:
+			pos := prof.Pos()
+			vel := prof.Vel()
+			if vel.IsZero() {
+				vel.X = 1
+			}
+			if prof.Pos().X > 14 && vel.X > 0 {
+				vel.X = -1
+			}
+			if prof.Pos().X < 7 && vel.X < 0 {
+				vel.X = 1
+			}
+			pos.Add(vel, ts)
+			prof.SetVel(vel)
+			prof.SetPos(pos)
+
+			grid.updateObject(o.id, o)
+			buffer.objects[o.id] = o.getObjectData()
+		default:
+			return
+		}
+	}
 }
 
 func (g* Game) createPlayerInitMsg() PlayerInitMsg {
@@ -129,6 +202,7 @@ func (g *Game) createGameStateMsg() GameStateMsg {
 		T: gameStateType,
 		S: g.updates,
 		Ps: make(map[int]PlayerData, 0),
+		Os: make(map[int]ObjectData, 0),
 		Ss: make([]ShotData, 0),
 	}
 
@@ -137,6 +211,7 @@ func (g *Game) createGameStateMsg() GameStateMsg {
 	}
 
 	msg.Ps = g.updateBuffer.players
+	msg.Os = g.updateBuffer.objects
 	msg.Ss = g.updateBuffer.shots
 	return msg
 }

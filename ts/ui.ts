@@ -225,11 +225,15 @@ class UI {
 	private initMouseListener() : void {
 		const recordMouse = (e : any) => {
     		if (!this.pointerLocked()) {
-				elm("cursor").style.visibility = "hidden";
+    			if (elm("cursor").style.visibility != "hidden") {
+					elm("cursor").style.visibility = "hidden";
+				}
     			this._mouse.x = e.clientX;
     			this._mouse.y = e.clientY;
     		} else {
-				elm("cursor").style.visibility = "visible";
+    			if (elm("cursor").style.visibility != "visible") {
+					elm("cursor").style.visibility = "visible";
+				}
 				this._mouse.x += e.movementX;
 				this._mouse.y += e.movementY;
 	    	}

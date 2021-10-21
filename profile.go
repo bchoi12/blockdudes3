@@ -20,7 +20,7 @@ type Profile interface {
 	OverlapX(profile Profile) float64
 	OverlapY(profile Profile) float64
 	Overlap(profile Profile) bool
-	Snap(profile Profile) (float64, float64)
+	Snap(profile Profile, ts float64) (float64, float64)
 }
 
 type Rec2 struct { 
@@ -102,35 +102,47 @@ func (r Rec2) Overlap(profile Profile) bool {
 	}
 }
 
-func (r *Rec2) Snap(profile Profile) (float64, float64) {
+func (r *Rec2) Snap(profile Profile, ts float64) (float64, float64) {
 	switch other := profile.(type) {
 	case *Rec2:
 		ox := r.OverlapX(other)
 		oy := r.OverlapY(other)
 
+		if ox <= 0 || oy <= 0 {
+			return 0, 0
+		}
+
+		pos := r.Pos()
 		vel := r.Vel()
 
 		xcollision, ycollision := false, false
-		if Abs(vel.X) < collisionEpsilon && Abs(vel.Y) > collisionEpsilon {
-			ycollision = true
-		} else if Abs(vel.X) > collisionEpsilon && Abs(vel.Y) < collisionEpsilon {
-			xcollision = true
-		} else if Abs(vel.X) > collisionEpsilon && Abs(vel.Y) > collisionEpsilon {
-			xcollision = Abs(ox / vel.X) <= Abs(oy / vel.Y) && Sign(vel.X) == Sign(other.Pos().X - r.Pos().X)
-			ycollision = Abs(ox / vel.X) >= Abs(oy / vel.Y) && Sign(vel.Y) == Sign(other.Pos().Y - r.Pos().Y)
+		relativeVel := NewVec2(vel.X - other.Vel().X, vel.Y - other.Vel().Y)
+		if Abs(relativeVel.X) < collisionEpsilon && Abs(relativeVel.Y) > collisionEpsilon {
+			ycollision = Sign(relativeVel.Y) == Sign(other.Pos().Y - pos.Y)
+		} else if Abs(relativeVel.X) > collisionEpsilon && Abs(relativeVel.Y) < collisionEpsilon {
+			xcollision = Sign(relativeVel.X) == Sign(other.Pos().X - pos.X)
+		} else if Abs(relativeVel.X) > collisionEpsilon && Abs(relativeVel.Y) > collisionEpsilon {
+			xcollision = Abs(ox / relativeVel.X) <= Abs(oy / relativeVel.Y) && Sign(relativeVel.X) == Sign(other.Pos().X - pos.X)
+			ycollision = Abs(ox / relativeVel.X) >= Abs(oy / relativeVel.Y) && Sign(relativeVel.Y) == Sign(other.Pos().Y - pos.Y)
 		}
 
 		xadj, yadj := 0.0, 0.0
-		if xcollision  {
-			xadj = float64(Sign(r.Pos().X - other.Pos().X)) * ox
-			r.AddPos(NewVec2(xadj, 0))
-			r.SetVel(NewVec2(0, r.Vel().Y))
+		if xcollision {
+			xadj = float64(Sign(pos.X - other.Pos().X)) * ox
+			pos.Add(NewVec2(xadj, 0), 1.0)
+			vel.X = 0
 		}
 		if ycollision {
-			yadj = float64(Sign(r.Pos().Y - other.Pos().Y)) * oy
-			r.AddPos(NewVec2(0, yadj))
-			r.SetVel(NewVec2(r.Vel().X, 0))
+			yadj = float64(Sign(pos.Y - other.Pos().Y)) * oy
+			pos.Add(NewVec2(0, yadj), 1.0)
+			if yadj > 0 {
+				pos.Add(NewVec2(other.Vel().X, 0), ts)
+			}
+			vel.Y = 0
 		}
+		r.SetPos(pos)
+		r.SetVel(vel)
+
 		return xadj, yadj
 	default:
 		return 0, 0

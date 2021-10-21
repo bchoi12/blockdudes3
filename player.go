@@ -2,7 +2,6 @@ package main
 
 import (
 	"container/heap"
-	"math"
 	"time"
 )
 
@@ -157,7 +156,7 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 	// Gravity & friction
 	acc.Y = gravityAcc
 	if !p.grounded {
-		if vel.Y > 0 && !p.keyDown(upKey) {
+		if vel.Y > 0 && !p.keyDown(dashKey) {
 			acc.Y += downAcc
 		}
 		if vel.Y <= 0 {
@@ -211,10 +210,10 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 	}
 
 	// Instantaneous adjustments
-	if p.keyDown(upKey) {
+	if p.keyDown(dashKey) {
 		if p.grounded {
 			vel.Y = jumpVel
-		} else if p.walled != 0 && p.keyPressed(upKey) {
+		} /*else if p.walled != 0 && p.keyPressed(dashKey) {
 			if p.wallJumps > 0 && p.lastWallJump != p.walled {
 				p.wallJumps = 0
 			}
@@ -224,7 +223,7 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 
 			p.wallJumps += 1
 			p.lastWallJump = p.walled
-		}
+		}*/
 	}
 
 	if p.keyPressed(dashKey) && !p.grounded && p.canDash {
@@ -263,7 +262,7 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 		if !p.Profile.Overlap(collider.Profile) {
 			continue
 		}
-		xadj, yadj := p.Profile.Snap(collider.Profile)
+		xadj, yadj := p.Profile.Snap(collider.Profile, ts)
 		if xadj != 0 {
 			p.walled = -int(Sign(xadj))
 		}

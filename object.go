@@ -2,24 +2,63 @@ package main
 
 import (
 	"container/heap"
+	"time"
 )
-
-type Object struct {
-	Profile
-	static bool
-}
 
 type ObjectInitData struct {
 	Pos Vec2
 	Dim Vec2
+
+	dynamic bool
 }
 
-func NewObject(pos Vec2, dim Vec2) *Object {
+type ObjectData struct {
+	Pos Vec2
+	Vel Vec2
+}
+
+func NewObject(id int, initData ObjectInitData) *Object {
 	return &Object {
-		Profile: NewRec2(pos, dim),
-		static: true,
+		id : id,
+		Profile: NewRec2(initData.Pos, initData.Dim),
+		dynamic: initData.dynamic,
 	}
 }
+
+type ObjectUpdate func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64)
+type Object struct {
+	id int
+	Profile
+
+	dynamic bool
+	update ObjectUpdate
+	lastUpdateTime time.Time
+}
+
+func (o *Object) getObjectData() ObjectData {
+	return ObjectData {
+		Pos: o.Profile.Pos(),
+		Vel: o.Profile.Vel(),
+	}
+}
+
+func (o *Object) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
+	if !o.dynamic {
+		return
+	}
+
+	var timeStep time.Duration
+	if o.lastUpdateTime.IsZero() {
+		timeStep = 0
+	} else {
+		timeStep = now.Sub(o.lastUpdateTime)
+	}
+	o.lastUpdateTime = now
+	ts := float64(timeStep) / float64(time.Second)
+
+	o.update(o, grid, buffer, ts)
+}
+
 
 type ObjectItem struct {
 	id int

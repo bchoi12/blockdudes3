@@ -102,6 +102,10 @@ class Game {
     updateGameState(msg) {
         if (this._lastGameUpdate >= msg.S)
             return;
+        for (const [stringId, object] of Object.entries(msg.Os)) {
+            const id = Number(stringId);
+            this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
+        }
         for (const [stringId, player] of Object.entries(msg.Ps)) {
             const id = Number(stringId);
             wasmSetPlayerData(id, player);

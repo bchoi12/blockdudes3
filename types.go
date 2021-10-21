@@ -72,6 +72,7 @@ type GameStateMsg struct {
 	T int
 	S int // seq num
 	Ps map[int]PlayerData
+	Os map[int]ObjectData
 	Ss []ShotData
 }
 

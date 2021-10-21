@@ -131,6 +131,13 @@ class Game {
 	private updateGameState(msg : any) : void {
 		if (this._lastGameUpdate >= msg.S) return;
 
+		for (const [stringId, object] of Object.entries(msg.Os) as [string, any]) {
+			const id = Number(stringId);
+
+			// TODO: need updateObject()
+			this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
+		}
+
 		for (const [stringId, player] of Object.entries(msg.Ps) as [string, any]) {
 			const id = Number(stringId);
 
