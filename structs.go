@@ -26,20 +26,20 @@ func Min(a, b float64) float64 {
 	return b
 }
 
-// Round up when positive, round down when negative
-func IntOut(n float64) int {
-	if n < 0 {
-		return int(math.Floor(n))
-	}
-	return int(math.Ceil(n))
-}
-
 // Round down when positive and negative
 func IntLeft(n float64) int {
 	if n < 0 {
 		return int(n-1)
 	}
 	return int(n)
+}
+
+// Round up when positive and negative
+func IntRight(n float64) int {
+	if n < 0 {
+		return int(n)
+	}
+	return int(n+1)
 }
 
 func Abs(n float64) float64 {

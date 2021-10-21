@@ -41,7 +41,6 @@ class Game {
         updateStats();
     }
     animate() {
-        this.extrapolateState();
         this.updateCamera();
         this._renderer.render();
         this._animateFrames++;

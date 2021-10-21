@@ -226,10 +226,10 @@ func (g* Grid) getCoords(prof Profile) []GridCoord {
 	ymin := pos.Y - dim.Y / 2
 	ymax := pos.Y + dim.Y / 2
 
-	cxmin := IntOut(xmin) - Mod(IntOut(xmin), gridUnitLength)
-	cxmax := IntOut(xmax) - Mod(IntOut(xmax), gridUnitLength)
-	cymin := IntOut(ymin) - Mod(IntOut(ymin), gridUnitHeight)
-	cymax := IntOut(ymax) - Mod(IntOut(ymax), gridUnitHeight)
+	cxmin := IntLeft(xmin) - Mod(IntLeft(xmin), gridUnitLength)
+	cxmax := IntRight(xmax) - Mod(IntRight(xmax), gridUnitLength)
+	cymin := IntLeft(ymin) - Mod(IntLeft(ymin), gridUnitHeight)
+	cymax := IntRight(ymax) - Mod(IntRight(ymax), gridUnitHeight)
 
 	for x := cxmin; x <= cxmax; x += gridUnitLength {
 		for y := cymin; y <= cymax; y += gridUnitHeight {

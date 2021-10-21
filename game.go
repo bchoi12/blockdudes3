@@ -86,6 +86,18 @@ func (g *Game) loadTestMap() {
 		Dim: NewVec2(3.0, 0.2),
 	}
 
+	i++
+	objects[i] = ObjectInitData {
+		Pos: NewVec2(4, 0),
+		Dim: NewVec2(0.2, 0.2),
+	}
+
+	i++
+	objects[i] = ObjectInitData {
+		Pos: NewVec2(8, 0),
+		Dim: NewVec2(0.2, 0.2),
+	}
+
 	g.setObjects(objects)
 
 	i++
