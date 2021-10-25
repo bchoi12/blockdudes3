@@ -8,57 +8,6 @@ const (
 	floatEpsilon float64 = 1e-8
 )
 
-func Mod(a, b int) int {
-    return (a % b + b) % b
-}
-
-func Max(a, b float64) float64 {
-	if a > b {
-		return a
-	} 
-	return b
-}
-
-func Min(a, b float64) float64 {
-	if a < b {
-		return a
-	} 
-	return b
-}
-
-// Round down when positive and negative
-func IntLeft(n float64) int {
-	if n < 0 {
-		return int(n-1)
-	}
-	return int(n)
-}
-
-// Round up when positive and negative
-func IntRight(n float64) int {
-	if n < 0 {
-		return int(n)
-	}
-	return int(n+1)
-}
-
-func Abs(n float64) float64 {
-	if n < 0 {
-		return -n
-	}
-	return n
-}
-
-func Sign(n float64) int {
-	if n == 0 {
-		return 0
-	} else if n < 0 {
-		return -1
-	} else {
-		return 1
-	}
-}
-
 type Line struct {
 	O Vec2 // origin
 	R Vec2 // ray

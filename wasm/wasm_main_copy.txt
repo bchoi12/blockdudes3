@@ -36,9 +36,10 @@ func setGlobals() {
 	js.Global().Set("leftType", leftType)
 	js.Global().Set("chatType", chatType)
 	js.Global().Set("keyType", keyType)
-	js.Global().Set("playerInitType", playerInitType)
-
 	js.Global().Set("gameStateType", gameStateType)
+
+	js.Global().Set("playerInitType", playerInitType)
+	js.Global().Set("levelInitType", levelInitType)
 	js.Global().Set("objectInitType", objectInitType)
 
 	js.Global().Set("upKey", upKey)
@@ -55,7 +56,9 @@ func setGameAPI() {
 	js.Global().Set("wasmHasPlayer", hasPlayer(game))
 	js.Global().Set("wasmSetPlayerData", setPlayerData(game))
 	js.Global().Set("wasmDeletePlayer", deletePlayer(game))
+	js.Global().Set("wasmLoadLevel", loadLevel(game))
 	js.Global().Set("wasmAddObject", addObject(game))
+	js.Global().Set("wasmSetObjectData", setObjectData(game))
 	js.Global().Set("wasmUpdateState", updateState(game))
 }
 
@@ -102,7 +105,9 @@ func setPlayerData(g *Game) js.Func {
 		id := args[0].Int()
 		pos := args[1].Get("Pos")
 		vel := args[1].Get("Vel")
+		evel := args[1].Get("EVel")
 		acc := args[1].Get("Acc")
+		dir := args[1].Get("Dir")
 
 		if !g.hasPlayer(id) {
 			fmt.Println("Player does not exist: ", id)
@@ -112,7 +117,9 @@ func setPlayerData(g *Game) js.Func {
 		pData := PlayerData {
 			Pos: parseVec2(pos),
 			Vel: parseVec2(vel),
+			EVel: parseVec2(evel),
 			Acc: parseVec2(acc),
+			Dir: parseVec2(dir),
 		}
 		g.setPlayerData(id, pData)
 		return nil
@@ -130,6 +137,28 @@ func deletePlayer(g *Game) js.Func {
 		g.deletePlayer(id)
 		return nil
     })
+}
+
+func loadLevel(g *Game) js.Func {  
+    return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		if len(args) != 1 {
+			fmt.Println("Expected 1 argument(s), got ", len(args))
+			return nil
+		}
+
+		level := args[0].Int()
+		WasmDebug("%d", level)
+
+		g.loadLevel(level)
+
+		objects := g.createObjectInitMsg()
+		b, err := json.Marshal(objects)
+		if err != nil {
+			fmt.Println("wasmLoadLevel: ", err)
+			fmt.Println("objects: ", objects)
+		}
+		return string(b)
+	})
 }
 
 func addObject(g *Game) js.Func {  
@@ -153,6 +182,30 @@ func addObject(g *Game) js.Func {
     })
 }
 
+func setObjectData(g *Game) js.Func {  
+    return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		if len(args) != 2 {
+			fmt.Println("Expected 2 argument(s), got ", len(args))
+			return nil
+		}
+
+		id := args[0].Int()
+		pos := args[1].Get("Pos")
+		vel := args[1].Get("Vel")
+
+		if !g.hasObject(id) {
+			fmt.Println("Object does not exist: ", id)
+			return nil
+		}
+
+		oData := ObjectData {
+			Pos: parseVec2(pos),
+			Vel: parseVec2(vel),
+		}
+		g.setObjectData(id, oData)
+		return nil
+    })
+}
 
 func updateState(g *Game) js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {

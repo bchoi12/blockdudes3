@@ -63,7 +63,7 @@ func createOrJoinRoom(room string, name string, ws *websocket.Conn) {
 			unregister: make(chan *Client),
 		}
 
-		rooms[room].game.loadTestMap()
+		rooms[room].game.loadLevel(testLevel)
 
 		go rooms[room].run()
 	}
@@ -168,8 +168,8 @@ func (r *Room) addClient(c *Client) error {
 		return err
 	}
 
-	objectMsg := r.game.createObjectInitMsg()
-	err = c.send(&objectMsg)
+	levelMsg := r.game.createLevelInitMsg()
+	err = c.send(&levelMsg)
 	if err != nil {
 		return err
 	}

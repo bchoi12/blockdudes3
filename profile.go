@@ -1,15 +1,17 @@
 package main
 
 const (
-	collisionEpsilon float64 = 0.00000001
+	collisionEpsilon float64 = 1e-8
 )
 
 type Profile interface {
 	Pos() Vec2
-	AddPos(add Vec2)
 	SetPos(pos Vec2)
+	TotalVel() Vec2
 	Vel() Vec2
 	SetVel(vel Vec2)
+	ExtVel() Vec2
+	SetExtVel(vel Vec2)
 	Acc() Vec2
 	SetAcc(acc Vec2)
 
@@ -24,7 +26,7 @@ type Profile interface {
 }
 
 type Rec2 struct { 
-	pos, vel, acc, dim Vec2
+	pos, vel, evel, acc, dim Vec2
 }
 
 func NewRec2(pos Vec2, dim Vec2) *Rec2 {
@@ -32,16 +34,23 @@ func NewRec2(pos Vec2, dim Vec2) *Rec2 {
 		pos: pos,
 		dim: dim,
 		vel: NewVec2(0, 0),
+		evel: NewVec2(0, 0),
 		acc: NewVec2(0, 0),
 	}
 }
 
 func (r Rec2) Pos() Vec2 { return r.pos }
-func (r *Rec2) AddPos(add Vec2) { r.pos.Add(add, 1) }
 func (r *Rec2) SetPos(pos Vec2) { r.pos = pos }
 
+func (r Rec2) TotalVel() Vec2 {
+	total := r.vel
+	total.Add(r.evel, 1)
+	return total
+}
 func (r Rec2) Vel() Vec2 { return r.vel }
 func (r *Rec2) SetVel(vel Vec2) { r.vel = vel }
+func (r Rec2) ExtVel() Vec2 { return r.evel }
+func (r *Rec2) SetExtVel(evel Vec2) { r.evel = evel }
 
 func (r Rec2) Acc() Vec2 { return r.acc }
 func (r *Rec2) SetAcc(acc Vec2) { r.acc = acc }
@@ -106,17 +115,20 @@ func (r *Rec2) Snap(profile Profile, ts float64) (float64, float64) {
 	switch other := profile.(type) {
 	case *Rec2:
 		ox := r.OverlapX(other)
-		oy := r.OverlapY(other)
+		if ox <= 0 {
+			return 0, 0
+		}
 
-		if ox <= 0 || oy <= 0 {
+		oy := r.OverlapY(other)
+		if oy <= 0 {
 			return 0, 0
 		}
 
 		pos := r.Pos()
-		vel := r.Vel()
+		tvel := r.TotalVel()
 
 		xcollision, ycollision := false, false
-		relativeVel := NewVec2(vel.X - other.Vel().X, vel.Y - other.Vel().Y)
+		relativeVel := NewVec2(tvel.X - other.TotalVel().X, tvel.Y - other.TotalVel().Y)
 		if Abs(relativeVel.X) < collisionEpsilon && Abs(relativeVel.Y) > collisionEpsilon {
 			ycollision = Sign(relativeVel.Y) == Sign(other.Pos().Y - pos.Y)
 		} else if Abs(relativeVel.X) > collisionEpsilon && Abs(relativeVel.Y) < collisionEpsilon {
@@ -127,18 +139,26 @@ func (r *Rec2) Snap(profile Profile, ts float64) (float64, float64) {
 		}
 
 		xadj, yadj := 0.0, 0.0
+		vel := r.Vel()
 		if xcollision {
 			xadj = float64(Sign(pos.X - other.Pos().X)) * ox
 			pos.Add(NewVec2(xadj, 0), 1.0)
-			vel.X = 0
+
+			if xadj > 0 {
+				vel.X = Max(0, vel.X)
+			} else if xadj < 0 {
+				vel.X = Min(0, vel.X)
+			}
 		}
 		if ycollision {
 			yadj = float64(Sign(pos.Y - other.Pos().Y)) * oy
 			pos.Add(NewVec2(0, yadj), 1.0)
+		
 			if yadj > 0 {
-				pos.Add(NewVec2(other.Vel().X, 0), ts)
+				vel.Y = Max(0, vel.Y)
+			} else if yadj < 0 {
+				vel.Y = Min(0, vel.Y)
 			}
-			vel.Y = 0
 		}
 		r.SetPos(pos)
 		r.SetVel(vel)

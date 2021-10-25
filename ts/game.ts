@@ -59,7 +59,7 @@ class Game {
 	}
 
 	private animate() : void {
-		// this.extrapolateState();
+		this.extrapolateState();
 		this.updateCamera();
 		this._renderer.render();
 
@@ -73,7 +73,7 @@ class Game {
 
 		this._connection.addHandler(gameStateType, (msg : any) => { this.updateGameState(msg); });
 		this._connection.addHandler(playerInitType, (msg : any) => { this.updatePlayers(msg); });
-		this._connection.addHandler(objectInitType, (msg : any) => { this.initObjects(msg); });
+		this._connection.addHandler(levelInitType, (msg : any) => { this.initLevel(msg); });
 
 		this._connection.addSender(keyType, () => {
 			const msg = this._ui.createKeyMsg();
@@ -133,14 +133,13 @@ class Game {
 
 		for (const [stringId, object] of Object.entries(msg.Os) as [string, any]) {
 			const id = Number(stringId);
-
+			wasmSetObjectData(id, object)
 			// TODO: need updateObject()
 			this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
 		}
 
 		for (const [stringId, player] of Object.entries(msg.Ps) as [string, any]) {
 			const id = Number(stringId);
-
 			wasmSetPlayerData(id, player);
 			this._renderer.updatePlayer(id, player);
 		}
@@ -152,15 +151,32 @@ class Game {
 		this._lastGameUpdate = msg.S;
 	}
 
-	private initObjects(msg :any) : void {
+	private extrapolateState() {
+		const state = JSON.parse(wasmUpdateState());
+
+		for (const [stringId, object] of Object.entries(state.Os) as [string, any]) {
+			const id = Number(stringId);
+			// TODO: need updateObject()
+			this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
+		}
+
+		for (const [stringId, player] of Object.entries(state.Ps) as [string, any]) {
+			const id = Number(stringId);
+			if (!this._renderer.hasObject(ObjectType.PLAYER, id)) continue;
+
+			// TODO: smoothing for mouse movement??
+			// this._renderer.updatePlayer(id, player);
+			this._renderer.updatePosition(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
+		}
+	}
+
+	private initLevel(msg :any) : void {
 		this._renderer.clearObjects(ObjectType.OBJECT);
 
-		for (const [stringId, object] of Object.entries(msg.Os) as [string, any]) {
+		const objects = JSON.parse(wasmLoadLevel(msg.L));
+		for (const [stringId, object] of Object.entries(objects.Os) as [string, any]) {
 			const id = Number(stringId);
-
-			wasmAddObject(id, object);
-			const mesh = new THREE.Mesh(new THREE.BoxGeometry(object.Dim.X, object.Dim.Y, 1.0), this._objectMaterial);
-			
+			const mesh = new THREE.Mesh(new THREE.BoxGeometry(object.Dim.X, object.Dim.Y, 1.0), this._objectMaterial);	
 			mesh.castShadow = true;
 			mesh.receiveShadow = true;
 
@@ -183,17 +199,5 @@ class Game {
 			adj.y = Math.sign(mouse.y) * (Math.abs(mouse.y) - this._extendCameraYThreshold) / (1 - this._extendCameraYThreshold) * this._extendCameraY;
 		}
 		this._renderer.setCamera(playerRender.position, adj);
-	}
-
-	private extrapolateState() {
-		const state = JSON.parse(wasmUpdateState());
-
-		for (const [stringId, player] of Object.entries(state.Ps) as [string, any]) {
-			const id = Number(stringId);
-			if (!this._renderer.hasObject(ObjectType.PLAYER, id)) continue;
-
-			// TODO: smoothing for mouse movement
-			this._renderer.updatePosition(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
-		}
 	}
 }

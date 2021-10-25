@@ -41,6 +41,7 @@ class Game {
         updateStats();
     }
     animate() {
+        this.extrapolateState();
         this.updateCamera();
         this._renderer.render();
         this._animateFrames++;
@@ -51,7 +52,7 @@ class Game {
         this._connection.addHandler(leftType, (msg) => { this.updatePlayers(msg); });
         this._connection.addHandler(gameStateType, (msg) => { this.updateGameState(msg); });
         this._connection.addHandler(playerInitType, (msg) => { this.updatePlayers(msg); });
-        this._connection.addHandler(objectInitType, (msg) => { this.initObjects(msg); });
+        this._connection.addHandler(levelInitType, (msg) => { this.initLevel(msg); });
         this._connection.addSender(keyType, () => {
             const msg = this._ui.createKeyMsg();
             this._keyUpdates++;
@@ -103,6 +104,7 @@ class Game {
             return;
         for (const [stringId, object] of Object.entries(msg.Os)) {
             const id = Number(stringId);
+            wasmSetObjectData(id, object);
             this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
         }
         for (const [stringId, player] of Object.entries(msg.Ps)) {
@@ -115,11 +117,24 @@ class Game {
         }
         this._lastGameUpdate = msg.S;
     }
-    initObjects(msg) {
-        this._renderer.clearObjects(ObjectType.OBJECT);
-        for (const [stringId, object] of Object.entries(msg.Os)) {
+    extrapolateState() {
+        const state = JSON.parse(wasmUpdateState());
+        for (const [stringId, object] of Object.entries(state.Os)) {
             const id = Number(stringId);
-            wasmAddObject(id, object);
+            this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
+        }
+        for (const [stringId, player] of Object.entries(state.Ps)) {
+            const id = Number(stringId);
+            if (!this._renderer.hasObject(ObjectType.PLAYER, id))
+                continue;
+            this._renderer.updatePosition(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
+        }
+    }
+    initLevel(msg) {
+        this._renderer.clearObjects(ObjectType.OBJECT);
+        const objects = JSON.parse(wasmLoadLevel(msg.L));
+        for (const [stringId, object] of Object.entries(objects.Os)) {
+            const id = Number(stringId);
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(object.Dim.X, object.Dim.Y, 1.0), this._objectMaterial);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
@@ -140,14 +155,5 @@ class Game {
             adj.y = Math.sign(mouse.y) * (Math.abs(mouse.y) - this._extendCameraYThreshold) / (1 - this._extendCameraYThreshold) * this._extendCameraY;
         }
         this._renderer.setCamera(playerRender.position, adj);
-    }
-    extrapolateState() {
-        const state = JSON.parse(wasmUpdateState());
-        for (const [stringId, player] of Object.entries(state.Ps)) {
-            const id = Number(stringId);
-            if (!this._renderer.hasObject(ObjectType.PLAYER, id))
-                continue;
-            this._renderer.updatePosition(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
-        }
     }
 }

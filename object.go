@@ -8,8 +8,6 @@ import (
 type ObjectInitData struct {
 	Pos Vec2
 	Dim Vec2
-
-	dynamic bool
 }
 
 type ObjectData struct {
@@ -21,7 +19,6 @@ func NewObject(id int, initData ObjectInitData) *Object {
 	return &Object {
 		id : id,
 		Profile: NewRec2(initData.Pos, initData.Dim),
-		dynamic: initData.dynamic,
 	}
 }
 
@@ -30,7 +27,6 @@ type Object struct {
 	id int
 	Profile
 
-	dynamic bool
 	update ObjectUpdate
 	lastUpdateTime time.Time
 }
@@ -42,20 +38,23 @@ func (o *Object) getObjectData() ObjectData {
 	}
 }
 
+func (o *Object) setObjectData(data ObjectData) {
+	prof := o.Profile
+	prof.SetPos(data.Pos)
+	prof.SetVel(data.Vel)
+}
+
 func (o *Object) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
-	if !o.dynamic {
+	if o.update == nil{
 		return
 	}
 
-	var timeStep time.Duration
-	if o.lastUpdateTime.IsZero() {
-		timeStep = 0
-	} else {
-		timeStep = now.Sub(o.lastUpdateTime)
+	ts := GetTimestep(now, o.lastUpdateTime)
+	if ts < 0 {
+		return
 	}
-	o.lastUpdateTime = now
-	ts := float64(timeStep) / float64(time.Second)
 
+	o.lastUpdateTime = now
 	o.update(o, grid, buffer, ts)
 }
 

@@ -25,7 +25,14 @@ const (
 	gameStateType
 
 	playerInitType
+	levelInitType
 	objectInitType
+)
+
+const (
+	unknownIdSpace int = iota
+	playerIdSpace
+	objectIdSpace
 )
 
 const (
@@ -79,6 +86,11 @@ type GameStateMsg struct {
 type PlayerInitMsg struct {
 	T int
 	Ps map[int]PlayerInitData
+}
+
+type LevelInitMsg struct {
+	T int
+	L int
 }
 
 type ObjectInitMsg struct {

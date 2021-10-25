@@ -6,21 +6,21 @@ import (
 )
 
 const (
-	gravityAcc = -15.0
+	gravityAcc = -18.0
 	walledAcc = -9.0
 	downAcc = -10.0
 	rightAcc = 16.0
 	leftAcc = -rightAcc
-	turnMultiplier = 3.0
+	turnMultiplier = 4.0
 
 	maxUpwardVel = 8.0
 	maxHorizontalVel = 8.0
 	maxDownwardVel = -24.0
 	maxVelMultiplier = 0.9
 
-	dashVel = 16.0
+	dashVel = 12.0
 
-	jumpVel float64 = 8.0
+	jumpVel = 12.0
 	wallJumpVel = 5.2
 	wallJumpMultiplier = 0.64
 
@@ -52,16 +52,8 @@ type PlayerInitData struct {
 	Dim Vec2
 }
 
-type PlayerData struct {
-	Pos Vec2
-	Vel Vec2
-	Acc Vec2
-
-	Dir Vec2
-}
-
 func NewPlayer(id int, initData PlayerInitData) *Player {
-	return &Player {
+	player := &Player {
 		Profile: NewRec2(initData.Pos, initData.Dim),
 		id: id,
 		weapon: NewWeapon(id),
@@ -78,22 +70,43 @@ func NewPlayer(id int, initData PlayerInitData) *Player {
 		lastKeyUpdate: -1,
 		mouse: initData.Pos,
 	}
+	player.respawn()
+	return player
+}
+
+type PlayerData struct {
+	Pos Vec2
+	Vel Vec2
+	EVel Vec2
+	Acc Vec2
+	Dir Vec2
 }
 
 func (p *Player) getPlayerData() PlayerData {
 	dir := p.mouse
 	dir.Sub(p.Profile.Pos(), 1.0)
 	dir.Normalize()
+
 	return PlayerData {
 		Pos: p.Profile.Pos(),
 		Vel: p.Profile.Vel(),
+		EVel: p.Profile.ExtVel(),
 		Acc: p.Profile.Acc(),
 		Dir: dir,
 	}
 }
 
+func (p *Player) setPlayerData(data PlayerData) {
+	prof := p.Profile
+	prof.SetPos(data.Pos)
+	prof.SetVel(data.Vel)
+	prof.SetExtVel(data.EVel)
+	prof.SetAcc(data.Acc)
+	p.mouse = data.Dir
+}
+
 func (p *Player) respawn() {
-	p.Profile.SetPos(NewVec2(5, 5))
+	p.Profile.SetPos(NewVec2(10, 12))
 	p.Profile.SetVel(NewVec2(0, 0))
 	p.Profile.SetAcc(NewVec2(0, 0))
 }
@@ -121,15 +134,12 @@ func (p *Player) keyPressed(key int) bool {
 }
 
 func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
-	var timeStep time.Duration
-	if p.lastUpdateTime.IsZero() {
-		timeStep = 0
-	} else {
-		timeStep = now.Sub(p.lastUpdateTime)
+	ts := GetTimestep(now, p.lastUpdateTime)
+	if ts < 0 {
+		return
 	}
 	p.lastUpdateTime = now
 
-	ts := float64(timeStep) / float64(time.Second)
 	pos := p.Profile.Pos()
 	vel := p.Profile.Vel()
 	acc := p.Profile.Acc()
@@ -137,6 +147,28 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 	if (pos.Y < -5) {
 		p.respawn()
 		return
+	}
+
+	// Gravity & air resistance
+	acc.Y = gravityAcc
+	if !p.grounded {
+		if vel.Y > 0 && !p.keyDown(dashKey) {
+			acc.Y += downAcc
+		}
+		if vel.Y <= 0 {
+			acc.Y += downAcc
+		}
+		if p.keyDown(downKey) {
+			acc.Y += downAcc
+		}
+		if acc.X == 0 {
+			vel.X *= airResistance
+		}
+	}
+
+	// Wall sliding
+	if p.walled != 0 && vel.Y < 0 {
+		acc.Y = Max(acc.Y, walledAcc)
 	}
 
 	// Left & right
@@ -153,26 +185,11 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 		acc.X = 0
 	}
 
-	// Gravity & friction
-	acc.Y = gravityAcc
-	if !p.grounded {
-		if vel.Y > 0 && !p.keyDown(dashKey) {
-			acc.Y += downAcc
-		}
-		if vel.Y <= 0 {
-			acc.Y += downAcc
-		}
-		if p.keyDown(downKey) {
-			acc.Y += downAcc
-		}
-		if acc.X == 0 {
-			vel.X *= airResistance
-		}
-	}
 	// Shooting
+	// TODO: add shots to update buffer & check collisions after all players have moved
 	if p.keyDown(mouseClick) && !p.weapon.reloading(now) {
 		mouse := p.mouse
-		mouse.Sub(p.Profile.Pos(), 1.0)
+		mouse.Sub(p.Profile.Pos(), 1)
 		line := NewLine(p.Profile.Pos(), mouse)
 		shot := p.weapon.shoot(line, grid, now)
 
@@ -181,23 +198,32 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 			acc.Add(shot.recoil, 1)
 		}
 	}
+	p.Profile.SetAcc(acc)
 
-	// Stopping
+	// Jumping
 	if p.grounded {
-		vel.Y = 0
 		p.wallJumps = 0
 		p.canDash = true
 
 		// Friction
-		if Dot(vel, acc) <= 0 {
-			vel.Scale(friction)
+		if Sign(acc.X) != Sign(vel.X) {
+			vel.X *= friction
 		}
 	}
-	if p.walled != 0 && vel.Y < 0 {
-		acc.Y = Max(acc.Y, walledAcc)
+
+	// Jump & double jump
+	if p.keyPressed(dashKey) {
+		if p.grounded {
+			acc.Y = 0
+			vel.Y = Max(0, vel.Y) + jumpVel
+		} else if p.canDash {
+			acc.Y = 0
+			vel.Y = jumpVel
+			p.canDash = false
+		}
 	}
 
-	// Calculate velocity & position
+	// Calculate & clamp speed
 	vel.Add(acc, ts)
 	if Abs(vel.X) > maxHorizontalVel {
 		vel.X *= maxVelMultiplier
@@ -208,50 +234,20 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 	if vel.Y > maxUpwardVel {
 		vel.Y *= maxVelMultiplier
 	}
-
-	// Instantaneous adjustments
-	if p.keyDown(dashKey) {
-		if p.grounded {
-			vel.Y = jumpVel
-		} /*else if p.walled != 0 && p.keyPressed(dashKey) {
-			if p.wallJumps > 0 && p.lastWallJump != p.walled {
-				p.wallJumps = 0
-			}
-			vel.Y = Max(vel.Y, math.Pow(wallJumpMultiplier, float64(p.wallJumps)) * wallJumpVel)
-			vel.X = float64(-Sign(float64(p.walled))) * wallJumpVel * 2.0
-			acc.X = 0
-
-			p.wallJumps += 1
-			p.lastWallJump = p.walled
-		}*/
-	}
-
-	if p.keyPressed(dashKey) && !p.grounded && p.canDash {
-		dash := NewVec2(0, 0)
-		if p.keyDown(leftKey) {
-			dash.X -= dashVel
-		}
-		if p.keyDown(rightKey) {
-			dash.X += dashVel
-		}
-		if p.keyDown(upKey) {
-			dash.Y += dashVel
-		}
-		if p.keyDown(downKey) {
-			dash.Y -= dashVel
-		}
-		if !dash.IsZero() {
-			vel = dash
-			p.canDash = false
-		}
-	}
+	p.Profile.SetVel(vel)
 
 	// Move
-	pos.Add(vel, ts)
+	pos.Add(p.Profile.TotalVel(), ts)
 	p.Profile.SetPos(pos)
-	p.Profile.SetVel(vel)
-	p.Profile.SetAcc(acc)
+	p.checkCollisions(grid, ts)
 
+	buffer.players[p.id] = p.getPlayerData()
+
+	// Save state
+	p.lastKeys = p.keys
+}
+
+func (p *Player) checkCollisions(grid *Grid, ts float64) {
 	// Collision detection
 	p.grounded, p.walled = false, 0
 	colliders := grid.getColliders(p.Profile)
@@ -262,17 +258,16 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 		if !p.Profile.Overlap(collider.Profile) {
 			continue
 		}
+
 		xadj, yadj := p.Profile.Snap(collider.Profile, ts)
 		if xadj != 0 {
 			p.walled = -int(Sign(xadj))
 		}
 		if yadj > 0 {
 			p.grounded = true
+			p.Profile.SetExtVel(NewVec2(collider.Profile.Vel().X, collider.Profile.Vel().Y))
+		} else {
+			p.Profile.SetExtVel(NewVec2(0, 0))
 		}
 	}
-
-	buffer.players[p.id] = p.getPlayerData()
-
-	// Save state
-	p.lastKeys = p.keys
 }

@@ -16,6 +16,7 @@ declare var keyType : number;
 declare var gameStateType : number;
 
 declare var playerInitType : number;
+declare var levelInitType : number;
 declare var objectInitType : number;
 
 declare var upKey : number;
@@ -30,5 +31,7 @@ declare var wasmAddPlayer : any;
 declare var wasmHasPlayer : any;
 declare var wasmSetPlayerData : any;
 declare var wasmDeletePlayer : any;
+declare var wasmLoadLevel : any;
 declare var wasmAddObject : any;
+declare var wasmSetObjectData : any;
 declare var wasmUpdateState : any;

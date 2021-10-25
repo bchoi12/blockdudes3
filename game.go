@@ -6,6 +6,7 @@ import (
 
 type Game struct {
 	grid *Grid
+	level int
 
 	updateBuffer *UpdateBuffer
 	updates int
@@ -14,6 +15,8 @@ type Game struct {
 func newGame() *Game {
 	game := &Game {
 		grid: NewGrid(),
+		level: unknownLevel,
+
 		updates: 0,
 	}
 	return game
@@ -44,6 +47,14 @@ func (g *Game) addObject(id int, initData ObjectInitData) {
 	g.grid.addObject(id, object)
 }
 
+func (g *Game) hasObject(id int) bool {
+	return g.grid.hasObject(id)
+}
+
+func (g *Game) setObjectData(id int, data ObjectData) {
+	g.grid.setObjectData(id, data)
+}
+
 func (g *Game) setObjects(objectInitData map[int]ObjectInitData) {
 	objects := make(map[int]*Object, 0)
 	for id, initData := range(objectInitData) {
@@ -63,106 +74,6 @@ func (g *Game) updateState() {
 		p.updateState(g.grid, g.updateBuffer, now)
 	}
 	g.updates++
-}
-
-func (g *Game) loadTestMap() {
-	objects := make(map[int]ObjectInitData)
-
-	i := 0
-	objects[i] = ObjectInitData {
-		Pos: NewVec2(5, 0.9),
-		Dim: NewVec2(20.0, 0.2),
-	}
-
-	i++
-	objects[i] = ObjectInitData {
-		Pos: NewVec2(1, 3),
-		Dim: NewVec2(3.0, 0.2),
-	}
-
-	i++
-	objects[i] = ObjectInitData {
-		Pos: NewVec2(4.5, 5),
-		Dim: NewVec2(3.0, 0.2),
-	}
-
-	i++
-	objects[i] = ObjectInitData {
-		Pos: NewVec2(4, 0),
-		Dim: NewVec2(0.2, 0.2),
-	}
-
-	i++
-	objects[i] = ObjectInitData {
-		Pos: NewVec2(8, 0),
-		Dim: NewVec2(0.2, 0.2),
-	}
-
-	g.setObjects(objects)
-
-	i++
-	movingPlatform := ObjectInitData {
-		Pos: NewVec2(8, 3),
-		Dim: NewVec2(3.0, 0.2),
-		dynamic: true,
-	}
-	g.addObject(i, movingPlatform)
-	g.grid.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
-		switch prof := (o.Profile).(type) {
-		case *Rec2:
-			pos := prof.Pos()
-			vel := prof.Vel()
-			if vel.IsZero() {
-				vel.X = 1
-			}
-			if prof.Pos().X > 11 && vel.X > 0 {
-				vel.X = -1
-			}
-			if prof.Pos().X < 4 && vel.X < 0 {
-				vel.X = 1
-			}
-			pos.Add(vel, ts)
-			prof.SetVel(vel)
-			prof.SetPos(pos)
-
-			grid.updateObject(o.id, o)
-			buffer.objects[o.id] = o.getObjectData()
-		default:
-			return
-		}
-	}
-
-	i++
-	platform2 := ObjectInitData {
-		Pos: NewVec2(10, 5),
-		Dim: NewVec2(3.0, 0.2),
-		dynamic: true,
-	}
-	g.addObject(i, platform2)
-	g.grid.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
-		switch prof := (o.Profile).(type) {
-		case *Rec2:
-			pos := prof.Pos()
-			vel := prof.Vel()
-			if vel.IsZero() {
-				vel.X = 1
-			}
-			if prof.Pos().X > 14 && vel.X > 0 {
-				vel.X = -1
-			}
-			if prof.Pos().X < 7 && vel.X < 0 {
-				vel.X = 1
-			}
-			pos.Add(vel, ts)
-			prof.SetVel(vel)
-			prof.SetPos(pos)
-
-			grid.updateObject(o.id, o)
-			buffer.objects[o.id] = o.getObjectData()
-		default:
-			return
-		}
-	}
 }
 
 func (g* Game) createPlayerInitMsg() PlayerInitMsg {
@@ -190,6 +101,13 @@ func (g* Game) createPlayerJoinMsg(id int) PlayerInitMsg {
 	return PlayerInitMsg{
 		T: playerInitType,
 		Ps: players,
+	}
+}
+
+func (g *Game) createLevelInitMsg() LevelInitMsg {
+	return LevelInitMsg{
+		T: levelInitType,
+		L: g.level,
 	}
 }
 

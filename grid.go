@@ -1,11 +1,6 @@
 package main
 
 const (
-	objectIdSpace int = iota
-	playerIdSpace
-)
-
-const (
 	gridUnitLength int = 4
 	gridUnitHeight int = 4
 )
@@ -52,11 +47,7 @@ func (g *Grid) deletePlayer(id int) {
 }
 
 func (g *Grid) setPlayerData(id int, data PlayerData) {
-	prof := g.players[id].Profile
-
-	prof.SetPos(data.Pos)
-	prof.SetVel(data.Vel)
-	prof.SetAcc(data.Acc)
+	g.players[id].setPlayerData(data)
 }
 
 func (g* Grid) addObject(id int, object *Object) {
@@ -70,6 +61,16 @@ func (g* Grid) addObject(id int, object *Object) {
 		g.grid[coord][id] = object
 	}
 	g.reverseGrid[id] = coords
+}
+
+func (g* Grid) hasObject(id int) bool {
+	_, ok := g.objects[id]
+	return ok
+}
+
+func (g *Grid) setObjectData(id int, data ObjectData) {
+	g.objects[id].setObjectData(data)
+	g.updateObject(id, g.objects[id])
 }
 
 func (g* Grid) updateObject(id int, object *Object) {
@@ -206,8 +207,8 @@ func (g *Grid) getLineCollider(line Line, options LineColliderOptions) (bool, *H
 }
 
 func (g* Grid) getCoord(point Vec2) GridCoord {
-	cx := IntLeft(point.X)
-	cy := IntLeft(point.Y)
+	cx := IntDown(point.X)
+	cy := IntDown(point.Y)
 
 	return GridCoord {
 		x: cx - Mod(cx, gridUnitLength),
@@ -226,10 +227,10 @@ func (g* Grid) getCoords(prof Profile) []GridCoord {
 	ymin := pos.Y - dim.Y / 2
 	ymax := pos.Y + dim.Y / 2
 
-	cxmin := IntLeft(xmin) - Mod(IntLeft(xmin), gridUnitLength)
-	cxmax := IntRight(xmax) - Mod(IntRight(xmax), gridUnitLength)
-	cymin := IntLeft(ymin) - Mod(IntLeft(ymin), gridUnitHeight)
-	cymax := IntRight(ymax) - Mod(IntRight(ymax), gridUnitHeight)
+	cxmin := IntDown(xmin) - Mod(IntDown(xmin), gridUnitLength)
+	cxmax := IntUp(xmax) - Mod(IntUp(xmax), gridUnitLength)
+	cymin := IntDown(ymin) - Mod(IntDown(ymin), gridUnitHeight)
+	cymax := IntUp(ymax) - Mod(IntUp(ymax), gridUnitHeight)
 
 	for x := cxmin; x <= cxmax; x += gridUnitLength {
 		for y := cymin; y <= cymax; y += gridUnitHeight {
