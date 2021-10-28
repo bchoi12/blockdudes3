@@ -1,7 +1,6 @@
 package main
 
 import (
-	"container/heap"
 	"time"
 )
 
@@ -19,14 +18,25 @@ const (
 	maxVelMultiplier = 0.9
 
 	dashVel = 12.0
-
 	jumpVel = 12.0
-	wallJumpVel = 5.2
-	wallJumpMultiplier = 0.64
 
 	friction = 0.4
 	airResistance = 0.92
 )
+
+type PlayerInitData struct {
+	Init
+}
+
+func NewPlayerInitData(id int, pos Vec2, dim Vec2) PlayerInitData {
+	return PlayerInitData {
+		Init {
+			Id: id,
+			Pos: pos,
+			Dim: dim,
+		},
+	}
+}
 
 type Player struct {
 	Profile
@@ -37,8 +47,6 @@ type Player struct {
 	canDash bool
 	grounded bool
 	walled int
-	lastWallJump int
-	wallJumps int
 
 	keys map[int]bool
 	// Keys held down during last update cycle
@@ -47,23 +55,16 @@ type Player struct {
 	mouse Vec2
 }
 
-type PlayerInitData struct {
-	Pos Vec2
-	Dim Vec2
-}
-
-func NewPlayer(id int, initData PlayerInitData) *Player {
+func NewPlayer(initData PlayerInitData) *Player {
 	player := &Player {
-		Profile: NewRec2(initData.Pos, initData.Dim),
-		id: id,
-		weapon: NewWeapon(id),
+		Profile: NewRec2(initData.Init.Pos, initData.Init.Dim),
+		id: initData.Init.Id,
+		weapon: NewWeapon(initData.Init.Id),
 		lastUpdateTime: time.Time{},
 
 		canDash: true,
 		grounded: false,
 		walled: 0,
-		lastWallJump: 0,
-		wallJumps: 0,
 
 		keys: make(map[int]bool, 0),
 		lastKeys: make(map[int]bool, 0),
@@ -82,61 +83,18 @@ type PlayerData struct {
 	Dir Vec2
 }
 
-func (p *Player) getPlayerData() PlayerData {
-	dir := p.mouse
-	dir.Sub(p.Profile.Pos(), 1.0)
-	dir.Normalize()
-
-	return PlayerData {
-		Pos: p.Profile.Pos(),
-		Vel: p.Profile.Vel(),
-		EVel: p.Profile.ExtVel(),
-		Acc: p.Profile.Acc(),
-		Dir: dir,
-	}
+func (p *Player) GetProfile() Profile {
+	return p.Profile
 }
 
-func (p *Player) setPlayerData(data PlayerData) {
-	prof := p.Profile
-	prof.SetPos(data.Pos)
-	prof.SetVel(data.Vel)
-	prof.SetExtVel(data.EVel)
-	prof.SetAcc(data.Acc)
-	p.mouse = data.Dir
+func (p *Player) GetSpacedId() SpacedId {
+	return Id(playerIdSpace, p.id)
 }
 
-func (p *Player) respawn() {
-	p.Profile.SetPos(NewVec2(10, 12))
-	p.Profile.SetVel(NewVec2(0, 0))
-	p.Profile.SetAcc(NewVec2(0, 0))
-}
-
-func (p *Player) updateKeys(keyMsg KeyMsg) {
-	if keyMsg.S <= p.lastKeyUpdate {
-		return
-	}
-	p.lastKeyUpdate = keyMsg.S
-
-	keys := make(map[int]bool, len(keyMsg.K))
-	for _, key := range(keyMsg.K) {
-		keys[key] = true
-	}
-	p.keys = keys
-	p.mouse = keyMsg.M
-}
-
-func (p *Player) keyDown(key int) bool {
-	return p.keys[key]
-}
-
-func (p *Player) keyPressed(key int) bool {
-	return p.keys[key] && !p.lastKeys[key]
-}
-
-func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
+func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
 	ts := GetTimestep(now, p.lastUpdateTime)
 	if ts < 0 {
-		return
+		return false
 	}
 	p.lastUpdateTime = now
 
@@ -146,19 +104,13 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 
 	if (pos.Y < -5) {
 		p.respawn()
-		return
+		return true
 	}
 
 	// Gravity & air resistance
 	acc.Y = gravityAcc
 	if !p.grounded {
-		if vel.Y > 0 && !p.keyDown(dashKey) {
-			acc.Y += downAcc
-		}
-		if vel.Y <= 0 {
-			acc.Y += downAcc
-		}
-		if p.keyDown(downKey) {
+		if vel.Y > 0 && !p.keyDown(dashKey) || vel.Y <= 0 {
 			acc.Y += downAcc
 		}
 		if acc.X == 0 {
@@ -185,16 +137,13 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 		acc.X = 0
 	}
 
-	// Shooting
-	// TODO: add shots to update buffer & check collisions after all players have moved
+	// Shooting & recoil
 	if p.keyDown(mouseClick) && !p.weapon.reloading(now) {
-		mouse := p.mouse
-		mouse.Sub(p.Profile.Pos(), 1)
-		line := NewLine(p.Profile.Pos(), mouse)
+		line := NewLine(p.Profile.Pos(), p.mouse)
 		shot := p.weapon.shoot(line, grid, now)
 
 		if shot != nil {
-			buffer.shots = append(buffer.shots, shot.getShotData())
+			buffer.rawShots = append(buffer.rawShots, shot)
 			acc.Add(shot.recoil, 1)
 		}
 	}
@@ -202,7 +151,6 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 
 	// Jumping
 	if p.grounded {
-		p.wallJumps = 0
 		p.canDash = true
 
 		// Friction
@@ -241,10 +189,10 @@ func (p *Player) updateState(grid *Grid, buffer *UpdateBuffer, now time.Time) {
 	p.Profile.SetPos(pos)
 	p.checkCollisions(grid, ts)
 
-	buffer.players[p.id] = p.getPlayerData()
-
 	// Save state
 	p.lastKeys = p.keys
+
+	return true
 }
 
 func (p *Player) checkCollisions(grid *Grid, ts float64) {
@@ -252,22 +200,78 @@ func (p *Player) checkCollisions(grid *Grid, ts float64) {
 	p.grounded, p.walled = false, 0
 	colliders := grid.getColliders(p.Profile)
 	for len(colliders) > 0 {
-		objectItem := heap.Pop(&colliders).(*ObjectItem)
-		collider := objectItem.object
+		switch collider := PopThing(&colliders).(type) {
+		case *Object:
+			other := collider.GetProfile()
+			if !p.Profile.Overlap(other) {
+				continue
+			}
 
-		if !p.Profile.Overlap(collider.Profile) {
+			xadj, yadj := p.Profile.Snap(other, ts)
+			if xadj != 0 {
+				p.walled = -int(Sign(xadj))
+			}
+			if yadj > 0 {
+				p.grounded = true
+				p.Profile.SetExtVel(NewVec2(other.Vel().X, other.Vel().Y))
+			} else {
+				p.Profile.SetExtVel(NewVec2(0, 0))
+			}
+		default:
 			continue
 		}
-
-		xadj, yadj := p.Profile.Snap(collider.Profile, ts)
-		if xadj != 0 {
-			p.walled = -int(Sign(xadj))
-		}
-		if yadj > 0 {
-			p.grounded = true
-			p.Profile.SetExtVel(NewVec2(collider.Profile.Vel().X, collider.Profile.Vel().Y))
-		} else {
-			p.Profile.SetExtVel(NewVec2(0, 0))
-		}
 	}
+}
+
+func (p *Player) getPlayerData() PlayerData {
+	return PlayerData {
+		Pos: p.Profile.Pos(),
+		Vel: p.Profile.Vel(),
+		EVel: p.Profile.ExtVel(),
+		Acc: p.Profile.Acc(),
+		Dir: p.mouse,
+	}
+}
+
+func (p *Player) setPlayerData(data PlayerData) {
+	prof := p.Profile
+	prof.SetPos(data.Pos)
+	prof.SetVel(data.Vel)
+	prof.SetExtVel(data.EVel)
+	prof.SetAcc(data.Acc)
+	p.mouse = data.Dir
+}
+
+func (p *Player) respawn() {
+	p.Profile.SetPos(NewVec2(10, 12))
+	p.Profile.SetVel(NewVec2(0, 0))
+	p.Profile.SetAcc(NewVec2(0, 0))
+}
+
+func (p *Player) updateKeys(keyMsg KeyMsg) {
+	if keyMsg.S <= p.lastKeyUpdate {
+		return
+	}
+	p.lastKeyUpdate = keyMsg.S
+	keys := make(map[int]bool, len(keyMsg.K))
+	for _, key := range(keyMsg.K) {
+		keys[key] = true
+	}
+	p.keys = keys
+
+	p.updateMouse(keyMsg.M)
+}
+
+func (p *Player) updateMouse(mouseWorld Vec2) {
+	p.mouse = mouseWorld
+	p.mouse.Sub(p.Profile.Pos(), 1.0)
+	p.mouse.Normalize()
+}
+
+func (p *Player) keyDown(key int) bool {
+	return p.keys[key]
+}
+
+func (p *Player) keyPressed(key int) bool {
+	return p.keys[key] && !p.lastKeys[key]
 }

@@ -71,7 +71,6 @@ class UI {
 	displayGame() : void {
 		elm("div-login").style.display = "none";
 		this._div.style.display = "block";
-		elm("messages").style.bottom = (elm("form-send-message").offsetHeight + 4) + "px";
 		elm("message-box").style.width = elm("messages").offsetWidth + "px";
 
 		window.addEventListener("blur", () => {
@@ -100,6 +99,7 @@ class UI {
 		if (this._mode == InputMode.CHAT) {
 			elm("messages").classList.remove("chat-hide");
 			elm("messages").classList.remove("no-select");
+			elm("messages").style.bottom = "2em";
 			inputElm("form-send-message").style.display = "block";
 			inputElm("message-box").focus();
 			this.pointerUnlock();
@@ -108,6 +108,7 @@ class UI {
 		if (this._mode == InputMode.GAME) {
 			elm("messages").classList.add("chat-hide");
 			elm("messages").classList.add("no-select");
+			elm("messages").style.bottom = "1em";
 			inputElm("form-send-message").style.display = "none";
 			inputElm("message-box").blur();
 			this.pointerLock();

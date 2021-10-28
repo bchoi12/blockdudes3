@@ -10,10 +10,9 @@ const (
 )
 
 type Weapon struct {
-	id int
+	sid SpacedId
 	t int
 
-	phasePlayers bool
 	dist float64
 	reload time.Duration
 	recoilFactor float64
@@ -22,26 +21,25 @@ type Weapon struct {
 }
 
 type Shot struct {
-	id int
+	sid SpacedId
 	line Line
-	phasePlayers bool
+	colliderOptions LineColliderOptions
 
 	recoil Vec2
-	hits map[int]*Hit
+	hits []*Hit
 }
 
 type Hit struct {
-	idSpace int
-	id int
-	t float64
-	hit Vec2
+	sid SpacedId // target
+	t float64 // distance (0-1)
+	hit Vec2 // hit point
 }
 
 type ShotData struct {
 	Id int
-	O Vec2
-	E Vec2
-	Hs map[int]HitData
+	O Vec2 // origin
+	E Vec2 // end
+	Hs []HitData
 }
 
 type HitData struct {
@@ -51,13 +49,13 @@ type HitData struct {
 }
 
 func (s *Shot) getShotData() ShotData {
-	hits := make(map[int]HitData, len(s.hits))
-	for id, hit := range(s.hits) {
-		hits[id] = hit.getHitData()
+	hits := make([]HitData, len(s.hits))
+	for _, hit := range(s.hits) {
+		hits = append(hits, hit.getHitData())
 	}
 
 	return ShotData {
-		Id: s.id,
+		Id: s.sid.id,
 		O: s.line.O,
 		E: s.line.Endpoint(),
 		Hs: hits,
@@ -66,18 +64,17 @@ func (s *Shot) getShotData() ShotData {
 
 func (h *Hit) getHitData() HitData {
 	return HitData {
-		IS: h.idSpace,
-		Id: h.id,
+		IS: h.sid.space,
+		Id: h.sid.id,
 		H: h.hit,
 	}
 }
 
 func NewWeapon(id int) *Weapon {
 	return &Weapon {
-		id: id,
+		sid: Id(playerIdSpace, id),
 		t: spaceGun,
 
-		phasePlayers: false,
 		dist: 30.0,
 		reload: 80 * time.Millisecond,
 		recoilFactor: 45.0,
@@ -90,11 +87,10 @@ func (w *Weapon) reloading(now time.Time) bool {
 	return now.Sub(w.lastShot) < w.reload
 }
 
-func (w *Weapon) defaultLineColliderOptions() LineColliderOptions {
+func (w *Weapon) defaultColliderOptions() LineColliderOptions {
 	return LineColliderOptions {
-		selfId: w.id,
-		hitPlayers: true,
-		hitObjects: true,
+		self: w.sid,
+		ignore: make(map[int]bool, 0),
 	}
 }
 
@@ -104,26 +100,17 @@ func (w *Weapon) shoot(mouse Line, grid *Grid, now time.Time) *Shot {
 	}
 
 	shot := Shot {
-		id: w.id,
-		line: mouse,
-		phasePlayers: w.phasePlayers,
-		hits: make(map[int]*Hit),
-		recoil: NewVec2(0, 0),
+		sid: w.sid,
+		hits: make([]*Hit, 0),
+		colliderOptions: w.defaultColliderOptions(),
 	}
-
-	shot.line.Normalize()
-	shot.recoil = shot.line.R
-	shot.recoil.Negate()
-
+	shot.line = mouse
 	shot.line.Scale(w.dist)
+
+	shot.recoil = mouse.R
+	shot.recoil.Negate()
 	shot.recoil.Scale(w.recoilFactor)
 
 	w.lastShot = now
-	collision, hit := grid.getLineCollider(shot.line, w.defaultLineColliderOptions())
-	if collision {
-		shot.hits[w.id] = hit
-		shot.line.Scale(hit.t)
-	}
-
 	return &shot
 }

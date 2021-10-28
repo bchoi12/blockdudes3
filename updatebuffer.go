@@ -1,6 +1,10 @@
 package main
 
 type UpdateBuffer struct {
+	rawPlayers map[int]*Player
+	rawObjects map[int]*Object
+	rawShots []*Shot
+
 	players map[int]PlayerData
 	objects map[int]ObjectData
 	shots []ShotData
@@ -8,8 +12,31 @@ type UpdateBuffer struct {
 
 func NewUpdateBuffer() *UpdateBuffer {
 	return &UpdateBuffer {
+		rawPlayers: make(map[int]*Player, 0),
+		rawObjects: make(map[int]*Object, 0),
+		rawShots: make([]*Shot, 0),
+
 		players: make(map[int]PlayerData, 0),
 		objects: make(map[int]ObjectData, 0),
 		shots: make([]ShotData, 0),
+	}
+}
+
+func (ub *UpdateBuffer) process(grid *Grid) {
+	for _, shot := range(ub.rawShots) {
+		collision, hit := grid.getLineCollider(shot.line, shot.colliderOptions)
+		if collision {
+			shot.hits = append(shot.hits, hit)
+			shot.line.Scale(hit.t)
+		}
+		ub.shots = append(ub.shots, shot.getShotData())
+	}
+
+	for id, object := range(ub.rawObjects) {
+		ub.objects[id] = object.getObjectData()
+	}
+
+	for id, player := range(ub.rawPlayers) {
+		ub.players[id] = player.getPlayerData()
 	}
 }

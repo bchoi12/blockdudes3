@@ -1,130 +1,88 @@
 package main
 
-const (
-	gridUnitLength int = 4
-	gridUnitHeight int = 4
-)
-
 type GridCoord struct {
 	x int
 	y int
 }
 
-func (gc *GridCoord) advance(x int, y int) {
-	gc.x += x * gridUnitLength
-	gc.y += y * gridUnitHeight
+func (gc *GridCoord) advance(grid *Grid, x int, y int) {
+	gc.x += x * grid.GetUnitLength()
+	gc.y += y * grid.GetUnitHeight()
 }
 
 type Grid struct {
-	players map[int]*Player
-	objects map[int]*Object
+	unitLength int
+	unitHeight int
 
-	grid map[GridCoord]map[int]*Object
-	reverseGrid map[int][]GridCoord
+	grid map[GridCoord]map[SpacedId]Thing
+	reverseGrid map[SpacedId][]GridCoord
 }
 
-func NewGrid() *Grid {
+func NewGrid(unitLength int, unitHeight int) *Grid {
 	return &Grid {
-		players: make(map[int]*Player, 0),
-		objects: make(map[int]*Object, 0),
+		unitLength: unitLength,
+		unitHeight: unitHeight,
 
-		grid: make(map[GridCoord]map[int]*Object, 0),
-		reverseGrid: make(map[int][]GridCoord, 0),
+		grid: make(map[GridCoord]map[SpacedId]Thing, 0),
+		reverseGrid: make(map[SpacedId][]GridCoord, 0),
 	}
 }
 
-func (g *Grid) addPlayer(id int, initData PlayerInitData) {
-	g.players[id] = NewPlayer(id, initData)
+func (g *Grid) GetUnitLength() int {
+	return g.unitLength
 }
 
-func (g *Grid) hasPlayer(id int) bool {
-	_, ok := g.players[id]
-	return ok
+func (g *Grid) GetUnitHeight() int {
+	return g.unitHeight
 }
 
-func (g *Grid) deletePlayer(id int) {
-	delete(g.players, id)
-}
+func (g *Grid) Upsert(thing Thing) {
+	sid := thing.GetSpacedId()
+	g.Delete(sid)
 
-func (g *Grid) setPlayerData(id int, data PlayerData) {
-	g.players[id].setPlayerData(data)
-}
-
-func (g* Grid) addObject(id int, object *Object) {
-	g.objects[id] = object
-
-	coords := g.getCoords(object.Profile)
+	coords := g.getCoords(thing.GetProfile())
 	for _, coord := range(coords) {
 		if _, ok := g.grid[coord]; !ok {
-			g.grid[coord] = make(map[int]*Object)
+			g.grid[coord] = make(map[SpacedId]Thing)
 		}
-		g.grid[coord][id] = object
+		g.grid[coord][sid] = thing
 	}
-	g.reverseGrid[id] = coords
+	g.reverseGrid[sid] = coords
 }
 
-func (g* Grid) hasObject(id int) bool {
-	_, ok := g.objects[id]
-	return ok
-}
-
-func (g *Grid) setObjectData(id int, data ObjectData) {
-	g.objects[id].setObjectData(data)
-	g.updateObject(id, g.objects[id])
-}
-
-func (g* Grid) updateObject(id int, object *Object) {
-	if _, ok := g.objects[id]; !ok {
-		return
-	}
-
-	if coords, ok := g.reverseGrid[id]; ok {
+func (g *Grid) Delete(sid SpacedId) {
+	if coords, ok := g.reverseGrid[sid]; ok {
 		for _, coord := range(coords) {
-			delete(g.grid[coord], id)
+			delete(g.grid[coord], sid)
 		}
-		delete(g.reverseGrid, id)
-	}
-
-	coords := g.getCoords(object.Profile)
-	for _, coord := range(coords) {
-		if _, ok := g.grid[coord]; !ok {
-			g.grid[coord] = make(map[int]*Object)
-		}
-		g.grid[coord][id] = object
-	}
-	g.reverseGrid[id] = coords
-}
-
-func (g* Grid) setObjects(objects map[int]*Object) {
-	g.objects = make(map[int]*Object, len(objects))
-	g.grid = make(map[GridCoord]map[int]*Object, 0)
-	g.reverseGrid = make(map[int][]GridCoord, len(objects))
-
-	for id, object := range(objects) {
-		g.addObject(id, object)
+		delete(g.reverseGrid, sid)
 	}
 }
 
-func (g *Grid) getColliders(prof Profile) ObjectHeap {
-	objectHeap := make(ObjectHeap, 0)
+func (g *Grid) Has(sid SpacedId) bool {
+	_, ok := g.reverseGrid[sid]
+	return ok
+}
 
-	for id, object := range(g.getObjectsNearProfile(prof)) {
-		if prof.Overlap(object.Profile) {
-			item := &ObjectItem {
-				id: id,
-				object: object,
+func (g *Grid) getColliders(prof Profile) ThingHeap {
+	heap := make(ThingHeap, 0)
+
+	for sid, thing := range(g.getNearbyThings(prof)) {
+		if prof.Overlap(thing.GetProfile()) {
+			item := &ThingItem {
+				id: sid.id,
+				thing: thing,
 			}
-			objectHeap.Push(item)
-			objectHeap.priority(item, prof.OverlapX(object.Profile) * prof.OverlapY(object.Profile))
+			heap.Push(item)
+			heap.priority(item, prof.OverlapX(thing.GetProfile()) * prof.OverlapY(thing.GetProfile()))
 		}
 	}
-	return objectHeap
+	return heap
 }
 
 type LineColliderOptions struct {
-	selfId int
-	hitPlayers bool
-	hitObjects bool
+	self SpacedId
+	ignore map[int]bool
 }
 
 func (g *Grid) getLineCollider(line Line, options LineColliderOptions) (bool, *Hit) {
@@ -133,34 +91,16 @@ func (g *Grid) getLineCollider(line Line, options LineColliderOptions) (bool, *H
 		t: 1.0,
 	}
 
-	if options.hitPlayers {
-		for id, player := range(g.players) {
-			_, t := player.Profile.Intersects(line)
-			if t < hit.t {
-				if id == options.selfId {
-					continue
-				}
-
-				hit.id = id
-				hit.idSpace = playerIdSpace
-				hit.t = t
-				hit.hit = line.Point(t)
-				collision = true
-			}
-		}
-	}
-
-	if !options.hitObjects {
-		return collision, hit
-	}
-
 	coord := g.getCoord(line.O)
 	for {
-		for id, object := range(g.grid[coord]) {
-			_, t := object.Profile.Intersects(line)
+		for id, thing := range(g.grid[coord]) {
+			if id == options.self || options.ignore[id.space] {
+				continue
+			}
+
+			_, t := thing.GetProfile().Intersects(line)
 			if t < hit.t {
-				hit.id = id
-				hit.idSpace = objectIdSpace
+				hit.sid = thing.GetSpacedId()
 				hit.t = t
 				hit.hit = line.Point(t)
 				collision = true
@@ -173,15 +113,15 @@ func (g *Grid) getLineCollider(line Line, options LineColliderOptions) (bool, *H
 
 		xstart := NewVec2(float64(coord.x), float64(coord.y))
 		if Sign(line.R.X) > 0 {
-			xstart.X += float64(gridUnitLength)
+			xstart.X += float64(g.unitLength)
 		}
-		xline := NewLine(xstart, NewVec2(0, float64(gridUnitHeight)))
+		xline := NewLine(xstart, NewVec2(0, float64(g.unitHeight)))
 
 		ystart := NewVec2(float64(coord.x), float64(coord.y))
 		if Sign(line.R.Y) > 0 {
-			ystart.Y += float64(gridUnitHeight)
+			ystart.Y += float64(g.unitHeight)
 		}
-		yline := NewLine(ystart, NewVec2(float64(gridUnitLength), 0))
+		yline := NewLine(ystart, NewVec2(float64(g.unitLength), 0))
 
 		xcollide, xt := line.Intersects(xline)
 		ycollide, yt := line.Intersects(yline)
@@ -190,13 +130,13 @@ func (g *Grid) getLineCollider(line Line, options LineColliderOptions) (bool, *H
 			break
 		}
 		if xcollide && (xt <= yt || !ycollide) {
-			coord.advance(int(Sign(line.R.X)), 0)
+			coord.advance(g, int(Sign(line.R.X)), 0)
 			if hit.t < xt {
 				break
 			}
 		}
 		if ycollide && (yt <= xt || !xcollide) {
-			coord.advance(0, int(Sign(line.R.Y)))
+			coord.advance(g, 0, int(Sign(line.R.Y)))
 			if hit.t < yt {
 				break
 			}
@@ -211,8 +151,8 @@ func (g* Grid) getCoord(point Vec2) GridCoord {
 	cy := IntDown(point.Y)
 
 	return GridCoord {
-		x: cx - Mod(cx, gridUnitLength),
-		y: cy - Mod(cy, gridUnitHeight),
+		x: cx - Mod(cx, g.unitLength),
+		y: cy - Mod(cy, g.unitHeight),
 	}
 }
 
@@ -227,26 +167,26 @@ func (g* Grid) getCoords(prof Profile) []GridCoord {
 	ymin := pos.Y - dim.Y / 2
 	ymax := pos.Y + dim.Y / 2
 
-	cxmin := IntDown(xmin) - Mod(IntDown(xmin), gridUnitLength)
-	cxmax := IntUp(xmax) - Mod(IntUp(xmax), gridUnitLength)
-	cymin := IntDown(ymin) - Mod(IntDown(ymin), gridUnitHeight)
-	cymax := IntUp(ymax) - Mod(IntUp(ymax), gridUnitHeight)
+	cxmin := IntDown(xmin) - Mod(IntDown(xmin), g.unitLength)
+	cxmax := IntUp(xmax) - Mod(IntUp(xmax), g.unitLength)
+	cymin := IntDown(ymin) - Mod(IntDown(ymin), g.unitHeight)
+	cymax := IntUp(ymax) - Mod(IntUp(ymax), g.unitHeight)
 
-	for x := cxmin; x <= cxmax; x += gridUnitLength {
-		for y := cymin; y <= cymax; y += gridUnitHeight {
+	for x := cxmin; x <= cxmax; x += g.unitLength {
+		for y := cymin; y <= cymax; y += g.unitHeight {
 			coords = append(coords, GridCoord{x : x, y: y})
 		}
 	}
 	return coords
 }
 
-func (g *Grid) getObjectsNearProfile(prof Profile) map[int]*Object {
-	objects := make(map[int]*Object)
+func (g *Grid) getNearbyThings(prof Profile) map[SpacedId]Thing {
+	things := make(map[SpacedId]Thing)
 
 	for _, coord := range(g.getCoords(prof)) {
-		for id, object := range(g.grid[coord]) {
-			objects[id] = object
+		for id, thing := range(g.grid[coord]) {
+			things[id] = thing
 		}
 	}
-	return objects
+	return things
 }

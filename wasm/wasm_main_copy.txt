@@ -73,11 +73,8 @@ func addPlayer(g *Game) js.Func {
 		pos := args[1].Get("Pos")
 		dim := args[1].Get("Dim")
 
-		initData := PlayerInitData {
-			Pos: parseVec2(pos),
-			Dim: parseVec2(dim),
-		}
-		g.addPlayer(id, initData)
+		initData := NewPlayerInitData(id, parseVec2(pos), parseVec2(dim))
+		g.addPlayer(initData)
 		return nil
     })
 }
@@ -147,8 +144,6 @@ func loadLevel(g *Game) js.Func {
 		}
 
 		level := args[0].Int()
-		WasmDebug("%d", level)
-
 		g.loadLevel(level)
 
 		objects := g.createObjectInitMsg()
@@ -172,12 +167,8 @@ func addObject(g *Game) js.Func {
 		pos := args[1].Get("Pos")
 		dim := args[1].Get("Dim")
 
-		initData := ObjectInitData {
-			Pos: parseVec2(pos),
-			Dim: parseVec2(dim),
-		}
-
-		g.addObject(id, initData)
+		initData := NewObjectInitData(id, parseVec2(pos), parseVec2(dim))
+		g.addObject(initData)
 		return nil
     })
 }

@@ -39,11 +39,16 @@ html, body {
 	width: 20em;
 	height: 8em;
 	overflow-y: scroll;
+	bottom: 1em;
 }
 #message-box {
-	padding: 0;
+	padding: 2px;
 	margin: 0;
 	font-size: 1em;
+	border: none;
+	resize: none;
+	outline: none;
+	background-color: rgba(255, 255, 255, 0.5);
 }
 #form-send-message {
 	display: none;

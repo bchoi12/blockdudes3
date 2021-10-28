@@ -61,7 +61,8 @@ class Game {
         }, frameMillis);
     }
     updatePlayers(msg) {
-        const addPlayer = (id, initData) => {
+        const addPlayer = (initData) => {
+            const id = initData.Id;
             if (wasmHasPlayer(id))
                 return;
             const material = id == this._id ? this._meMaterial : this._otherMaterial;
@@ -90,9 +91,9 @@ class Game {
                 this._id = msg.Id;
                 break;
             case playerInitType:
-                for (const [stringId, initData] of Object.entries(msg.Ps)) {
-                    addPlayer(Number(stringId), initData);
-                }
+                msg.Ps.forEach((initData) => {
+                    addPlayer(initData);
+                });
                 break;
             case leftType:
                 deletePlayer(msg.Id);
@@ -133,14 +134,14 @@ class Game {
     initLevel(msg) {
         this._renderer.clearObjects(ObjectType.OBJECT);
         const objects = JSON.parse(wasmLoadLevel(msg.L));
-        for (const [stringId, object] of Object.entries(objects.Os)) {
-            const id = Number(stringId);
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(object.Dim.X, object.Dim.Y, 1.0), this._objectMaterial);
+        objects.Os.forEach((initData) => {
+            const id = initData.Id;
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(initData.Dim.X, initData.Dim.Y, 1.0), this._objectMaterial);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             this._renderer.addObject(ObjectType.OBJECT, id, mesh);
-            this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
-        }
+            this._renderer.updatePosition(ObjectType.OBJECT, id, initData.Pos.X, initData.Pos.Y);
+        });
     }
     updateCamera() {
         if (!this._renderer.hasObject(ObjectType.PLAYER, this._id))

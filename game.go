@@ -8,82 +8,101 @@ type Game struct {
 	grid *Grid
 	level int
 
+	players map[int]*Player
+	objects map[int]*Object
+
 	updateBuffer *UpdateBuffer
 	updates int
 }
 
 func newGame() *Game {
 	game := &Game {
-		grid: NewGrid(),
+		grid: NewGrid(4, 4),
 		level: unknownLevel,
+
+		players: make(map[int]*Player, 0),
+		objects: make(map[int]*Object, 0),
 
 		updates: 0,
 	}
 	return game
 }
 
-func (g *Game) addPlayer(id int, initData PlayerInitData) {
-	g.grid.addPlayer(id, initData)
+func (g *Game) addPlayer(initData PlayerInitData) {
+	id := initData.Init.Id
+	g.players[id] = NewPlayer(initData)
+	g.grid.Upsert(g.players[id])
 }
 
 func (g *Game) hasPlayer(id int) bool {
-	return g.grid.hasPlayer(id)
+	_, ok := g.players[id]
+	return ok
 }
 
 func (g *Game) deletePlayer(id int) {
-	g.grid.deletePlayer(id)
-}
-
-func (g *Game) setPlayerData(id int, data PlayerData) {
-	g.grid.setPlayerData(id, data)
+	g.grid.Delete(Id(playerIdSpace, id))
+	delete(g.players, id)
 }
 
 func (g *Game) processKeyMsg(id int, keyMsg KeyMsg) {
-	g.grid.players[id].updateKeys(keyMsg)
+	g.players[id].updateKeys(keyMsg)
 }
 
-func (g *Game) addObject(id int, initData ObjectInitData) {
-	object := NewObject(id, initData)
-	g.grid.addObject(id, object)
+func (g *Game) addObject(initData ObjectInitData) {
+	id := initData.Init.Id
+	g.objects[id] = NewObject(initData)
+	g.grid.Upsert(g.objects[id])
 }
 
 func (g *Game) hasObject(id int) bool {
-	return g.grid.hasObject(id)
+	_, ok := g.objects[id]
+	return ok
+}
+
+func (g *Game) setPlayerData(id int, data PlayerData) {
+	if !isWasm {
+		panic("setPlayerData called outside of WASM")
+	}
+
+	g.players[id].setPlayerData(data)
+	g.grid.Upsert(g.players[id])
 }
 
 func (g *Game) setObjectData(id int, data ObjectData) {
-	g.grid.setObjectData(id, data)
-}
-
-func (g *Game) setObjects(objectInitData map[int]ObjectInitData) {
-	objects := make(map[int]*Object, 0)
-	for id, initData := range(objectInitData) {
-		objects[id] = NewObject(id, initData)
+	if !isWasm {
+		panic("setObjectData called outside of WASM")
 	}
-	g.grid.setObjects(objects)
+
+	g.objects[id].setObjectData(data)
+	g.grid.Upsert(g.objects[id])
 }
 
 func (g *Game) updateState() {
 	g.updateBuffer = NewUpdateBuffer()
 
 	now := time.Now()
-	for _, o := range(g.grid.objects) {
-		o.updateState(g.grid, g.updateBuffer, now)
+	for _, o := range(g.objects) {
+		if o.UpdateState(g.grid, g.updateBuffer, now) {
+			g.grid.Upsert(o)
+			g.updateBuffer.rawObjects[o.id] = o
+		}
 	}
-	for _, p := range(g.grid.players) {
-		p.updateState(g.grid, g.updateBuffer, now)
+	for _, p := range(g.players) {
+		if p.UpdateState(g.grid, g.updateBuffer, now) {
+			g.grid.Upsert(p)
+			g.updateBuffer.rawPlayers[p.id] = p
+		}
 	}
+
+	g.updateBuffer.process(g.grid)
 	g.updates++
 }
 
 func (g* Game) createPlayerInitMsg() PlayerInitMsg {
-	players := make(map[int]PlayerInitData, len(g.grid.players))
+	players := make([]PlayerInitData, 0)
 
-	for id, player := range(g.grid.players) {
-		players[id] = PlayerInitData {
-			Pos: player.Profile.Pos(),
-			Dim: player.Profile.Dim(),
-		}
+	for id, player := range(g.players) {
+		players = append(players, NewPlayerInitData(id, player.Profile.Pos(), player.Profile.Dim()))
 	}
 
 	return PlayerInitMsg{
@@ -93,11 +112,8 @@ func (g* Game) createPlayerInitMsg() PlayerInitMsg {
 }
 
 func (g* Game) createPlayerJoinMsg(id int) PlayerInitMsg {
-	players := make(map[int]PlayerInitData, 1)
-	players[id] = PlayerInitData {
-		Pos: g.grid.players[id].Profile.Pos(),
-		Dim: g.grid.players[id].Profile.Dim(),
-	}
+	players := make([]PlayerInitData, 1)
+	players[0] = NewPlayerInitData(id, g.players[id].Profile.Pos(), g.players[id].Profile.Dim())
 	return PlayerInitMsg{
 		T: playerInitType,
 		Ps: players,
@@ -112,13 +128,10 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 }
 
 func (g *Game) createObjectInitMsg() ObjectInitMsg {
-	objs := make(map[int]ObjectInitData, len(g.grid.objects))
+	objs := make([]ObjectInitData, 0)
 
-	for id, obj := range(g.grid.objects) {
-		objs[id] = ObjectInitData {
-			Pos: obj.Profile.Pos(),
-			Dim: obj.Profile.Dim(),
-		}
+	for id, obj := range(g.objects) {
+		objs = append(objs, NewObjectInitData(id, obj.Profile.Pos(), obj.Profile.Dim()))
 	}
 
 	return ObjectInitMsg{
@@ -128,20 +141,11 @@ func (g *Game) createObjectInitMsg() ObjectInitMsg {
 }
 
 func (g *Game) createGameStateMsg() GameStateMsg {
-	msg := GameStateMsg{
+	return GameStateMsg{
 		T: gameStateType,
 		S: g.updates,
-		Ps: make(map[int]PlayerData, 0),
-		Os: make(map[int]ObjectData, 0),
-		Ss: make([]ShotData, 0),
+		Ps: g.updateBuffer.players,
+		Os: g.updateBuffer.objects,
+		Ss: g.updateBuffer.shots,
 	}
-
-	if g.updateBuffer == nil {
-		return msg
-	}
-
-	msg.Ps = g.updateBuffer.players
-	msg.Os = g.updateBuffer.objects
-	msg.Ss = g.updateBuffer.shots
-	return msg
 }

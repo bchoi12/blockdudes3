@@ -85,7 +85,7 @@ type GameStateMsg struct {
 
 type PlayerInitMsg struct {
 	T int
-	Ps map[int]PlayerInitData
+	Ps []PlayerInitData
 }
 
 type LevelInitMsg struct {
@@ -95,7 +95,7 @@ type LevelInitMsg struct {
 
 type ObjectInitMsg struct {
 	T int
-	Os map[int]ObjectInitData
+	Os []ObjectInitData
 }
 
 type KeyMsg struct {

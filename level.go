@@ -16,53 +16,34 @@ func (g *Game) loadLevel(index int) {
 }
 
 func (g *Game) loadTestLevel() {
-	objects := make(map[int]ObjectInitData)
-
 	i := 0
-	objects[i] = ObjectInitData {
-		Pos: NewVec2(5, 0.9),
-		Dim: NewVec2(20.0, 0.2),
-	}
+	object := NewObjectInitData(i, NewVec2(5, 0.9), NewVec2(20.0, 0.2))
+	g.addObject(object)
 
 	i++
-	objects[i] = ObjectInitData {
-		Pos: NewVec2(1, 3),
-		Dim: NewVec2(3.0, 0.2),
-	}
+	object = NewObjectInitData(i, NewVec2(1, 3), NewVec2(3.0, 0.2))
+	g.addObject(object)
 
 	i++
-	objects[i] = ObjectInitData {
-		Pos: NewVec2(4.5, 5),
-		Dim: NewVec2(3.0, 0.2),
-	}
+	object = NewObjectInitData(i, NewVec2(4.5, 5), NewVec2(3.0, 0.2))
+	g.addObject(object)
 
 	i++
-	objects[i] = ObjectInitData {
-		Pos: NewVec2(4, 0),
-		Dim: NewVec2(0.2, 0.2),
-	}
+	object = NewObjectInitData(i, NewVec2(4, 0), NewVec2(0.2, 0.2))
+	g.addObject(object)
 
 	i++
-	objects[i] = ObjectInitData {
-		Pos: NewVec2(8, 0),
-		Dim: NewVec2(0.2, 0.2),
-	}
+	object = NewObjectInitData(i, NewVec2(8, 0), NewVec2(0.2, 0.2))
+	g.addObject(object)
 
 	i++
-	objects[i] = ObjectInitData {
-		Pos: NewVec2(8, 3),
-		Dim: NewVec2(0.2, 3),
-	}
-
-	g.setObjects(objects)
+	object = NewObjectInitData(i, NewVec2(8, 3), NewVec2(0.2, 3))
+	g.addObject(object)
 
 	i++
-	movingPlatform := ObjectInitData {
-		Pos: NewVec2(5, 3),
-		Dim: NewVec2(3.0, 0.2),
-	}
-	g.addObject(i, movingPlatform)
-	g.grid.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
+	movingPlatform := NewObjectInitData(i, NewVec2(5, 3), NewVec2(3.0, 0.2))
+	g.addObject(movingPlatform)
+	g.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
 		switch prof := (o.Profile).(type) {
 		case *Rec2:
 			pos := prof.Pos()
@@ -79,21 +60,16 @@ func (g *Game) loadTestLevel() {
 			pos.Add(vel, ts)
 			prof.SetVel(vel)
 			prof.SetPos(pos)
-
-			grid.updateObject(o.id, o)
-			buffer.objects[o.id] = o.getObjectData()
 		default:
 			return
 		}
 	}
 
 	i++
-	platform2 := ObjectInitData {
-		Pos: NewVec2(10, 4),
-		Dim: NewVec2(3.0, 0.2),
-	}
-	g.addObject(i, platform2)
-	g.grid.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
+	platform2 := NewObjectInitData(i, NewVec2(10, 4), NewVec2(3.0, 0.2))
+
+	g.addObject(platform2)
+	g.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
 		switch prof := (o.Profile).(type) {
 		case *Rec2:
 			pos := prof.Pos()
@@ -111,7 +87,7 @@ func (g *Game) loadTestLevel() {
 			prof.SetVel(vel)
 			prof.SetPos(pos)
 
-			grid.updateObject(o.id, o)
+			grid.Upsert(o)
 			buffer.objects[o.id] = o.getObjectData()
 		default:
 			return
@@ -120,12 +96,9 @@ func (g *Game) loadTestLevel() {
 
 
 	i++
-	platform3 := ObjectInitData {
-		Pos: NewVec2(13, 5),
-		Dim: NewVec2(3.0, 0.2),
-	}
-	g.addObject(i, platform3)
-	g.grid.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
+	platform3 := NewObjectInitData(i, NewVec2(13, 5), NewVec2(3.0, 0.2))
+	g.addObject(platform3)
+	g.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
 		switch prof := (o.Profile).(type) {
 		case *Rec2:
 			pos := prof.Pos()
@@ -146,7 +119,7 @@ func (g *Game) loadTestLevel() {
 			prof.SetVel(vel)
 			prof.SetPos(pos)
 
-			grid.updateObject(o.id, o)
+			grid.Upsert(o)
 			buffer.objects[o.id] = o.getObjectData()
 		default:
 			return
