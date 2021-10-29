@@ -22,7 +22,7 @@ type Profile interface {
 	OverlapX(profile Profile) float64
 	OverlapY(profile Profile) float64
 	Overlap(profile Profile) bool
-	Snap(profile Profile, ts float64) (float64, float64)
+	Snap(profile Profile) (float64, float64)
 }
 
 type Rec2 struct { 
@@ -111,7 +111,7 @@ func (r Rec2) Overlap(profile Profile) bool {
 	}
 }
 
-func (r *Rec2) Snap(profile Profile, ts float64) (float64, float64) {
+func (r *Rec2) Snap(profile Profile) (float64, float64) {
 	switch other := profile.(type) {
 	case *Rec2:
 		ox := r.OverlapX(other)

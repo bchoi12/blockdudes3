@@ -9,30 +9,12 @@ const (
 	spaceGun
 )
 
-type Weapon struct {
-	sid SpacedId
-	t int
-
-	dist float64
-	reload time.Duration
-	recoilFactor float64
-
-	lastShot time.Time
-}
-
 type Shot struct {
-	sid SpacedId
+	weapon *Weapon
 	line Line
-	colliderOptions LineColliderOptions
 
 	recoil Vec2
 	hits []*Hit
-}
-
-type Hit struct {
-	sid SpacedId // target
-	t float64 // distance (0-1)
-	hit Vec2 // hit point
 }
 
 type ShotData struct {
@@ -42,12 +24,6 @@ type ShotData struct {
 	Hs []HitData
 }
 
-type HitData struct {
-	IS int
-	Id int
-	H Vec2
-}
-
 func (s *Shot) getShotData() ShotData {
 	hits := make([]HitData, len(s.hits))
 	for _, hit := range(s.hits) {
@@ -55,29 +31,55 @@ func (s *Shot) getShotData() ShotData {
 	}
 
 	return ShotData {
-		Id: s.sid.id,
+		Id: s.weapon.sid.id,
 		O: s.line.O,
 		E: s.line.Endpoint(),
 		Hs: hits,
 	}
 }
 
+type Hit struct {
+	target SpacedId // target
+	t float64 // distance (0-1)
+	hit Vec2 // hit point
+}
+
+type HitData struct {
+	IS int
+	Id int
+	H Vec2
+}
+
 func (h *Hit) getHitData() HitData {
 	return HitData {
-		IS: h.sid.space,
-		Id: h.sid.id,
+		IS: h.target.space,
+		Id: h.target.id,
 		H: h.hit,
 	}
+}
+
+type Weapon struct {
+	sid SpacedId
+	class int
+
+	dist float64
+	reload time.Duration
+	
+	recoilFactor float64
+	pushFactor float64
+
+	lastShot time.Time
 }
 
 func NewWeapon(id int) *Weapon {
 	return &Weapon {
 		sid: Id(playerIdSpace, id),
-		t: spaceGun,
+		class: spaceGun,
 
 		dist: 30.0,
 		reload: 80 * time.Millisecond,
-		recoilFactor: 45.0,
+		recoilFactor: 1.0,
+		pushFactor: 2.0,
 
 		lastShot: time.Time{},
 	}
@@ -87,10 +89,15 @@ func (w *Weapon) reloading(now time.Time) bool {
 	return now.Sub(w.lastShot) < w.reload
 }
 
-func (w *Weapon) defaultColliderOptions() LineColliderOptions {
-	return LineColliderOptions {
-		self: w.sid,
-		ignore: make(map[int]bool, 0),
+func (w *Weapon) colliderOptions() LineColliderOptions {
+	switch w.class {
+	case spaceGun:
+		return LineColliderOptions {
+			self: w.sid,
+			ignore: make(map[int]bool, 0),
+		}
+	default:
+		panic("missing weapon")
 	}
 }
 
@@ -100,9 +107,8 @@ func (w *Weapon) shoot(mouse Line, grid *Grid, now time.Time) *Shot {
 	}
 
 	shot := Shot {
-		sid: w.sid,
+		weapon: w,
 		hits: make([]*Hit, 0),
-		colliderOptions: w.defaultColliderOptions(),
 	}
 	shot.line = mouse
 	shot.line.Scale(w.dist)

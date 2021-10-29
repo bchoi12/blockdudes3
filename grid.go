@@ -5,15 +5,20 @@ type GridCoord struct {
 	y int
 }
 
-func (gc *GridCoord) advance(grid *Grid, x int, y int) {
-	gc.x += x * grid.GetUnitLength()
-	gc.y += y * grid.GetUnitHeight()
+func (gc *GridCoord) advance(grid *Grid, i int, j int) {
+	gc.x += i * grid.GetUnitLength()
+	gc.y += j * grid.GetUnitHeight()
+}
+
+func (gc *GridCoord) contains(grid *Grid, point Vec2) bool {
+	return point.X >= float64(gc.x) && point.X < float64(gc.x + grid.GetUnitLength()) && point.Y >= float64(gc.y) && point.Y < float64(gc.y + grid.GetUnitHeight())
 }
 
 type Grid struct {
 	unitLength int
 	unitHeight int
 
+	things map[SpacedId]Thing
 	grid map[GridCoord]map[SpacedId]Thing
 	reverseGrid map[SpacedId][]GridCoord
 }
@@ -23,6 +28,7 @@ func NewGrid(unitLength int, unitHeight int) *Grid {
 		unitLength: unitLength,
 		unitHeight: unitHeight,
 
+		things: make(map[SpacedId]Thing, 0),
 		grid: make(map[GridCoord]map[SpacedId]Thing, 0),
 		reverseGrid: make(map[SpacedId][]GridCoord, 0),
 	}
@@ -48,6 +54,7 @@ func (g *Grid) Upsert(thing Thing) {
 		g.grid[coord][sid] = thing
 	}
 	g.reverseGrid[sid] = coords
+	g.things[sid] = thing
 }
 
 func (g *Grid) Delete(sid SpacedId) {
@@ -56,12 +63,17 @@ func (g *Grid) Delete(sid SpacedId) {
 			delete(g.grid[coord], sid)
 		}
 		delete(g.reverseGrid, sid)
+		delete(g.things, sid)
 	}
 }
 
 func (g *Grid) Has(sid SpacedId) bool {
 	_, ok := g.reverseGrid[sid]
 	return ok
+}
+
+func (g *Grid) Get(sid SpacedId) Thing {
+	return g.things[sid]
 }
 
 func (g *Grid) getColliders(prof Profile) ThingHeap {
@@ -100,13 +112,16 @@ func (g *Grid) getLineCollider(line Line, options LineColliderOptions) (bool, *H
 
 			_, t := thing.GetProfile().Intersects(line)
 			if t < hit.t {
-				hit.sid = thing.GetSpacedId()
-				hit.t = t
-				hit.hit = line.Point(t)
-				collision = true
+				point := line.Point(t)
+				collision = coord.contains(g, point)
+
+				if collision {				
+					hit.target = thing.GetSpacedId()
+					hit.hit = point
+					hit.t = t
+				}
 			}
 		}
-
 		if collision {
 			return true, hit
 		}
@@ -143,7 +158,7 @@ func (g *Grid) getLineCollider(line Line, options LineColliderOptions) (bool, *H
 		}
 	}
 
-	return false, nil
+	return collision, hit
 }
 
 func (g* Grid) getCoord(point Vec2) GridCoord {

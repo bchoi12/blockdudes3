@@ -21,6 +21,7 @@ type Thing interface {
 	GetProfile() Profile
 	GetSpacedId() SpacedId
 
+	TakeHit(shot *Shot, hit *Hit)
 	UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool
 }
 

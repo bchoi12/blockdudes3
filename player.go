@@ -91,6 +91,14 @@ func (p *Player) GetSpacedId() SpacedId {
 	return Id(playerIdSpace, p.id)
 }
 
+func (p *Player) TakeHit(shot *Shot, hit *Hit) {
+	vel := p.Profile.Vel()
+	force := shot.line.R
+	force.Normalize()
+	vel.Add(force, shot.weapon.pushFactor)
+	p.Profile.SetVel(vel)
+}
+
 func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
 	ts := GetTimestep(now, p.lastUpdateTime)
 	if ts < 0 {
@@ -137,16 +145,6 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 		acc.X = 0
 	}
 
-	// Shooting & recoil
-	if p.keyDown(mouseClick) && !p.weapon.reloading(now) {
-		line := NewLine(p.Profile.Pos(), p.mouse)
-		shot := p.weapon.shoot(line, grid, now)
-
-		if shot != nil {
-			buffer.rawShots = append(buffer.rawShots, shot)
-			acc.Add(shot.recoil, 1)
-		}
-	}
 	p.Profile.SetAcc(acc)
 
 	// Jumping
@@ -171,6 +169,17 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 		}
 	}
 
+	// Shooting & recoil
+	if p.keyDown(mouseClick) && !p.weapon.reloading(now) {
+		line := NewLine(p.Profile.Pos(), p.mouse)
+		shot := p.weapon.shoot(line, grid, now)
+
+		if shot != nil {
+			buffer.rawShots = append(buffer.rawShots, shot)
+			vel.Add(shot.recoil, 1)
+		}
+	}
+
 	// Calculate & clamp speed
 	vel.Add(acc, ts)
 	if Abs(vel.X) > maxHorizontalVel {
@@ -187,7 +196,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	// Move
 	pos.Add(p.Profile.TotalVel(), ts)
 	p.Profile.SetPos(pos)
-	p.checkCollisions(grid, ts)
+	p.checkCollisions(grid)
 
 	// Save state
 	p.lastKeys = p.keys
@@ -195,7 +204,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	return true
 }
 
-func (p *Player) checkCollisions(grid *Grid, ts float64) {
+func (p *Player) checkCollisions(grid *Grid) {
 	// Collision detection
 	p.grounded, p.walled = false, 0
 	colliders := grid.getColliders(p.Profile)
@@ -207,7 +216,7 @@ func (p *Player) checkCollisions(grid *Grid, ts float64) {
 				continue
 			}
 
-			xadj, yadj := p.Profile.Snap(other, ts)
+			xadj, yadj := p.Profile.Snap(other)
 			if xadj != 0 {
 				p.walled = -int(Sign(xadj))
 			}

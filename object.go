@@ -47,6 +47,10 @@ func (o *Object) GetSpacedId() SpacedId {
 	return Id(objectIdSpace, o.id)
 }
 
+func (o *Object) TakeHit(shot *Shot, hit *Hit) {
+	return
+}
+
 func (o *Object) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
 	if o.update == nil{
 		return false
