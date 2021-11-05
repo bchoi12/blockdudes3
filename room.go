@@ -21,6 +21,7 @@ type Msg struct {
 	T int
 	Ping PingMsg
 	JSON interface{}
+	JSONId JSONIdMsg
 	Chat ChatMsg
 	Key KeyMsg
 	Join ClientMsg
@@ -134,6 +135,14 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 		err = c.processWebRTCOffer(msg.JSON)
 	case candidateType:
 		err = c.processWebRTCCandidate(msg.JSON)
+	case joinVoiceType:
+		err = r.joinVoice(c)
+	case clientOfferType:
+		fallthrough
+	case clientCandidateType:
+		fallthrough
+	case clientAnswerType:
+		err = r.forwardVoiceMessage(msg.T, msg.JSONId)
 	case chatType:
 		outMsg := r.chat.processChatMsg(c, msg.Chat)
 		r.send(&outMsg)
@@ -147,6 +156,30 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 		log.Printf("error when parsing message: %v", err)
 		return
 	}
+}
+
+func (r *Room) forwardVoiceMessage(msgType int, msg JSONIdMsg) error {
+	outMsg := JSONIdMsg {
+		T: msgType,
+		Id: msg.Id,
+		JSON: msg.JSON,
+	}
+
+	for id, client := range(r.clients) {
+		if !client.voice {
+			continue
+		}
+		if id == msg.Id {
+			continue
+		}
+		if msgType == clientOfferType && id > msg.Id {
+			continue
+		}
+		if client.voice && id != msg.Id {
+			client.send(&outMsg)
+		}
+	}
+	return nil
 }
 
 // Add client to room
@@ -204,20 +237,7 @@ func (r *Room) deleteClient(c *Client) error {
 }
 
 func (r *Room) updateClients(msgType int, c *Client) error {
-	msg := ClientMsg {
-		T: msgType,
-		Id: c.id,
-		C: ClientData {
-			N: c.name,
-		},
-		Cs: make(map[int]ClientData, 0),
-	}
-	for id, client := range r.clients {
-		if msgType == leftType && id == c.id {
-			continue
-		}
-		msg.Cs[id] = ClientData {N: client.name}
-	}
+	msg := r.createClientMsg(msgType, c, false)
 
 	if msgType == initType {
 		return c.send(&msg)
@@ -227,7 +247,35 @@ func (r *Room) updateClients(msgType int, c *Client) error {
 	}
 }
 
-func (r* Room) sendState() {
+func (r *Room) joinVoice(c *Client) error {
+	c.voice = true
+	msg := r.createClientMsg(joinVoiceType, c, true)
+	
+	// TODO: only update clients opted into voice
+	r.sendVoice(&msg)
+
+	return nil
+}
+
+func (r *Room) createClientMsg(msgType int, c *Client, voice bool) ClientMsg {
+	msg := ClientMsg {
+		T: msgType,
+		Id: c.id,
+		C: ClientData {
+			N: c.name,
+		},
+		Cs: make(map[int]ClientData, 0),
+	}
+	for id, client := range r.clients {
+		if (msgType == leftType && id == c.id) || (voice && !client.voice) {
+			continue
+		}
+		msg.Cs[id] = ClientData {N: client.name}
+	}
+	return msg
+}
+
+func (r *Room) sendState() {
 	msg := r.game.createGameStateMsg()
 	r.sendUDP(&msg)
 }
@@ -235,6 +283,16 @@ func (r* Room) sendState() {
 func (r *Room) send(msg interface{}) {
 	b := Pack(msg)
 	for _, c := range(r.clients) {
+		c.sendBytes(b)
+	}
+}
+
+func (r *Room) sendVoice(msg interface{}) {
+	b := Pack(msg)
+	for _, c := range(r.clients) {
+		if !c.voice {
+			continue
+		}
 		c.sendBytes(b)
 	}
 }

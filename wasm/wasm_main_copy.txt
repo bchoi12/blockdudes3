@@ -30,14 +30,21 @@ func setGlobals() {
 	js.Global().Set("candidateType", candidateType)
 	js.Global().Set("offerType", offerType)
 	js.Global().Set("answerType", answerType)
-	js.Global().Set("initType", initType)
+	js.Global().Set("clientCandidateType", clientCandidateType)
 
+	js.Global().Set("clientOfferType", clientOfferType)
+	js.Global().Set("clientAnswerType", clientAnswerType)
+	js.Global().Set("initType", initType)
 	js.Global().Set("joinType", joinType)
 	js.Global().Set("leftType", leftType)
+
+	js.Global().Set("initVoiceType", initVoiceType)
+	js.Global().Set("joinVoiceType", joinVoiceType)
+	js.Global().Set("leftVoiceType", leftVoiceType)
 	js.Global().Set("chatType", chatType)
 	js.Global().Set("keyType", keyType)
-	js.Global().Set("gameStateType", gameStateType)
 
+	js.Global().Set("gameStateType", gameStateType)
 	js.Global().Set("playerInitType", playerInitType)
 	js.Global().Set("levelInitType", levelInitType)
 	js.Global().Set("objectInitType", objectInitType)

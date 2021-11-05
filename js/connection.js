@@ -1,5 +1,15 @@
 class Connection {
     constructor(room, name) {
+        this._iceConfig = {
+            "iceServers": [
+                {
+                    urls: [
+                        "stun:stun1.l.google.com:19302",
+                        "stun:stun2.l.google.com:19302",
+                    ]
+                }
+            ]
+        };
         this._handlers = new Map();
         this._senders = new Map();
         this._room = room;
@@ -13,6 +23,9 @@ class Connection {
         this.initWebSocket(endpoint);
         this._pinger = new Pinger(this);
     }
+    newPeerConnection() {
+        return new RTCPeerConnection(this._iceConfig);
+    }
     addHandler(type, handler) {
         if (this._handlers.has(type)) {
             this._handlers.get(type).push(handler);
@@ -24,6 +37,7 @@ class Connection {
     }
     addSender(type, sender, timeout) {
         if (this._senders.has(type)) {
+            debug("sender for type " + type + " already exists");
             return false;
         }
         this._senders.set(type, sender);
@@ -64,6 +78,21 @@ class Connection {
         this._dc.send(buffer);
         return true;
     }
+    joinVoice() {
+        if (!this.ready()) {
+            return;
+        }
+        if (!defined(this._voice)) {
+            this._voice = new Voice(this);
+        }
+        this._voice.join();
+    }
+    leaveVoice() {
+        if (!this.ready()) {
+            return;
+        }
+        this.send({ T: leftVoiceType });
+    }
     wsReady() {
         return defined(this._ws) && this._ws.readyState == 1;
     }
@@ -93,22 +122,12 @@ class Connection {
         };
     }
     initWebRTC() {
-        const config = {
-            "iceServers": [
-                {
-                    urls: [
-                        "stun:stun1.l.google.com:19302",
-                        "stun:stun2.l.google.com:19302",
-                    ]
-                }
-            ]
-        };
-        this._wrtc = new RTCPeerConnection(config);
+        this._wrtc = new RTCPeerConnection(this._iceConfig);
         const dataChannelConfig = {
             ordered: false,
             maxRetransmits: 0
         };
-        this._dc = this._wrtc.createDataChannel('data', dataChannelConfig);
+        this._dc = this._wrtc.createDataChannel("data", dataChannelConfig);
         this._wrtc.onicecandidate = (event) => {
             if (event && event.candidate) {
                 this.send({ T: candidateType, JSON: event.candidate.toJSON() });

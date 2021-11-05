@@ -34,8 +34,6 @@ func (ub *UpdateBuffer) process(grid *Grid) {
 			switch thing := grid.Get(hit.target).(type) {
 			case *Player:
 				thing.TakeHit(shot, hit)
-				thing.checkCollisions(grid)
-				grid.Upsert(thing)
 			}
 		}
 

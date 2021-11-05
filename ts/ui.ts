@@ -41,6 +41,11 @@ class UI {
 		this._keyMap.set(39, rightKey);
 		this._keyMap.set(68, rightKey);
 		this._keyMap.set(32, dashKey);
+
+		elm("voice").onclick = (e) => {
+			e.stopPropagation();
+			this._connection.joinVoice();
+		};
 	}
 
 	addDiv(div : HTMLElement) : void {

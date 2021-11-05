@@ -7,14 +7,21 @@ declare var pingType: number;
 declare var candidateType : number;
 declare var offerType : number;
 declare var answerType : number;
-declare var initType : number;
+declare var clientCandidateType : number;
 
+declare var clientOfferType : number;
+declare var clientAnswerType : number;
+declare var initType : number;
 declare var joinType : number;
 declare var leftType : number;
+
+declare var initVoiceType : number;
+declare var joinVoiceType : number;
+declare var leftVoiceType : number;
 declare var chatType : number;
 declare var keyType : number;
-declare var gameStateType : number;
 
+declare var gameStateType : number;
 declare var playerInitType : number;
 declare var levelInitType : number;
 declare var objectInitType : number;

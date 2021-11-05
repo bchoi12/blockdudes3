@@ -17,5 +17,6 @@
         "ts/scene.ts",
         "ts/ui.ts",
         "ts/util.ts",
+        "ts/voice.ts",
     ]
 }

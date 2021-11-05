@@ -16,14 +16,21 @@ const (
 	candidateType
 	offerType
 	answerType
-	initType
+	clientCandidateType
 
+	clientOfferType
+	clientAnswerType
+	initType
 	joinType
 	leftType
+
+	initVoiceType
+	joinVoiceType
+	leftVoiceType
 	chatType
 	keyType
-	gameStateType
 
+	gameStateType
 	playerInitType
 	levelInitType
 	objectInitType
@@ -54,6 +61,12 @@ type PingMsg struct {
 
 type JSONMsg struct {
 	T int
+	JSON interface{}
+}
+
+type JSONIdMsg struct {
+	T int
+	Id int
 	JSON interface{}
 }
 

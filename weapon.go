@@ -63,11 +63,17 @@ type Weapon struct {
 	class int
 
 	dist float64
-	reload time.Duration
+	reloadTime time.Duration
 	
 	recoilFactor float64
 	pushFactor float64
 
+	bursts int
+	maxBursts int
+	burstTime time.Duration
+	lastBurst time.Time
+
+	shooting bool
 	lastShot time.Time
 }
 
@@ -77,16 +83,27 @@ func NewWeapon(id int) *Weapon {
 		class: spaceGun,
 
 		dist: 30.0,
-		reload: 80 * time.Millisecond,
-		recoilFactor: 1.0,
-		pushFactor: 2.0,
+		reloadTime: 400 * time.Millisecond,
 
+		recoilFactor: 2.0,
+		pushFactor: 3.0,
+
+		bursts: 0,
+		maxBursts: 3,
+		burstTime: 80 * time.Millisecond,
+		lastBurst: time.Time{},
+
+		shooting: false,
 		lastShot: time.Time{},
 	}
 }
 
-func (w *Weapon) reloading(now time.Time) bool {
-	return now.Sub(w.lastShot) < w.reload
+func (w *Weapon) canShoot(now time.Time) bool {
+	return !w.shooting && now.Sub(w.lastShot) >= w.reloadTime
+}
+
+func (w *Weapon) bursting(now time.Time) bool {
+	return w.bursts > 0 && w.bursts < w.maxBursts && now.Sub(w.lastBurst) >= w.burstTime
 }
 
 func (w *Weapon) colliderOptions() LineColliderOptions {
@@ -102,11 +119,16 @@ func (w *Weapon) colliderOptions() LineColliderOptions {
 }
 
 func (w *Weapon) shoot(mouse Line, grid *Grid, now time.Time) *Shot {
-	if w.reloading(now) {
+	if !w.canShoot(now) && !w.bursting(now) {
 		return nil
 	}
 
-	shot := Shot {
+	if !w.shooting {
+		w.bursts = 0
+		w.shooting = true
+	}
+
+	shot := &Shot {
 		weapon: w,
 		hits: make([]*Hit, 0),
 	}
@@ -114,9 +136,13 @@ func (w *Weapon) shoot(mouse Line, grid *Grid, now time.Time) *Shot {
 	shot.line.Scale(w.dist)
 
 	shot.recoil = mouse.R
-	shot.recoil.Negate()
-	shot.recoil.Scale(w.recoilFactor)
+	shot.recoil.Scale(-w.recoilFactor)
 
-	w.lastShot = now
-	return &shot
+	w.bursts += 1
+	w.lastBurst = now
+	if w.bursts >= w.maxBursts {
+		w.shooting = false
+		w.lastShot = now
+	}
+	return shot
 }

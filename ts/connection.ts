@@ -1,6 +1,17 @@
 type MessageHandler = (msg : any) => void;
 type MessageSender = () => void;
 class Connection {
+	private readonly _iceConfig = {
+    	"iceServers": [
+	    	{
+	    		urls: [
+	                "stun:stun1.l.google.com:19302",
+	                "stun:stun2.l.google.com:19302",
+	    		]
+	    	}
+	    ]
+    };
+
 	private _handlers : Map<number, MessageHandler[]>;
 	private _senders : Map<number, MessageSender>;
 
@@ -12,6 +23,8 @@ class Connection {
 	private _wrtc : RTCPeerConnection;
 	private _dc : RTCDataChannel;
 	private _pinger : Pinger;
+
+	private _voice : Voice;
 
 	constructor(room : string, name : string) {
 		this._handlers = new Map();
@@ -29,6 +42,10 @@ class Connection {
 		this._pinger = new Pinger(this);
 	}
 
+	newPeerConnection() : RTCPeerConnection {
+		return new RTCPeerConnection(this._iceConfig);
+	}
+
 	addHandler(type : number, handler : MessageHandler) : boolean {
 		if (this._handlers.has(type)) {
 			this._handlers.get(type).push(handler);
@@ -38,8 +55,10 @@ class Connection {
 
 		return true;
 	}
+
 	addSender(type : number, sender : MessageSender, timeout : number) : boolean {
 		if (this._senders.has(type)) {
+			debug("sender for type " + type + " already exists");
 			return false;
 		}
 
@@ -54,6 +73,7 @@ class Connection {
 		loop();
 		return true;
 	}
+
 	deleteSender(type : number) : void {
 		this._senders.delete(type);
 	}
@@ -76,6 +96,7 @@ class Connection {
 		this._ws.send(buffer);
 		return true;
 	}
+
 	sendData(msg :any) : boolean {
 		if (!this.dcReady()) {
 			debug("Trying to send message (type " + msg.T + ") before data channel is ready!");
@@ -85,6 +106,27 @@ class Connection {
 		const buffer = msgpack.encode(msg);
 		this._dc.send(buffer);
 		return true;
+	}
+
+	joinVoice() : void {
+		if (!this.ready()) {
+			return;
+		}
+
+		if (!defined(this._voice)) {
+			this._voice = new Voice(this);
+		}
+
+		this._voice.join();
+	}
+
+	leaveVoice() : void {
+		if (!this.ready()) {
+			return;
+		}
+
+		// TODO: disable audio stream
+		this.send({ T: leftVoiceType });
 	}
 
 	wsReady() : boolean {
@@ -110,6 +152,7 @@ class Connection {
 
 			this.addHandler(answerType, (msg : any) => { this.setRemoteDescription(msg); });
 			this.addHandler(candidateType, (msg : any) => { this.addIceCandidate(msg); });
+
 			this.initWebRTC();
 		};
 		this._ws.onmessage = (event) => {	
@@ -121,23 +164,13 @@ class Connection {
 	}
 
 	private initWebRTC() : void {
-	    const config = {
-	    	"iceServers": [
-		    	{
-		    		urls: [
-		                "stun:stun1.l.google.com:19302",
-		                "stun:stun2.l.google.com:19302",
-		    		]
-		    	}
-		    ]
-	    };
-		this._wrtc = new RTCPeerConnection(config);
+		this._wrtc = new RTCPeerConnection(this._iceConfig);
 
 		const dataChannelConfig = {
 			ordered: false,
 			maxRetransmits: 0
 		};
-		this._dc = this._wrtc.createDataChannel('data', dataChannelConfig);
+		this._dc = this._wrtc.createDataChannel("data", dataChannelConfig);
 
 		this._wrtc.onicecandidate = (event) => {
 			if (event && event.candidate) {

@@ -15,6 +15,7 @@ type Client struct {
 
 	id int
 	name string
+	voice bool
 }
 
 func NewClient(room* Room, ws *websocket.Conn, name string) *Client {
@@ -24,6 +25,7 @@ func NewClient(room* Room, ws *websocket.Conn, name string) *Client {
 
 		id: room.nextClientId,
 		name: name,
+		voice: false,
 	}
 	go client.run()
 

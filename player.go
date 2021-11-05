@@ -170,7 +170,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	}
 
 	// Shooting & recoil
-	if p.keyDown(mouseClick) && !p.weapon.reloading(now) {
+	if p.weapon.bursting(now) || p.keyDown(mouseClick) && p.weapon.canShoot(now) {
 		line := NewLine(p.Profile.Pos(), p.mouse)
 		shot := p.weapon.shoot(line, grid, now)
 

@@ -27,7 +27,7 @@ class Pinger {
 			this._ping = Math.ceil(this._ping / this._pings.length);
 		});
 
-		const sendPing = () => {
+		this._connection.addSender(pingType, () => {
 			if (this._connection.ready()) {
 				this._connection.sendData({
 					T: pingType,
@@ -38,9 +38,7 @@ class Pinger {
 				this._pingTimes[this._lastPingNumber % this._maxPings] = Date.now();
 				this._lastPingNumber++;
 			} 
-			setTimeout(sendPing, this._pingInterval);
-		}
-		sendPing();
+		}, this._pingInterval);
 	}
 
 	ping() : number {
