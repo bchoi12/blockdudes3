@@ -1,105 +1,137 @@
 class Voice {
-    constructor(connection) {
+    constructor(connection, stream) {
         this._voiceOfferOptions = {
             offerToReceiveAudio: true,
             offerToReceiveVideo: false,
         };
-        this._id = connection.id();
         this._connection = connection;
-        this._connection.addHandler(joinVoiceType, (msg) => { this.updateVoice(msg); });
-        this._connection.addHandler(clientOfferType, (msg) => { this.processVoiceOffer(msg); });
-        this._connection.addHandler(clientAnswerType, (msg) => { this.processVoiceAnswer(msg); });
-        this._connection.addHandler(clientCandidateType, (msg) => { this.processVoiceCandidate(msg); });
+        this._stream = stream;
+        this._id = connection.id();
+        this._joined = false;
+        this._connection.addHandler(joinVoiceType, (msg) => { this.addVoice(msg); });
+        this._connection.addHandler(leftType, (msg) => { this.removeVoice(msg); });
+        this._connection.addHandler(leftVoiceType, (msg) => { this.removeVoice(msg); });
+        this._connection.addHandler(voiceOfferType, (msg) => { this.processVoiceOffer(msg); });
+        this._connection.addHandler(voiceAnswerType, (msg) => { this.processVoiceAnswer(msg); });
+        this._connection.addHandler(voiceCandidateType, (msg) => { this.processVoiceCandidate(msg); });
         this._voice = new Map();
         this._voiceCandidates = new Map();
+        this._audio = new Map();
     }
-    join() {
-        this._connection.send({ T: joinVoiceType });
+    joined() {
+        return this._joined;
     }
-    leave() {
-        this._connection.send({ T: leftVoiceType });
+    toggleVoice() {
+        if (!this.joined()) {
+            this._joined = true;
+            this._stream.getTracks().forEach(track => track.enabled = true);
+            this._connection.send({ T: joinVoiceType });
+        }
+        else {
+            this._joined = false;
+            this._stream.getTracks().forEach(track => track.enabled = false);
+            this._voice.forEach((pc) => {
+                pc.close();
+            });
+            this._voice.clear();
+            this._audio.forEach((audio) => {
+                elm("audio").removeChild(audio);
+            });
+            this._audio.clear();
+            this._connection.send({ T: leftVoiceType });
+        }
     }
-    updateVoice(msg) {
-        const createPeerConnection = (id) => {
+    addVoice(msg) {
+        if (!this.joined()) {
+            return;
+        }
+        const createPeerConnection = (id, sendOffer) => {
+            const audioElement = document.createElement("audio");
+            audioElement.id = "audio-" + id;
+            audioElement.autoplay = true;
+            audioElement.controls = true;
+            this._audio.set(id, audioElement);
+            elm("audio").appendChild(audioElement);
             const pc = this._connection.newPeerConnection();
             this._voice.set(id, pc);
-            navigator.mediaDevices.getUserMedia({
-                audio: true,
-                video: false,
-            }).then((stream) => {
-                stream.getTracks().forEach(track => pc.addTrack(track, stream));
+            this._stream.getTracks().forEach(track => pc.addTrack(track, this._stream));
+            pc.createOffer(this._voiceOfferOptions).then((description) => {
+                return pc.setLocalDescription(description);
             }).then(() => {
-                if (this._id > id) {
-                    pc.createOffer(this._voiceOfferOptions).then((description) => {
-                        return pc.setLocalDescription(description);
-                    }).then(() => {
-                        this._connection.send({ T: clientOfferType, JSONId: { Id: this._id, JSON: pc.localDescription.toJSON() } });
-                    });
+                if (sendOffer) {
+                    this._connection.send({ T: voiceOfferType, JSONPeer: { To: id, JSON: pc.localDescription.toJSON() } });
                 }
-            }).catch((e) => {
-                debug(e);
             });
             pc.onicecandidate = (event) => {
                 if (event && event.candidate) {
-                    this._connection.send({ T: clientCandidateType, JSONId: { Id: this._id, JSON: event.candidate.toJSON() } });
+                    this._connection.send({ T: voiceCandidateType, JSONPeer: { To: id, JSON: event.candidate.toJSON() } });
                 }
             };
             pc.onconnectionstatechange = () => {
-                if (pc.connectionState == "connected") {
-                    debug("voice connected!");
+                if (pc.connectionState == "disconnected") {
+                    this.removeVoice({ Id: id });
                 }
             };
             pc.ontrack = (event) => {
-                elm("audio").srcObject = event.streams[0];
+                audioElement.srcObject = event.streams[0];
             };
         };
         if (this._id != msg.Id) {
-            debug("voice: connect to new " + msg.Id);
-            createPeerConnection(msg.Id);
+            createPeerConnection(msg.Id, false);
             return;
         }
         for (const [stringId, client] of Object.entries(msg.Cs)) {
             const id = Number(stringId);
             if (this._id == id)
                 continue;
-            debug("voice: initialize " + id);
-            createPeerConnection(id);
+            createPeerConnection(id, true);
+        }
+    }
+    removeVoice(msg) {
+        if (this._id == msg.Id) {
+            return;
+        }
+        if (this._voice.has(msg.Id)) {
+            this._voice.get(msg.Id).close();
+            this._voice.delete(msg.Id);
+        }
+        if (this._audio.has(msg.Id)) {
+            elm("audio").removeChild(this._audio.get(msg.Id));
+            this._audio.delete(msg.Id);
         }
     }
     processVoiceOffer(msg) {
-        debug("Process offer for " + msg.Id + ", my ID=" + this._id);
-        const pc = this._voice.get(msg.Id);
+        const pc = this._voice.get(msg.From);
         const offer = msg.JSON;
         pc.setRemoteDescription(offer, () => {
             if (pc.remoteDescription.type == "offer") {
                 pc.createAnswer().then((description) => {
                     return pc.setLocalDescription(description);
                 }).then(() => {
-                    this._connection.send({ T: clientAnswerType, JSONId: { Id: this._id, JSON: pc.localDescription.toJSON() } });
+                    this._connection.send({ T: voiceAnswerType, JSONPeer: { To: msg.From, JSON: pc.localDescription.toJSON() } });
                 });
             }
-        }, () => debug("Failed to set offer"));
+        }, (e) => debug("Failed to set remote description from offer from " + msg.From + ": " + e));
     }
     processVoiceAnswer(msg) {
-        debug("Process answer for " + msg.Id + ", my ID=" + this._id);
-        const pc = this._voice.get(msg.Id);
+        const pc = this._voice.get(msg.From);
         const answer = msg.JSON;
-        pc.setRemoteDescription(answer);
-        if (pc.remoteDescription && this._voiceCandidates.has(msg.Id)) {
-            this._voiceCandidates.get(msg.Id).forEach((candidate) => {
+        pc.setRemoteDescription(answer, () => { }, (e) => debug("Failed to set remote description from answer from " + msg.Id + ": " + e));
+        if (pc.remoteDescription && this._voiceCandidates.has(msg.From)) {
+            this._voiceCandidates.get(msg.From).forEach((candidate) => {
                 pc.addIceCandidate(candidate).then(() => { }, (e) => { debug("Failed to add candidate: " + e); });
             });
-            this._voiceCandidates.delete(msg.Id);
+            this._voiceCandidates.delete(msg.From);
         }
     }
     processVoiceCandidate(msg) {
-        const pc = this._voice.get(msg.Id);
+        const pc = this._voice.get(msg.From);
         const candidate = msg.JSON;
         if (!pc.remoteDescription) {
-            if (!this._voiceCandidates.has(msg.Id)) {
-                this._voiceCandidates.set(msg.Id, new Array());
+            if (!this._voiceCandidates.has(msg.From)) {
+                this._voiceCandidates.set(msg.From, new Array());
             }
-            this._voiceCandidates.get(msg.Id).push(candidate);
+            this._voiceCandidates.get(msg.From).push(candidate);
             return;
         }
         pc.addIceCandidate(candidate).then(() => { }, (e) => { debug("Failed to add candidate: " + e); });

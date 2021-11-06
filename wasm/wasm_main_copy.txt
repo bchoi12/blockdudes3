@@ -30,10 +30,10 @@ func setGlobals() {
 	js.Global().Set("candidateType", candidateType)
 	js.Global().Set("offerType", offerType)
 	js.Global().Set("answerType", answerType)
-	js.Global().Set("clientCandidateType", clientCandidateType)
+	js.Global().Set("voiceCandidateType", voiceCandidateType)
 
-	js.Global().Set("clientOfferType", clientOfferType)
-	js.Global().Set("clientAnswerType", clientAnswerType)
+	js.Global().Set("voiceOfferType", voiceOfferType)
+	js.Global().Set("voiceAnswerType", voiceAnswerType)
 	js.Global().Set("initType", initType)
 	js.Global().Set("joinType", joinType)
 	js.Global().Set("leftType", leftType)

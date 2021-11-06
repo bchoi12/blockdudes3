@@ -14,3 +14,6 @@ function elm(id : string) : HTMLElement {
 function inputElm(id : string) : HTMLInputElement {
     return (<HTMLInputElement>document.getElementById(id));
 }
+function audioElm(id : string) : HTMLAudioElement {
+	return (<HTMLAudioElement>document.getElementById(id));
+}

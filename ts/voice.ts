@@ -5,128 +5,170 @@ class Voice {
 	};
 
 	private _connection : Connection;
+	private _stream : MediaStream;
 
 	private _id : number;
+	private _joined : boolean;
+
 	private _voice : Map<number, RTCPeerConnection>;
 	private _voiceCandidates : Map<number, Array<RTCIceCandidate>>;
+	private _audio : Map<number, HTMLAudioElement>;
 
-	constructor(connection : Connection) {
-		this._id = connection.id();
+	constructor(connection : Connection, stream : MediaStream) {
 		this._connection = connection;
+		this._stream = stream;
 
-		this._connection.addHandler(joinVoiceType, (msg : any) => { this.updateVoice(msg); });
-		this._connection.addHandler(clientOfferType, (msg : any) => { this.processVoiceOffer(msg) });
-		this._connection.addHandler(clientAnswerType, (msg : any) => { this.processVoiceAnswer(msg) });
-		this._connection.addHandler(clientCandidateType, (msg : any) => { this.processVoiceCandidate(msg) });
+		this._id = connection.id();
+		this._joined = false;
+
+		this._connection.addHandler(joinVoiceType, (msg : any) => { this.addVoice(msg); });
+		this._connection.addHandler(leftType, (msg : any) => { this.removeVoice(msg); });
+		this._connection.addHandler(leftVoiceType, (msg : any) => { this.removeVoice(msg); });
+		this._connection.addHandler(voiceOfferType, (msg : any) => { this.processVoiceOffer(msg) });
+		this._connection.addHandler(voiceAnswerType, (msg : any) => { this.processVoiceAnswer(msg) });
+		this._connection.addHandler(voiceCandidateType, (msg : any) => { this.processVoiceCandidate(msg) });
 
 		this._voice = new Map();
 		this._voiceCandidates = new Map();
+		this._audio = new Map();
 	}
 
-	join() : void {
-		this._connection.send({ T: joinVoiceType });
+	joined() : boolean {
+		return this._joined;
 	}
 
-	leave() : void {
-		this._connection.send({ T: leftVoiceType });
+	toggleVoice() : void {
+		if (!this.joined()) {
+			this._joined = true;
+	      	this._stream.getTracks().forEach(track => track.enabled = true);
+			this._connection.send({ T: joinVoiceType });
+		} else {
+			this._joined = false;
+	      	this._stream.getTracks().forEach(track => track.enabled = false);
+			this._voice.forEach((pc) => {
+				pc.close();
+			});
+			this._voice.clear();
+
+			this._audio.forEach((audio) => {
+				elm("audio").removeChild(audio);
+			});
+			this._audio.clear();
+
+			this._connection.send({ T: leftVoiceType });
+		}
 	}
 
-	private updateVoice(msg : any) : void {
-		const createPeerConnection = (id : number) => {
+	private addVoice(msg : any) : void {
+		if (!this.joined()) {
+			return;
+		}
+
+		const createPeerConnection = (id : number, sendOffer : boolean) => {
+			const audioElement = <HTMLAudioElement>document.createElement("audio");
+			audioElement.id = "audio-" + id;
+			audioElement.autoplay = true;
+			audioElement.controls = true;
+			this._audio.set(id, audioElement);
+			elm("audio").appendChild(audioElement);
+
 			const pc = this._connection.newPeerConnection();
 			this._voice.set(id, pc);
+	      	this._stream.getTracks().forEach(track => pc.addTrack(track, this._stream));
 
-			navigator.mediaDevices.getUserMedia({
-				audio: true,
-  		        video: false,
-		    }).then((stream) => {
-		      	stream.getTracks().forEach(track => pc.addTrack(track, stream));
-		    }).then(() => {
-		    	if (this._id > id) {
-					pc.createOffer(this._voiceOfferOptions).then((description) => {
-						return pc.setLocalDescription(description);
-					}).then(() => {
-						this._connection.send({T: clientOfferType, JSONId: { Id: this._id, JSON: pc.localDescription.toJSON() }});
-					});
+			pc.createOffer(this._voiceOfferOptions).then((description) => {
+				return pc.setLocalDescription(description);
+			}).then(() => {
+				if (sendOffer) {
+					this._connection.send({T: voiceOfferType, JSONPeer: {To: id, JSON: pc.localDescription.toJSON()}});
 				}
-		    }).catch((e) => {
-		    	debug(e);
-		    });
+			});
 
 			pc.onicecandidate = (event) => {
 				if (event && event.candidate) {
-					this._connection.send({T: clientCandidateType, JSONId: { Id: this._id, JSON: event.candidate.toJSON() }});
+					this._connection.send({T: voiceCandidateType, JSONPeer: {To: id, JSON: event.candidate.toJSON() }});
 				}
 			}
 
 			pc.onconnectionstatechange = () => {
-				if (pc.connectionState == "connected") {
-					debug("voice connected!");
+				if(pc.connectionState == "disconnected") {
+				    this.removeVoice({Id: id});
 				}
 			}
 
 			pc.ontrack = (event) => {
-				elm("audio").srcObject = event.streams[0];
+				audioElement.srcObject = event.streams[0];
 			}		
 		};
 
-		// Connect to newly joined client
+		// Create connection for the new client.
 		if (this._id != msg.Id) {
-			debug("voice: connect to new " + msg.Id);
-			createPeerConnection(msg.Id);
+			createPeerConnection(msg.Id, false);
 			return;
 		}
 
-		// Initialize all other clients
+		// Send an offer to all existing clients.
 		for (const [stringId, client] of Object.entries(msg.Cs) as [string, any]) {
 			const id = Number(stringId);
 			if (this._id == id) continue;
 
-			debug("voice: initialize " + id);
-			createPeerConnection(id);
+			createPeerConnection(id, true);
+		}
+	}
+
+	private removeVoice(msg : any) : void {
+		if (this._id == msg.Id) {
+			return;
+		}
+
+		if (this._voice.has(msg.Id)) {
+			this._voice.get(msg.Id).close();
+			this._voice.delete(msg.Id);
+		}
+
+		if (this._audio.has(msg.Id)) {
+			elm("audio").removeChild(this._audio.get(msg.Id));
+			this._audio.delete(msg.Id);
 		}
 	}
 
 	private processVoiceOffer(msg : any) : void {
-		debug("Process offer for " + msg.Id + ", my ID=" + this._id);
+		const pc = this._voice.get(msg.From);
 
-		const pc = this._voice.get(msg.Id);
 		const offer = msg.JSON;
 		pc.setRemoteDescription(offer, () => {
 			if (pc.remoteDescription.type == "offer") {
 				pc.createAnswer().then((description) => {
 					return pc.setLocalDescription(description);
 				}).then(() => {
-					this._connection.send({T: clientAnswerType, JSONId: { Id: this._id, JSON: pc.localDescription.toJSON() }});
+					this._connection.send({T: voiceAnswerType, JSONPeer: {To: msg.From, JSON: pc.localDescription.toJSON() }});
 				})
 			}
-		}, () => debug("Failed to set offer"));
+		}, (e) => debug("Failed to set remote description from offer from " + msg.From + ": " + e));
 	}
 
 	private processVoiceAnswer(msg : any) : void {
-		debug("Process answer for " + msg.Id + ", my ID=" + this._id);
-
-		const pc = this._voice.get(msg.Id);
+		const pc = this._voice.get(msg.From);
 		const answer = msg.JSON;
-		pc.setRemoteDescription(answer);
+		pc.setRemoteDescription(answer, () => {}, (e) => debug("Failed to set remote description from answer from " + msg.Id + ": " + e));
 
-		if (pc.remoteDescription && this._voiceCandidates.has(msg.Id)) {
-			this._voiceCandidates.get(msg.Id).forEach((candidate) => {
+		if (pc.remoteDescription && this._voiceCandidates.has(msg.From)) {
+			this._voiceCandidates.get(msg.From).forEach((candidate) => {
 				pc.addIceCandidate(candidate).then(() => {}, (e) => { debug("Failed to add candidate: " + e); });
 			});
 
-			this._voiceCandidates.delete(msg.Id);
+			this._voiceCandidates.delete(msg.From);
 		}
 	}
 
 	private processVoiceCandidate(msg : any) : void {
-		const pc = this._voice.get(msg.Id);
+		const pc = this._voice.get(msg.From);
 		const candidate = msg.JSON;
 		if (!pc.remoteDescription) {
-			if (!this._voiceCandidates.has(msg.Id)) {
-				this._voiceCandidates.set(msg.Id, new Array<RTCIceCandidate>());
+			if (!this._voiceCandidates.has(msg.From)) {
+				this._voiceCandidates.set(msg.From, new Array<RTCIceCandidate>());
 			}
-			this._voiceCandidates.get(msg.Id).push(candidate);
+			this._voiceCandidates.get(msg.From).push(candidate);
 			return;
 		}
 

@@ -12,3 +12,6 @@ function elm(id) {
 function inputElm(id) {
     return document.getElementById(id);
 }
+function audioElm(id) {
+    return document.getElementById(id);
+}

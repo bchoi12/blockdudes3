@@ -16,10 +16,10 @@ const (
 	candidateType
 	offerType
 	answerType
-	clientCandidateType
+	voiceCandidateType
 
-	clientOfferType
-	clientAnswerType
+	voiceOfferType
+	voiceAnswerType
 	initType
 	joinType
 	leftType
@@ -64,9 +64,10 @@ type JSONMsg struct {
 	JSON interface{}
 }
 
-type JSONIdMsg struct {
+type JSONPeerMsg struct {
 	T int
-	Id int
+	From int
+	To int
 	JSON interface{}
 }
 

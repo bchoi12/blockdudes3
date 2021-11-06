@@ -29,10 +29,29 @@ class UI {
         this._keyMap.set(32, dashKey);
         elm("voice").onclick = (e) => {
             e.stopPropagation();
-            this._connection.joinVoice();
+            if (defined(this._stream)) {
+                this.toggleVoice(this._stream);
+                return;
+            }
+            navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: false,
+            }).then((stream) => {
+                this._stream = stream;
+                this.toggleVoice(stream);
+            });
         };
     }
     addDiv(div) {
+    }
+    toggleVoice(stream) {
+        if (!this._connection.ready()) {
+            return;
+        }
+        if (!defined(this._voice)) {
+            this._voice = new Voice(this._connection, stream);
+        }
+        this._voice.toggleVoice();
     }
     keys() { return this._keys; }
     createKeyMsg() {
@@ -98,7 +117,7 @@ class UI {
         }
     }
     updateClients(msg) {
-        const id = "" + msg.Id;
+        const id = Number(msg.Id);
         switch (msg.T) {
             case joinType:
                 this.system(msg.C.N + " #" + id + " just joined!");
@@ -106,15 +125,22 @@ class UI {
             case leftType:
                 this.system(msg.C.N + " #" + id + " left");
                 break;
+            case joinVoiceType:
+                this.system(msg.C.N + " #" + id + " joined voice chat!");
+                break;
+            case leftVoiceType:
+                this.system(msg.C.N + " #" + id + " left voice chat");
         }
-        elm("people").innerHTML = "";
-        for (let [id, client] of Object.entries(msg.Cs)) {
-            const html = document.createElement("span");
-            html.textContent = client.N + " #" + id;
-            elm("people").appendChild(html);
-            elm("people").appendChild(document.createElement("br"));
+        if (msg.T == joinType || msg.T == leftType) {
+            elm("people").innerHTML = "";
+            for (let [id, client] of Object.entries(msg.Cs)) {
+                const html = document.createElement("span");
+                html.textContent = client.N + " #" + id;
+                elm("people").appendChild(html);
+                elm("people").appendChild(document.createElement("br"));
+            }
+            ;
         }
-        ;
     }
     system(message) {
         this.chat({
@@ -154,6 +180,8 @@ class UI {
         this._connection.addHandler(chatType, (msg) => { this.chat(msg); });
         this._connection.addHandler(joinType, (msg) => { this.updateClients(msg); });
         this._connection.addHandler(leftType, (msg) => { this.updateClients(msg); });
+        this._connection.addHandler(joinVoiceType, (msg) => { this.updateClients(msg); });
+        this._connection.addHandler(leftVoiceType, (msg) => { this.updateClients(msg); });
     }
     initKeyListeners() {
         const recordKey = (e) => {

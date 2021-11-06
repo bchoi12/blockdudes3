@@ -78,21 +78,6 @@ class Connection {
         this._dc.send(buffer);
         return true;
     }
-    joinVoice() {
-        if (!this.ready()) {
-            return;
-        }
-        if (!defined(this._voice)) {
-            this._voice = new Voice(this);
-        }
-        this._voice.join();
-    }
-    leaveVoice() {
-        if (!this.ready()) {
-            return;
-        }
-        this.send({ T: leftVoiceType });
-    }
     wsReady() {
         return defined(this._ws) && this._ws.readyState == 1;
     }
@@ -128,6 +113,7 @@ class Connection {
             maxRetransmits: 0
         };
         this._dc = this._wrtc.createDataChannel("data", dataChannelConfig);
+        this._candidates = new Array();
         this._wrtc.onicecandidate = (event) => {
             if (event && event.candidate) {
                 this.send({ T: candidateType, JSON: event.candidate.toJSON() });
@@ -149,6 +135,12 @@ class Connection {
             sdp: msg.JSON["SDP"],
         };
         this._wrtc.setRemoteDescription(new RTCSessionDescription(options));
+        if (this._candidates.length > 0) {
+            this._candidates.forEach((candidate) => {
+                this._wrtc.addIceCandidate(candidate);
+            });
+            this._candidates.length = 0;
+        }
     }
     addIceCandidate(msg) {
         const options = {
@@ -156,6 +148,10 @@ class Connection {
             sdpMid: msg.JSON["SDPMid"],
             sdpMLineIndex: msg.JSON["SDPMLineIndex"],
         };
+        if (!this._wrtc.remoteDescription) {
+            this._candidates.push(new RTCIceCandidate(options));
+            return;
+        }
         this._wrtc.addIceCandidate(new RTCIceCandidate(options));
     }
     handlePayload(payload) {

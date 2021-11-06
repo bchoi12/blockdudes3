@@ -7,10 +7,10 @@ declare var pingType: number;
 declare var candidateType : number;
 declare var offerType : number;
 declare var answerType : number;
-declare var clientCandidateType : number;
+declare var voiceCandidateType : number;
 
-declare var clientOfferType : number;
-declare var clientAnswerType : number;
+declare var voiceOfferType : number;
+declare var voiceAnswerType : number;
 declare var initType : number;
 declare var joinType : number;
 declare var leftType : number;

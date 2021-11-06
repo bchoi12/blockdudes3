@@ -22,9 +22,8 @@ class Connection {
 	private _ws : WebSocket;
 	private _wrtc : RTCPeerConnection;
 	private _dc : RTCDataChannel;
+	private _candidates : Array<RTCIceCandidate>;
 	private _pinger : Pinger;
-
-	private _voice : Voice;
 
 	constructor(room : string, name : string) {
 		this._handlers = new Map();
@@ -108,27 +107,6 @@ class Connection {
 		return true;
 	}
 
-	joinVoice() : void {
-		if (!this.ready()) {
-			return;
-		}
-
-		if (!defined(this._voice)) {
-			this._voice = new Voice(this);
-		}
-
-		this._voice.join();
-	}
-
-	leaveVoice() : void {
-		if (!this.ready()) {
-			return;
-		}
-
-		// TODO: disable audio stream
-		this.send({ T: leftVoiceType });
-	}
-
 	wsReady() : boolean {
 		return defined(this._ws) && this._ws.readyState == 1;
 	}
@@ -171,6 +149,7 @@ class Connection {
 			maxRetransmits: 0
 		};
 		this._dc = this._wrtc.createDataChannel("data", dataChannelConfig);
+		this._candidates = new Array<RTCIceCandidate>();
 
 		this._wrtc.onicecandidate = (event) => {
 			if (event && event.candidate) {
@@ -196,6 +175,13 @@ class Connection {
 			sdp: msg.JSON["SDP"],
 		}
 		this._wrtc.setRemoteDescription(new RTCSessionDescription(options));
+
+		if (this._candidates.length > 0) {
+			this._candidates.forEach((candidate) => {
+				this._wrtc.addIceCandidate(candidate);
+			});
+			this._candidates.length = 0;
+		}
 	}
 
 	private addIceCandidate(msg : any) : void {
@@ -203,6 +189,11 @@ class Connection {
 			candidate: msg.JSON["Candidate"],
 			sdpMid: msg.JSON["SDPMid"],
 			sdpMLineIndex: msg.JSON["SDPMLineIndex"],
+		}
+
+		if (!this._wrtc.remoteDescription) {
+			this._candidates.push(new RTCIceCandidate(options));
+			return;
 		}
 	    this._wrtc.addIceCandidate(new RTCIceCandidate(options));
 	}

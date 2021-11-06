@@ -20,6 +20,9 @@ class UI {
 	private _keys : Set<number>;
 	private _keyMap : Map<number, number>;
 
+	private _voice : Voice;
+	private _stream : MediaStream;
+
 	constructor(div : HTMLElement, connection : Connection) {
 		// TODO: set up game divs programatically
 		this._div = div;
@@ -44,12 +47,36 @@ class UI {
 
 		elm("voice").onclick = (e) => {
 			e.stopPropagation();
-			this._connection.joinVoice();
+
+			if (defined(this._stream)) {
+				this.toggleVoice(this._stream);
+				return;
+			}
+
+			navigator.mediaDevices.getUserMedia({
+				audio: true,
+  		        video: false,
+		    }).then((stream) => {
+		    	this._stream = stream;
+				this.toggleVoice(stream);
+		    });
 		};
 	}
 
 	addDiv(div : HTMLElement) : void {
 		// TODO
+	}
+
+	toggleVoice(stream : MediaStream) : void {
+		if (!this._connection.ready()) {
+			return;
+		}
+
+		if (!defined(this._voice)) {
+			this._voice = new Voice(this._connection, stream);
+		}
+
+		this._voice.toggleVoice();
 	}
 
 	keys() : Set<number> { return this._keys; }
@@ -125,24 +152,31 @@ class UI {
 	}
 
 	private updateClients(msg : any) : void {
-		const id = "" + msg.Id;
-		switch (msg.T) {
+		const id = Number(msg.Id);
+		switch (msg.T) {		
 			case joinType:
 				this.system(msg.C.N + " #" + id + " just joined!");
 				break;
 			case leftType:
 				this.system(msg.C.N + " #" + id + " left");
 				break;
+			case joinVoiceType:
+				this.system(msg.C.N + " #" + id + " joined voice chat!");
+				break;
+			case leftVoiceType:
+				this.system(msg.C.N + " #" + id + " left voice chat");
 		}
 
-		elm("people").innerHTML = "";
-		for (let [id, client] of Object.entries(msg.Cs) as [string, any]) {
-			const html = document.createElement("span");
-			html.textContent = client.N + " #" + id;
+		if (msg.T == joinType || msg.T == leftType) {
+			elm("people").innerHTML = "";
+			for (let [id, client] of Object.entries(msg.Cs) as [string, any]) {
+				const html = document.createElement("span");
+				html.textContent = client.N + " #" + id;
 
-			elm("people").appendChild(html);
-			elm("people").appendChild(document.createElement("br"));		    
-		};
+				elm("people").appendChild(html);
+				elm("people").appendChild(document.createElement("br"));		    
+			};
+		}
 	}
 
 	private system(message : string) : void {
@@ -189,6 +223,9 @@ class UI {
 		this._connection.addHandler(chatType, (msg : any) => { this.chat(msg) })
  		this._connection.addHandler(joinType, (msg : any) => { this.updateClients(msg) });
 		this._connection.addHandler(leftType, (msg : any) => { this.updateClients(msg) });
+
+		this._connection.addHandler(joinVoiceType, (msg : any) => { this.updateClients(msg) })
+		this._connection.addHandler(leftVoiceType, (msg : any) => { this.updateClients(msg) })
 	}
 
 	private initKeyListeners() : void {
