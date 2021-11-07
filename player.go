@@ -7,18 +7,18 @@ import (
 const (
 	gravityAcc = -18.0
 	walledAcc = -9.0
-	downAcc = -10.0
+	downAcc = -18.0
 	rightAcc = 16.0
 	leftAcc = -rightAcc
 	turnMultiplier = 4.0
 
-	maxUpwardVel = 8.0
+	maxUpwardVel = 10.0
 	maxHorizontalVel = 8.0
 	maxDownwardVel = -24.0
 	maxVelMultiplier = 0.9
+	extVelMultiplier = 0.98
 
-	dashVel = 12.0
-	jumpVel = 12.0
+	jumpVel = 10.0
 
 	friction = 0.4
 	airResistance = 0.92
@@ -87,6 +87,10 @@ func (p *Player) GetProfile() Profile {
 	return p.Profile
 }
 
+func (p *Player) SetProfileOptions(options ProfileOptions) {
+	p.Profile.SetOptions(options)
+}
+
 func (p *Player) GetSpacedId() SpacedId {
 	return Id(playerIdSpace, p.id)
 }
@@ -106,8 +110,10 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	}
 	p.lastUpdateTime = now
 
+	lastPos := p.Profile.Pos()
 	pos := p.Profile.Pos()
 	vel := p.Profile.Vel()
+	evel := p.Profile.ExtVel()
 	acc := p.Profile.Acc()
 
 	if (pos.Y < -5) {
@@ -193,10 +199,16 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	}
 	p.Profile.SetVel(vel)
 
+	// Slow down momentum from other objects if not grounded
+	if !p.grounded {
+		evel.Scale(extVelMultiplier)
+	}
+	p.Profile.SetExtVel(evel)
+
 	// Move
 	pos.Add(p.Profile.TotalVel(), ts)
 	p.Profile.SetPos(pos)
-	p.checkCollisions(grid)
+	p.checkCollisions(grid, lastPos)
 
 	// Save state
 	p.lastKeys = p.keys
@@ -204,7 +216,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	return true
 }
 
-func (p *Player) checkCollisions(grid *Grid) {
+func (p *Player) checkCollisions(grid *Grid, lastPos Vec2) {
 	// Collision detection
 	p.grounded, p.walled = false, 0
 	colliders := grid.getColliders(p.Profile)
@@ -216,7 +228,7 @@ func (p *Player) checkCollisions(grid *Grid) {
 				continue
 			}
 
-			xadj, yadj := p.Profile.Snap(other)
+			xadj, yadj := p.Profile.Snap(other, lastPos)
 			if xadj != 0 {
 				p.walled = -int(Sign(xadj))
 			}

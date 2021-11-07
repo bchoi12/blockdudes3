@@ -8,13 +8,9 @@ type ObjectInitData struct {
 	Init
 }
 
-func NewObjectInitData(id int, pos Vec2, dim Vec2) ObjectInitData {
+func NewObjectInitData(init Init) ObjectInitData {
 	return ObjectInitData {
-		Init {
-			Id: id,
-			Pos: pos,
-			Dim: dim,
-		},
+		Init: init,
 	}
 }
 
@@ -41,6 +37,10 @@ type Object struct {
 
 func (o *Object) GetProfile() Profile {
 	return o.Profile
+}
+
+func (o *Object) SetProfileOptions(options ProfileOptions) {
+	o.Profile.SetOptions(options)
 }
 
 func (o *Object) GetSpacedId() SpacedId {
@@ -76,5 +76,15 @@ func (o *Object) getObjectData() ObjectData {
 	return ObjectData {
 		Pos: o.Profile.Pos(),
 		Vel: o.Profile.Vel(),
+	}
+}
+
+func (o *Object) getObjectInitData() ObjectInitData {
+	return ObjectInitData {
+		Init {
+			Id: o.id,
+			Pos: o.Profile.Pos(),
+			Dim: o.Profile.Dim(),
+		},
 	}
 }

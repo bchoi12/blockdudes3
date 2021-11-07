@@ -17,32 +17,35 @@ func (g *Game) loadLevel(index int) {
 
 func (g *Game) loadTestLevel() {
 	i := 0
-	object := NewObjectInitData(i, NewVec2(5, 0.9), NewVec2(20.0, 0.2))
+	object := NewObjectInitData(Init { Id: i, Pos: NewVec2(5, 0.9), Dim: NewVec2(20.0, 0.2), })
 	g.addObject(object)
 
 	i++
-	object = NewObjectInitData(i, NewVec2(1, 3), NewVec2(3.0, 0.2))
+	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(1, 3), Dim: NewVec2(3.0, 0.2), })
+	g.addObject(object)
+	g.objects[i].SetProfileOptions(PlatformProfileOptions())
+
+	i++
+	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(4.5, 5), Dim: NewVec2(3.0, 0.2), })
+	g.addObject(object)
+	g.objects[i].SetProfileOptions(PlatformProfileOptions())
+
+	i++
+	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(4, 0), Dim: NewVec2(0.2, 0.2), })
 	g.addObject(object)
 
 	i++
-	object = NewObjectInitData(i, NewVec2(4.5, 5), NewVec2(3.0, 0.2))
+	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(8, 0), Dim: NewVec2(0.2, 0.2), })
 	g.addObject(object)
 
 	i++
-	object = NewObjectInitData(i, NewVec2(4, 0), NewVec2(0.2, 0.2))
+	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(8, 3), Dim: NewVec2(0.2, 3), })
 	g.addObject(object)
 
 	i++
-	object = NewObjectInitData(i, NewVec2(8, 0), NewVec2(0.2, 0.2))
+	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(5, 3), Dim: NewVec2(3, 0.2), })
 	g.addObject(object)
-
-	i++
-	object = NewObjectInitData(i, NewVec2(8, 3), NewVec2(0.2, 3))
-	g.addObject(object)
-
-	i++
-	movingPlatform := NewObjectInitData(i, NewVec2(5, 3), NewVec2(3.0, 0.2))
-	g.addObject(movingPlatform)
+	g.objects[i].SetProfileOptions(PlatformProfileOptions())
 	g.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
 		switch prof := (o.Profile).(type) {
 		case *Rec2:
@@ -66,9 +69,9 @@ func (g *Game) loadTestLevel() {
 	}
 
 	i++
-	platform2 := NewObjectInitData(i, NewVec2(10, 4), NewVec2(3.0, 0.2))
-
-	g.addObject(platform2)
+	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(10, 4), Dim: NewVec2(3, 0.2), })
+	g.addObject(object)
+	g.objects[i].SetProfileOptions(PlatformProfileOptions())
 	g.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
 		switch prof := (o.Profile).(type) {
 		case *Rec2:
@@ -96,8 +99,9 @@ func (g *Game) loadTestLevel() {
 
 
 	i++
-	platform3 := NewObjectInitData(i, NewVec2(13, 5), NewVec2(3.0, 0.2))
-	g.addObject(platform3)
+	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(13, 5), Dim: NewVec2(3, 0.2), })
+	g.addObject(object)
+	g.objects[i].SetProfileOptions(PlatformProfileOptions())
 	g.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
 		switch prof := (o.Profile).(type) {
 		case *Rec2:

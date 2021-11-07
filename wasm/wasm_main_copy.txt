@@ -174,7 +174,7 @@ func addObject(g *Game) js.Func {
 		pos := args[1].Get("Pos")
 		dim := args[1].Get("Dim")
 
-		initData := NewObjectInitData(id, parseVec2(pos), parseVec2(dim))
+		initData := NewObjectInitData(Init { Id: id, Pos: parseVec2(pos), Dim: parseVec2(dim) })
 		g.addObject(initData)
 		return nil
     })

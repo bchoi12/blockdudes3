@@ -130,8 +130,8 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 func (g *Game) createObjectInitMsg() ObjectInitMsg {
 	objs := make([]ObjectInitData, 0)
 
-	for id, obj := range(g.objects) {
-		objs = append(objs, NewObjectInitData(id, obj.Profile.Pos(), obj.Profile.Dim()))
+	for _, obj := range(g.objects) {
+		objs = append(objs, obj.getObjectInitData())
 	}
 
 	return ObjectInitMsg{

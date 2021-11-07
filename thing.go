@@ -18,8 +18,10 @@ func Id(space int, id int) SpacedId {
 }
 
 type Thing interface {
-	GetProfile() Profile
 	GetSpacedId() SpacedId
+
+	GetProfile() Profile
+	SetProfileOptions(options ProfileOptions)
 
 	TakeHit(shot *Shot, hit *Hit)
 	UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool
