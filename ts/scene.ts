@@ -21,6 +21,7 @@ class Scene {
 
 		this._spotLight = new THREE.SpotLight(0xaaaaaa, 1);
 		this._scene.add(this._spotLight);
+		this._scene.add(this._spotLight.target);
 
 		this._playerRenders = new Map();
 		this._objectRenders = new Map();
@@ -92,7 +93,7 @@ class Scene {
 
 			setTimeout(() => {
 				this._scene.remove(line);
-			}, 100)
+			}, 50)
 		})
 	}
 

@@ -71,22 +71,21 @@ type JSONPeerMsg struct {
 	JSON interface{}
 }
 
-type ClientMsg struct {
-	T int
+type ClientData struct {
 	Id int
-	C ClientData
-	Cs map[int]ClientData
+	Name string
 }
 
-type ClientData struct {
-	N string
+type ClientMsg struct {
+	T int
+	Client ClientData
+	Clients map[int]ClientData
 }
 
 type ChatMsg struct {
 	T int
-	Id int
-	N string
-	M string // message
+	Client ClientData
+	Message string
 }
 
 type GameStateMsg struct {
@@ -104,7 +103,7 @@ type PlayerInitMsg struct {
 
 type LevelInitMsg struct {
 	T int
-	L int
+	L int // level index
 }
 
 type ObjectInitMsg struct {

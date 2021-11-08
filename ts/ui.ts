@@ -20,15 +20,20 @@ class UI {
 	private _keys : Set<number>;
 	private _keyMap : Map<number, number>;
 
+	private _clients : Map<number, HTMLElement>;
 	private _voice : Voice;
 	private _stream : MediaStream;
 
 	constructor(div : HTMLElement, connection : Connection) {
-		// TODO: set up game divs programatically
 		this._div = div;
 		this._renderer = new Renderer(elm("renderer"));
 		this._connection = connection;
-		this.initHandlers();
+
+		this._connection.addHandler(chatType, (msg : any) => { this.chat(msg) })
+ 		this._connection.addHandler(joinType, (msg : any) => { this.updateClients(msg) });
+		this._connection.addHandler(leftType, (msg : any) => { this.updateClients(msg) });
+		this._connection.addHandler(joinVoiceType, (msg : any) => { this.updateClients(msg) })
+		this._connection.addHandler(leftVoiceType, (msg : any) => { this.updateClients(msg) })
 
 		this._mode = InputMode.PAUSE;
 
@@ -44,6 +49,8 @@ class UI {
 		this._keyMap.set(39, rightKey);
 		this._keyMap.set(68, rightKey);
 		this._keyMap.set(32, dashKey);
+
+		this._clients = new Map();
 
 		elm("voice").onclick = (e) => {
 			e.stopPropagation();
@@ -151,62 +158,73 @@ class UI {
 		}
 	}
 
+	private clientName(client : any) : string {
+		return client.Name + " #" + client.Id;
+	}
+
 	private updateClients(msg : any) : void {
-		const id = Number(msg.Id);
 		switch (msg.T) {		
 			case joinType:
-				this.system(msg.C.N + " #" + id + " just joined!");
+				this.print(this.clientName(msg.Client) + " just joined!");
 				break;
 			case leftType:
-				this.system(msg.C.N + " #" + id + " left");
+				this.print(this.clientName(msg.Client) + " left");
 				break;
 			case joinVoiceType:
-				this.system(msg.C.N + " #" + id + " joined voice chat!");
+				this.print(this.clientName(msg.Client) + " joined voice chat!");
 				break;
 			case leftVoiceType:
-				this.system(msg.C.N + " #" + id + " left voice chat");
+				this.print(this.clientName(msg.Client) + " left voice chat");
 		}
 
-		if (msg.T == joinType || msg.T == leftType) {
-			elm("people").innerHTML = "";
-			for (let [id, client] of Object.entries(msg.Cs) as [string, any]) {
-				const html = document.createElement("span");
-				html.textContent = client.N + " #" + id;
+		const addClient = (client : any) => {
+			const id = client.Id;
+			const html = document.createElement("span");
+			html.id = "client-" + id;
+			html.textContent = this.clientName(client);
+			html.appendChild(document.createElement("br"));
 
-				elm("people").appendChild(html);
-				elm("people").appendChild(document.createElement("br"));		    
-			};
+			elm("clients").appendChild(html);
+			this._clients.set(id, html);
+		};
+		const removeClient = (id : number) => {
+			elm("clients").removeChild(this._clients.get(id));
+			this._clients.delete(id);
+		};
+
+		if (this._clients.size == 0) {
+			for (let [stringId, client] of Object.entries(msg.Clients) as [string, any]) {
+				addClient(client);
+			}
+		} else if (msg.T == joinType) {
+			addClient(msg.Client)
+		} else if (msg.T == leftType) {
+			removeClient(msg.Client.Id);
 		}
 	}
 
-	private system(message : string) : void {
-		this.chat({
-			N: "",
-			M: message,
-		});
-	}
-
-	private chat(msg : any) : void {
-		const name = msg.N;
-		const message = msg.M;
-
-		if (!defined(name) || !defined(message)) return;
-		if (message.length == 0) return;
-
-		if (name.length > 0) {
-			const nameSpan = document.createElement("span");
-			nameSpan.classList.add("message-name");
-			nameSpan.textContent = name + ": ";
-
-			elm("messages").appendChild(nameSpan);
-		}
-
+	private print(message : string) : void {
 		const messageSpan = document.createElement("span");
 		messageSpan.textContent = message;
 
 		elm("messages").appendChild(messageSpan);
 		elm("messages").appendChild(document.createElement("br"));
 		elm("messages").scrollTop = elm("messages").scrollHeight;
+	}
+
+	private chat(msg : any) : void {
+		const name = this.clientName(msg.Client)
+		const message = msg.Message;
+
+		if (!defined(name) || !defined(message)) return;
+		if (name.length == 0 || message.length == 0) return;
+
+		const nameSpan = document.createElement("span");
+		nameSpan.classList.add("message-name");
+		nameSpan.textContent = name + ": ";
+
+		elm("messages").appendChild(nameSpan);
+		this.print(message);
 	}
 
 	private pointerLock() : void {
@@ -217,15 +235,6 @@ class UI {
 	}
 	private pointerLocked() : boolean {
 		return document.pointerLockElement == this._renderer.elm()
-	}
-
-	private initHandlers() : void {
-		this._connection.addHandler(chatType, (msg : any) => { this.chat(msg) })
- 		this._connection.addHandler(joinType, (msg : any) => { this.updateClients(msg) });
-		this._connection.addHandler(leftType, (msg : any) => { this.updateClients(msg) });
-
-		this._connection.addHandler(joinVoiceType, (msg : any) => { this.updateClients(msg) })
-		this._connection.addHandler(leftVoiceType, (msg : any) => { this.updateClients(msg) })
 	}
 
 	private initKeyListeners() : void {
@@ -335,13 +344,13 @@ class UI {
 		}
 
 		if (!this._connection.ready()) {
-			this.system("Unable to send message, not connected to server!")
+			this.print("Unable to send message, not connected to server!")
 		}
 
 		const message = {
 			T: chatType,
 			Chat: {
-				M: inputElm("message-box").value.trim(),
+				Message: inputElm("message-box").value.trim(),
 			}
 		};
 
@@ -349,7 +358,7 @@ class UI {
 			inputElm("message-box").value = "";
 			this.changeInputMode(InputMode.GAME);
 		} else {
-			this.system("Failed to send chat message!");
+			this.print("Failed to send chat message!");
 		}
 	}
 }

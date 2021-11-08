@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand"
 	"time"
 )
 
@@ -44,6 +45,8 @@ type Player struct {
 	weapon *Weapon
 	lastUpdateTime time.Time
 
+	health int
+
 	canDash bool
 	grounded bool
 	walled int
@@ -61,6 +64,8 @@ func NewPlayer(initData PlayerInitData) *Player {
 		id: initData.Init.Id,
 		weapon: NewWeapon(initData.Init.Id),
 		lastUpdateTime: time.Time{},
+
+		health: 100,
 
 		canDash: true,
 		grounded: false,
@@ -96,6 +101,11 @@ func (p *Player) GetSpacedId() SpacedId {
 }
 
 func (p *Player) TakeHit(shot *Shot, hit *Hit) {
+	p.health -= 20
+	if p.health <= 0 {
+		p.respawn()
+	}
+
 	vel := p.Profile.Vel()
 	force := shot.line.R
 	force.Normalize()
@@ -235,8 +245,6 @@ func (p *Player) checkCollisions(grid *Grid, lastPos Vec2) {
 			if yadj > 0 {
 				p.grounded = true
 				p.Profile.SetExtVel(NewVec2(other.Vel().X, other.Vel().Y))
-			} else {
-				p.Profile.SetExtVel(NewVec2(0, 0))
 			}
 		default:
 			continue
@@ -264,7 +272,10 @@ func (p *Player) setPlayerData(data PlayerData) {
 }
 
 func (p *Player) respawn() {
-	p.Profile.SetPos(NewVec2(10, 12))
+	p.health = 100
+
+	rand.Seed(time.Now().Unix())
+	p.Profile.SetPos(NewVec2(float64(1 + rand.Intn(19)), 20))
 	p.Profile.SetVel(NewVec2(0, 0))
 	p.Profile.SetAcc(NewVec2(0, 0))
 }

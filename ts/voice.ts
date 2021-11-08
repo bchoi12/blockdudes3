@@ -50,8 +50,8 @@ class Voice {
 			});
 			this._voice.clear();
 
-			this._audio.forEach((audio) => {
-				elm("audio").removeChild(audio);
+			this._audio.forEach((audio, id) => {
+				elm("client-" + id).removeChild(audio);
 			});
 			this._audio.clear();
 
@@ -70,7 +70,7 @@ class Voice {
 			audioElement.autoplay = true;
 			audioElement.controls = true;
 			this._audio.set(id, audioElement);
-			elm("audio").appendChild(audioElement);
+			elm("client-" + id).appendChild(audioElement);
 
 			const pc = this._connection.newPeerConnection();
 			this._voice.set(id, pc);
@@ -102,13 +102,13 @@ class Voice {
 		};
 
 		// Create connection for the new client.
-		if (this._id != msg.Id) {
-			createPeerConnection(msg.Id, false);
+		if (this._id != msg.Client.Id) {
+			createPeerConnection(msg.Client.Id, false);
 			return;
 		}
 
 		// Send an offer to all existing clients.
-		for (const [stringId, client] of Object.entries(msg.Cs) as [string, any]) {
+		for (const [stringId, client] of Object.entries(msg.Clients) as [string, any]) {
 			const id = Number(stringId);
 			if (this._id == id) continue;
 
@@ -117,18 +117,18 @@ class Voice {
 	}
 
 	private removeVoice(msg : any) : void {
-		if (this._id == msg.Id) {
+		if (this._id == msg.Client.Id) {
 			return;
 		}
 
-		if (this._voice.has(msg.Id)) {
-			this._voice.get(msg.Id).close();
-			this._voice.delete(msg.Id);
+		if (this._voice.has(msg.Client.Id)) {
+			this._voice.get(msg.Client.Id).close();
+			this._voice.delete(msg.Client.Id);
 		}
 
-		if (this._audio.has(msg.Id)) {
-			elm("audio").removeChild(this._audio.get(msg.Id));
-			this._audio.delete(msg.Id);
+		if (this._audio.has(msg.Client.Id)) {
+			elm("audio").removeChild(this._audio.get(msg.Client.Id));
+			this._audio.delete(msg.Client.Id);
 		}
 	}
 
@@ -150,7 +150,7 @@ class Voice {
 	private processVoiceAnswer(msg : any) : void {
 		const pc = this._voice.get(msg.From);
 		const answer = msg.JSON;
-		pc.setRemoteDescription(answer, () => {}, (e) => debug("Failed to set remote description from answer from " + msg.Id + ": " + e));
+		pc.setRemoteDescription(answer, () => {}, (e) => debug("Failed to set remote description from answer from " + msg.Client.Id + ": " + e));
 
 		if (pc.remoteDescription && this._voiceCandidates.has(msg.From)) {
 			this._voiceCandidates.get(msg.From).forEach((candidate) => {

@@ -93,7 +93,7 @@ class Connection {
         this._ws.onopen = () => {
             debug("successfully connected to " + endpoint);
             this.addHandler(initType, (msg) => {
-                this._id = msg.Id;
+                this._id = msg.Client.Id;
             });
             this.addHandler(answerType, (msg) => { this.setRemoteDescription(msg); });
             this.addHandler(candidateType, (msg) => { this.addIceCandidate(msg); });

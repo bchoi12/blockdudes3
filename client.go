@@ -33,6 +33,13 @@ func NewClient(room* Room, ws *websocket.Conn, name string) *Client {
 	return client
 }
 
+func (c *Client) getClientData() ClientData {
+	return ClientData {
+		Id: c.id,
+		Name: c.name,
+	}
+}
+
 func (c *Client) initWebRTC() error {
 	var err error
 	config := webrtc.Configuration{

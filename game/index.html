@@ -39,7 +39,6 @@
 				<canvas id="renderer" width="800" height="600" oncontextmenu="return false;">Your browser is too old</canvas>
 			</div>
 			<div id="stats" class="no-select ui"></div>
-			<div id="people" class="no-select ui"></div>
 			<div id="messages" class="no-select chat-hide ui"></div>
 			<div id="form-send-message" class="no-select ui">
 				<form action="about:blank" target="iframe-empty" onsubmit="return false;">
@@ -48,7 +47,11 @@
 				</form>
 			</div>
 			<img id="cursor" src="/img/cursor.png" alt="cursor" class="no-select" />
-			<div id="overlay" class="no-select"><br><b>Paused</b><br><br>Click to continue<br><br><button id="voice">voice</button><div id="audio"></div></div>
+			<div id="overlay">
+				<div id="clients" class="ui"></div>
+				<span class="no-select ui"><br><b>Paused</b><br><br>Click to continue<br><br></span>
+				<button id="voice" class="ui">voice</button>
+			</div>
 		</div>
 	</main>
 </body>

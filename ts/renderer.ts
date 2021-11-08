@@ -31,7 +31,7 @@ class Renderer {
 	
 	setCamera(player : any, adj : any) : void {
 		this._camera.position.x = player.x + adj.x;
-		this._camera.position.y = player.y + adj.y + this._cameraOffsetY;
+		this._camera.position.y = Math.max(this._cameraOffsetY, player.y + adj.y + this._cameraOffsetY);
 
 		this._scene.setSpotlightPosition(player.x, player.y, this._cameraOffsetZ);
 		this._scene.setSpotlightTarget(player.x, player.y, player.z);

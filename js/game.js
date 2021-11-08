@@ -88,7 +88,7 @@ class Game {
         };
         switch (msg.T) {
             case initType:
-                this._id = msg.Id;
+                this._id = msg.Client.Id;
                 break;
             case playerInitType:
                 msg.Ps.forEach((initData) => {
@@ -96,7 +96,7 @@ class Game {
                 });
                 break;
             case leftType:
-                deletePlayer(msg.Id);
+                deletePlayer(msg.Client.Id);
                 break;
         }
     }

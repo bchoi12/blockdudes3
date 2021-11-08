@@ -125,7 +125,7 @@ class Connection {
 			debug("successfully connected to " + endpoint);
 
 			this.addHandler(initType, (msg : any) => {
-				this._id = msg.Id;
+				this._id = msg.Client.Id;
 			});
 
 			this.addHandler(answerType, (msg : any) => { this.setRemoteDescription(msg); });

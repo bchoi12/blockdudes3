@@ -56,12 +56,12 @@ html, body {
 	position: absolute;
 }
 
-#people {
+#clients {
 	left: 0;
 	overflow-y: scroll;
 }
 
-.people-me {
+.client-me {
 	font-weight: bold;
 }
 

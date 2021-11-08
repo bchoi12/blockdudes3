@@ -7,6 +7,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
 	if (dev) {
 		inputElm("name").value = "b";
 		inputElm("room").value = "room";
+	} else {
+		if (location.protocol !== "https:") {
+			location.protocol = "https:";
+		}
 	}
 
 	elm("js-check").style.display = "none";

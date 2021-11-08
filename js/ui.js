@@ -13,7 +13,11 @@ class UI {
         this._div = div;
         this._renderer = new Renderer(elm("renderer"));
         this._connection = connection;
-        this.initHandlers();
+        this._connection.addHandler(chatType, (msg) => { this.chat(msg); });
+        this._connection.addHandler(joinType, (msg) => { this.updateClients(msg); });
+        this._connection.addHandler(leftType, (msg) => { this.updateClients(msg); });
+        this._connection.addHandler(joinVoiceType, (msg) => { this.updateClients(msg); });
+        this._connection.addHandler(leftVoiceType, (msg) => { this.updateClients(msg); });
         this._mode = InputMode.PAUSE;
         this._mouse = new THREE.Vector3();
         this._keys = new Set();
@@ -27,6 +31,7 @@ class UI {
         this._keyMap.set(39, rightKey);
         this._keyMap.set(68, rightKey);
         this._keyMap.set(32, dashKey);
+        this._clients = new Map();
         elm("voice").onclick = (e) => {
             e.stopPropagation();
             if (defined(this._stream)) {
@@ -116,56 +121,67 @@ class UI {
             }
         }
     }
+    clientName(client) {
+        return client.Name + " #" + client.Id;
+    }
     updateClients(msg) {
-        const id = Number(msg.Id);
         switch (msg.T) {
             case joinType:
-                this.system(msg.C.N + " #" + id + " just joined!");
+                this.print(this.clientName(msg.Client) + " just joined!");
                 break;
             case leftType:
-                this.system(msg.C.N + " #" + id + " left");
+                this.print(this.clientName(msg.Client) + " left");
                 break;
             case joinVoiceType:
-                this.system(msg.C.N + " #" + id + " joined voice chat!");
+                this.print(this.clientName(msg.Client) + " joined voice chat!");
                 break;
             case leftVoiceType:
-                this.system(msg.C.N + " #" + id + " left voice chat");
+                this.print(this.clientName(msg.Client) + " left voice chat");
         }
-        if (msg.T == joinType || msg.T == leftType) {
-            elm("people").innerHTML = "";
-            for (let [id, client] of Object.entries(msg.Cs)) {
-                const html = document.createElement("span");
-                html.textContent = client.N + " #" + id;
-                elm("people").appendChild(html);
-                elm("people").appendChild(document.createElement("br"));
+        const addClient = (client) => {
+            const id = client.Id;
+            const html = document.createElement("span");
+            html.id = "client-" + id;
+            html.textContent = this.clientName(client);
+            html.appendChild(document.createElement("br"));
+            elm("clients").appendChild(html);
+            this._clients.set(id, html);
+        };
+        const removeClient = (id) => {
+            elm("clients").removeChild(this._clients.get(id));
+            this._clients.delete(id);
+        };
+        if (this._clients.size == 0) {
+            for (let [stringId, client] of Object.entries(msg.Clients)) {
+                addClient(client);
             }
-            ;
+        }
+        else if (msg.T == joinType) {
+            addClient(msg.Client);
+        }
+        else if (msg.T == leftType) {
+            removeClient(msg.Client.Id);
         }
     }
-    system(message) {
-        this.chat({
-            N: "",
-            M: message,
-        });
-    }
-    chat(msg) {
-        const name = msg.N;
-        const message = msg.M;
-        if (!defined(name) || !defined(message))
-            return;
-        if (message.length == 0)
-            return;
-        if (name.length > 0) {
-            const nameSpan = document.createElement("span");
-            nameSpan.classList.add("message-name");
-            nameSpan.textContent = name + ": ";
-            elm("messages").appendChild(nameSpan);
-        }
+    print(message) {
         const messageSpan = document.createElement("span");
         messageSpan.textContent = message;
         elm("messages").appendChild(messageSpan);
         elm("messages").appendChild(document.createElement("br"));
         elm("messages").scrollTop = elm("messages").scrollHeight;
+    }
+    chat(msg) {
+        const name = this.clientName(msg.Client);
+        const message = msg.Message;
+        if (!defined(name) || !defined(message))
+            return;
+        if (name.length == 0 || message.length == 0)
+            return;
+        const nameSpan = document.createElement("span");
+        nameSpan.classList.add("message-name");
+        nameSpan.textContent = name + ": ";
+        elm("messages").appendChild(nameSpan);
+        this.print(message);
     }
     pointerLock() {
         this._renderer.elm().requestPointerLock();
@@ -175,13 +191,6 @@ class UI {
     }
     pointerLocked() {
         return document.pointerLockElement == this._renderer.elm();
-    }
-    initHandlers() {
-        this._connection.addHandler(chatType, (msg) => { this.chat(msg); });
-        this._connection.addHandler(joinType, (msg) => { this.updateClients(msg); });
-        this._connection.addHandler(leftType, (msg) => { this.updateClients(msg); });
-        this._connection.addHandler(joinVoiceType, (msg) => { this.updateClients(msg); });
-        this._connection.addHandler(leftVoiceType, (msg) => { this.updateClients(msg); });
     }
     initKeyListeners() {
         const recordKey = (e) => {
@@ -282,12 +291,12 @@ class UI {
             return;
         }
         if (!this._connection.ready()) {
-            this.system("Unable to send message, not connected to server!");
+            this.print("Unable to send message, not connected to server!");
         }
         const message = {
             T: chatType,
             Chat: {
-                M: inputElm("message-box").value.trim(),
+                Message: inputElm("message-box").value.trim(),
             }
         };
         if (this._connection.send(message)) {
@@ -295,7 +304,7 @@ class UI {
             this.changeInputMode(InputMode.GAME);
         }
         else {
-            this.system("Failed to send chat message!");
+            this.print("Failed to send chat message!");
         }
     }
 }

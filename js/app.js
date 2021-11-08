@@ -4,6 +4,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
         inputElm("name").value = "b";
         inputElm("room").value = "room";
     }
+    else {
+        if (location.protocol !== "https:") {
+            location.protocol = "https:";
+        }
+    }
     elm("js-check").style.display = "none";
     WebAssembly.instantiateStreaming(fetch("/wasm/game.wasm"), go.importObject).then((result) => {
         go.run(result.instance);

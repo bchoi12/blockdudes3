@@ -226,17 +226,14 @@ func (r *Room) updateClients(msgType int, c *Client) error {
 func (r *Room) createClientMsg(msgType int, c *Client, voice bool) ClientMsg {
 	msg := ClientMsg {
 		T: msgType,
-		Id: c.id,
-		C: ClientData {
-			N: c.name,
-		},
-		Cs: make(map[int]ClientData, 0),
+		Client: c.getClientData(),
+		Clients: make(map[int]ClientData, 0),
 	}
 	for id, client := range r.clients {
 		if (msgType == leftType && id == c.id) || (voice && !client.voice) {
 			continue
 		}
-		msg.Cs[id] = ClientData {N: client.name}
+		msg.Clients[id] = client.getClientData()
 	}
 	return msg
 }
