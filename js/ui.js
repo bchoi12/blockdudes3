@@ -32,30 +32,15 @@ class UI {
         this._keyMap.set(68, rightKey);
         this._keyMap.set(32, dashKey);
         this._clients = new Map();
+        this._voice = new Voice(connection);
         elm("voice").onclick = (e) => {
             e.stopPropagation();
-            if (defined(this._stream)) {
-                this.toggleVoice(this._stream);
-                return;
-            }
-            navigator.mediaDevices.getUserMedia({
-                audio: true,
-                video: false,
-            }).then((stream) => {
-                this._stream = stream;
-                this.toggleVoice(stream);
-            });
+            this.toggleVoice();
         };
     }
     addDiv(div) {
     }
-    toggleVoice(stream) {
-        if (!this._connection.ready()) {
-            return;
-        }
-        if (!defined(this._voice)) {
-            this._voice = new Voice(this._connection, stream);
-        }
+    toggleVoice() {
         this._voice.toggleVoice();
     }
     keys() { return this._keys; }

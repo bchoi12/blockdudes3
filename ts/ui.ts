@@ -22,7 +22,6 @@ class UI {
 
 	private _clients : Map<number, HTMLElement>;
 	private _voice : Voice;
-	private _stream : MediaStream;
 
 	constructor(div : HTMLElement, connection : Connection) {
 		this._div = div;
@@ -51,22 +50,12 @@ class UI {
 		this._keyMap.set(32, dashKey);
 
 		this._clients = new Map();
+		this._voice = new Voice(connection);
 
 		elm("voice").onclick = (e) => {
 			e.stopPropagation();
 
-			if (defined(this._stream)) {
-				this.toggleVoice(this._stream);
-				return;
-			}
-
-			navigator.mediaDevices.getUserMedia({
-				audio: true,
-  		        video: false,
-		    }).then((stream) => {
-		    	this._stream = stream;
-				this.toggleVoice(stream);
-		    });
+			this.toggleVoice();
 		};
 	}
 
@@ -74,15 +63,7 @@ class UI {
 		// TODO
 	}
 
-	toggleVoice(stream : MediaStream) : void {
-		if (!this._connection.ready()) {
-			return;
-		}
-
-		if (!defined(this._voice)) {
-			this._voice = new Voice(this._connection, stream);
-		}
-
+	toggleVoice() : void {
 		this._voice.toggleVoice();
 	}
 

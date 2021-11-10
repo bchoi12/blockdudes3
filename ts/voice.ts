@@ -7,19 +7,16 @@ class Voice {
 	private _connection : Connection;
 	private _stream : MediaStream;
 
-	private _id : number;
-	private _joined : boolean;
+	private _enabled : boolean;
 
 	private _voice : Map<number, RTCPeerConnection>;
 	private _voiceCandidates : Map<number, Array<RTCIceCandidate>>;
 	private _audio : Map<number, HTMLAudioElement>;
 
-	constructor(connection : Connection, stream : MediaStream) {
+	constructor(connection : Connection) {
 		this._connection = connection;
-		this._stream = stream;
 
-		this._id = connection.id();
-		this._joined = false;
+		this._enabled = false;
 
 		this._connection.addHandler(joinVoiceType, (msg : any) => { this.addVoice(msg); });
 		this._connection.addHandler(leftType, (msg : any) => { this.removeVoice(msg); });
@@ -33,18 +30,30 @@ class Voice {
 		this._audio = new Map();
 	}
 
-	joined() : boolean {
-		return this._joined;
+	enabled() : boolean {
+		return this._enabled;
 	}
 
 	toggleVoice() : void {
-		if (!this.joined()) {
-			this._joined = true;
-	      	this._stream.getTracks().forEach(track => track.enabled = true);
-			this._connection.send({ T: joinVoiceType });
+		if (!this._connection.ready()) {
+			return;
+		}
+
+		if (!this.enabled()) {
+			this._enabled = true;
+			navigator.mediaDevices.getUserMedia({
+				audio: true,
+			    video: false,
+		    }).then((stream) => {
+		    	this._stream = stream;
+		      	this._stream.getTracks().forEach(track => track.enabled = true);
+				this._connection.send({ T: joinVoiceType });
+		    }).catch((e) => {
+		    	this._enabled = false;
+		    	debug("Failed to enable voice chat: " + e);
+		    });
 		} else {
-			this._joined = false;
-	      	this._stream.getTracks().forEach(track => track.enabled = false);
+	      	this._stream.getTracks().forEach(track => track.stop());
 			this._voice.forEach((pc) => {
 				pc.close();
 			});
@@ -56,68 +65,33 @@ class Voice {
 			this._audio.clear();
 
 			this._connection.send({ T: leftVoiceType });
+			this._enabled = false;
 		}
 	}
 
 	private addVoice(msg : any) : void {
-		if (!this.joined()) {
+		if (!this.enabled()) {
 			return;
 		}
 
-		const createPeerConnection = (id : number, sendOffer : boolean) => {
-			const audioElement = <HTMLAudioElement>document.createElement("audio");
-			audioElement.id = "audio-" + id;
-			audioElement.autoplay = true;
-			audioElement.controls = true;
-			this._audio.set(id, audioElement);
-			elm("client-" + id).appendChild(audioElement);
-
-			const pc = this._connection.newPeerConnection();
-			this._voice.set(id, pc);
-	      	this._stream.getTracks().forEach(track => pc.addTrack(track, this._stream));
-
-			pc.createOffer(this._voiceOfferOptions).then((description) => {
-				return pc.setLocalDescription(description);
-			}).then(() => {
-				if (sendOffer) {
-					this._connection.send({T: voiceOfferType, JSONPeer: {To: id, JSON: pc.localDescription.toJSON()}});
-				}
-			});
-
-			pc.onicecandidate = (event) => {
-				if (event && event.candidate) {
-					this._connection.send({T: voiceCandidateType, JSONPeer: {To: id, JSON: event.candidate.toJSON() }});
-				}
-			}
-
-			pc.onconnectionstatechange = () => {
-				if(pc.connectionState == "disconnected") {
-				    this.removeVoice({Id: id});
-				}
-			}
-
-			pc.ontrack = (event) => {
-				audioElement.srcObject = event.streams[0];
-			}		
-		};
-
 		// Create connection for the new client.
-		if (this._id != msg.Client.Id) {
-			createPeerConnection(msg.Client.Id, false);
+		if (this._connection.id() != msg.Client.Id) {
+			this.createPeerConnection(msg.Client.Id, false);
 			return;
 		}
 
 		// Send an offer to all existing clients.
 		for (const [stringId, client] of Object.entries(msg.Clients) as [string, any]) {
 			const id = Number(stringId);
-			if (this._id == id) continue;
+			if (this._connection.id() == id) continue;
 
-			createPeerConnection(id, true);
+			this.createPeerConnection(id, true);
 		}
 	}
 
 	private removeVoice(msg : any) : void {
-		if (this._id == msg.Client.Id) {
+		const id = this._connection.id();
+		if (id == msg.Client.Id) {
 			return;
 		}
 
@@ -127,9 +101,44 @@ class Voice {
 		}
 
 		if (this._audio.has(msg.Client.Id)) {
-			elm("audio").removeChild(this._audio.get(msg.Client.Id));
+			elm("client-" + msg.Client.Id).removeChild(this._audio.get(msg.Client.Id));
 			this._audio.delete(msg.Client.Id);
 		}
+	}
+
+	private createPeerConnection(id : number, sendOffer : boolean) {
+		const audioElement = <HTMLAudioElement>document.createElement("audio");
+		audioElement.id = "audio-" + id;
+		audioElement.autoplay = true;
+		audioElement.controls = true;
+		this._audio.set(id, audioElement);
+		elm("client-" + id).appendChild(audioElement);
+
+		const pc = this._connection.newPeerConnection();
+		this._voice.set(id, pc);
+      	this._stream.getTracks().forEach(track => pc.addTrack(track, this._stream));
+
+		pc.onicecandidate = (event) => {
+			if (event && event.candidate) {
+				this._connection.send({T: voiceCandidateType, JSONPeer: {To: id, JSON: event.candidate.toJSON() }});
+			}
+		}
+		pc.onconnectionstatechange = () => {
+			if(pc.connectionState == "disconnected") {
+			    this.removeVoice({Client: { Id: id }});
+			}
+		}
+		pc.ontrack = (event) => {
+			audioElement.srcObject = event.streams[0];
+		}	
+
+		pc.createOffer(this._voiceOfferOptions).then((description) => {
+			return pc.setLocalDescription(description);
+		}).then(() => {
+			if (sendOffer) {
+				this._connection.send({T: voiceOfferType, JSONPeer: {To: id, JSON: pc.localDescription.toJSON()}});
+			}
+		});	
 	}
 
 	private processVoiceOffer(msg : any) : void {

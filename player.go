@@ -211,7 +211,8 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 
 	// Slow down momentum from other objects if not grounded
 	if !p.grounded {
-		evel.Scale(extVelMultiplier)
+		evel.X *= extVelMultiplier
+		evel.Y = 0
 	}
 	p.Profile.SetExtVel(evel)
 

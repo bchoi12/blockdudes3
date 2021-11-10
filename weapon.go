@@ -85,8 +85,8 @@ func NewWeapon(id int) *Weapon {
 		dist: 30.0,
 		reloadTime: 400 * time.Millisecond,
 
-		recoilFactor: 2.0,
-		pushFactor: 3.0,
+		recoilFactor: 4.0,
+		pushFactor: 5.0,
 
 		bursts: 0,
 		maxBursts: 3,

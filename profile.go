@@ -90,7 +90,7 @@ func (r Rec2) Height() float64 { return r.dim.Y }
 func (r Rec2) GetOptions() ProfileOptions { return r.options }
 func (r *Rec2) SetOptions(options ProfileOptions) { r.options = options }
 
-func (r Rec2) Intersects(line Line) (bool, float64) {
+func (r Rec2) getSides() []Line {
 	bottomLeft := NewVec2(r.Pos().X - r.Dim().X / 2, r.Pos().Y - r.Dim().Y / 2)
 	topRight := NewVec2(r.Pos().X + r.Dim().X / 2, r.Pos().Y + r.Dim().Y / 2)
 
@@ -99,6 +99,11 @@ func (r Rec2) Intersects(line Line) (bool, float64) {
 	sides[1] = NewLine(bottomLeft, NewVec2(0, r.Dim().Y))
 	sides[2] = NewLine(topRight, NewVec2(-r.Dim().X, 0))
 	sides[3] = NewLine(topRight, NewVec2(0, -r.Dim().Y))
+	return sides
+}
+
+func (r Rec2) Intersects(line Line) (bool, float64) {
+	sides := r.getSides()
 
 	collision := false
 	closest := 1.0
@@ -157,7 +162,6 @@ func (r *Rec2) Snap(profile Profile, lastPos Vec2) (float64, float64) {
 
 		pos := r.Pos()
 		tvel := r.TotalVel()
-
 		xcollision, ycollision := false, false
 		relativeVel := NewVec2(tvel.X - other.TotalVel().X, tvel.Y - other.TotalVel().Y)
 		if Abs(relativeVel.X) < collisionEpsilon && Abs(relativeVel.Y) > collisionEpsilon {
@@ -170,13 +174,11 @@ func (r *Rec2) Snap(profile Profile, lastPos Vec2) (float64, float64) {
 		}
 
 		xadj, yadj := 0.0, 0.0
-		xdiff := pos.X - lastPos.X
-		ydiff := pos.Y - lastPos.Y
 		options := other.GetOptions()
 		vel := r.Vel()
 		if xcollision {
 			xadj = float64(Sign(pos.X - other.Pos().X)) * ox
-			if !options.collideLeft && xadj > 0 || !options.collideRight && xadj < 0 || Abs(xadj) > 2 * Abs(xdiff) {
+			if !options.collideLeft && xadj > 0 || !options.collideRight && xadj < 0 {
 				xadj = 0
 			} else {
 				pos.Add(NewVec2(xadj, 0), 1.0)
@@ -190,7 +192,9 @@ func (r *Rec2) Snap(profile Profile, lastPos Vec2) (float64, float64) {
 		}
 		if ycollision {
 			yadj = float64(Sign(pos.Y - other.Pos().Y)) * oy
-			if !options.collideTop && yadj > 0 || !options.collideBottom && yadj < 0 || Abs(yadj) > 2 * Abs(ydiff) {
+			if !options.collideTop && yadj > 0 || !options.collideBottom && yadj < 0 {
+				yadj = 0
+			} else if options.collideTop && !options.collideBottom && lastPos.Y - r.Dim().Y / 2 < other.Pos().Y {
 				yadj = 0
 			} else {
 				pos.Add(NewVec2(0, yadj), 1.0)

@@ -1,7 +1,7 @@
 class Renderer {
     constructor(canvas) {
-        this._cameraOffsetY = 0.6;
-        this._cameraOffsetZ = 6.0;
+        this._cameraOffsetY = 1.2;
+        this._cameraOffsetZ = 7.0;
         this._canvas = canvas;
         this._scene = new Scene();
         this._camera = new THREE.PerspectiveCamera(75, this._canvas.offsetWidth / this._canvas.offsetHeight, 0.1, 1000);
@@ -18,7 +18,7 @@ class Renderer {
     setCamera(player, adj) {
         this._camera.position.x = player.x + adj.x;
         this._camera.position.y = Math.max(this._cameraOffsetY, player.y + adj.y + this._cameraOffsetY);
-        this._scene.setSpotlightPosition(player.x, player.y, this._cameraOffsetZ);
+        this._scene.setSpotlightPosition(this._camera.position.x, this._camera.position.y, this._camera.position.z * 2);
         this._scene.setSpotlightTarget(player.x, player.y, player.z);
     }
     setMouseFromPixels(mouse) {
