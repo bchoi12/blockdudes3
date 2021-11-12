@@ -90,18 +90,21 @@ class Game {
 			if (wasmHasPlayer(id)) return;
 
 			const material = id == this._id ? this._meMaterial : this._otherMaterial
-			const playerMesh = new THREE.Mesh(new THREE.BoxGeometry(initData.Dim.X, initData.Dim.Y, 0.3), material);
+			const depth = 0.2;
+			const playerMesh = new THREE.Mesh(new THREE.BoxGeometry(initData.Dim.X, initData.Dim.Y, depth), material);
+			playerMesh.position.x = initData.Pos.X;
+			playerMesh.position.y = initData.Pos.Y;
 			playerMesh.castShadow = true;
 			playerMesh.receiveShadow = true;
 
 			const outerHand = new THREE.Mesh(new THREE.SphereGeometry(0.1), material);
-			outerHand.position.z = 0.4;
+			outerHand.position.z = depth / 2;
 			outerHand.castShadow = true;
 			outerHand.receiveShadow = true;
 			playerMesh.add(outerHand);
 
 			const innerHand = new THREE.Mesh(new THREE.SphereGeometry(0.1), material);
-			innerHand.position.z = 0.4;
+			innerHand.position.z = depth / 2;
 			innerHand.castShadow = true;
 			innerHand.receiveShadow = true;
 			playerMesh.add(innerHand);

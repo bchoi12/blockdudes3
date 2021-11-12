@@ -5,7 +5,8 @@ class Scene {
 	private _playerRenders : Map<number, any>;
 	private _objectRenders : Map<number, any>;
 
-	private _spotLight : any;
+	private _sunLight : any;
+	private _sunLightOffset : any;
 
 	constructor() {
 		this.reset();
@@ -16,12 +17,21 @@ class Scene {
 	reset() : void {
 		this._scene = new THREE.Scene();
 
-		const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x080820, 1);
+		const hemisphereLight = new THREE.HemisphereLight(0xff3b94, 0x37013a, 0.7);
 		this._scene.add(hemisphereLight);
 
-		this._spotLight = new THREE.SpotLight(0xaaaaaa, 1);
-		this._scene.add(this._spotLight);
-		this._scene.add(this._spotLight.target);
+		this._sunLight = new THREE.DirectionalLight( 0xfdfbd3, 0.8);
+		this._sunLightOffset = new THREE.Vector3(-50, 50, 50);
+		this._sunLight.position.copy(this._sunLightOffset);
+		this._sunLight.castShadow = true;
+		const side = 10;
+		this._sunLight.shadow.camera = new THREE.OrthographicCamera(-side, side, side, -side, 0.1, 500 );
+		this._sunLight.shadow.mapSize.width = 512;
+		this._sunLight.shadow.mapSize.height = 512;
+		this._sunLight.shadow.bias = -0.0001;
+
+		this._scene.add(this._sunLight);
+		this._scene.add(this._sunLight.target);
 
 		this._playerRenders = new Map();
 		this._objectRenders = new Map();
@@ -97,11 +107,8 @@ class Scene {
 		})
 	}
 
-	setSpotlightPosition(x : number, y : number, z : number) : void {
-		this._spotLight.position.set(x, y, z);
-	}
-	setSpotlightTarget(x : number, y : number, z : number) : void {
-        this._spotLight.target.position.set(x, y, z);
+	setPlayerPosition(position : any) {
+		this._sunLight.target.position.copy(position);
 	}
 
 	private getMap(type : ObjectType) : Map<number, any> {

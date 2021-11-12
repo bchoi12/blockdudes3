@@ -8,7 +8,9 @@ class Renderer {
         this._camera.position.z = this._cameraOffsetZ;
         this._renderer = new THREE.WebGLRenderer({ canvas: this._canvas, antialias: true });
         this._renderer.shadowMap.enabled = true;
-        this._renderer.setClearColor(0xaaaaff);
+        this._renderer.setClearColor(0x3c3b5f);
+        this._renderer.shadowMapEnabled = true;
+        this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.resizeCanvas();
         window.onresize = () => { this.resizeCanvas(); };
         this._mousePixels = new THREE.Vector3(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2, 0);
@@ -18,8 +20,7 @@ class Renderer {
     setCamera(player, adj) {
         this._camera.position.x = player.x + adj.x;
         this._camera.position.y = Math.max(this._cameraOffsetY, player.y + adj.y + this._cameraOffsetY);
-        this._scene.setSpotlightPosition(this._camera.position.x, this._camera.position.y, this._camera.position.z * 2);
-        this._scene.setSpotlightTarget(player.x, player.y, player.z);
+        this._scene.setPlayerPosition(player);
     }
     setMouseFromPixels(mouse) {
         this._mousePixels = mouse.clone();
