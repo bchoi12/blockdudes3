@@ -7,10 +7,8 @@ class Renderer {
         this._camera = new THREE.PerspectiveCamera(75, this._canvas.offsetWidth / this._canvas.offsetHeight, 0.1, 1000);
         this._camera.position.z = this._cameraOffsetZ;
         this._renderer = new THREE.WebGLRenderer({ canvas: this._canvas, antialias: true });
-        this._renderer.shadowMap.enabled = true;
         this._renderer.setClearColor(0x3c3b5f);
-        this._renderer.shadowMapEnabled = true;
-        this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this._renderer.shadowMap.enabled = true;
         this.resizeCanvas();
         window.onresize = () => { this.resizeCanvas(); };
         this._mousePixels = new THREE.Vector3(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2, 0);

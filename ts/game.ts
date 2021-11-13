@@ -38,6 +38,10 @@ class Game {
 		this._lastGameUpdate = 0;
 		this._animateFrames = 0;
 
+		this._meMaterial.shadowSide = THREE.FrontSide;
+		this._otherMaterial.shadowSide = THREE.FrontSide;
+		this._objectMaterial.shadowSide = THREE.FrontSide;
+
 		this.initServerTalk();
 	}
 
