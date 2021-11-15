@@ -91,7 +91,7 @@ class Game {
 		const addPlayer = (initData : any) => {
 			const id = initData.Id;
 
-			if (wasmHasPlayer(id)) return;
+			if (wasmHas(ObjectType.PLAYER, id)) return;
 
 			const material = id == this._id ? this._meMaterial : this._otherMaterial
 			const depth = 0.2;
@@ -118,7 +118,7 @@ class Game {
 		}
 		const deletePlayer = (id : number) => {
 			this._renderer.deleteObject(ObjectType.PLAYER, id);
-			wasmDeletePlayer(id);
+			wasmDelete(ObjectType.PLAYER, id);
 		}
 
 		switch(msg.T) {
@@ -142,7 +142,19 @@ class Game {
 
 		for (const [stringId, object] of Object.entries(msg.Os) as [string, any]) {
 			const id = Number(stringId);
+			if (!wasmHas(ObjectType.OBJECT, id)) {
+				debug(object.Pos);
+				wasmAddObject(id, { Pos: object.Pos, Dim: {X: 1.0, Y: 1.0}});
+				const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 1.0), this._objectMaterial);	
+				mesh.castShadow = true;
+				mesh.receiveShadow = true;
+				this._renderer.addObject(ObjectType.OBJECT, id, mesh);
+
+				debug("new mesh");
+			}
+
 			wasmSetObjectData(id, object)
+
 			// TODO: need updateObject()
 			this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
 		}

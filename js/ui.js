@@ -249,15 +249,23 @@ class UI {
             if (this._mode != InputMode.GAME) {
                 return;
             }
-            if (!this._keys.has(mouseClick)) {
-                this._keys.add(mouseClick);
+            let button = mouseClick;
+            if ("which" in e && e.which == 3 || "button" in e && e.button == 2) {
+                button = altMouseClick;
+            }
+            if (!this._keys.has(button)) {
+                this._keys.add(button);
             }
         };
         document.onmouseup = (e) => {
             if (this._mode != InputMode.GAME) {
                 return;
             }
-            this._keys.delete(mouseClick);
+            let button = mouseClick;
+            if ("which" in e && e.which == 3 || "button" in e && e.button == 2) {
+                button = altMouseClick;
+            }
+            this._keys.delete(button);
         };
         elm("overlay").onclick = (e) => {
             if (this._mode != InputMode.PAUSE) {

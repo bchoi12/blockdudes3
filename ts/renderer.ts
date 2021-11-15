@@ -17,7 +17,8 @@ class Renderer {
 		this._camera.position.z = this._cameraOffsetZ;
 		this._renderer = new THREE.WebGLRenderer( {canvas: this._canvas, antialias: true});
 
-		this._renderer.setClearColor(0x3c3b5f);
+		// this._renderer.setClearColor(0x3c3b5f);
+		this._renderer.setClearColor(0x87cefa);
 		this._renderer.shadowMap.enabled = true;
 
 		this.resizeCanvas();

@@ -23,7 +23,7 @@ func (g *Game) loadTestLevel() {
 	i++
 	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(4, 2), Dim: NewVec2(3.0, 0.2), })
 	g.addObject(object)
-	g.objects[i].SetProfileOptions(PlatformProfileOptions())
+	g.grid.Get(Id(objectIdSpace, i)).(*Object).SetProfileOptions(PlatformProfileOptions())
 
 	i++
 	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(16, -3), Dim: NewVec2(8, 8), })
@@ -56,24 +56,24 @@ func (g *Game) loadTestLevel() {
 	i++
 	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(24, 5), Dim: NewVec2(3, 0.2), })
 	g.addObject(object)
-	g.objects[i].SetProfileOptions(PlatformProfileOptions())
+	g.grid.Get(Id(objectIdSpace, i)).(*Object).SetProfileOptions(PlatformProfileOptions())
 
 	i++
 	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(30, 5), Dim: NewVec2(3, 0.2), })
 	g.addObject(object)
-	g.objects[i].SetProfileOptions(PlatformProfileOptions())
+	g.grid.Get(Id(objectIdSpace, i)).(*Object).SetProfileOptions(PlatformProfileOptions())
 
 	i++
 	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(27, 7), Dim: NewVec2(3, 0.2), })
 	g.addObject(object)
-	g.objects[i].SetProfileOptions(PlatformProfileOptions())
+	g.grid.Get(Id(objectIdSpace, i)).(*Object).SetProfileOptions(PlatformProfileOptions())
 
 
 	i++
 	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(10, -1), Dim: NewVec2(3, 0.2), })
 	g.addObject(object)
-	g.objects[i].SetProfileOptions(PlatformProfileOptions())
-	g.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
+	g.grid.Get(Id(objectIdSpace, i)).(*Object).SetProfileOptions(PlatformProfileOptions())
+	g.grid.Get(Id(objectIdSpace, i)).(*Object).update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
 		switch prof := (o.Profile).(type) {
 		case *Rec2:
 			pos := prof.Pos()
@@ -98,8 +98,8 @@ func (g *Game) loadTestLevel() {
 	i++
 	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(16, 7), Dim: NewVec2(3, 0.2), })
 	g.addObject(object)
-	g.objects[i].SetProfileOptions(PlatformProfileOptions())
-	g.objects[i].update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
+	g.grid.Get(Id(objectIdSpace, i)).(*Object).SetProfileOptions(PlatformProfileOptions())
+	g.grid.Get(Id(objectIdSpace, i)).(*Object).update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
 		switch prof := (o.Profile).(type) {
 		case *Rec2:
 			pos := prof.Pos()

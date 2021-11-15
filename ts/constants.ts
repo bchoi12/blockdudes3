@@ -32,13 +32,14 @@ declare var leftKey : number;
 declare var rightKey : number;
 declare var dashKey : number;
 declare var mouseClick : number;
+declare var altMouseClick : number;
 
 /* WASM API */
 declare var wasmAddPlayer : any;
-declare var wasmHasPlayer : any;
-declare var wasmSetPlayerData : any;
-declare var wasmDeletePlayer : any;
-declare var wasmLoadLevel : any;
 declare var wasmAddObject : any;
+declare var wasmSetPlayerData : any;
 declare var wasmSetObjectData : any;
+declare var wasmHas : any;
+declare var wasmDelete : any;
+declare var wasmLoadLevel : any;
 declare var wasmUpdateState : any;

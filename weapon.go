@@ -6,56 +6,15 @@ import (
 
 const (
 	unknownWeapon int = iota
-	spaceGun
+	spaceBurst
+	spaceBlast
 )
 
-type Shot struct {
-	weapon *Weapon
-	line Line
+type Weapon2 interface {
+	getColliderOptions() LineColliderOptions
 
-	recoil Vec2
-	hits []*Hit
-}
-
-type ShotData struct {
-	Id int
-	O Vec2 // origin
-	E Vec2 // end
-	Hs []HitData
-}
-
-func (s *Shot) getShotData() ShotData {
-	hits := make([]HitData, len(s.hits))
-	for _, hit := range(s.hits) {
-		hits = append(hits, hit.getHitData())
-	}
-
-	return ShotData {
-		Id: s.weapon.sid.id,
-		O: s.line.O,
-		E: s.line.Endpoint(),
-		Hs: hits,
-	}
-}
-
-type Hit struct {
-	target SpacedId // target
-	t float64 // distance (0-1)
-	hit Vec2 // hit point
-}
-
-type HitData struct {
-	IS int
-	Id int
-	H Vec2
-}
-
-func (h *Hit) getHitData() HitData {
-	return HitData {
-		IS: h.target.space,
-		Id: h.target.id,
-		H: h.hit,
-	}
+	canShoot(now time.Time) bool
+	bursting(now time.Time) bool
 }
 
 type Weapon struct {
@@ -77,25 +36,38 @@ type Weapon struct {
 	lastShot time.Time
 }
 
-func NewWeapon(id int) *Weapon {
-	return &Weapon {
+func NewWeapon(id int, class int) *Weapon {
+	w := &Weapon {
 		sid: Id(playerIdSpace, id),
-		class: spaceGun,
+		class: class,
 
-		dist: 30.0,
-		reloadTime: 400 * time.Millisecond,
-
-		recoilFactor: 4.0,
-		pushFactor: 5.0,
+		dist: 20.0,
+		reloadTime: 1 * time.Second,
+		recoilFactor: 0,
+		pushFactor: 0,
 
 		bursts: 0,
-		maxBursts: 3,
-		burstTime: 80 * time.Millisecond,
+		maxBursts: 1,
+		burstTime: 0,
 		lastBurst: time.Time{},
 
 		shooting: false,
 		lastShot: time.Time{},
 	}
+
+	switch class {
+	case spaceBurst:
+		w.reloadTime = 400 * time.Millisecond
+		w.recoilFactor = 4.0
+		w.pushFactor = 5.0
+		w.maxBursts = 3
+		w.burstTime = 80 * time.Millisecond
+	case spaceBlast:
+		w.recoilFactor = 50.0
+		w.pushFactor = 50.0
+	}
+
+	return w
 }
 
 func (w *Weapon) canShoot(now time.Time) bool {
@@ -108,10 +80,15 @@ func (w *Weapon) bursting(now time.Time) bool {
 
 func (w *Weapon) colliderOptions() LineColliderOptions {
 	switch w.class {
-	case spaceGun:
+	case spaceBurst:
 		return LineColliderOptions {
 			self: w.sid,
 			ignore: make(map[int]bool, 0),
+		}
+	case spaceBlast:
+		return LineColliderOptions {
+			self: w.sid,
+			ignore: map[int]bool { playerIdSpace: true },
 		}
 	default:
 		panic("missing weapon")
@@ -144,5 +121,6 @@ func (w *Weapon) shoot(mouse Line, grid *Grid, now time.Time) *Shot {
 		w.shooting = false
 		w.lastShot = now
 	}
+
 	return shot
 }

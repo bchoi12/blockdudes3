@@ -205,7 +205,7 @@ func (r *Room) deleteClient(c *Client) error {
 		if err != nil {
 			return err
 		}
-		r.game.deletePlayer(c.id)
+		r.game.delete(Id(playerIdSpace, c.id))
 		delete(r.clients, c.id)
 		log.Printf("Unregistering client %d total", len(r.clients))
 	}

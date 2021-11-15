@@ -8,9 +8,6 @@ type Game struct {
 	grid *Grid
 	level int
 
-	players map[int]*Player
-	objects map[int]*Object
-
 	updateBuffer *UpdateBuffer
 	updates int
 }
@@ -20,43 +17,13 @@ func newGame() *Game {
 		grid: NewGrid(4, 4),
 		level: unknownLevel,
 
-		players: make(map[int]*Player, 0),
-		objects: make(map[int]*Object, 0),
-
 		updates: 0,
 	}
 	return game
 }
 
 func (g *Game) addPlayer(initData PlayerInitData) {
-	id := initData.Init.Id
-	g.players[id] = NewPlayer(initData)
-	g.grid.Upsert(g.players[id])
-}
-
-func (g *Game) hasPlayer(id int) bool {
-	_, ok := g.players[id]
-	return ok
-}
-
-func (g *Game) deletePlayer(id int) {
-	g.grid.Delete(Id(playerIdSpace, id))
-	delete(g.players, id)
-}
-
-func (g *Game) processKeyMsg(id int, keyMsg KeyMsg) {
-	g.players[id].updateKeys(keyMsg)
-}
-
-func (g *Game) addObject(initData ObjectInitData) {
-	id := initData.Init.Id
-	g.objects[id] = NewObject(initData)
-	g.grid.Upsert(g.objects[id])
-}
-
-func (g *Game) hasObject(id int) bool {
-	_, ok := g.objects[id]
-	return ok
+	g.grid.Upsert(NewPlayer(initData))
 }
 
 func (g *Game) setPlayerData(id int, data PlayerData) {
@@ -64,8 +31,13 @@ func (g *Game) setPlayerData(id int, data PlayerData) {
 		panic("setPlayerData called outside of WASM")
 	}
 
-	g.players[id].setPlayerData(data)
-	g.grid.Upsert(g.players[id])
+	player := g.grid.Get(Id(playerIdSpace, id)).(*Player)
+	player.setPlayerData(data)
+	g.grid.Upsert(player)
+}
+
+func (g *Game) addObject(initData ObjectInitData) {
+	g.grid.Upsert(NewObject(initData))
 }
 
 func (g *Game) setObjectData(id int, data ObjectData) {
@@ -73,24 +45,40 @@ func (g *Game) setObjectData(id int, data ObjectData) {
 		panic("setObjectData called outside of WASM")
 	}
 
-	g.objects[id].setObjectData(data)
-	g.grid.Upsert(g.objects[id])
+	object := g.grid.Get(Id(objectIdSpace, id)).(*Object)
+	object.setObjectData(data)
+	g.grid.Upsert(object)
+}
+
+func (g *Game) has(sid SpacedId) bool {
+	return g.grid.Has(sid)
+}
+
+func (g *Game) delete(sid SpacedId) {
+	g.grid.Delete(sid)
+}
+
+func (g *Game) processKeyMsg(id int, keyMsg KeyMsg) {
+	player := g.grid.Get(Id(playerIdSpace, id)).(*Player)
+	player.updateKeys(keyMsg)
 }
 
 func (g *Game) updateState() {
 	g.updateBuffer = NewUpdateBuffer()
 
 	now := time.Now()
-	for _, o := range(g.objects) {
+	for _, t := range(g.grid.GetThings(objectIdSpace)) {
+		o := t.(*Object)
 		if o.UpdateState(g.grid, g.updateBuffer, now) {
 			g.grid.Upsert(o)
-			g.updateBuffer.rawObjects[o.id] = o
+			g.updateBuffer.rawObjects[o.GetId()] = o
 		}
 	}
-	for _, p := range(g.players) {
+	for _, t := range(g.grid.GetThings(playerIdSpace)) {
+		p := t.(*Player)
 		if p.UpdateState(g.grid, g.updateBuffer, now) {
 			g.grid.Upsert(p)
-			g.updateBuffer.rawPlayers[p.id] = p
+			g.updateBuffer.rawPlayers[p.GetId()] = p
 		}
 	}
 
@@ -101,7 +89,8 @@ func (g *Game) updateState() {
 func (g* Game) createPlayerInitMsg() PlayerInitMsg {
 	players := make([]PlayerInitData, 0)
 
-	for id, player := range(g.players) {
+	for id, t := range(g.grid.GetThings(playerIdSpace)) {
+		player := t.(*Player)
 		players = append(players, NewPlayerInitData(id, player.Profile.Pos(), player.Profile.Dim()))
 	}
 
@@ -112,8 +101,9 @@ func (g* Game) createPlayerInitMsg() PlayerInitMsg {
 }
 
 func (g* Game) createPlayerJoinMsg(id int) PlayerInitMsg {
+	player := g.grid.Get(Id(playerIdSpace, id)).(*Player)
 	players := make([]PlayerInitData, 1)
-	players[0] = NewPlayerInitData(id, g.players[id].Profile.Pos(), g.players[id].Profile.Dim())
+	players[0] = NewPlayerInitData(id, player.Profile.Pos(), player.Profile.Dim())
 	return PlayerInitMsg{
 		T: playerInitType,
 		Ps: players,
@@ -130,7 +120,8 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 func (g *Game) createObjectInitMsg() ObjectInitMsg {
 	objs := make([]ObjectInitData, 0)
 
-	for _, obj := range(g.objects) {
+	for _, t := range(g.grid.GetThings(objectIdSpace)) {
+		obj := t.(*Object)
 		objs = append(objs, obj.getObjectInitData())
 	}
 

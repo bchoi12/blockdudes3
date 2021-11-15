@@ -23,6 +23,8 @@ const (
 
 	friction = 0.4
 	airResistance = 0.92
+
+	maxJumpFrames int = 20
 )
 
 type PlayerInitData struct {
@@ -43,11 +45,13 @@ type Player struct {
 	Profile
 	id int
 	weapon *Weapon
+	altWeapon *Weapon
 	lastUpdateTime time.Time
 
 	health int
 
 	canDash bool
+	jumpFrames int
 	grounded bool
 	walled int
 
@@ -62,12 +66,14 @@ func NewPlayer(initData PlayerInitData) *Player {
 	player := &Player {
 		Profile: NewRec2(initData.Init.Pos, initData.Init.Dim),
 		id: initData.Init.Id,
-		weapon: NewWeapon(initData.Init.Id),
+		weapon: NewWeapon(initData.Init.Id, spaceBurst),
+		altWeapon: NewWeapon(initData.Init.Id, spaceBlast),
 		lastUpdateTime: time.Time{},
 
 		health: 100,
 
 		canDash: true,
+		jumpFrames: 0,
 		grounded: false,
 		walled: 0,
 
@@ -94,6 +100,10 @@ func (p *Player) GetProfile() Profile {
 
 func (p *Player) SetProfileOptions(options ProfileOptions) {
 	p.Profile.SetOptions(options)
+}
+
+func (p *Player) GetId() int {
+	return p.id
 }
 
 func (p *Player) GetSpacedId() SpacedId {
@@ -134,7 +144,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	// Gravity & air resistance
 	acc.Y = gravityAcc
 	if !p.grounded {
-		if vel.Y > 0 && !p.keyDown(dashKey) || vel.Y <= 0 {
+		if p.jumpFrames == 0 || !p.keyDown(dashKey) || vel.Y <= 0 {
 			acc.Y += downAcc
 		}
 		if acc.X == 0 {
@@ -163,7 +173,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 
 	p.Profile.SetAcc(acc)
 
-	// Jumping
+	// Grounded actions
 	if p.grounded {
 		p.canDash = true
 
@@ -174,27 +184,55 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	}
 
 	// Jump & double jump
+	if p.jumpFrames > 0 {
+		p.jumpFrames -= 1
+	}
 	if p.keyPressed(dashKey) {
 		if p.grounded {
 			acc.Y = 0
 			vel.Y = Max(0, vel.Y) + jumpVel
+			p.jumpFrames = maxJumpFrames
 		} else if p.canDash {
 			acc.Y = 0
 			vel.Y = jumpVel
 			p.canDash = false
+			p.jumpFrames = maxJumpFrames
 		}
 	}
 
 	// Shooting & recoil
-	if p.weapon.bursting(now) || p.keyDown(mouseClick) && p.weapon.canShoot(now) {
-		line := NewLine(p.Profile.Pos(), p.mouse)
-		shot := p.weapon.shoot(line, grid, now)
+	var shot *Shot
+	shot = p.shoot(p.weapon, mouseClick, grid, now)
+	if shot != nil {
+		buffer.rawShots = append(buffer.rawShots, shot)
+		vel.Add(shot.recoil, 1)
 
+		if p.grounded {
+			vel.Y = Max(0, vel.Y)
+		}
+		if p.walled == -1 {
+			vel.X = Max(0, vel.X)
+		}
+		if p.walled == 1 {
+			vel.X = Min(vel.X, 0)
+		}
+	} else {
+		shot = p.shoot(p.altWeapon, altMouseClick, grid, now)
 		if shot != nil {
 			buffer.rawShots = append(buffer.rawShots, shot)
 			vel.Add(shot.recoil, 1)
 		}
+		if p.grounded {
+			vel.Y = Max(0, vel.Y)
+		}
+		if p.walled == -1 {
+			vel.X = Max(0, vel.X)
+		}
+		if p.walled == 1 {
+			vel.X = Min(vel.X, 0)
+		}
 	}
+
 
 	// Calculate & clamp speed
 	vel.Add(acc, ts)
@@ -225,6 +263,14 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	p.lastKeys = p.keys
 
 	return true
+}
+
+func (p *Player) shoot(w *Weapon, key int, grid *Grid, now time.Time) *Shot {
+	if w.bursting(now) || p.keyDown(key) && w.canShoot(now) {
+		line := NewLine(p.Profile.Pos(), p.mouse)
+		return w.shoot(line, grid, now)
+	}
+	return nil
 }
 
 func (p *Player) checkCollisions(grid *Grid, lastPos Vec2) {

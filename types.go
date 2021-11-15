@@ -52,6 +52,7 @@ const (
 	dashKey
 
 	mouseClick
+	altMouseClick
 )
 
 type PingMsg struct {

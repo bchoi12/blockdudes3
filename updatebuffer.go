@@ -28,6 +28,12 @@ func (ub *UpdateBuffer) process(grid *Grid) {
 		if collision {
 			shot.hits = append(shot.hits, hit)
 			shot.line.Scale(hit.t)
+
+			if shot.weapon.class == spaceBlast {
+				bomb := NewObject(NewObjectInitData(Init { Id: grid.NextId(objectIdSpace), Pos: NewVec2(hit.hit.X, hit.hit.Y), Dim: NewVec2(1, 1), }))
+				bomb.update = updateBlast
+				grid.Upsert(bomb)
+			}
 		}
 
 		for _, hit := range(shot.hits) {

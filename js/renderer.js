@@ -7,7 +7,7 @@ class Renderer {
         this._camera = new THREE.PerspectiveCamera(75, this._canvas.offsetWidth / this._canvas.offsetHeight, 0.1, 1000);
         this._camera.position.z = this._cameraOffsetZ;
         this._renderer = new THREE.WebGLRenderer({ canvas: this._canvas, antialias: true });
-        this._renderer.setClearColor(0x3c3b5f);
+        this._renderer.setClearColor(0x87cefa);
         this._renderer.shadowMap.enabled = true;
         this.resizeCanvas();
         window.onresize = () => { this.resizeCanvas(); };

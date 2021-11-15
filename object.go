@@ -43,6 +43,10 @@ func (o *Object) SetProfileOptions(options ProfileOptions) {
 	o.Profile.SetOptions(options)
 }
 
+func (o *Object) GetId() int {
+	return o.id
+}
+
 func (o *Object) GetSpacedId() SpacedId {
 	return Id(objectIdSpace, o.id)
 }
@@ -73,10 +77,11 @@ func (o *Object) setObjectData(data ObjectData) {
 }
 
 func (o *Object) getObjectData() ObjectData {
-	return ObjectData {
+	data := ObjectData {
 		Pos: o.Profile.Pos(),
 		Vel: o.Profile.Vel(),
 	}
+	return data
 }
 
 func (o *Object) getObjectInitData() ObjectInitData {

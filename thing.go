@@ -18,6 +18,7 @@ func Id(space int, id int) SpacedId {
 }
 
 type Thing interface {
+	GetId() int
 	GetSpacedId() SpacedId
 
 	GetProfile() Profile

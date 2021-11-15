@@ -6,7 +6,7 @@ class Scene {
     scene() { return this._scene; }
     reset() {
         this._scene = new THREE.Scene();
-        const hemisphereLight = new THREE.HemisphereLight(0x3c3b5f, 0xd3d3d3, 0.7);
+        const hemisphereLight = new THREE.HemisphereLight(0x555555, 0x232323, 0.7);
         this._scene.add(hemisphereLight);
         this._sunLight = new THREE.DirectionalLight(0xfdfbd3, 0.8);
         this._sunLightOffset = new THREE.Vector3(-100, 100, 100);
