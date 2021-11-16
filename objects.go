@@ -27,6 +27,10 @@ func NewBomb(init Init) *Object {
 }
 
 func updateBomb(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
+	if isWasm {
+		return
+	}
+
 	o.health -= int(1000 * ts)
 
 	if o.health <= 0 {
@@ -49,6 +53,10 @@ func NewExplosion(init Init) *Object {
 	return object
 }
 func updateExplosion(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
+	if isWasm {
+		return
+	}
+
 	o.health -= int(1000 * ts)
 	if o.health <= 0 {
 		grid.Delete(o.GetSpacedId())

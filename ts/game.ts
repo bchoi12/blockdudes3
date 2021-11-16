@@ -189,6 +189,8 @@ class Game {
 
 		for (const [stringId, object] of Object.entries(state.Os) as [string, any]) {
 			const id = Number(stringId);
+			if (!this._renderer.has(ObjectType.OBJECT, id)) continue;
+
 			// TODO: need update()
 			this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
 		}

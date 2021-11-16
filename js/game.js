@@ -142,6 +142,8 @@ class Game {
         const state = JSON.parse(wasmUpdateState());
         for (const [stringId, object] of Object.entries(state.Os)) {
             const id = Number(stringId);
+            if (!this._renderer.has(ObjectType.OBJECT, id))
+                continue;
             this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
         }
         for (const [stringId, player] of Object.entries(state.Ps)) {
