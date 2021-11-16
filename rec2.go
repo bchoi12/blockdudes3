@@ -4,10 +4,32 @@ type Rec2 struct {
 	Shape
 }
 
+func Rec2ProfileOptions() ProfileOptions {
+	return ProfileOptions {
+		solid: true,
+
+		collideTop: true,
+		collideBottom: true,
+		collideLeft: true,
+		collideRight: true,
+	}
+}
+
+func PlatformProfileOptions() ProfileOptions {
+	return ProfileOptions {
+		solid: true,
+
+		collideTop: true,
+		collideBottom: false,
+		collideLeft: false,
+		collideRight: false,
+	}
+}
+
 func NewRec2(pos Vec2, dim Vec2) *Rec2 {
 	return &Rec2 {
 		Shape {
-			options: DefaultProfileOptions(),
+			options: Rec2ProfileOptions(),
 			pos: pos,
 			dim: dim,
 			vel: NewVec2(0, 0),
@@ -82,6 +104,11 @@ func (r Rec2) Overlap(profile Profile) bool {
 func (r *Rec2) Snap(profile Profile, lastPos Vec2) (float64, float64) {
 	switch other := profile.(type) {
 	case *Rec2:
+		options := other.GetOptions()
+		if !options.solid {
+			return 0, 0
+		}
+
 		ox := r.OverlapX(other)
 		if ox <= 0 {
 			return 0, 0
@@ -106,7 +133,6 @@ func (r *Rec2) Snap(profile Profile, lastPos Vec2) (float64, float64) {
 		}
 
 		xadj, yadj := 0.0, 0.0
-		options := other.GetOptions()
 		vel := r.Vel()
 		if xcollision {
 			xadj = float64(Sign(pos.X - other.Pos().X)) * ox

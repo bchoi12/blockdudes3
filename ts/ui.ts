@@ -76,6 +76,7 @@ class UI {
 				M: {},
 			},
 		};
+
    		const mouse = this._renderer.getMouseWorld();
 		if (defined(mouse)) {
 			msg.Key.M = {

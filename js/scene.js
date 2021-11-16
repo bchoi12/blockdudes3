@@ -22,7 +22,7 @@ class Scene {
         this._playerRenders = new Map();
         this._objectRenders = new Map();
     }
-    addObject(type, id, mesh) {
+    add(type, id, mesh) {
         const map = this.getMap(type);
         if (map.has(id)) {
             debug("Overwriting object type " + type + ", id " + id + "!");
@@ -30,13 +30,25 @@ class Scene {
         map.set(id, mesh);
         this._scene.add(map.get(id));
     }
-    hasObject(type, id) {
+    has(type, id) {
         const map = this.getMap(type);
         return map.has(id);
     }
-    getObject(type, id) {
+    get(type, id) {
         const map = this.getMap(type);
         return map.get(id);
+    }
+    delete(type, id) {
+        const map = this.getMap(type);
+        this._scene.remove(map.get(id));
+        map.delete(id);
+    }
+    clear(type) {
+        const map = this.getMap(type);
+        map.forEach((id, object) => {
+            this._scene.remove(map.get(object));
+        });
+        map.clear();
     }
     updatePlayer(id, msg) {
         const map = this.getMap(ObjectType.PLAYER);
@@ -53,18 +65,6 @@ class Scene {
         const object = map.get(id);
         object.position.x = x;
         object.position.y = y;
-    }
-    deleteObject(type, id) {
-        const map = this.getMap(type);
-        this._scene.remove(map.get(id));
-        map.delete(id);
-    }
-    clearObjects(type) {
-        const map = this.getMap(type);
-        map.forEach((id, object) => {
-            this._scene.remove(map.get(object));
-        });
-        map.clear();
     }
     renderShots(shots) {
         shots.forEach((shot) => {

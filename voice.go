@@ -1,6 +1,6 @@
 package main
 
-func (r *Room) forwardVoiceMessage(msgType int, c *Client, msg JSONPeerMsg) error {
+func (r *Room) forwardVoiceMessage(msgType MessageType, c *Client, msg JSONPeerMsg) error {
 	outMsg := JSONPeerMsg {
 		T: msgType,
 		From: c.id,

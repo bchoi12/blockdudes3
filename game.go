@@ -9,7 +9,7 @@ type Game struct {
 	level int
 
 	updateBuffer *UpdateBuffer
-	updates int
+	updates SeqNumType
 }
 
 func newGame() *Game {
@@ -22,32 +22,19 @@ func newGame() *Game {
 	return game
 }
 
-func (g *Game) addPlayer(initData PlayerInitData) {
-	g.grid.Upsert(NewPlayer(initData))
-}
-
-func (g *Game) setPlayerData(id int, data PlayerData) {
-	if !isWasm {
-		panic("setPlayerData called outside of WASM")
-	}
-
-	player := g.grid.Get(Id(playerIdSpace, id)).(*Player)
-	player.setPlayerData(data)
-	g.grid.Upsert(player)
-}
-
-func (g *Game) addObject(initData ObjectInitData) {
-	g.grid.Upsert(NewObject(initData))
-}
-
-func (g *Game) setObjectData(id int, data ObjectData) {
-	if !isWasm {
-		panic("setObjectData called outside of WASM")
-	}
-
-	object := g.grid.Get(Id(objectIdSpace, id)).(*Object)
-	object.setObjectData(data)
-	g.grid.Upsert(object)
+func (g *Game) add(init Init) {
+	switch init.C {
+	case playerObjectClass:
+		g.grid.Upsert(NewPlayer(init))
+	case wallObjectClass:
+		g.grid.Upsert(NewWall(init))
+	case bombObjectClass:
+		g.grid.Upsert(NewBomb(init))
+	case explosionObjectClass:
+		g.grid.Upsert(NewExplosion(init))
+	default:
+		Debug("Unknown object class! %+v", init)
+	} 
 }
 
 func (g *Game) has(sid SpacedId) bool {
@@ -58,7 +45,27 @@ func (g *Game) delete(sid SpacedId) {
 	g.grid.Delete(sid)
 }
 
-func (g *Game) processKeyMsg(id int, keyMsg KeyMsg) {
+func (g *Game) setPlayerData(id IdType, data PlayerData) {
+	if !isWasm {
+		panic("setPlayerData called outside of WASM")
+	}
+
+	player := g.grid.Get(Id(playerIdSpace, id)).(*Player)
+	player.setPlayerData(data)
+	g.grid.Upsert(player)
+}
+
+func (g *Game) setObjectData(id IdType, data ObjectData) {
+	if !isWasm {
+		panic("setObjectData called outside of WASM")
+	}
+
+	object := g.grid.Get(Id(objectIdSpace, id)).(*Object)
+	object.setObjectData(data)
+	g.grid.Upsert(object)
+}
+
+func (g *Game) processKeyMsg(id IdType, keyMsg KeyMsg) {
 	player := g.grid.Get(Id(playerIdSpace, id)).(*Player)
 	player.updateKeys(keyMsg)
 }
@@ -69,14 +76,14 @@ func (g *Game) updateState() {
 	now := time.Now()
 	for _, t := range(g.grid.GetThings(objectIdSpace)) {
 		o := t.(*Object)
-		if o.UpdateState(g.grid, g.updateBuffer, now) {
+		if o.UpdateState(g.grid, g.updateBuffer, now) && g.grid.Has(o.GetSpacedId()) {
 			g.grid.Upsert(o)
 			g.updateBuffer.rawObjects[o.GetId()] = o
 		}
 	}
 	for _, t := range(g.grid.GetThings(playerIdSpace)) {
 		p := t.(*Player)
-		if p.UpdateState(g.grid, g.updateBuffer, now) {
+		if p.UpdateState(g.grid, g.updateBuffer, now) && g.grid.Has(p.GetSpacedId()) {
 			g.grid.Upsert(p)
 			g.updateBuffer.rawPlayers[p.GetId()] = p
 		}
@@ -87,11 +94,11 @@ func (g *Game) updateState() {
 }
 
 func (g* Game) createPlayerInitMsg() PlayerInitMsg {
-	players := make([]PlayerInitData, 0)
+	players := make([]Init, 0)
 
-	for id, t := range(g.grid.GetThings(playerIdSpace)) {
+	for _, t := range(g.grid.GetThings(playerIdSpace)) {
 		player := t.(*Player)
-		players = append(players, NewPlayerInitData(id, player.Profile.Pos(), player.Profile.Dim()))
+		players = append(players, NewInit(player.GetSpacedId(), playerObjectClass, player.Profile.Pos(), player.Profile.Dim()))
 	}
 
 	return PlayerInitMsg{
@@ -100,10 +107,10 @@ func (g* Game) createPlayerInitMsg() PlayerInitMsg {
 	}
 }
 
-func (g* Game) createPlayerJoinMsg(id int) PlayerInitMsg {
+func (g* Game) createPlayerJoinMsg(id IdType) PlayerInitMsg {
 	player := g.grid.Get(Id(playerIdSpace, id)).(*Player)
-	players := make([]PlayerInitData, 1)
-	players[0] = NewPlayerInitData(id, player.Profile.Pos(), player.Profile.Dim())
+	players := make([]Init, 1)
+	players[0] = NewInit(player.GetSpacedId(), playerObjectClass, player.Profile.Pos(), player.Profile.Dim())
 	return PlayerInitMsg{
 		T: playerInitType,
 		Ps: players,
@@ -118,11 +125,11 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 }
 
 func (g *Game) createObjectInitMsg() ObjectInitMsg {
-	objs := make([]ObjectInitData, 0)
+	objs := make([]Init, 0)
 
 	for _, t := range(g.grid.GetThings(objectIdSpace)) {
 		obj := t.(*Object)
-		objs = append(objs, obj.getObjectInitData())
+		objs = append(objs, obj.GetInit())
 	}
 
 	return ObjectInitMsg{

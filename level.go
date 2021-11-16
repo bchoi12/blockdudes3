@@ -16,64 +16,67 @@ func (g *Game) loadLevel(index int) {
 }
 
 func (g *Game) loadTestLevel() {
-	i := 0
-	object := NewObjectInitData(Init { Id: i, Pos: NewVec2(4, -4), Dim: NewVec2(8, 8), })
-	g.addObject(object)
+	var id SpacedId
+	var init Init
 
-	i++
-	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(4, 2), Dim: NewVec2(3.0, 0.2), })
-	g.addObject(object)
-	g.grid.Get(Id(objectIdSpace, i)).(*Object).SetProfileOptions(PlatformProfileOptions())
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(4, -4), NewVec2(8, 8))
+	g.add(init)
 
-	i++
-	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(16, -3), Dim: NewVec2(8, 8), })
-	g.addObject(object)
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(4, 2), NewVec2(3.0, 0.2))
+	g.add(init)
+	g.grid.Get(id).(*Object).SetProfileOptions(PlatformProfileOptions())
 
-	i++
-	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(13.5, 2.9), Dim: NewVec2(3, 0.2), })
-	g.addObject(object)
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(16, -3), NewVec2(8, 8))
+	g.add(init)
 
-	i++
-	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(18.5, 2.9), Dim: NewVec2(3, 0.2), })
-	g.addObject(object)
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(13.5, 2.9), NewVec2(3, 0.2))
+	g.add(init)
 
-	i++
-	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(12.1, 4), Dim: NewVec2(0.2, 2), })
-	g.addObject(object)
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(18.5, 2.9), NewVec2(3, 0.2))
+	g.add(init)
 
-	i++
-	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(16, 4.9), Dim: NewVec2(8, 0.2), })
-	g.addObject(object)
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(12.1, 4), NewVec2(0.2, 2))
+	g.add(init)
 
-	i++
-	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(19.9, 2), Dim: NewVec2(0.2, 2), })
-	g.addObject(object)
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(16, 4.9), NewVec2(8, 0.2))
+	g.add(init)
 
-	i++
-	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(27, -3), Dim: NewVec2(10, 12), })
-	g.addObject(object)
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(19.9, 2), NewVec2(0.2, 2))
+	g.add(init)
 
-	i++
-	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(24, 5), Dim: NewVec2(3, 0.2), })
-	g.addObject(object)
-	g.grid.Get(Id(objectIdSpace, i)).(*Object).SetProfileOptions(PlatformProfileOptions())
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(27, -3), NewVec2(10, 12))
+	g.add(init)
 
-	i++
-	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(30, 5), Dim: NewVec2(3, 0.2), })
-	g.addObject(object)
-	g.grid.Get(Id(objectIdSpace, i)).(*Object).SetProfileOptions(PlatformProfileOptions())
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(24, 5), NewVec2(3, 0.2))
+	g.add(init)
+	g.grid.Get(id).(*Object).SetProfileOptions(PlatformProfileOptions())
 
-	i++
-	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(27, 7), Dim: NewVec2(3, 0.2), })
-	g.addObject(object)
-	g.grid.Get(Id(objectIdSpace, i)).(*Object).SetProfileOptions(PlatformProfileOptions())
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(30, 5), NewVec2(3, 0.2))
+	g.add(init)
+	g.grid.Get(id).(*Object).SetProfileOptions(PlatformProfileOptions())
+
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(27, 7), NewVec2(3, 0.2))
+	g.add(init)
+	g.grid.Get(id).(*Object).SetProfileOptions(PlatformProfileOptions())
 
 
-	i++
-	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(10, -1), Dim: NewVec2(3, 0.2), })
-	g.addObject(object)
-	g.grid.Get(Id(objectIdSpace, i)).(*Object).SetProfileOptions(PlatformProfileOptions())
-	g.grid.Get(Id(objectIdSpace, i)).(*Object).update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(10, -1), NewVec2(3, 0.2))
+	g.add(init)
+	g.grid.Get(id).(*Object).SetProfileOptions(PlatformProfileOptions())
+	g.grid.Get(id).(*Object).update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
 		switch prof := (o.Profile).(type) {
 		case *Rec2:
 			pos := prof.Pos()
@@ -95,11 +98,11 @@ func (g *Game) loadTestLevel() {
 		}
 	}
 
-	i++
-	object = NewObjectInitData(Init { Id: i, Pos: NewVec2(16, 7), Dim: NewVec2(3, 0.2), })
-	g.addObject(object)
-	g.grid.Get(Id(objectIdSpace, i)).(*Object).SetProfileOptions(PlatformProfileOptions())
-	g.grid.Get(Id(objectIdSpace, i)).(*Object).update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
+	id = g.grid.NextSpacedId(objectIdSpace)
+	init = NewInit(id, wallObjectClass, NewVec2(16, 7), NewVec2(3, 0.2))
+	g.add(init)
+	g.grid.Get(id).(*Object).SetProfileOptions(PlatformProfileOptions())
+	g.grid.Get(id).(*Object).update = func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
 		switch prof := (o.Profile).(type) {
 		case *Rec2:
 			pos := prof.Pos()

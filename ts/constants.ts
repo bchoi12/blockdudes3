@@ -35,11 +35,10 @@ declare var mouseClick : number;
 declare var altMouseClick : number;
 
 /* WASM API */
-declare var wasmAddPlayer : any;
-declare var wasmAddObject : any;
-declare var wasmSetPlayerData : any;
-declare var wasmSetObjectData : any;
+declare var wasmAdd : any;
 declare var wasmHas : any;
 declare var wasmDelete : any;
+declare var wasmSetPlayerData : any;
+declare var wasmSetObjectData : any;
 declare var wasmLoadLevel : any;
 declare var wasmUpdateState : any;

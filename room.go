@@ -18,7 +18,7 @@ type IncomingMsg struct {
 
 // Parsed message, only one struct will be set
 type Msg struct {
-	T int
+	T MessageType
 	Ping PingMsg
 	JSON interface{}
 	JSONPeer JSONPeerMsg
@@ -31,8 +31,8 @@ type Msg struct {
 type Room struct {
 	id string
 
-	nextClientId int
-	clients map[int]*Client
+	nextClientId IdType
+	clients map[IdType]*Client
 	msgQueue []IncomingMsg
 
 	game *Game
@@ -52,7 +52,7 @@ func createOrJoinRoom(room string, name string, ws *websocket.Conn) {
 			id: room,
 
 			nextClientId: 0,
-			clients: make(map[int]*Client),
+			clients: make(map[IdType]*Client),
 			msgQueue: make([]IncomingMsg, 0),
 
 			game: newGame(),
@@ -192,7 +192,7 @@ func (r *Room) addClient(c *Client) error {
 		return err
 	}
 
-	r.game.addPlayer(NewPlayerInitData(c.id, NewVec2(5, 5), NewVec2(0.8, 1.0)))
+	r.game.add(NewInit(Id(playerIdSpace, c.id), playerObjectClass, NewVec2(5, 5), NewVec2(0.8, 1.0)))
 	playerJoinMsg := r.game.createPlayerJoinMsg(c.id)
 	r.send(&playerJoinMsg)
 
@@ -212,7 +212,7 @@ func (r *Room) deleteClient(c *Client) error {
 	return nil
 }
 
-func (r *Room) updateClients(msgType int, c *Client) error {
+func (r *Room) updateClients(msgType MessageType, c *Client) error {
 	msg := r.createClientMsg(msgType, c, false)
 
 	if msgType == initType {
@@ -223,11 +223,11 @@ func (r *Room) updateClients(msgType int, c *Client) error {
 	}
 }
 
-func (r *Room) createClientMsg(msgType int, c *Client, voice bool) ClientMsg {
+func (r *Room) createClientMsg(msgType MessageType, c *Client, voice bool) ClientMsg {
 	msg := ClientMsg {
 		T: msgType,
 		Client: c.getClientData(),
-		Clients: make(map[int]ClientData, 0),
+		Clients: make(map[IdType]ClientData, 0),
 	}
 	for id, client := range r.clients {
 		if (msgType == leftType && id == c.id) || (voice && !client.voice) {

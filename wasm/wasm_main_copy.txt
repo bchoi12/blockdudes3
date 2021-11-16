@@ -24,80 +24,96 @@ func main() {
 func setGlobals() {
 	js.Global().Set("frameMillis", frameMillis)
 
-	js.Global().Set("pingType", pingType)
-	js.Global().Set("candidateType", candidateType)
-	js.Global().Set("offerType", offerType)
-	js.Global().Set("answerType", answerType)
-	js.Global().Set("voiceCandidateType", voiceCandidateType)
+	js.Global().Set("pingType", int(pingType))
+	js.Global().Set("candidateType", int(candidateType))
+	js.Global().Set("offerType", int(offerType))
+	js.Global().Set("answerType", int(answerType))
+	js.Global().Set("voiceCandidateType", int(voiceCandidateType))
 
-	js.Global().Set("voiceOfferType", voiceOfferType)
-	js.Global().Set("voiceAnswerType", voiceAnswerType)
-	js.Global().Set("initType", initType)
-	js.Global().Set("joinType", joinType)
-	js.Global().Set("leftType", leftType)
+	js.Global().Set("voiceOfferType", int(voiceOfferType))
+	js.Global().Set("voiceAnswerType", int(voiceAnswerType))
+	js.Global().Set("initType", int(initType))
+	js.Global().Set("joinType", int(joinType))
+	js.Global().Set("leftType", int(leftType))
 
-	js.Global().Set("initVoiceType", initVoiceType)
-	js.Global().Set("joinVoiceType", joinVoiceType)
-	js.Global().Set("leftVoiceType", leftVoiceType)
-	js.Global().Set("chatType", chatType)
-	js.Global().Set("keyType", keyType)
+	js.Global().Set("initVoiceType", int(initVoiceType))
+	js.Global().Set("joinVoiceType", int(joinVoiceType))
+	js.Global().Set("leftVoiceType", int(leftVoiceType))
+	js.Global().Set("chatType", int(chatType))
+	js.Global().Set("keyType", int(keyType))
 
-	js.Global().Set("gameStateType", gameStateType)
-	js.Global().Set("playerInitType", playerInitType)
-	js.Global().Set("levelInitType", levelInitType)
-	js.Global().Set("objectInitType", objectInitType)
+	js.Global().Set("gameStateType", int(gameStateType))
+	js.Global().Set("playerInitType", int(playerInitType))
+	js.Global().Set("levelInitType", int(levelInitType))
+	js.Global().Set("objectInitType", int(objectInitType))
 
-	js.Global().Set("upKey", upKey)
-	js.Global().Set("downKey", downKey)
-	js.Global().Set("leftKey", leftKey)
-	js.Global().Set("rightKey", rightKey)
-	js.Global().Set("dashKey", dashKey)
-	js.Global().Set("mouseClick", mouseClick)
-	js.Global().Set("altMouseClick", altMouseClick)
+	js.Global().Set("upKey", int(upKey))
+	js.Global().Set("downKey", int(downKey))
+	js.Global().Set("leftKey", int(leftKey))
+	js.Global().Set("rightKey", int(rightKey))
+	js.Global().Set("dashKey", int(dashKey))
+	js.Global().Set("mouseClick", int(mouseClick))
+	js.Global().Set("altMouseClick", int(altMouseClick))
+
+	js.Global().Set("playerObjectClass", int(playerObjectClass))
+	js.Global().Set("wallObjectClass", int(wallObjectClass))
+	js.Global().Set("bombObjectClass", int(bombObjectClass))
+	js.Global().Set("explosionObjectClass", int(explosionObjectClass))
 }
 
 func setGameAPI() {
 	game = newGame()
-	js.Global().Set("wasmAddPlayer", AddPlayer(game))
-	js.Global().Set("wasmAddObject", AddObject(game))
-	js.Global().Set("wasmSetPlayerData", SetPlayerData(game))
-	js.Global().Set("wasmSetObjectData", SetObjectData(game))
+	js.Global().Set("wasmAdd", Add(game))
 	js.Global().Set("wasmHas", Has(game))
 	js.Global().Set("wasmDelete", Delete(game))
+	js.Global().Set("wasmSetPlayerData", SetPlayerData(game))
+	js.Global().Set("wasmSetObjectData", SetObjectData(game))
 	js.Global().Set("wasmLoadLevel", LoadLevel(game))
 	js.Global().Set("wasmUpdateState", UpdateState(game))
 }
 
-func AddPlayer(g *Game) js.Func {  
+func Add(g *Game) js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		if len(args) != 2 {
-			fmt.Println("Expected 2 argument(s), got ", len(args))
+		if len(args) != 3 {
+			fmt.Println("Expected 3 argument(s), got ", len(args))
 			return nil
 		}
 
-		id := args[0].Int()
-		pos := args[1].Get("Pos")
-		dim := args[1].Get("Dim")
+		space := IdSpaceType(args[0].Int())
+		id := IdType(args[1].Int())
+		pos := args[2].Get("Pos")
+		dim := args[2].Get("Dim")
+		class := ObjectClassType(args[2].Get("C").Int())
 
-		initData := NewPlayerInitData(id, parseVec2(pos), parseVec2(dim))
-		g.addPlayer(initData)
+		init := NewInit(Id(space, id), class, parseVec2(pos), parseVec2(dim))
+		g.add(init)
 		return nil
     })
 }
 
-func AddObject(g *Game) js.Func {  
+func Has(g *Game) js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		if len(args) != 2 {
 			fmt.Println("Expected 2 argument(s), got ", len(args))
 			return nil
 		}
 
-		id := args[0].Int()
-		pos := args[1].Get("Pos")
-		dim := args[1].Get("Dim")
+		space := IdSpaceType(args[0].Int())
+		id := IdType(args[1].Int())
+		return g.has(Id(space, id))
+    })
+}
 
-		initData := NewObjectInitData(Init { Id: id, Pos: parseVec2(pos), Dim: parseVec2(dim) })
-		g.addObject(initData)
+func Delete(g *Game) js.Func {  
+    return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		if len(args) != 2 {
+			fmt.Println("Expected 2 argument(s), got ", len(args))
+			return nil
+		}
+
+		space := IdSpaceType(args[0].Int())
+		id := IdType(args[1].Int())
+		g.delete(Id(space, id))
 		return nil
     })
 }
@@ -109,7 +125,7 @@ func SetPlayerData(g *Game) js.Func {
 			return nil
 		}
 
-		id := args[0].Int()
+		id := IdType(args[0].Int())
 		pos := args[1].Get("Pos")
 		vel := args[1].Get("Vel")
 		evel := args[1].Get("EVel")
@@ -140,7 +156,7 @@ func SetObjectData(g *Game) js.Func {
 			return nil
 		}
 
-		id := args[0].Int()
+		id := IdType(args[0].Int())
 		pos := args[1].Get("Pos")
 		vel := args[1].Get("Vel")
 
@@ -154,34 +170,6 @@ func SetObjectData(g *Game) js.Func {
 			Vel: parseVec2(vel),
 		}
 		g.setObjectData(id, oData)
-		return nil
-    })
-}
-
-
-func Has(g *Game) js.Func {  
-    return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		if len(args) != 2 {
-			fmt.Println("Expected 2 argument(s), got ", len(args))
-			return nil
-		}
-
-		space := args[0].Int()
-		id := args[1].Int()
-		return g.has(Id(space, id))
-    })
-}
-
-func Delete(g *Game) js.Func {  
-    return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		if len(args) != 2 {
-			fmt.Println("Expected 2 argument(s), got ", len(args))
-			return nil
-		}
-
-		space := args[0].Int()
-		id := args[1].Int()
-		g.delete(Id(space, id))
 		return nil
     })
 }

@@ -13,7 +13,7 @@ type Client struct {
 	wrtc *webrtc.PeerConnection 
 	dc *webrtc.DataChannel
 
-	id int
+	id IdType
 	name string
 	voice bool
 }

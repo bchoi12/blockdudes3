@@ -1,10 +1,10 @@
 class Renderer {
     constructor(canvas) {
         this._cameraOffsetY = 1.2;
-        this._cameraOffsetZ = 7.0;
+        this._cameraOffsetZ = 13.0;
         this._canvas = canvas;
         this._scene = new Scene();
-        this._camera = new THREE.PerspectiveCamera(75, this._canvas.offsetWidth / this._canvas.offsetHeight, 0.1, 1000);
+        this._camera = new THREE.PerspectiveCamera(45, this._canvas.offsetWidth / this._canvas.offsetHeight, 0.1, 1000);
         this._camera.position.z = this._cameraOffsetZ;
         this._renderer = new THREE.WebGLRenderer({ canvas: this._canvas, antialias: true });
         this._renderer.setClearColor(0x87cefa);
@@ -40,13 +40,13 @@ class Renderer {
         mouseWorld.add(mouse.multiplyScalar(distance));
         return mouseWorld;
     }
-    addObject(type, id, mesh) { this._scene.addObject(type, id, mesh); }
-    hasObject(type, id) { return this._scene.hasObject(type, id); }
-    getObject(type, id) { return this._scene.getObject(type, id); }
+    add(type, id, mesh) { this._scene.add(type, id, mesh); }
+    has(type, id) { return this._scene.has(type, id); }
+    get(type, id) { return this._scene.get(type, id); }
+    delete(type, id) { this._scene.delete(type, id); }
+    clear(type) { this._scene.clear(type); }
     updatePlayer(id, msg) { this._scene.updatePlayer(id, msg); }
     updatePosition(type, id, x, y) { this._scene.updatePosition(type, id, x, y); }
-    deleteObject(type, id) { this._scene.deleteObject(type, id); }
-    clearObjects(type) { this._scene.clearObjects(type); }
     renderShots(shots) { this._scene.renderShots(shots); }
     resizeCanvas() {
         const width = window.innerWidth;

@@ -9,7 +9,7 @@ type Shot struct {
 }
 
 type ShotData struct {
-	Id int
+	Id IdType
 	O Vec2 // origin
 	E Vec2 // end
 	Hs []HitData
@@ -36,8 +36,8 @@ type Hit struct {
 }
 
 type HitData struct {
-	IS int
-	Id int
+	IS IdSpaceType
+	Id IdType
 	H Vec2
 }
 

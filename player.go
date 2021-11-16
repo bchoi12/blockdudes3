@@ -27,23 +27,10 @@ const (
 	maxJumpFrames int = 20
 )
 
-type PlayerInitData struct {
-	Init
-}
-
-func NewPlayerInitData(id int, pos Vec2, dim Vec2) PlayerInitData {
-	return PlayerInitData {
-		Init {
-			Id: id,
-			Pos: pos,
-			Dim: dim,
-		},
-	}
-}
-
 type Player struct {
+	Init
 	Profile
-	id int
+
 	weapon *Weapon
 	altWeapon *Weapon
 	lastUpdateTime time.Time
@@ -55,19 +42,20 @@ type Player struct {
 	grounded bool
 	walled int
 
-	keys map[int]bool
+	keys map[KeyType]bool
 	// Keys held down during last update cycle
-	lastKeys map[int] bool
-	lastKeyUpdate int
+	lastKeys map[KeyType] bool
+	lastKeyUpdate SeqNumType
 	mouse Vec2
 }
 
-func NewPlayer(initData PlayerInitData) *Player {
+func NewPlayer(init Init) *Player {
 	player := &Player {
-		Profile: NewRec2(initData.Init.Pos, initData.Init.Dim),
-		id: initData.Init.Id,
-		weapon: NewWeapon(initData.Init.Id, spaceBurst),
-		altWeapon: NewWeapon(initData.Init.Id, spaceBlast),
+		Init: init,
+		Profile: NewRec2(init.Pos, init.Dim),
+
+		weapon: NewWeapon(init.Id, spaceBurst),
+		altWeapon: NewWeapon(init.Id, spaceBlast),
 		lastUpdateTime: time.Time{},
 
 		health: 100,
@@ -77,10 +65,10 @@ func NewPlayer(initData PlayerInitData) *Player {
 		grounded: false,
 		walled: 0,
 
-		keys: make(map[int]bool, 0),
-		lastKeys: make(map[int]bool, 0),
-		lastKeyUpdate: -1,
-		mouse: initData.Pos,
+		keys: make(map[KeyType]bool, 0),
+		lastKeys: make(map[KeyType]bool, 0),
+		lastKeyUpdate: 0,
+		mouse: init.Pos,
 	}
 	player.respawn()
 	return player
@@ -102,12 +90,8 @@ func (p *Player) SetProfileOptions(options ProfileOptions) {
 	p.Profile.SetOptions(options)
 }
 
-func (p *Player) GetId() int {
-	return p.id
-}
-
 func (p *Player) GetSpacedId() SpacedId {
-	return Id(playerIdSpace, p.id)
+	return Id(playerIdSpace, p.Init.Id)
 }
 
 func (p *Player) TakeHit(shot *Shot, hit *Hit) {
@@ -265,7 +249,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	return true
 }
 
-func (p *Player) shoot(w *Weapon, key int, grid *Grid, now time.Time) *Shot {
+func (p *Player) shoot(w *Weapon, key KeyType, grid *Grid, now time.Time) *Shot {
 	if w.bursting(now) || p.keyDown(key) && w.canShoot(now) {
 		line := NewLine(p.Profile.Pos(), p.mouse)
 		return w.shoot(line, grid, now)
@@ -332,7 +316,7 @@ func (p *Player) updateKeys(keyMsg KeyMsg) {
 		return
 	}
 	p.lastKeyUpdate = keyMsg.S
-	keys := make(map[int]bool, len(keyMsg.K))
+	keys := make(map[KeyType]bool, len(keyMsg.K))
 	for _, key := range(keyMsg.K) {
 		keys[key] = true
 	}
@@ -347,10 +331,10 @@ func (p *Player) updateMouse(mouseWorld Vec2) {
 	p.mouse.Normalize()
 }
 
-func (p *Player) keyDown(key int) bool {
+func (p *Player) keyDown(key KeyType) bool {
 	return p.keys[key]
 }
 
-func (p *Player) keyPressed(key int) bool {
+func (p *Player) keyPressed(key KeyType) bool {
 	return p.keys[key] && !p.lastKeys[key]
 }

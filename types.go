@@ -9,8 +9,10 @@ const (
 	frameTime time.Duration = 16 * time.Millisecond
 )
 
+type MessageType uint8
+type SeqNumType uint32
 const (
-	unknownType int = iota
+	unknownType MessageType = iota
 
 	pingType
 	candidateType
@@ -36,14 +38,27 @@ const (
 	objectInitType
 )
 
+type IdType uint16
+type IdSpaceType uint8
 const (
-	unknownIdSpace int = iota
+	unknownIdSpace IdSpaceType = iota
 	playerIdSpace
 	objectIdSpace
 )
 
+type ObjectClassType uint8
 const (
-	unknown int = iota
+	unknownObjectClass ObjectClassType = iota
+	playerObjectClass
+	wallObjectClass
+	bombObjectClass
+	explosionObjectClass
+)
+
+// Can't get this to work with uint8 for some reason
+type KeyType int
+const (
+	unknownKey KeyType = iota
 	
 	upKey
 	downKey
@@ -56,65 +71,65 @@ const (
 )
 
 type PingMsg struct {
-	T int
-	S int // seq num
+	T MessageType
+	S SeqNumType
 }
 
 type JSONMsg struct {
-	T int
+	T MessageType
 	JSON interface{}
 }
 
 type JSONPeerMsg struct {
-	T int
-	From int
-	To int
+	T MessageType
+	From IdType
+	To IdType
 	JSON interface{}
 }
 
 type ClientData struct {
-	Id int
+	Id IdType
 	Name string
 }
 
 type ClientMsg struct {
-	T int
+	T MessageType
 	Client ClientData
-	Clients map[int]ClientData
+	Clients map[IdType]ClientData
 }
 
 type ChatMsg struct {
-	T int
+	T MessageType
 	Client ClientData
 	Message string
 }
 
 type GameStateMsg struct {
-	T int
-	S int // seq num
-	Ps map[int]PlayerData
-	Os map[int]ObjectData
+	T MessageType
+	S SeqNumType
+	Ps map[IdType]PlayerData
+	Os map[IdType]ObjectData
 	Ss []ShotData
 }
 
 type PlayerInitMsg struct {
-	T int
-	Ps []PlayerInitData
+	T MessageType
+	Ps []Init
 }
 
 type LevelInitMsg struct {
-	T int
+	T MessageType
 	L int // level index
 }
 
 type ObjectInitMsg struct {
-	T int
-	Os []ObjectInitData
+	T MessageType
+	Os []Init
 }
 
 type KeyMsg struct {
-	T int
-	S int // seq num
-	K []int // keys
+	T MessageType
+	S SeqNumType
+	K []KeyType // keys
 	M Vec2 // mouse
 }

@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+type WeaponClassType uint8
 const (
 	unknownWeapon int = iota
 	spaceBurst
@@ -36,7 +37,7 @@ type Weapon struct {
 	lastShot time.Time
 }
 
-func NewWeapon(id int, class int) *Weapon {
+func NewWeapon(id IdType, class int) *Weapon {
 	w := &Weapon {
 		sid: Id(playerIdSpace, id),
 		class: class,
@@ -63,7 +64,6 @@ func NewWeapon(id int, class int) *Weapon {
 		w.maxBursts = 3
 		w.burstTime = 80 * time.Millisecond
 	case spaceBlast:
-		w.recoilFactor = 50.0
 		w.pushFactor = 50.0
 	}
 
@@ -83,12 +83,11 @@ func (w *Weapon) colliderOptions() LineColliderOptions {
 	case spaceBurst:
 		return LineColliderOptions {
 			self: w.sid,
-			ignore: make(map[int]bool, 0),
 		}
 	case spaceBlast:
 		return LineColliderOptions {
 			self: w.sid,
-			ignore: map[int]bool { playerIdSpace: true },
+			ignore: map[IdSpaceType]bool { playerIdSpace: true },
 		}
 	default:
 		panic("missing weapon")

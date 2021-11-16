@@ -4,10 +4,16 @@ type Circle struct {
 	Shape
 }
 
+func CircleProfileOptions() ProfileOptions {
+	return ProfileOptions {
+		solid: false,
+	}
+}
+
 func NewCircle(pos Vec2, dim Vec2) *Circle {
 	return &Circle {
 		Shape {
-			options: DefaultProfileOptions(),
+			options: CircleProfileOptions(),
 			pos: pos,
 			dim: dim,
 			vel: NewVec2(0, 0),
@@ -24,7 +30,6 @@ func (c Circle) Radius() float64 {
 func (c Circle) Intersects(line Line) (bool, float64) {
 	return false, 1.0
 }
-
 
 func (c Circle) OverlapX(profile Profile) float64 {
 	switch other := profile.(type) {

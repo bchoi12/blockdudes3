@@ -4,33 +4,20 @@ import (
 	"time"
 )
 
-type ObjectInitData struct {
-	Init
-}
-
-func NewObjectInitData(init Init) ObjectInitData {
-	return ObjectInitData {
-		Init: init,
-	}
-}
-
 type ObjectData struct {
 	Pos Vec2
+	Dim Vec2
 	Vel Vec2
-}
 
-func NewObject(initData ObjectInitData) *Object {
-	return &Object {
-		id : initData.Init.Id,
-		Profile: NewRec2(initData.Init.Pos, initData.Init.Dim),
-	}
+	C ObjectClassType
 }
 
 type ObjectUpdate func(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64)
 type Object struct {
-	id int
+	Init
 	Profile
-
+	
+	health int
 	update ObjectUpdate
 	lastUpdateTime time.Time
 }
@@ -43,12 +30,8 @@ func (o *Object) SetProfileOptions(options ProfileOptions) {
 	o.Profile.SetOptions(options)
 }
 
-func (o *Object) GetId() int {
-	return o.id
-}
-
 func (o *Object) GetSpacedId() SpacedId {
-	return Id(objectIdSpace, o.id)
+	return Id(objectIdSpace, o.Init.Id)
 }
 
 func (o *Object) TakeHit(shot *Shot, hit *Hit) {
@@ -79,17 +62,9 @@ func (o *Object) setObjectData(data ObjectData) {
 func (o *Object) getObjectData() ObjectData {
 	data := ObjectData {
 		Pos: o.Profile.Pos(),
+		Dim: o.Profile.Dim(),
 		Vel: o.Profile.Vel(),
+		C: o.GetClass(),
 	}
 	return data
-}
-
-func (o *Object) getObjectInitData() ObjectInitData {
-	return ObjectInitData {
-		Init {
-			Id: o.id,
-			Pos: o.Profile.Pos(),
-			Dim: o.Profile.Dim(),
-		},
-	}
 }

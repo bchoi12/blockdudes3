@@ -18,15 +18,16 @@ class Game {
         this._meMaterial = new THREE.MeshToonMaterial({ color: 0xff0000 });
         this._otherMaterial = new THREE.MeshToonMaterial({ color: 0x00ff00 });
         this._objectMaterial = new THREE.MeshToonMaterial({ color: 0x777777 });
+        this._meMaterial.shadowSide = THREE.FrontSide;
+        this._otherMaterial.shadowSide = THREE.FrontSide;
+        this._objectMaterial.shadowSide = THREE.FrontSide;
         this._ui = ui;
         this._renderer = this._ui.renderer();
         this._connection = connection;
         this._keyUpdates = 0;
         this._lastGameUpdate = 0;
         this._animateFrames = 0;
-        this._meMaterial.shadowSide = THREE.FrontSide;
-        this._otherMaterial.shadowSide = THREE.FrontSide;
-        this._objectMaterial.shadowSide = THREE.FrontSide;
+        this._currentObjects = new Set();
         this.initServerTalk();
     }
     start() {
@@ -85,11 +86,11 @@ class Game {
             innerHand.castShadow = true;
             innerHand.receiveShadow = true;
             playerMesh.add(innerHand);
-            this._renderer.addObject(ObjectType.PLAYER, id, playerMesh);
-            wasmAddPlayer(id, initData);
+            this._renderer.add(ObjectType.PLAYER, id, playerMesh);
+            wasmAdd(ObjectType.PLAYER, id, initData);
         };
         const deletePlayer = (id) => {
-            this._renderer.deleteObject(ObjectType.PLAYER, id);
+            this._renderer.delete(ObjectType.PLAYER, id);
             wasmDelete(ObjectType.PLAYER, id);
         };
         switch (msg.T) {
@@ -109,20 +110,24 @@ class Game {
     updateGameState(msg) {
         if (this._lastGameUpdate >= msg.S)
             return;
+        const currentObjects = new Set(this._currentObjects);
         for (const [stringId, object] of Object.entries(msg.Os)) {
             const id = Number(stringId);
             if (!wasmHas(ObjectType.OBJECT, id)) {
-                debug(object.Pos);
-                wasmAddObject(id, { Pos: object.Pos, Dim: { X: 1.0, Y: 1.0 } });
-                const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 1.0), this._objectMaterial);
-                mesh.castShadow = true;
+                wasmAdd(ObjectType.OBJECT, id, { C: object.C, Pos: object.Pos, Dim: object.Dim });
+                const mesh = new THREE.Mesh(new THREE.SphereGeometry(object.Dim.X / 2, 32, 15), this._objectMaterial);
                 mesh.receiveShadow = true;
-                this._renderer.addObject(ObjectType.OBJECT, id, mesh);
-                debug("new mesh");
+                this._currentObjects.add(id);
+                this._renderer.add(ObjectType.OBJECT, id, mesh);
             }
             wasmSetObjectData(id, object);
             this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
+            currentObjects.delete(id);
         }
+        currentObjects.forEach((id) => {
+            this._renderer.delete(ObjectType.OBJECT, id);
+            wasmDelete(ObjectType.OBJECT, id);
+        });
         for (const [stringId, player] of Object.entries(msg.Ps)) {
             const id = Number(stringId);
             wasmSetPlayerData(id, player);
@@ -141,27 +146,27 @@ class Game {
         }
         for (const [stringId, player] of Object.entries(state.Ps)) {
             const id = Number(stringId);
-            if (!this._renderer.hasObject(ObjectType.PLAYER, id))
+            if (!this._renderer.has(ObjectType.PLAYER, id))
                 continue;
             this._renderer.updatePosition(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
         }
     }
     initLevel(msg) {
-        this._renderer.clearObjects(ObjectType.OBJECT);
+        this._renderer.clear(ObjectType.OBJECT);
         const objects = JSON.parse(wasmLoadLevel(msg.L));
         objects.Os.forEach((initData) => {
             const id = initData.Id;
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(initData.Dim.X, initData.Dim.Y, 1.0), this._objectMaterial);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
-            this._renderer.addObject(ObjectType.OBJECT, id, mesh);
+            this._renderer.add(ObjectType.OBJECT, id, mesh);
             this._renderer.updatePosition(ObjectType.OBJECT, id, initData.Pos.X, initData.Pos.Y);
         });
     }
     updateCamera() {
-        if (!this._renderer.hasObject(ObjectType.PLAYER, this._id))
+        if (!this._renderer.has(ObjectType.PLAYER, this._id))
             return;
-        const playerRender = this._renderer.getObject(ObjectType.PLAYER, this._id);
+        const playerRender = this._renderer.get(ObjectType.PLAYER, this._id);
         const mouse = this._renderer.getMouseScreen();
         const adj = new THREE.Vector3();
         if (Math.abs(mouse.x) > this._extendCameraXThreshold) {

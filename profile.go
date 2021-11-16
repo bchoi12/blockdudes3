@@ -5,25 +5,8 @@ const (
 )
 
 type ProfileOptions struct {
+	solid bool
 	collideTop, collideBottom, collideLeft, collideRight bool
-}
-
-func DefaultProfileOptions() ProfileOptions {
-	return ProfileOptions {
-		collideTop: true,
-		collideBottom: true,
-		collideLeft: true,
-		collideRight: true,
-	}
-}
-
-func PlatformProfileOptions() ProfileOptions {
-	return ProfileOptions {
-		collideTop: true,
-		collideBottom: false,
-		collideLeft: false,
-		collideRight: false,
-	}
 }
 
 type Profile interface {

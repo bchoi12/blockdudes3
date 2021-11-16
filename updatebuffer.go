@@ -1,23 +1,23 @@
 package main
 
 type UpdateBuffer struct {
-	rawPlayers map[int]*Player
-	rawObjects map[int]*Object
+	rawPlayers map[IdType]*Player
+	rawObjects map[IdType]*Object
 	rawShots []*Shot
 
-	players map[int]PlayerData
-	objects map[int]ObjectData
+	players map[IdType]PlayerData
+	objects map[IdType]ObjectData
 	shots []ShotData
 }
 
 func NewUpdateBuffer() *UpdateBuffer {
 	return &UpdateBuffer {
-		rawPlayers: make(map[int]*Player, 0),
-		rawObjects: make(map[int]*Object, 0),
+		rawPlayers: make(map[IdType]*Player, 0),
+		rawObjects: make(map[IdType]*Object, 0),
 		rawShots: make([]*Shot, 0),
 
-		players: make(map[int]PlayerData, 0),
-		objects: make(map[int]ObjectData, 0),
+		players: make(map[IdType]PlayerData, 0),
+		objects: make(map[IdType]ObjectData, 0),
 		shots: make([]ShotData, 0),
 	}
 }
@@ -30,8 +30,7 @@ func (ub *UpdateBuffer) process(grid *Grid) {
 			shot.line.Scale(hit.t)
 
 			if shot.weapon.class == spaceBlast {
-				bomb := NewObject(NewObjectInitData(Init { Id: grid.NextId(objectIdSpace), Pos: NewVec2(hit.hit.X, hit.hit.Y), Dim: NewVec2(1, 1), }))
-				bomb.update = updateBlast
+				bomb := NewBomb(NewInit(grid.NextSpacedId(objectIdSpace), bombObjectClass, NewVec2(hit.hit.X, hit.hit.Y), NewVec2(1, 1)))
 				grid.Upsert(bomb)
 			}
 		}

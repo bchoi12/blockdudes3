@@ -6,11 +6,11 @@ import (
 )
 
 type SpacedId struct {
-	space int
-	id int
+	space IdSpaceType
+	id IdType
 }
 
-func Id(space int, id int) SpacedId {
+func Id(space IdSpaceType, id IdType) SpacedId {
 	return SpacedId {
 		space: space,
 		id: id,
@@ -18,9 +18,11 @@ func Id(space int, id int) SpacedId {
 }
 
 type Thing interface {
-	GetId() int
+	GetId() IdType
 	GetSpacedId() SpacedId
 
+	GetInit() Init
+	GetClass() ObjectClassType
 	GetProfile() Profile
 	SetProfileOptions(options ProfileOptions)
 
@@ -29,13 +31,38 @@ type Thing interface {
 }
 
 type Init struct {
-	Id int
+	Id IdType
+	S IdSpaceType
+	C ObjectClassType
 	Pos Vec2
 	Dim Vec2
 }
 
+func NewInit(sid SpacedId, class ObjectClassType, pos Vec2, dim Vec2) Init {
+	return Init {
+		Id: sid.id,
+		S: sid.space,
+		C: class,
+		Pos: pos,
+		Dim: dim,
+	}
+}
+
+func (i Init) GetId() IdType {
+	return i.Id
+}
+
+func (i Init) GetInit() Init {
+	return i
+}
+
+func (i Init) GetClass() ObjectClassType {
+	return i.C
+}
+
+
 type ThingItem struct {
-	id int
+	id IdType
 	thing Thing
 
 	priority float64
