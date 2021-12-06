@@ -27,40 +27,27 @@ func (c Circle) Radius() float64 {
 	return c.Shape.dim.X
 }
 
+func (c Circle) RadiusSqr() float64 {
+	return c.Radius() * c.Radius()
+}
+
+
 func (c Circle) Intersects(line Line) (bool, float64) {
 	return false, 1.0
 }
 
-func (c Circle) OverlapX(profile Profile) float64 {
-	switch other := profile.(type) {
-	case *Rec2:
-		return other.OverlapX(&c)
-	case *Circle:
-		return 0
-	default:
-		return 0
-	}
-}
-
-func (c Circle) OverlapY(profile Profile) float64 {
-	switch other := profile.(type) {
-	case *Rec2:
-		return other.OverlapY(&c)
-	case *Circle:
-		return 0
-	default:
-		return 0
-	}
-}
-
-func (c Circle) Overlap(profile Profile) bool {
+func (c Circle) Overlap(profile Profile) float64 {
 	switch other := profile.(type) {
 	case *Rec2:
 		return other.Overlap(&c)
 	case *Circle:
-		return false
+		radius := c.Radius() + other.Radius()
+		if c.DistSqr(other) <= radius * radius {
+			return radius - c.Dist(other)
+		}
+		return 0
 	default:
-		return false
+		return 0
 	}
 }
 

@@ -18,8 +18,9 @@ type Grid struct {
 	unitLength int
 	unitHeight int
 
-	lastId map[IdSpaceType]IdType
-	things map[IdSpaceType]map[IdType]Thing
+	lastId map[SpaceType]IdType
+	things map[SpacedId]Thing
+	spacedThings map[SpaceType]map[IdType]Thing
 	grid map[GridCoord]map[SpacedId]Thing
 	reverseGrid map[SpacedId][]GridCoord
 }
@@ -29,8 +30,9 @@ func NewGrid(unitLength int, unitHeight int) *Grid {
 		unitLength: unitLength,
 		unitHeight: unitHeight,
 
-		lastId: make(map[IdSpaceType]IdType, 0),
-		things: make(map[IdSpaceType]map[IdType]Thing, 0),
+		lastId: make(map[SpaceType]IdType, 0),
+		things: make(map[SpacedId]Thing, 0),
+		spacedThings: make(map[SpaceType]map[IdType]Thing, 0),
 		grid: make(map[GridCoord]map[SpacedId]Thing, 0),
 		reverseGrid: make(map[SpacedId][]GridCoord, 0),
 	}
@@ -47,6 +49,10 @@ func (g *Grid) GetUnitHeight() int {
 func (g *Grid) Upsert(thing Thing) {
 	coords := g.getCoords(thing.GetProfile())
 	sid := thing.GetSpacedId()
+
+	if _, ok := g.spacedThings[sid.space]; !ok {
+		g.spacedThings[sid.space] = make(map[IdType]Thing, 0)
+	}
 
 	// Check for equality
 	if g.Has(sid) {
@@ -66,11 +72,8 @@ func (g *Grid) Upsert(thing Thing) {
 		}
 	} else {
 		// Insert since it's missing
-		if _, ok := g.things[sid.space]; !ok {
-			g.things[sid.space] = make(map[IdType]Thing, 0)
-		}
-
-		g.things[sid.space][sid.id] = thing
+		g.things[sid] = thing
+		g.spacedThings[sid.space][sid.id] = thing
 
 		if lastId, ok := g.lastId[sid.space]; !ok {
 			g.lastId[sid.space] = sid.id
@@ -101,19 +104,20 @@ func (g *Grid) deleteCoords(sid SpacedId) {
 
 func (g *Grid) Delete(sid SpacedId) {
 	g.deleteCoords(sid)
-	delete(g.things[sid.space], sid.id)
+	delete(g.things, sid)
+	delete(g.spacedThings[sid.space], sid.id)
 }
 
 func (g *Grid) Has(sid SpacedId) bool {
-	_, ok := g.reverseGrid[sid]
+	_, ok := g.things[sid]
 	return ok
 }
 
 func (g *Grid) Get(sid SpacedId) Thing {
-	return g.things[sid.space][sid.id]
+	return g.spacedThings[sid.space][sid.id]
 }
 
-func (g *Grid) NextId(space IdSpaceType) IdType {
+func (g *Grid) NextId(space SpaceType) IdType {
 	id, ok := g.lastId[space]
 	if !ok {
 		return 0
@@ -121,25 +125,30 @@ func (g *Grid) NextId(space IdSpaceType) IdType {
 	return id + 1
 }
 
-func (g *Grid) NextSpacedId(space IdSpaceType) SpacedId {
+func (g *Grid) NextSpacedId(space SpaceType) SpacedId {
 	return Id(space, g.NextId(space))
 }
 
-func (g *Grid) GetThings(space IdSpaceType) map[IdType]Thing {
-	return g.things[space]
+func (g *Grid) GetAllThings() map[SpacedId]Thing {
+	return g.things
+}
+
+func (g *Grid) GetThings(space SpaceType) map[IdType]Thing {
+	return g.spacedThings[space]
 }
 
 func (g *Grid) getColliders(prof Profile) ThingHeap {
 	heap := make(ThingHeap, 0)
 
 	for sid, thing := range(g.getNearbyThings(prof)) {
-		if prof.Overlap(thing.GetProfile()) {
+		overlap := prof.Overlap(thing.GetProfile())
+		if overlap > 0 {
 			item := &ThingItem {
 				id: sid.id,
 				thing: thing,
 			}
 			heap.Push(item)
-			heap.priority(item, prof.OverlapX(thing.GetProfile()) * prof.OverlapY(thing.GetProfile()))
+			heap.priority(item, overlap)
 		}
 	}
 	return heap
@@ -147,7 +156,7 @@ func (g *Grid) getColliders(prof Profile) ThingHeap {
 
 type LineColliderOptions struct {
 	self SpacedId
-	ignore map[IdSpaceType]bool
+	ignore map[SpaceType]bool
 }
 
 func (g *Grid) getLineCollider(line Line, options LineColliderOptions) (bool, *Hit) {
@@ -249,12 +258,12 @@ func (g* Grid) getCoords(prof Profile) []GridCoord {
 }
 
 func (g *Grid) getNearbyThings(prof Profile) map[SpacedId]Thing {
-	things := make(map[SpacedId]Thing)
+	nearbyThings := make(map[SpacedId]Thing)
 
 	for _, coord := range(g.getCoords(prof)) {
 		for id, thing := range(g.grid[coord]) {
-			things[id] = thing
+			nearbyThings[id] = thing
 		}
 	}
-	return things
+	return nearbyThings
 }

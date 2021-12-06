@@ -23,8 +23,25 @@ declare var keyType : number;
 
 declare var gameStateType : number;
 declare var playerInitType : number;
+declare var playerJoinType : number;
 declare var levelInitType : number;
 declare var objectInitType : number;
+
+declare var playerSpace : number;
+declare var wallSpace : number;
+declare var bombSpace : number;
+declare var explosionSpace : number;
+
+declare var spaceProp : number;
+declare var dimProp : number;
+declare var posProp : number;
+declare var velProp : number;
+declare var extVelProp : number;
+declare var accProp : number;
+declare var dirProp : number;
+declare var healthProp : number;
+
+declare var propNames : Map<string, any>;
 
 declare var upKey : number;
 declare var downKey : number;
@@ -38,7 +55,6 @@ declare var altMouseClick : number;
 declare var wasmAdd : any;
 declare var wasmHas : any;
 declare var wasmDelete : any;
-declare var wasmSetPlayerData : any;
-declare var wasmSetObjectData : any;
+declare var wasmSetData : any;
 declare var wasmLoadLevel : any;
 declare var wasmUpdateState : any;

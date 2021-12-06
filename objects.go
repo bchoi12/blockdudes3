@@ -1,14 +1,17 @@
 package main
 
-func NewRec2Object(init Init) *Object {
-	return &Object {
+import (
+	"time"
+)
+
+func NewRec2Object(init Init) Object {
+	return Object {
 		Init: init,
 		Profile: NewRec2(init.Pos, init.Dim),
 	}
 }
-
-func NewCircleObject(init Init) *Object {
-	return &Object {
+func NewCircleObject(init Init) Object {
+	return Object {
 		Init: init,
 		Profile: NewCircle(init.Pos, init.Dim),
 	}
@@ -16,49 +19,59 @@ func NewCircleObject(init Init) *Object {
 
 func NewWall(init Init) *Object {
 	object := NewRec2Object(init)
-	return object
+	return &object
 }
 
-func NewBomb(init Init) *Object {
-	object := NewCircleObject(init)
-	object.health = 1200
-	object.update = updateBomb
-	return object
+type Bomb struct {
+	Object
+	attached SpacedId
+	offset Vec2
 }
 
-func updateBomb(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
+func NewBomb(init Init) *Bomb {
+	bomb := &Bomb {
+		Object: NewCircleObject(init),
+	}
+	bomb.health = 1200
+	return bomb
+}
+
+func (b *Bomb) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
+	ts := b.PrepareUpdate(now)
+	b.health -= int(1000 * ts)
+
 	if isWasm {
-		return
+		return true
 	}
 
-	o.health -= int(1000 * ts)
-
-	if o.health <= 0 {
-		pos := o.GetInit().Pos
-		dim := o.GetInit().Dim
+	if b.health <= 0 {
+		pos := b.GetInit().Pos
+		dim := b.GetInit().Dim
 		dim.Scale(2.0)
 
-		init := NewInit(grid.NextSpacedId(objectIdSpace), explosionObjectClass, pos, dim)
+		init := NewInit(grid.NextSpacedId(explosionSpace), pos, dim)
 		explosion := NewExplosion(init)
 		
 		grid.Upsert(explosion)
-		grid.Delete(o.GetSpacedId())
+		grid.Delete(b.GetSpacedId())
 	}
+	return true
 }
 
 func NewExplosion(init Init) *Object {
 	object := NewCircleObject(init)
 	object.health = 300
 	object.update = updateExplosion
-	return object
+	return &object
 }
-func updateExplosion(o *Object, grid *Grid, buffer *UpdateBuffer, ts float64) {
+func updateExplosion(thing Thing, grid *Grid, buffer *UpdateBuffer, ts float64) {
 	if isWasm {
 		return
 	}
 
-	o.health -= int(1000 * ts)
-	if o.health <= 0 {
-		grid.Delete(o.GetSpacedId())
+	explosion := thing.(*Object)
+	explosion.health -= int(1000 * ts)
+	if explosion.health <= 0 {
+		grid.Delete(explosion.GetSpacedId())
 	}
 }

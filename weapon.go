@@ -39,7 +39,7 @@ type Weapon struct {
 
 func NewWeapon(id IdType, class int) *Weapon {
 	w := &Weapon {
-		sid: Id(playerIdSpace, id),
+		sid: Id(playerSpace, id),
 		class: class,
 
 		dist: 20.0,
@@ -87,7 +87,7 @@ func (w *Weapon) colliderOptions() LineColliderOptions {
 	case spaceBlast:
 		return LineColliderOptions {
 			self: w.sid,
-			ignore: map[IdSpaceType]bool { playerIdSpace: true },
+			ignore: map[SpaceType]bool { playerSpace: true },
 		}
 	default:
 		panic("missing weapon")

@@ -61,14 +61,15 @@ class Renderer {
 		return mouseWorld;
 	}
 
-	add(type : ObjectType, id : number, mesh : any) : void { this._scene.add(type, id, mesh); }
-	has(type : ObjectType, id : number) : boolean { return this._scene.has(type, id); }
-	get(type : ObjectType, id : number) : any { return this._scene.get(type, id); }
-	delete(type : ObjectType, id : number) : void { this._scene.delete(type, id); }
-	clear(type : ObjectType) : void { this._scene.clear(type); }
+	add(space : number, id : number, mesh : any) : void { this._scene.add(space, id, mesh); }
+	has(space : number, id : number) : boolean { return this._scene.has(space, id); }
+	get(space : number, id : number) : any { return this._scene.get(space, id); }
+	delete(space : number, id : number) : void { this._scene.delete(space, id); }
+	clear(space : number) : void { this._scene.clear(space); }
+	clearObjects() : void { this._scene.clearObjects(); }
 
 	updatePlayer(id : number, msg : any) : void { this._scene.updatePlayer(id, msg); }
-	updatePosition(type : ObjectType, id : number, x : number, y : number) : void { this._scene.updatePosition(type, id, x, y); }
+	updatePosition(space : number, id : number, x : number, y : number) : void { this._scene.updatePosition(space, id, x, y); }
 	renderShots(shots : Array<any>) : void { this._scene.renderShots(shots); }
 
 	private resizeCanvas() : void {

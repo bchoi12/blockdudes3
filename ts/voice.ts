@@ -101,7 +101,10 @@ class Voice {
 		}
 
 		if (this._audio.has(msg.Client.Id)) {
-			elm("client-" + msg.Client.Id).removeChild(this._audio.get(msg.Client.Id));
+			const clientElm = elm("client-" + msg.Client.Id);
+			if (defined(clientElm)) {
+				clientElm.removeChild(this._audio.get(msg.Client.Id));
+			}
 			this._audio.delete(msg.Client.Id);
 		}
 	}

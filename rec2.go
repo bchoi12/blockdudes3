@@ -67,37 +67,26 @@ func (r Rec2) Intersects(line Line) (bool, float64) {
 	return collision, closest
 }
 
-
-func (r Rec2) OverlapX(profile Profile) float64 {
+func (r Rec2) Overlap(profile Profile) float64 {
 	switch other := profile.(type) {
 	case *Rec2:
-		return (r.Width()/2 + other.Width()/2) - Abs(r.Pos().X - other.Pos().X)
+		return r.OverlapX(other) * r.OverlapY(other)
 	case *Circle:
+		ox := r.OverlapX(other)
+		if ox <= 0 {
+			return 0
+		}
+		oy := r.OverlapY(other)
+		if oy <= 0 { 
+			return 0
+		}
+
+		if r.DistX(other) <= r.Width() / 2 || r.DistY(other) <= r.Height() / 2 || r.DistSqr(other) <= other.RadiusSqr() {
+			return ox * oy
+		}
 		return 0
 	default:
 		return 0
-	}
-}
-
-func (r Rec2) OverlapY(profile Profile) float64 {
-	switch other := profile.(type) {
-	case *Rec2:
-		return (r.Height()/2 + other.Height()/2) - Abs(r.Pos().Y - other.Pos().Y)
-	case *Circle:
-		return 0
-	default:
-		return 0
-	}
-}
-
-func (r Rec2) Overlap(profile Profile) bool {
-	switch other := profile.(type) {
-	case *Rec2:
-		return r.OverlapX(other) > collisionEpsilon && r.OverlapY(other) > collisionEpsilon
-	case *Circle:
-		return false
-	default:
-		return false
 	}
 }
 

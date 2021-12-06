@@ -2,8 +2,7 @@ class Scene {
 	private readonly _lineMaterial = new THREE.LineBasicMaterial( { color: 0xffff00 } );
 
 	private _scene : any;
-	private _playerRenders : Map<number, any>;
-	private _objectRenders : Map<number, any>;
+	private _renders : Map<number, Map<number, any>>;
 
 	private _sunLight : any;
 	private _sunLightOffset : any;
@@ -34,59 +33,68 @@ class Scene {
 		this._scene.add(this._sunLight);
 		this._scene.add(this._sunLight.target);
 
-		this._playerRenders = new Map();
-		this._objectRenders = new Map();
+		this._renders = new Map();
 	}
 
-	add(type : ObjectType, id : number, mesh : any) : void {
-		const map = this.getMap(type);
+	add(space : number, id : number, mesh : any) : void {
+		const map = this.getMap(space);
 		if (map.has(id)) {
-			debug("Overwriting object type " + type + ", id " + id + "!");
+			debug("Overwriting object space " + space + ", id " + id + "!");
 		}
 
 		map.set(id, mesh);
 		this._scene.add(map.get(id));
 	}
 
-	has(type : ObjectType, id : number) : boolean {
-		const map = this.getMap(type);
+	has(space : number, id : number) : boolean {
+		const map = this.getMap(space);
 		return map.has(id);	
 	}
 
-	get(type : ObjectType, id : number) : any {
-		const map = this.getMap(type);
+	get(space : number, id : number) : any {
+		const map = this.getMap(space);
 		return map.get(id);
 	}
 
-	delete(type : ObjectType, id : number) : void {
-		const map = this.getMap(type);
+	delete(space : number, id : number) : void {
+		const map = this.getMap(space);
 		this._scene.remove(map.get(id));
 		map.delete(id);
 	}
 
-	clear(type : ObjectType) : void {
-		const map = this.getMap(type);
+	clear(space : number) : void {
+		const map = this.getMap(space);
 		map.forEach((id, object) => {
 			this._scene.remove(map.get(object));
 		});
 		map.clear();
 	}
 
-	updatePlayer(id : number, msg : any) : void {
-		const map = this.getMap(ObjectType.PLAYER);
-		const object = map.get(id);
-		object.position.x = msg.Pos.X;
-		object.position.y = msg.Pos.Y;
-
-		// TODO: need player class
-		object.children[0].position.x = msg.Dir.X * 0.5;
-		object.children[0].position.y = msg.Dir.Y * 0.5;
-		object.children[1].position.x = msg.Dir.X * -0.05;
-		object.children[1].position.y = msg.Dir.Y * -0.05;
+	clearObjects() : void {
+		this._renders.forEach((render, space) => {
+			if (space != playerSpace) {
+				this.clear(space);
+			}
+		});
 	}
 
-	updatePosition(type : ObjectType, id : number, x : number, y : number) : void {
-		const map = this.getMap(type);
+	updatePlayer(id : number, msg : any) : void {
+		const map = this.getMap(playerSpace);
+		const object = map.get(id);
+		const pos = msg[posProp]
+		object.position.x = pos.X;
+		object.position.y = pos.Y;
+
+		// TODO: need player class
+		const dir = msg[dirProp]
+		object.children[0].position.x = dir.X * 0.5;
+		object.children[0].position.y = dir.Y * 0.5;
+		object.children[1].position.x = dir.X * -0.05;
+		object.children[1].position.y = dir.Y * -0.05;
+	}
+
+	updatePosition(space : number, id : number, x : number, y : number) : void {
+		const map = this.getMap(space);
 		const object = map.get(id);
 		object.position.x = x;
 		object.position.y = y;
@@ -112,16 +120,10 @@ class Scene {
 		this._sunLight.target.position.copy(position);
 	}
 
-	private getMap(type : ObjectType) : Map<number, any> {
-		switch(type) {
-			case ObjectType.PLAYER:
-				return this._playerRenders;
-
-			case ObjectType.OBJECT:
-				return this._objectRenders;
-
-			default:
-				debug("Unknown object type " + type);
+	private getMap(space : number) : Map<number, any> {
+		if (!this._renders.has(space)) {
+			this._renders.set(space, new Map<number, any>());
 		}
+		return this._renders.get(space);
 	}
 }

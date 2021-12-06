@@ -28,14 +28,10 @@ const (
 )
 
 type Player struct {
-	Init
-	Profile
+	Object
 
 	weapon *Weapon
 	altWeapon *Weapon
-	lastUpdateTime time.Time
-
-	health int
 
 	canDash bool
 	jumpFrames int
@@ -51,14 +47,13 @@ type Player struct {
 
 func NewPlayer(init Init) *Player {
 	player := &Player {
-		Init: init,
-		Profile: NewRec2(init.Pos, init.Dim),
+		Object: Object {
+			Init: init,
+			Profile: NewRec2(init.Pos, init.Dim),
+		},
 
 		weapon: NewWeapon(init.Id, spaceBurst),
 		altWeapon: NewWeapon(init.Id, spaceBlast),
-		lastUpdateTime: time.Time{},
-
-		health: 100,
 
 		canDash: true,
 		jumpFrames: 0,
@@ -82,16 +77,22 @@ type PlayerData struct {
 	Dir Vec2
 }
 
-func (p *Player) GetProfile() Profile {
-	return p.Profile
+func (p *Player) GetData() ObjectData {
+	od := NewObjectData()
+	od.Set(posProp, p.Profile.Pos())
+	od.Set(velProp, p.Profile.Vel())
+	od.Set(extVelProp, p.Profile.ExtVel())
+	od.Set(accProp, p.Profile.Acc())
+	od.Set(dirProp, p.mouse)
+	return od
 }
 
-func (p *Player) SetProfileOptions(options ProfileOptions) {
-	p.Profile.SetOptions(options)
-}
+func (p *Player) SetData(od ObjectData) {
+	p.Profile.SetData(od)
 
-func (p *Player) GetSpacedId() SpacedId {
-	return Id(playerIdSpace, p.Init.Id)
+	if od.Has(dirProp) {
+		p.mouse = od.Get(dirProp).(Vec2)
+	}
 }
 
 func (p *Player) TakeHit(shot *Shot, hit *Hit) {
@@ -265,8 +266,12 @@ func (p *Player) checkCollisions(grid *Grid, lastPos Vec2) {
 		switch collider := PopThing(&colliders).(type) {
 		case *Object:
 			other := collider.GetProfile()
-			if !p.Profile.Overlap(other) {
+			if p.Profile.Overlap(other) <= 0 {
 				continue
+			}
+
+			if collider.GetSpace() == explosionSpace {
+				p.Profile.SetVel(NewVec2(0, 0))
 			}
 
 			xadj, yadj := p.Profile.Snap(other, lastPos)
@@ -281,25 +286,6 @@ func (p *Player) checkCollisions(grid *Grid, lastPos Vec2) {
 			continue
 		}
 	}
-}
-
-func (p *Player) getPlayerData() PlayerData {
-	return PlayerData {
-		Pos: p.Profile.Pos(),
-		Vel: p.Profile.Vel(),
-		EVel: p.Profile.ExtVel(),
-		Acc: p.Profile.Acc(),
-		Dir: p.mouse,
-	}
-}
-
-func (p *Player) setPlayerData(data PlayerData) {
-	prof := p.Profile
-	prof.SetPos(data.Pos)
-	prof.SetVel(data.Vel)
-	prof.SetExtVel(data.EVel)
-	prof.SetAcc(data.Acc)
-	p.mouse = data.Dir
 }
 
 func (p *Player) respawn() {

@@ -6,7 +6,7 @@ import (
 
 type Game struct {
 	grid *Grid
-	level int
+	level LevelIdType
 
 	updateBuffer *UpdateBuffer
 	updates SeqNumType
@@ -23,18 +23,24 @@ func newGame() *Game {
 }
 
 func (g *Game) add(init Init) {
-	switch init.C {
-	case playerObjectClass:
-		g.grid.Upsert(NewPlayer(init))
-	case wallObjectClass:
-		g.grid.Upsert(NewWall(init))
-	case bombObjectClass:
-		g.grid.Upsert(NewBomb(init))
-	case explosionObjectClass:
-		g.grid.Upsert(NewExplosion(init))
+	var thing Thing
+
+	switch init.S {
+	case playerSpace:
+		thing = NewPlayer(init)
+	case wallSpace:
+		thing = NewWall(init)
+	case bombSpace:
+		thing = NewBomb(init)
+	case explosionSpace:
+		thing = NewExplosion(init)
 	default:
-		Debug("Unknown object class! %+v", init)
-	} 
+		Debug("Unknown space! %+v", init)
+	}
+
+	if thing != nil {
+		g.grid.Upsert(thing)
+	}
 }
 
 func (g *Game) has(sid SpacedId) bool {
@@ -45,28 +51,18 @@ func (g *Game) delete(sid SpacedId) {
 	g.grid.Delete(sid)
 }
 
-func (g *Game) setPlayerData(id IdType, data PlayerData) {
+func (g *Game) setData(sid SpacedId, od ObjectData) {
 	if !isWasm {
-		panic("setPlayerData called outside of WASM")
+		panic("setData called outside of WASM")
 	}
 
-	player := g.grid.Get(Id(playerIdSpace, id)).(*Player)
-	player.setPlayerData(data)
-	g.grid.Upsert(player)
-}
-
-func (g *Game) setObjectData(id IdType, data ObjectData) {
-	if !isWasm {
-		panic("setObjectData called outside of WASM")
-	}
-
-	object := g.grid.Get(Id(objectIdSpace, id)).(*Object)
-	object.setObjectData(data)
-	g.grid.Upsert(object)
+	thing := g.grid.Get(sid)
+	thing.SetData(od)
+	g.grid.Upsert(thing)
 }
 
 func (g *Game) processKeyMsg(id IdType, keyMsg KeyMsg) {
-	player := g.grid.Get(Id(playerIdSpace, id)).(*Player)
+	player := g.grid.Get(Id(playerSpace, id)).(*Player)
 	player.updateKeys(keyMsg)
 }
 
@@ -74,45 +70,50 @@ func (g *Game) updateState() {
 	g.updateBuffer = NewUpdateBuffer()
 
 	now := time.Now()
-	for _, t := range(g.grid.GetThings(objectIdSpace)) {
-		o := t.(*Object)
-		if o.UpdateState(g.grid, g.updateBuffer, now) && g.grid.Has(o.GetSpacedId()) {
-			g.grid.Upsert(o)
-			g.updateBuffer.rawObjects[o.GetId()] = o
+	for _, thing := range(g.grid.GetAllThings()) {
+		if thing.GetSpace() == playerSpace {
+			continue
 		}
+		g.updateThing(thing, now)
 	}
-	for _, t := range(g.grid.GetThings(playerIdSpace)) {
-		p := t.(*Player)
-		if p.UpdateState(g.grid, g.updateBuffer, now) && g.grid.Has(p.GetSpacedId()) {
-			g.grid.Upsert(p)
-			g.updateBuffer.rawPlayers[p.GetId()] = p
-		}
+
+	for _, thing := range(g.grid.GetThings(playerSpace)) {
+		g.updateThing(thing, now)
 	}
 
 	g.updateBuffer.process(g.grid)
 	g.updates++
 }
 
-func (g* Game) createPlayerInitMsg() PlayerInitMsg {
+func (g *Game) updateThing(thing Thing, now time.Time) {
+	updated := thing.UpdateState(g.grid, g.updateBuffer, now)
+	if updated && g.grid.Has(thing.GetSpacedId()) {
+		g.grid.Upsert(thing)
+		g.updateBuffer.rawThings[thing.GetSpacedId()] = thing
+	}
+}
+
+func (g* Game) createPlayerInitMsg(id IdType) PlayerInitMsg {
 	players := make([]Init, 0)
 
-	for _, t := range(g.grid.GetThings(playerIdSpace)) {
+	for _, t := range(g.grid.GetThings(playerSpace)) {
 		player := t.(*Player)
-		players = append(players, NewInit(player.GetSpacedId(), playerObjectClass, player.Profile.Pos(), player.Profile.Dim()))
+		players = append(players, NewInit(player.GetSpacedId(), player.Profile.Pos(), player.Profile.Dim()))
 	}
 
 	return PlayerInitMsg{
 		T: playerInitType,
+		Id: id,
 		Ps: players,
 	}
 }
 
 func (g* Game) createPlayerJoinMsg(id IdType) PlayerInitMsg {
-	player := g.grid.Get(Id(playerIdSpace, id)).(*Player)
+	player := g.grid.Get(Id(playerSpace, id)).(*Player)
 	players := make([]Init, 1)
-	players[0] = NewInit(player.GetSpacedId(), playerObjectClass, player.Profile.Pos(), player.Profile.Dim())
+	players[0] = NewInit(player.GetSpacedId(), player.Profile.Pos(), player.Profile.Dim())
 	return PlayerInitMsg{
-		T: playerInitType,
+		T: playerJoinType,
 		Ps: players,
 	}
 }
@@ -127,7 +128,7 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 func (g *Game) createObjectInitMsg() ObjectInitMsg {
 	objs := make([]Init, 0)
 
-	for _, t := range(g.grid.GetThings(objectIdSpace)) {
+	for _, t := range(g.grid.GetThings(wallSpace)) {
 		obj := t.(*Object)
 		objs = append(objs, obj.GetInit())
 	}

@@ -19,49 +19,57 @@ class Scene {
         this._sunLight.shadow.bias = -0.00012;
         this._scene.add(this._sunLight);
         this._scene.add(this._sunLight.target);
-        this._playerRenders = new Map();
-        this._objectRenders = new Map();
+        this._renders = new Map();
     }
-    add(type, id, mesh) {
-        const map = this.getMap(type);
+    add(space, id, mesh) {
+        const map = this.getMap(space);
         if (map.has(id)) {
-            debug("Overwriting object type " + type + ", id " + id + "!");
+            debug("Overwriting object space " + space + ", id " + id + "!");
         }
         map.set(id, mesh);
         this._scene.add(map.get(id));
     }
-    has(type, id) {
-        const map = this.getMap(type);
+    has(space, id) {
+        const map = this.getMap(space);
         return map.has(id);
     }
-    get(type, id) {
-        const map = this.getMap(type);
+    get(space, id) {
+        const map = this.getMap(space);
         return map.get(id);
     }
-    delete(type, id) {
-        const map = this.getMap(type);
+    delete(space, id) {
+        const map = this.getMap(space);
         this._scene.remove(map.get(id));
         map.delete(id);
     }
-    clear(type) {
-        const map = this.getMap(type);
+    clear(space) {
+        const map = this.getMap(space);
         map.forEach((id, object) => {
             this._scene.remove(map.get(object));
         });
         map.clear();
     }
-    updatePlayer(id, msg) {
-        const map = this.getMap(ObjectType.PLAYER);
-        const object = map.get(id);
-        object.position.x = msg.Pos.X;
-        object.position.y = msg.Pos.Y;
-        object.children[0].position.x = msg.Dir.X * 0.5;
-        object.children[0].position.y = msg.Dir.Y * 0.5;
-        object.children[1].position.x = msg.Dir.X * -0.05;
-        object.children[1].position.y = msg.Dir.Y * -0.05;
+    clearObjects() {
+        this._renders.forEach((render, space) => {
+            if (space != playerSpace) {
+                this.clear(space);
+            }
+        });
     }
-    updatePosition(type, id, x, y) {
-        const map = this.getMap(type);
+    updatePlayer(id, msg) {
+        const map = this.getMap(playerSpace);
+        const object = map.get(id);
+        const pos = msg[posProp];
+        object.position.x = pos.X;
+        object.position.y = pos.Y;
+        const dir = msg[dirProp];
+        object.children[0].position.x = dir.X * 0.5;
+        object.children[0].position.y = dir.Y * 0.5;
+        object.children[1].position.x = dir.X * -0.05;
+        object.children[1].position.y = dir.Y * -0.05;
+    }
+    updatePosition(space, id, x, y) {
+        const map = this.getMap(space);
         const object = map.get(id);
         object.position.x = x;
         object.position.y = y;
@@ -83,14 +91,10 @@ class Scene {
     setPlayerPosition(position) {
         this._sunLight.target.position.copy(position);
     }
-    getMap(type) {
-        switch (type) {
-            case ObjectType.PLAYER:
-                return this._playerRenders;
-            case ObjectType.OBJECT:
-                return this._objectRenders;
-            default:
-                debug("Unknown object type " + type);
+    getMap(space) {
+        if (!this._renders.has(space)) {
+            this._renders.set(space, new Map());
         }
+        return this._renders.get(space);
     }
 }

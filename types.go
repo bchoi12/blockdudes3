@@ -34,25 +34,25 @@ const (
 
 	gameStateType
 	playerInitType
+	playerJoinType
 	levelInitType
 	objectInitType
 )
 
 type IdType uint16
-type IdSpaceType uint8
+type SpaceType uint8
 const (
-	unknownIdSpace IdSpaceType = iota
-	playerIdSpace
-	objectIdSpace
+	unknownSpace SpaceType = iota
+	playerSpace
+	wallSpace
+	bombSpace
+	explosionSpace
 )
 
-type ObjectClassType uint8
+type LevelIdType uint8
 const (
-	unknownObjectClass ObjectClassType = iota
-	playerObjectClass
-	wallObjectClass
-	bombObjectClass
-	explosionObjectClass
+	unknownLevel LevelIdType = iota
+	testLevel
 )
 
 // Can't get this to work with uint8 for some reason
@@ -107,19 +107,20 @@ type ChatMsg struct {
 type GameStateMsg struct {
 	T MessageType
 	S SeqNumType
-	Ps map[IdType]PlayerData
-	Os map[IdType]ObjectData
+	Ps map[IdType]PropMap
+	Os map[SpaceType]map[IdType]PropMap
 	Ss []ShotData
 }
 
 type PlayerInitMsg struct {
 	T MessageType
+	Id IdType
 	Ps []Init
 }
 
 type LevelInitMsg struct {
 	T MessageType
-	L int // level index
+	L LevelIdType
 }
 
 type ObjectInitMsg struct {

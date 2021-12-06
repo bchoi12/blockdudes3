@@ -2,13 +2,6 @@ enum GameState {
 	UNKNOWN = 0,
 }
 
-// Needs to be manually kept in sync with playerIdSpace, objectIdSpace
-enum ObjectType {
-	UNKNOWN = 0,
-	PLAYER = 1,
-	OBJECT = 2,
-}
-
 class Game {
 	private readonly _statsInterval = 500;
 
@@ -30,7 +23,7 @@ class Game {
 	private _lastGameUpdate : number;
 	private _animateFrames : number;
 
-	private _currentObjects : Set<number>
+	private _currentObjects : Set<string>
 
 	constructor(ui : UI, connection : Connection) {
 		this._meMaterial.shadowSide = THREE.FrontSide;
@@ -52,7 +45,6 @@ class Game {
 
 	start() : void {
 		this._ui.displayGame();
-		this._id = this._connection.id();
 		this.animate();
 
 		const self = this;
@@ -77,14 +69,15 @@ class Game {
 	}
 
 	private initServerTalk() : void {
-		this._connection.addHandler(initType, (msg : any) => { this.updatePlayers(msg); });
-		this._connection.addHandler(leftType, (msg : any) => { this.updatePlayers(msg); });
-
 		this._connection.addHandler(gameStateType, (msg : any) => { this.updateGameState(msg); });
 		this._connection.addHandler(playerInitType, (msg : any) => { this.updatePlayers(msg); });
+		this._connection.addHandler(playerJoinType, (msg : any) => { this.updatePlayers(msg); });
+		this._connection.addHandler(leftType, (msg : any) => { this.updatePlayers(msg); });
 		this._connection.addHandler(levelInitType, (msg : any) => { this.initLevel(msg); });
 
 		this._connection.addSender(keyType, () => {
+			if (!defined(this._id)) return;
+
 			const msg = this._ui.createKeyMsg();
 			this._keyUpdates++;
 			msg.Key.S = this._keyUpdates;
@@ -96,7 +89,7 @@ class Game {
 		const addPlayer = (initData : any) => {
 			const id = initData.Id;
 
-			if (wasmHas(ObjectType.PLAYER, id)) return;
+			if (wasmHas(playerSpace, id)) return;
 
 			const material = id == this._id ? this._meMaterial : this._otherMaterial
 			const depth = 0.2;
@@ -118,20 +111,22 @@ class Game {
 			innerHand.receiveShadow = true;
 			playerMesh.add(innerHand);
 
-			this._renderer.add(ObjectType.PLAYER, id, playerMesh);
-			wasmAdd(ObjectType.PLAYER, id, initData);
+			this._renderer.add(playerSpace, id, playerMesh);
+			wasmAdd(playerSpace, id, initData);
 		}
 		const deletePlayer = (id : number) => {
-			this._renderer.delete(ObjectType.PLAYER, id);
-			wasmDelete(ObjectType.PLAYER, id);
+			this._renderer.delete(playerSpace, id);
+			wasmDelete(playerSpace, id);
 		}
 
 		switch(msg.T) {
-			case initType:
-				// I don't like this
-				this._id = msg.Client.Id;
-				break;
 			case playerInitType:
+				this._id = msg.Id
+				msg.Ps.forEach((initData) => {
+					addPlayer(initData);
+				});
+				break;
+			case playerJoinType:
 				msg.Ps.forEach((initData) => {
 					addPlayer(initData);
 				});
@@ -145,35 +140,39 @@ class Game {
 	private updateGameState(msg : any) : void {
 		if (this._lastGameUpdate >= msg.S) return;
 
-		const currentObjects = new Set(this._currentObjects);
-		for (const [stringId, object] of Object.entries(msg.Os) as [string, any]) {
-			const id = Number(stringId);
-			if (!wasmHas(ObjectType.OBJECT, id)) {
-				wasmAdd(ObjectType.OBJECT, id, { C: object.C, Pos: object.Pos, Dim: object.Dim});
-				const mesh = new THREE.Mesh(new THREE.SphereGeometry(object.Dim.X / 2, 32, 15), this._objectMaterial);	
-				mesh.receiveShadow = true;
+		const deleteObjects = new Set(this._currentObjects);
+		for (const [stringSpace, objects] of Object.entries(msg.Os) as [string, any]) {
+			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
+				const space = Number(stringSpace);
+				const id = Number(stringId);
 
-				this._currentObjects.add(id);
-				this._renderer.add(ObjectType.OBJECT, id, mesh);
+				if (!wasmHas(space, id)) {
+					wasmAdd(space, id, { Pos: object[posProp], Dim: object[dimProp] });
+					const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 32, 15), this._objectMaterial);	
+					mesh.receiveShadow = true;
+
+					this._currentObjects.add(sid(space, id));
+					this._renderer.add(space, id, mesh);
+				}
+				deleteObjects.delete(sid(space, id));
+
+				// TODO: need updateObject()
+				wasmSetData(space, id, object);
+				this._renderer.updatePosition(space, id, object[posProp].X, object[posProp].Y);
 			}
-
-			wasmSetObjectData(id, object)
-
-			// TODO: need updateObject()
-			this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
-
-			currentObjects.delete(id);
 		}
 
 		// Haven't seen these objects so delete them.
-		currentObjects.forEach((id) => {
-			this._renderer.delete(ObjectType.OBJECT, id);
-			wasmDelete(ObjectType.OBJECT, id);
+		deleteObjects.forEach((sid) => {
+			this._currentObjects.delete(sid);
+			this._renderer.delete(space(sid), id(sid));
+			wasmDelete(space(sid), id(sid));
 		});
 
 		for (const [stringId, player] of Object.entries(msg.Ps) as [string, any]) {
 			const id = Number(stringId);
-			wasmSetPlayerData(id, player);
+
+			wasmSetData(playerSpace, id, player);
 			this._renderer.updatePlayer(id, player);
 		}
 
@@ -187,43 +186,49 @@ class Game {
 	private extrapolateState() {
 		const state = JSON.parse(wasmUpdateState());
 
-		for (const [stringId, object] of Object.entries(state.Os) as [string, any]) {
-			const id = Number(stringId);
-			if (!this._renderer.has(ObjectType.OBJECT, id)) continue;
+		for (const [stringSpace, objects] of Object.entries(state.Os) as [string, any]) {
+			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
+				const space = Number(stringSpace);
+				const id = Number(stringId);
+				if (!this._renderer.has(space, id)) continue;
 
-			// TODO: need update()
-			this._renderer.updatePosition(ObjectType.OBJECT, id, object.Pos.X, object.Pos.Y);
+				// TODO: need update()
+				this._renderer.updatePosition(space, id, object[posProp].X, object[posProp].Y);
+			}
 		}
 
 		for (const [stringId, player] of Object.entries(state.Ps) as [string, any]) {
 			const id = Number(stringId);
-			if (!this._renderer.has(ObjectType.PLAYER, id)) continue;
+			if (!this._renderer.has(playerSpace, id)) continue;
 
 			// TODO: smoothing for mouse movement??
 			// this._renderer.updatePlayer(id, player);
-			this._renderer.updatePosition(ObjectType.PLAYER, id, player.Pos.X, player.Pos.Y);
+			this._renderer.updatePosition(playerSpace, id, player[posProp].X, player[posProp].Y);
 		}
 	}
 
 	private initLevel(msg :any) : void {
-		this._renderer.clear(ObjectType.OBJECT);
+		this._currentObjects.clear();
+		this._renderer.clearObjects();
 
 		const objects = JSON.parse(wasmLoadLevel(msg.L));
 		objects.Os.forEach((initData) => {
 			const id = initData.Id;
+			const space = initData.S;
 			const mesh = new THREE.Mesh(new THREE.BoxGeometry(initData.Dim.X, initData.Dim.Y, 1.0), this._objectMaterial);	
 			mesh.castShadow = true;
 			mesh.receiveShadow = true;
 
-			this._renderer.add(ObjectType.OBJECT, id, mesh);
-			this._renderer.updatePosition(ObjectType.OBJECT, id, initData.Pos.X, initData.Pos.Y);
+			this._renderer.add(space, id, mesh);
+			this._renderer.updatePosition(space, id, initData.Pos.X, initData.Pos.Y);
 		});
 	}
 
 	private updateCamera() : void {
-		if (!this._renderer.has(ObjectType.PLAYER, this._id)) return;
+		if (!defined(this._id)) return;
+		if (!this._renderer.has(playerSpace, this._id)) return;
 
-		const playerRender = this._renderer.get(ObjectType.PLAYER, this._id);
+		const playerRender = this._renderer.get(playerSpace, this._id);
 
 		const mouse = this._renderer.getMouseScreen();
 		const adj = new THREE.Vector3();

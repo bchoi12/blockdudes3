@@ -14,6 +14,7 @@ type Client struct {
 	dc *webrtc.DataChannel
 
 	id IdType
+	gameId IdType
 	name string
 	voice bool
 }

@@ -171,7 +171,7 @@ func (r *Room) addClient(c *Client) error {
 		return err
 	}
 
-	playerInitMsg := r.game.createPlayerInitMsg()
+	playerInitMsg := r.game.createPlayerInitMsg(c.id)
 	err = c.send(&playerInitMsg)
 	if err != nil {
 		return err
@@ -192,7 +192,7 @@ func (r *Room) addClient(c *Client) error {
 		return err
 	}
 
-	r.game.add(NewInit(Id(playerIdSpace, c.id), playerObjectClass, NewVec2(5, 5), NewVec2(0.8, 1.0)))
+	r.game.add(NewInit(Id(playerSpace, c.id), NewVec2(5, 5), NewVec2(0.8, 1.0)))
 	playerJoinMsg := r.game.createPlayerJoinMsg(c.id)
 	r.send(&playerJoinMsg)
 
@@ -205,7 +205,7 @@ func (r *Room) deleteClient(c *Client) error {
 		if err != nil {
 			return err
 		}
-		r.game.delete(Id(playerIdSpace, c.id))
+		r.game.delete(Id(playerSpace, c.id))
 		delete(r.clients, c.id)
 		log.Printf("Unregistering client %d total", len(r.clients))
 	}

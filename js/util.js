@@ -15,3 +15,19 @@ function inputElm(id) {
 function audioElm(id) {
     return document.getElementById(id);
 }
+function sid(space, id) {
+    return space + "," + id;
+}
+function space(sid) {
+    return Number(sid.split(",")[0]);
+}
+function id(sid) {
+    return Number(sid.split(",")[1]);
+}
+function mapToJSON(map) {
+    const object = {};
+    for (const [key, value] of Object.entries(map)) {
+        object[key] = value;
+    }
+    return object;
+}

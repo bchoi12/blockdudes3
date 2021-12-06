@@ -36,7 +36,7 @@ type Hit struct {
 }
 
 type HitData struct {
-	IS IdSpaceType
+	IS SpaceType
 	Id IdType
 	H Vec2
 }

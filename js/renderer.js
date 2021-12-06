@@ -40,13 +40,14 @@ class Renderer {
         mouseWorld.add(mouse.multiplyScalar(distance));
         return mouseWorld;
     }
-    add(type, id, mesh) { this._scene.add(type, id, mesh); }
-    has(type, id) { return this._scene.has(type, id); }
-    get(type, id) { return this._scene.get(type, id); }
-    delete(type, id) { this._scene.delete(type, id); }
-    clear(type) { this._scene.clear(type); }
+    add(space, id, mesh) { this._scene.add(space, id, mesh); }
+    has(space, id) { return this._scene.has(space, id); }
+    get(space, id) { return this._scene.get(space, id); }
+    delete(space, id) { this._scene.delete(space, id); }
+    clear(space) { this._scene.clear(space); }
+    clearObjects() { this._scene.clearObjects(); }
     updatePlayer(id, msg) { this._scene.updatePlayer(id, msg); }
-    updatePosition(type, id, x, y) { this._scene.updatePosition(type, id, x, y); }
+    updatePosition(space, id, x, y) { this._scene.updatePosition(space, id, x, y); }
     renderShots(shots) { this._scene.renderShots(shots); }
     resizeCanvas() {
         const width = window.innerWidth;
