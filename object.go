@@ -61,7 +61,6 @@ func (o *Object) SetData(od ObjectData) {
 
 func (o *Object) GetData() ObjectData {
 	od := NewObjectData()
-	od.Set(spaceProp, o.GetSpace())
 	od.Set(posProp, o.Profile.Pos())
 	od.Set(dimProp, o.Profile.Dim())
 	od.Set(velProp, o.Profile.Vel())

@@ -271,7 +271,15 @@ func (p *Player) checkCollisions(grid *Grid, lastPos Vec2) {
 			}
 
 			if collider.GetSpace() == explosionSpace {
-				p.Profile.SetVel(NewVec2(0, 0))
+				dir := p.Profile.Pos()
+				dir.Sub(other.Pos(), 1.0)
+				if (dir.IsZero()) {
+					dir.X = 1
+				}
+				dir.Normalize()
+				dir.Scale(20)
+				dir.Add(p.Profile.Vel(), 1.0)
+				p.Profile.SetVel(dir)
 			}
 
 			xadj, yadj := p.Profile.Snap(other, lastPos)

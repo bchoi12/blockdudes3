@@ -47,7 +47,7 @@ func (b *Bomb) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool
 	if b.health <= 0 {
 		pos := b.GetInit().Pos
 		dim := b.GetInit().Dim
-		dim.Scale(2.0)
+		dim.Scale(3.6)
 
 		init := NewInit(grid.NextSpacedId(explosionSpace), pos, dim)
 		explosion := NewExplosion(init)

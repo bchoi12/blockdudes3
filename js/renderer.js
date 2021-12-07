@@ -1,3 +1,8 @@
+var Layer;
+(function (Layer) {
+    Layer[Layer["DEFAULT"] = 0] = "DEFAULT";
+    Layer[Layer["BLOOM"] = 1] = "BLOOM";
+})(Layer || (Layer = {}));
 class Renderer {
     constructor(canvas) {
         this._cameraOffsetY = 1.2;
@@ -14,7 +19,9 @@ class Renderer {
         this._mousePixels = new THREE.Vector3(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2, 0);
     }
     elm() { return this._canvas; }
-    render() { this._renderer.render(this._scene.scene(), this._camera); }
+    render() {
+        this._renderer.render(this._scene.scene(), this._camera);
+    }
     setCamera(player, adj) {
         this._camera.position.x = player.x + adj.x;
         this._camera.position.y = Math.max(this._cameraOffsetY, player.y + adj.y + this._cameraOffsetY);

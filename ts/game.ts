@@ -13,6 +13,7 @@ class Game {
 	private readonly _meMaterial = new THREE.MeshToonMaterial( { color: 0xff0000 } );
 	private readonly _otherMaterial = new THREE.MeshToonMaterial( { color: 0x00ff00 } );
 	private readonly _objectMaterial = new THREE.MeshToonMaterial( {color: 0x777777 } );
+	private readonly _bombMaterial = new THREE.MeshToonMaterial( {color: 0x7777ff, wireframe: true } );
 	
 	private _ui : UI;
 	private _renderer : Renderer;
@@ -64,8 +65,8 @@ class Game {
 		this.updateCamera();
 		this._renderer.render();
 
-		this._animateFrames++;
 		requestAnimationFrame(() => { this.animate(); });
+		this._animateFrames++;
 	}
 
 	private initServerTalk() : void {
@@ -148,7 +149,10 @@ class Game {
 
 				if (!wasmHas(space, id)) {
 					wasmAdd(space, id, { Pos: object[posProp], Dim: object[dimProp] });
-					const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 32, 15), this._objectMaterial);	
+					const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 6, 4), this._bombMaterial);
+					mesh.rotation.x = Math.random() * Math.PI;	
+					mesh.rotation.y = Math.random() * Math.PI;	
+					mesh.rotation.z = Math.random() * Math.PI;	
 					mesh.receiveShadow = true;
 
 					this._currentObjects.add(sid(space, id));

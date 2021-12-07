@@ -12,6 +12,7 @@ class Game {
         this._meMaterial = new THREE.MeshToonMaterial({ color: 0xff0000 });
         this._otherMaterial = new THREE.MeshToonMaterial({ color: 0x00ff00 });
         this._objectMaterial = new THREE.MeshToonMaterial({ color: 0x777777 });
+        this._bombMaterial = new THREE.MeshToonMaterial({ color: 0x7777ff, wireframe: true });
         this._meMaterial.shadowSide = THREE.FrontSide;
         this._otherMaterial.shadowSide = THREE.FrontSide;
         this._objectMaterial.shadowSide = THREE.FrontSide;
@@ -41,8 +42,8 @@ class Game {
         this.extrapolateState();
         this.updateCamera();
         this._renderer.render();
-        this._animateFrames++;
         requestAnimationFrame(() => { this.animate(); });
+        this._animateFrames++;
     }
     initServerTalk() {
         this._connection.addHandler(gameStateType, (msg) => { this.updateGameState(msg); });
@@ -115,7 +116,10 @@ class Game {
                 const id = Number(stringId);
                 if (!wasmHas(space, id)) {
                     wasmAdd(space, id, { Pos: object[posProp], Dim: object[dimProp] });
-                    const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 32, 15), this._objectMaterial);
+                    const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 6, 4), this._bombMaterial);
+                    mesh.rotation.x = Math.random() * Math.PI;
+                    mesh.rotation.y = Math.random() * Math.PI;
+                    mesh.rotation.z = Math.random() * Math.PI;
                     mesh.receiveShadow = true;
                     this._currentObjects.add(sid(space, id));
                     this._renderer.add(space, id, mesh);
