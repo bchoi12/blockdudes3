@@ -12,7 +12,7 @@ const (
 )
 
 type Weapon2 interface {
-	getColliderOptions() LineColliderOptions
+	getColliderOptions() ColliderOptions
 
 	canShoot(now time.Time) bool
 	bursting(now time.Time) bool
@@ -78,14 +78,14 @@ func (w *Weapon) bursting(now time.Time) bool {
 	return w.bursts > 0 && w.bursts < w.maxBursts && now.Sub(w.lastBurst) >= w.burstTime
 }
 
-func (w *Weapon) colliderOptions() LineColliderOptions {
+func (w *Weapon) colliderOptions() ColliderOptions {
 	switch w.class {
 	case spaceBurst:
-		return LineColliderOptions {
+		return ColliderOptions {
 			self: w.sid,
 		}
 	case spaceBlast:
-		return LineColliderOptions {
+		return ColliderOptions {
 			self: w.sid,
 			ignore: map[SpaceType]bool { playerSpace: true },
 		}

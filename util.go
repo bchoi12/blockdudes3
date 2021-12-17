@@ -85,3 +85,21 @@ func Sign(n float64) int {
 func Clamp(min, n, max float64) float64 {
 	return Max(Min(min, n), max)
 }
+
+func And(bools ...bool) bool {
+	for _, b := range(bools) {
+		if !b {
+			return false 
+		}
+	}
+	return true
+}
+
+func Or(bools ...bool) bool {
+	for _, b := range(bools) {
+		if b {
+			return true
+		}
+	}
+	return false
+}

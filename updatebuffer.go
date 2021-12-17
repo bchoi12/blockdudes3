@@ -22,24 +22,7 @@ func NewUpdateBuffer() *UpdateBuffer {
 
 func (ub *UpdateBuffer) process(grid *Grid) {
 	for _, shot := range(ub.rawShots) {
-		collision, hit := grid.getLineCollider(shot.line, shot.weapon.colliderOptions())
-		if collision {
-			shot.hits = append(shot.hits, hit)
-			shot.line.Scale(hit.t)
-
-			if shot.weapon.class == spaceBlast {
-				bomb := NewBomb(NewInit(grid.NextSpacedId(bombSpace), NewVec2(hit.hit.X, hit.hit.Y), NewVec2(1, 1)))
-				grid.Upsert(bomb)
-			}
-		}
-
-		for _, hit := range(shot.hits) {
-			switch thing := grid.Get(hit.target).(type) {
-			case *Player:
-				thing.TakeHit(shot, hit)
-			}
-		}
-
+		shot.Resolve(grid)
 		ub.shots = append(ub.shots, shot.getShotData())
 	}
 

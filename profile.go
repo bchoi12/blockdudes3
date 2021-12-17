@@ -5,7 +5,9 @@ import (
 )
 
 const (
-	collisionEpsilon float64 = 1e-8
+	zeroVelEpsilon float64 = 1e-6
+	overlapEpsilon float64 = 1e-3
+	lastOverlapEpsilon float64 = 0.1
 )
 
 type ProfileOptions struct {
@@ -33,6 +35,7 @@ type Profile interface {
 
 	GetOptions() ProfileOptions
 	SetOptions(options ProfileOptions)
+	Solid() bool
 
 	DistX(profile Profile) float64
 	DistY(profile Profile) float64
@@ -41,73 +44,74 @@ type Profile interface {
 	OverlapX(profile Profile) float64
 	OverlapY(profile Profile) float64
 
-	// Not implemented by shape
+	// Not implemented by BaseProfile
 	Intersects(line Line) (bool, float64)
 	Overlap(profile Profile) float64
-	Snap(profile Profile, lastPos Vec2) (float64, float64)
+	Snap(profile Profile, lastProfile Profile) (float64, float64)
 }
 
-type Shape struct {
+type BaseProfile struct {
 	options ProfileOptions
 	pos, vel, evel, acc, dim Vec2
 }
 
-func (s Shape) Pos() Vec2 { return s.pos }
-func (s *Shape) SetPos(pos Vec2) { s.pos = pos }
-func (s Shape) Vel() Vec2 { return s.vel }
-func (s *Shape) SetVel(vel Vec2) { s.vel = vel }
-func (s Shape) ExtVel() Vec2 { return s.evel }
-func (s *Shape) SetExtVel(evel Vec2) { s.evel = evel }
-func (s Shape) TotalVel() Vec2 {
-	total := s.vel
-	total.Add(s.evel, 1)
+func (bp BaseProfile) Pos() Vec2 { return bp.pos }
+func (bp *BaseProfile) SetPos(pos Vec2) { bp.pos = pos }
+func (bp BaseProfile) Vel() Vec2 { return bp.vel }
+func (bp *BaseProfile) SetVel(vel Vec2) { bp.vel = vel }
+func (bp BaseProfile) ExtVel() Vec2 { return bp.evel }
+func (bp *BaseProfile) SetExtVel(evel Vec2) { bp.evel = evel }
+func (bp BaseProfile) TotalVel() Vec2 {
+	total := bp.vel
+	total.Add(bp.evel, 1)
 	return total
 }
-func (s Shape) Acc() Vec2 { return s.acc }
-func (s *Shape) SetAcc(acc Vec2) { s.acc = acc }
+func (bp BaseProfile) Acc() Vec2 { return bp.acc }
+func (bp *BaseProfile) SetAcc(acc Vec2) { bp.acc = acc }
 
-func (s *Shape) SetData(od ObjectData) {
+func (bp *BaseProfile) SetData(od ObjectData) {
 	if od.Has(dimProp) {
-		s.SetDim(od.Get(dimProp).(Vec2))
+		bp.SetDim(od.Get(dimProp).(Vec2))
 	}
 	if od.Has(posProp) {
-		s.SetPos(od.Get(posProp).(Vec2))
+		bp.SetPos(od.Get(posProp).(Vec2))
 	}
 	if od.Has(velProp) {
-		s.SetVel(od.Get(velProp).(Vec2))
+		bp.SetVel(od.Get(velProp).(Vec2))
 	}
 	if od.Has(extVelProp) {
-		s.SetExtVel(od.Get(extVelProp).(Vec2))
+		bp.SetExtVel(od.Get(extVelProp).(Vec2))
 	}
 	if od.Has(accProp) {
-		s.SetAcc(od.Get(accProp).(Vec2))
+		bp.SetAcc(od.Get(accProp).(Vec2))
 	}
 }
 
-func (s Shape) Dim() Vec2 { return s.dim }
-func (s *Shape) SetDim(dim Vec2) { s.dim = dim }
-func (s Shape) Width() float64 { return s.dim.X }
-func (s Shape) Height() float64 { return s.dim.Y }
-func (s Shape) GetOptions() ProfileOptions { return s.options }
-func (s *Shape) SetOptions(options ProfileOptions) { s.options = options }
+func (bp BaseProfile) Dim() Vec2 { return bp.dim }
+func (bp *BaseProfile) SetDim(dim Vec2) { bp.dim = dim }
+func (bp BaseProfile) Width() float64 { return bp.dim.X }
+func (bp BaseProfile) Height() float64 { return bp.dim.Y }
+func (bp BaseProfile) GetOptions() ProfileOptions { return bp.options }
+func (bp *BaseProfile) SetOptions(options ProfileOptions) { bp.options = options }
+func (bp BaseProfile) Solid() bool { return bp.options.solid }
 
-func (s Shape) DistX(profile Profile) float64 {
-	return Abs(profile.Pos().X - s.Pos().X)
+func (bp BaseProfile) DistX(profile Profile) float64 {
+	return Abs(profile.Pos().X - bp.Pos().X)
 }
-func (s Shape) DistY(profile Profile) float64 {
-	return Abs(profile.Pos().Y - s.Pos().Y)
+func (bp BaseProfile) DistY(profile Profile) float64 {
+	return Abs(profile.Pos().Y - bp.Pos().Y)
 }
-func (s Shape) DistSqr(profile Profile) float64 {
-	x := s.DistX(profile)
-	y := s.DistY(profile)
+func (bp BaseProfile) DistSqr(profile Profile) float64 {
+	x := bp.DistX(profile)
+	y := bp.DistY(profile)
 	return x * x + y * y
 }
-func (s Shape) Dist(profile Profile) float64 {
-	return math.Sqrt(s.DistSqr(profile))
+func (bp BaseProfile) Dist(profile Profile) float64 {
+	return math.Sqrt(bp.DistSqr(profile))
 }
-func (s Shape) OverlapX(profile Profile) float64 {
-	return (s.Width()/2 + profile.Width()/2) - s.DistX(profile)
+func (bp BaseProfile) OverlapX(profile Profile) float64 {
+	return (bp.Width()/2 + profile.Width()/2) - bp.DistX(profile)
 }
-func (s Shape) OverlapY(profile Profile) float64 {
-	return (s.Height()/2 + profile.Height()/2) - s.DistY(profile)
+func (bp BaseProfile) OverlapY(profile Profile) float64 {
+	return (bp.Height()/2 + profile.Height()/2) - bp.DistY(profile)
 }

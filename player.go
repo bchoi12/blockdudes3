@@ -25,6 +25,7 @@ const (
 	airResistance = 0.92
 
 	maxJumpFrames int = 20
+	maxCanJumpFrames int = 6
 )
 
 type Player struct {
@@ -35,6 +36,7 @@ type Player struct {
 
 	canDash bool
 	jumpFrames int
+	canJumpFrames int
 	grounded bool
 	walled int
 
@@ -57,6 +59,7 @@ func NewPlayer(init Init) *Player {
 
 		canDash: true,
 		jumpFrames: 0,
+		canJumpFrames: 0,
 		grounded: false,
 		walled: 0,
 
@@ -95,19 +98,6 @@ func (p *Player) SetData(od ObjectData) {
 	}
 }
 
-func (p *Player) TakeHit(shot *Shot, hit *Hit) {
-	p.health -= 20
-	if p.health <= 0 {
-		p.respawn()
-	}
-
-	vel := p.Profile.Vel()
-	force := shot.line.R
-	force.Normalize()
-	vel.Add(force, shot.weapon.pushFactor)
-	p.Profile.SetVel(vel)
-}
-
 func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
 	ts := GetTimestep(now, p.lastUpdateTime)
 	if ts < 0 {
@@ -115,13 +105,13 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	}
 	p.lastUpdateTime = now
 
-	lastPos := p.Profile.Pos()
+	lastProfile:= *p.GetProfile().(*Rec2)
 	pos := p.Profile.Pos()
 	vel := p.Profile.Vel()
 	evel := p.Profile.ExtVel()
 	acc := p.Profile.Acc()
 
-	if (pos.Y < -5) {
+	if (p.health <= 0 || pos.Y < -5) {
 		p.respawn()
 		return true
 	}
@@ -160,12 +150,15 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 
 	// Grounded actions
 	if p.grounded {
+		p.canJumpFrames = maxCanJumpFrames
 		p.canDash = true
 
 		// Friction
 		if Sign(acc.X) != Sign(vel.X) {
 			vel.X *= friction
 		}
+	} else {
+		p.canJumpFrames -= 1
 	}
 
 	// Jump & double jump
@@ -173,7 +166,8 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 		p.jumpFrames -= 1
 	}
 	if p.keyPressed(dashKey) {
-		if p.grounded {
+		if p.canJumpFrames > 0 {
+			p.canJumpFrames = 0
 			acc.Y = 0
 			vel.Y = Max(0, vel.Y) + jumpVel
 			p.jumpFrames = maxJumpFrames
@@ -242,7 +236,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	// Move
 	pos.Add(p.Profile.TotalVel(), ts)
 	p.Profile.SetPos(pos)
-	p.checkCollisions(grid, lastPos)
+	p.checkCollisions(grid, &lastProfile)
 
 	// Save state
 	p.lastKeys = p.keys
@@ -258,40 +252,37 @@ func (p *Player) shoot(w *Weapon, key KeyType, grid *Grid, now time.Time) *Shot 
 	return nil
 }
 
-func (p *Player) checkCollisions(grid *Grid, lastPos Vec2) {
+func (p *Player) checkCollisions(grid *Grid, lastProfile Profile) {
 	// Collision detection
 	p.grounded, p.walled = false, 0
-	colliders := grid.getColliders(p.Profile)
+	colliders := grid.GetColliders(p.Profile, ColliderOptions {self: p.GetSpacedId(), solidOnly: true})
 	for len(colliders) > 0 {
-		switch collider := PopThing(&colliders).(type) {
-		case *Object:
-			other := collider.GetProfile()
-			if p.Profile.Overlap(other) <= 0 {
-				continue
-			}
-
-			if collider.GetSpace() == explosionSpace {
-				dir := p.Profile.Pos()
-				dir.Sub(other.Pos(), 1.0)
-				if (dir.IsZero()) {
-					dir.X = 1
-				}
-				dir.Normalize()
-				dir.Scale(20)
-				dir.Add(p.Profile.Vel(), 1.0)
-				p.Profile.SetVel(dir)
-			}
-
-			xadj, yadj := p.Profile.Snap(other, lastPos)
-			if xadj != 0 {
-				p.walled = -int(Sign(xadj))
-			}
-			if yadj > 0 {
-				p.grounded = true
-				p.Profile.SetExtVel(NewVec2(other.Vel().X, other.Vel().Y))
-			}
-		default:
+		other := PopThing(&colliders).GetProfile()
+		if p.Profile.Overlap(other) <= 0 {
 			continue
+		}
+
+		xadj, yadj := p.Profile.Snap(other, lastProfile)
+		if xadj != 0 {
+			p.walled = -int(Sign(xadj))
+		}
+		if yadj > 0 {
+			p.grounded = true
+			p.Profile.SetExtVel(NewVec2(other.Vel().X, other.Vel().Y))
+		}
+	}
+
+	colliders = grid.GetColliders(p.Profile, ColliderOptions {self: p.GetSpacedId()})
+	for len(colliders) > 0 {
+		collider := PopThing(&colliders)
+		other := collider.GetProfile()
+		if p.Profile.Overlap(other) <= 0 {
+			continue
+		}
+
+		switch object := collider.(type) {
+		case *Explosion:
+			object.Hit(p)
 		}
 	}
 }

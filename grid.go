@@ -137,10 +137,25 @@ func (g *Grid) GetThings(space SpaceType) map[IdType]Thing {
 	return g.spacedThings[space]
 }
 
-func (g *Grid) getColliders(prof Profile) ThingHeap {
+type ColliderOptions struct {
+	self SpacedId
+	solidOnly bool
+	ignore map[SpaceType]bool
+}
+func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ThingHeap {
 	heap := make(ThingHeap, 0)
 
 	for sid, thing := range(g.getNearbyThings(prof)) {
+		if options.self == sid {
+			continue
+		}
+		if options.solidOnly && !thing.GetProfile().Solid() {
+			continue
+		}
+		if options.ignore != nil && options.ignore[sid.space] {
+			continue
+		}
+
 		overlap := prof.Overlap(thing.GetProfile())
 		if overlap > 0 {
 			item := &ThingItem {
@@ -154,12 +169,7 @@ func (g *Grid) getColliders(prof Profile) ThingHeap {
 	return heap
 }
 
-type LineColliderOptions struct {
-	self SpacedId
-	ignore map[SpaceType]bool
-}
-
-func (g *Grid) getLineCollider(line Line, options LineColliderOptions) (bool, *Hit) {
+func (g *Grid) GetLineCollider(line Line, options ColliderOptions) (bool, *Hit) {
 	var collision bool
 	hit := &Hit {
 		t: 1.0,

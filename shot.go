@@ -15,6 +15,42 @@ type ShotData struct {
 	Hs []HitData
 }
 
+func (s *Shot) Resolve(grid *Grid) {
+	collision, hit := grid.GetLineCollider(s.line, s.weapon.colliderOptions())
+	if collision {
+		s.hits = append(s.hits, hit)
+		s.line.Scale(hit.t)
+
+		if s.weapon.class == spaceBlast {
+			bomb := NewBomb(NewInit(grid.NextSpacedId(bombSpace), NewVec2(hit.hit.X, hit.hit.Y), NewVec2(1, 1)))
+			if target := grid.Get(hit.target); target != nil {
+				target = target.(*Object)
+				offset := hit.hit
+				offset.Sub(grid.Get(hit.target).GetProfile().Pos(), 1.0)
+				target.AddChild(Attachment {bomb, offset})
+			}
+			grid.Upsert(bomb)
+		}
+	}
+
+	for _, hit := range(s.hits) {
+		target := grid.Get(hit.target)
+		s.Hit(target, grid)
+	}
+}
+
+func (s *Shot) Hit(target Thing, grid *Grid) {
+	switch thing := target.(type) {
+	case *Player:
+		thing.health -= 20
+		vel := thing.Profile.Vel()
+		force := s.line.R
+		force.Normalize()
+		vel.Add(force, s.weapon.pushFactor)
+		thing.Profile.SetVel(vel)
+	}
+}
+
 func (s *Shot) getShotData() ShotData {
 	hits := make([]HitData, len(s.hits))
 	for _, hit := range(s.hits) {

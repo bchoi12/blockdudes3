@@ -30,11 +30,16 @@ type Thing interface {
 	GetProfile() Profile
 	SetProfileOptions(options ProfileOptions)
 
-	TakeHit(shot *Shot, hit *Hit)
+	SetParent(attach Attachment)
+	AddChild(attach Attachment)
+	GetParent() Attachment
+	GetChildren() []Attachment
+
 	UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool
 
-	// WASM only
+	// Called by WASM only
 	SetData(od ObjectData)
+	// For client communication only
 	GetData() ObjectData
 }
 

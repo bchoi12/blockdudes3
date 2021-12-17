@@ -61,7 +61,7 @@ class Game {
 	}
 
 	private animate() : void {
-		this.extrapolateState();
+		// this.extrapolateState();
 		this.updateCamera();
 		this._renderer.render();
 

@@ -1,7 +1,7 @@
 package main
 
 type Rec2 struct {
-	Shape
+	BaseProfile
 }
 
 func Rec2ProfileOptions() ProfileOptions {
@@ -28,7 +28,7 @@ func PlatformProfileOptions() ProfileOptions {
 
 func NewRec2(pos Vec2, dim Vec2) *Rec2 {
 	return &Rec2 {
-		Shape {
+		BaseProfile {
 			options: Rec2ProfileOptions(),
 			pos: pos,
 			dim: dim,
@@ -90,7 +90,7 @@ func (r Rec2) Overlap(profile Profile) float64 {
 	}
 }
 
-func (r *Rec2) Snap(profile Profile, lastPos Vec2) (float64, float64) {
+func (r *Rec2) Snap(profile Profile, lastProfile Profile) (float64, float64) {
 	switch other := profile.(type) {
 	case *Rec2:
 		options := other.GetOptions()
@@ -108,24 +108,46 @@ func (r *Rec2) Snap(profile Profile, lastPos Vec2) (float64, float64) {
 			return 0, 0
 		}
 
-		pos := r.Pos()
-		tvel := r.TotalVel()
-		xcollision, ycollision := false, false
-		relativeVel := NewVec2(tvel.X - other.TotalVel().X, tvel.Y - other.TotalVel().Y)
-		if Abs(relativeVel.X) < collisionEpsilon && Abs(relativeVel.Y) > collisionEpsilon {
-			ycollision = Sign(relativeVel.Y) == Sign(other.Pos().Y - pos.Y)
-		} else if Abs(relativeVel.X) > collisionEpsilon && Abs(relativeVel.Y) < collisionEpsilon {
-			xcollision = Sign(relativeVel.X) == Sign(other.Pos().X - pos.X)
-		} else if Abs(relativeVel.X) > collisionEpsilon && Abs(relativeVel.Y) > collisionEpsilon {
-			xcollision = Abs(ox / relativeVel.X) <= Abs(oy / relativeVel.Y) && Sign(relativeVel.X) == Sign(other.Pos().X - pos.X)
-			ycollision = Abs(ox / relativeVel.X) >= Abs(oy / relativeVel.Y) && Sign(relativeVel.Y) == Sign(other.Pos().Y - pos.Y)
+		relativeVel := NewVec2(r.TotalVel().X - other.TotalVel().X, r.TotalVel().Y - other.TotalVel().Y)
+		collideTop := options.collideTop && relativeVel.Y <= zeroVelEpsilon && lastProfile.OverlapY(other) <= lastOverlapEpsilon
+		collideBottom := options.collideBottom && relativeVel.Y >= zeroVelEpsilon && lastProfile.OverlapY(other) <= lastOverlapEpsilon
+		collideLeft := options.collideLeft && relativeVel.X >= zeroVelEpsilon && lastProfile.OverlapX(other) <= lastOverlapEpsilon
+		collideRight := options.collideRight && relativeVel.X <= zeroVelEpsilon && lastProfile.OverlapX(other) <= lastOverlapEpsilon
+
+		if !Or(collideTop, collideBottom, collideLeft, collideRight) {
+			return 0, 0
+		}
+
+		xcollision, ycollision := true, true
+		if oy <= overlapEpsilon || Abs(relativeVel.X) < zeroVelEpsilon || !Or(collideLeft, collideRight) {
+			xcollision = false
+		}
+		if ox <= overlapEpsilon || Abs(relativeVel.Y) < zeroVelEpsilon || !Or(collideTop, collideBottom) {
+			ycollision = false
+		}
+
+		if !xcollision && !ycollision {
+			return 0, 0
+		}
+
+		if xcollision && ycollision { 
+			tx := Abs(ox / relativeVel.X)
+			ty := Abs(oy / relativeVel.Y)
+
+			if tx < ty {
+				xcollision = false
+			}
+			if ty < tx {
+				ycollision = false
+			}
 		}
 
 		xadj, yadj := 0.0, 0.0
+		pos := r.Pos()
 		vel := r.Vel()
 		if xcollision {
 			xadj = float64(Sign(pos.X - other.Pos().X)) * ox
-			if !options.collideLeft && xadj > 0 || !options.collideRight && xadj < 0 {
+			if !collideLeft && xadj < 0 || !collideRight && xadj > 0 {
 				xadj = 0
 			} else {
 				pos.Add(NewVec2(xadj, 0), 1.0)
@@ -139,9 +161,7 @@ func (r *Rec2) Snap(profile Profile, lastPos Vec2) (float64, float64) {
 		}
 		if ycollision {
 			yadj = float64(Sign(pos.Y - other.Pos().Y)) * oy
-			if !options.collideTop && yadj > 0 || !options.collideBottom && yadj < 0 {
-				yadj = 0
-			} else if options.collideTop && !options.collideBottom && lastPos.Y - r.Dim().Y / 2 < other.Pos().Y {
+			if !collideBottom && yadj < 0 || !collideTop && yadj > 0 {
 				yadj = 0
 			} else {
 				pos.Add(NewVec2(0, yadj), 1.0)

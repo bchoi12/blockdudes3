@@ -6,17 +6,5 @@
         "removeComments": true,
         "rootDir": "ts"
     },
-    "files": [
-        "ts/app.ts",
-        "ts/connection.ts",
-        "ts/constants.ts",
-        "ts/game.ts",
-        "ts/pinger.ts",
-        "ts/player.ts",
-        "ts/renderer.ts",
-        "ts/scene.ts",
-        "ts/ui.ts",
-        "ts/util.ts",
-        "ts/voice.ts",
-    ]
+    "include": ["ts/*.ts"],
 }

@@ -1,7 +1,7 @@
 package main
 
 type Circle struct {
-	Shape
+	BaseProfile
 }
 
 func CircleProfileOptions() ProfileOptions {
@@ -12,7 +12,7 @@ func CircleProfileOptions() ProfileOptions {
 
 func NewCircle(pos Vec2, dim Vec2) *Circle {
 	return &Circle {
-		Shape {
+		BaseProfile {
 			options: CircleProfileOptions(),
 			pos: pos,
 			dim: dim,
@@ -24,7 +24,7 @@ func NewCircle(pos Vec2, dim Vec2) *Circle {
 }
 
 func (c Circle) Radius() float64 {
-	return c.Shape.dim.X
+	return c.BaseProfile.dim.X
 }
 
 func (c Circle) RadiusSqr() float64 {
@@ -51,10 +51,10 @@ func (c Circle) Overlap(profile Profile) float64 {
 	}
 }
 
-func (c *Circle) Snap(profile Profile, lastPos Vec2) (float64, float64) {
+func (c *Circle) Snap(profile Profile, lastProfile Profile) (float64, float64) {
 	switch other := profile.(type) {
 	case *Rec2:
-		return other.Snap(c, lastPos)
+		return other.Snap(c, lastProfile)
 	case *Circle:
 		return 0, 0
 	default:
