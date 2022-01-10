@@ -126,6 +126,11 @@ func (r *Rec2) Snap(profile Profile, lastProfile Profile) (float64, float64) {
 			ycollision = false
 		}
 
+		if ox <= overlapEpsilon && oy <= overlapEpsilon {
+			xcollision = true
+			ycollision = false
+		}
+
 		if !xcollision && !ycollision {
 			return 0, 0
 		}
@@ -146,7 +151,10 @@ func (r *Rec2) Snap(profile Profile, lastProfile Profile) (float64, float64) {
 		pos := r.Pos()
 		vel := r.Vel()
 		if xcollision {
-			xadj = float64(Sign(pos.X - other.Pos().X)) * ox
+			xadj = ox
+			if pos.X < other.Pos().X {
+				xadj = -xadj
+			}
 			if !collideLeft && xadj < 0 || !collideRight && xadj > 0 {
 				xadj = 0
 			} else {
@@ -160,7 +168,10 @@ func (r *Rec2) Snap(profile Profile, lastProfile Profile) (float64, float64) {
 			}
 		}
 		if ycollision {
-			yadj = float64(Sign(pos.Y - other.Pos().Y)) * oy
+			yadj = oy
+			if pos.Y < other.Pos().Y {
+				yadj = -yadj
+			}
 			if !collideBottom && yadj < 0 || !collideTop && yadj > 0 {
 				yadj = 0
 			} else {

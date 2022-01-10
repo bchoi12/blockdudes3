@@ -27,11 +27,16 @@ function space(sid : string) : number {
 function id(sid : string) : number {
 	return Number(sid.split(",")[1])
 }
+function arrayToString(array : Array<number>) : string {
+	return array.join(",");
+}
 
-function mapToJSON(map : Map<any, any>) : any {
-	const object = {};
-	for (const [key, value] of Object.entries(map) as [string, any]) {
-		object[key] = value;
+function normalize(radians : number) : number {
+	if (radians >= 2 * Math.PI) {
+		radians -= Math.floor(radians / (2 * Math.PI)) * 2 * Math.PI;
 	}
-    return object;
+	if (radians < 0) {
+		radians += (Math.floor(-radians / (2 * Math.PI))+1) * 2 * Math.PI;
+	}
+	return radians;
 }

@@ -6,7 +6,7 @@ var Layer;
 class Renderer {
     constructor(canvas) {
         this._cameraOffsetY = 1.2;
-        this._cameraOffsetZ = 13.0;
+        this._cameraOffsetZ = 12.0;
         this._canvas = canvas;
         this._scene = new Scene();
         this._camera = new THREE.PerspectiveCamera(45, this._canvas.offsetWidth / this._canvas.offsetHeight, 0.1, 1000);
@@ -16,6 +16,7 @@ class Renderer {
         this._renderer.shadowMap.enabled = true;
         this.resizeCanvas();
         window.onresize = () => { this.resizeCanvas(); };
+        this._loader = new THREE.GLTFLoader();
         this._mousePixels = new THREE.Vector3(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2, 0);
     }
     elm() { return this._canvas; }
@@ -23,8 +24,13 @@ class Renderer {
         this._renderer.render(this._scene.scene(), this._camera);
     }
     setCamera(player, adj) {
+        if (this._camera.position.distanceToSquared(player) < 1) {
+            this._camera.position.x = player.x + adj.x;
+            this._camera.position.y = Math.max(this._cameraOffsetY, player.y + adj.y + this._cameraOffsetY);
+        }
         this._camera.position.x = player.x + adj.x;
-        this._camera.position.y = Math.max(this._cameraOffsetY, player.y + adj.y + this._cameraOffsetY);
+        this._camera.position.y = player.y + adj.y + this._cameraOffsetY;
+        this._camera.position.y = Math.max(this._camera.position.y, this._cameraOffsetY);
         this._scene.setPlayerPosition(player);
     }
     setMouseFromPixels(mouse) {
@@ -47,15 +53,7 @@ class Renderer {
         mouseWorld.add(mouse.multiplyScalar(distance));
         return mouseWorld;
     }
-    add(space, id, mesh) { this._scene.add(space, id, mesh); }
-    has(space, id) { return this._scene.has(space, id); }
-    get(space, id) { return this._scene.get(space, id); }
-    delete(space, id) { this._scene.delete(space, id); }
-    clear(space) { this._scene.clear(space); }
-    clearObjects() { this._scene.clearObjects(); }
-    updatePlayer(id, msg) { this._scene.updatePlayer(id, msg); }
-    updatePosition(space, id, x, y) { this._scene.updatePosition(space, id, x, y); }
-    renderShots(shots) { this._scene.renderShots(shots); }
+    scene() { return this._scene; }
     resizeCanvas() {
         const width = window.innerWidth;
         const height = window.innerHeight;

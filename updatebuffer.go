@@ -21,9 +21,11 @@ func NewUpdateBuffer() *UpdateBuffer {
 }
 
 func (ub *UpdateBuffer) process(grid *Grid) {
-	for _, shot := range(ub.rawShots) {
-		shot.Resolve(grid)
-		ub.shots = append(ub.shots, shot.getShotData())
+	if !isWasm {
+		for _, shot := range(ub.rawShots) {
+			shot.Resolve(grid)
+			ub.shots = append(ub.shots, shot.getShotData())
+		}
 	}
 
 	for sid, t := range(ub.rawThings) {

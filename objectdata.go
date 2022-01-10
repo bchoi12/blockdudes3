@@ -7,6 +7,8 @@ const (
 	spaceProp
 	dimProp
 
+	keysProp
+
 	posProp
 	velProp
 	extVelProp

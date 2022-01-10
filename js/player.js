@@ -1,2 +1,6 @@
-class Player extends THREE.Mesh {
+class RenderObject extends THREE.Mesh {
+    constructor() {
+        super();
+        debug(this);
+    }
 }

@@ -9,15 +9,16 @@ class Game {
         this._extendCameraYThreshold = 0.8;
         this._extendCameraX = 0.0;
         this._extendCameraY = 0.0;
-        this._meMaterial = new THREE.MeshToonMaterial({ color: 0xff0000 });
-        this._otherMaterial = new THREE.MeshToonMaterial({ color: 0x00ff00 });
-        this._objectMaterial = new THREE.MeshToonMaterial({ color: 0x777777 });
-        this._bombMaterial = new THREE.MeshToonMaterial({ color: 0x7777ff, wireframe: true });
+        this._meMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        this._otherMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+        this._objectMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+        this._bombMaterial = new THREE.MeshStandardMaterial({ color: 0x7777ff, wireframe: true });
         this._meMaterial.shadowSide = THREE.FrontSide;
         this._otherMaterial.shadowSide = THREE.FrontSide;
         this._objectMaterial.shadowSide = THREE.FrontSide;
         this._ui = ui;
         this._renderer = this._ui.renderer();
+        this._loader = new Loader();
         this._connection = connection;
         this._keyUpdates = 0;
         this._lastGameUpdate = 0;
@@ -39,6 +40,7 @@ class Game {
         updateStats();
     }
     animate() {
+        this.extrapolateState();
         this.updateCamera();
         this._renderer.render();
         requestAnimationFrame(() => { this.animate(); });
@@ -59,49 +61,37 @@ class Game {
             this._connection.sendData(msg);
         }, frameMillis);
     }
-    updatePlayers(msg) {
-        const addPlayer = (initData) => {
-            const id = initData.Id;
-            if (wasmHas(playerSpace, id))
-                return;
-            const material = id == this._id ? this._meMaterial : this._otherMaterial;
-            const depth = 0.2;
-            const playerMesh = new THREE.Mesh(new THREE.BoxGeometry(initData.Dim.X, initData.Dim.Y, depth), material);
-            playerMesh.position.x = initData.Pos.X;
-            playerMesh.position.y = initData.Pos.Y;
-            playerMesh.castShadow = true;
-            playerMesh.receiveShadow = true;
-            const outerHand = new THREE.Mesh(new THREE.SphereGeometry(0.1), material);
-            outerHand.position.z = depth / 2;
-            outerHand.castShadow = true;
-            outerHand.receiveShadow = true;
-            playerMesh.add(outerHand);
-            const innerHand = new THREE.Mesh(new THREE.SphereGeometry(0.1), material);
-            innerHand.position.z = depth / 2;
-            innerHand.castShadow = true;
-            innerHand.receiveShadow = true;
-            playerMesh.add(innerHand);
-            this._renderer.add(playerSpace, id, playerMesh);
+    addPlayer(initData) {
+        const id = initData.Id;
+        if (wasmHas(playerSpace, id))
+            return;
+        this._loader.load(Model.CHICKEN, (mesh) => {
+            const player = new RenderPlayer(mesh);
+            player.mesh().position.x = initData.Pos.X;
+            player.mesh().position.y = initData.Pos.Y;
+            this._renderer.scene().add(playerSpace, id, player);
             wasmAdd(playerSpace, id, initData);
-        };
-        const deletePlayer = (id) => {
-            this._renderer.delete(playerSpace, id);
-            wasmDelete(playerSpace, id);
-        };
+        });
+    }
+    deletePlayer(id) {
+        this._renderer.scene().delete(playerSpace, id);
+        wasmDelete(playerSpace, id);
+    }
+    updatePlayers(msg) {
         switch (msg.T) {
             case playerInitType:
                 this._id = msg.Id;
                 msg.Ps.forEach((initData) => {
-                    addPlayer(initData);
+                    this.addPlayer(initData);
                 });
                 break;
             case playerJoinType:
                 msg.Ps.forEach((initData) => {
-                    addPlayer(initData);
+                    this.addPlayer(initData);
                 });
                 break;
             case leftType:
-                deletePlayer(msg.Client.Id);
+                this.deletePlayer(msg.Client.Id);
                 break;
         }
     }
@@ -120,50 +110,56 @@ class Game {
                     mesh.rotation.y = Math.random() * Math.PI;
                     mesh.rotation.z = Math.random() * Math.PI;
                     mesh.receiveShadow = true;
+                    const renderObj = new RenderObject(mesh);
                     this._currentObjects.add(sid(space, id));
-                    this._renderer.add(space, id, mesh);
+                    this._renderer.scene().add(space, id, renderObj);
                 }
                 deleteObjects.delete(sid(space, id));
                 wasmSetData(space, id, object);
-                this._renderer.updatePosition(space, id, object[posProp].X, object[posProp].Y);
+                this._renderer.scene().update(space, id, object);
             }
         }
         deleteObjects.forEach((sid) => {
             this._currentObjects.delete(sid);
-            this._renderer.delete(space(sid), id(sid));
+            this._renderer.scene().delete(space(sid), id(sid));
             wasmDelete(space(sid), id(sid));
         });
         for (const [stringId, player] of Object.entries(msg.Ps)) {
             const id = Number(stringId);
             wasmSetData(playerSpace, id, player);
-            this._renderer.updatePlayer(id, player);
+            this._renderer.scene().update(playerSpace, id, player);
         }
         if (msg.Ss.length > 0) {
-            this._renderer.renderShots(msg.Ss);
+            this._renderer.scene().renderShots(msg.Ss);
         }
         this._lastGameUpdate = msg.S;
     }
     extrapolateState() {
+        const msg = this._ui.createKeyMsg();
+        const data = new Map();
+        data[keysProp] = arrayToString(msg.Key.K);
+        data[dirProp] = msg.Key.M;
+        wasmSetData(playerSpace, this._id, data);
         const state = JSON.parse(wasmUpdateState());
         for (const [stringSpace, objects] of Object.entries(state.Os)) {
             for (const [stringId, object] of Object.entries(objects)) {
                 const space = Number(stringSpace);
                 const id = Number(stringId);
-                if (!this._renderer.has(space, id))
+                if (!this._renderer.scene().has(space, id))
                     continue;
-                this._renderer.updatePosition(space, id, object[posProp].X, object[posProp].Y);
+                this._renderer.scene().update(space, id, object);
             }
         }
         for (const [stringId, player] of Object.entries(state.Ps)) {
             const id = Number(stringId);
-            if (!this._renderer.has(playerSpace, id))
+            if (!this._renderer.scene().has(playerSpace, id))
                 continue;
-            this._renderer.updatePosition(playerSpace, id, player[posProp].X, player[posProp].Y);
+            this._renderer.scene().update(playerSpace, id, player);
         }
     }
     initLevel(msg) {
         this._currentObjects.clear();
-        this._renderer.clearObjects();
+        this._renderer.scene().clearObjects();
         const objects = JSON.parse(wasmLoadLevel(msg.L));
         objects.Os.forEach((initData) => {
             const id = initData.Id;
@@ -171,24 +167,19 @@ class Game {
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(initData.Dim.X, initData.Dim.Y, 1.0), this._objectMaterial);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
-            this._renderer.add(space, id, mesh);
-            this._renderer.updatePosition(space, id, initData.Pos.X, initData.Pos.Y);
+            const renderObj = new RenderObject(mesh);
+            mesh.position.x = initData.Pos.X;
+            mesh.position.y = initData.Pos.Y;
+            this._renderer.scene().add(space, id, renderObj);
         });
     }
     updateCamera() {
         if (!defined(this._id))
             return;
-        if (!this._renderer.has(playerSpace, this._id))
+        if (!this._renderer.scene().has(playerSpace, this._id))
             return;
-        const playerRender = this._renderer.get(playerSpace, this._id);
-        const mouse = this._renderer.getMouseScreen();
+        const playerRender = this._renderer.scene().get(playerSpace, this._id);
         const adj = new THREE.Vector3();
-        if (Math.abs(mouse.x) > this._extendCameraXThreshold) {
-            adj.x = Math.sign(mouse.x) * (Math.abs(mouse.x) - this._extendCameraXThreshold) / (1 - this._extendCameraXThreshold) * this._extendCameraX;
-        }
-        if (Math.abs(mouse.y) > this._extendCameraYThreshold) {
-            adj.y = Math.sign(mouse.y) * (Math.abs(mouse.y) - this._extendCameraYThreshold) / (1 - this._extendCameraYThreshold) * this._extendCameraY;
-        }
-        this._renderer.setCamera(playerRender.position, adj);
+        this._renderer.setCamera(playerRender.mesh().position, adj);
     }
 }

@@ -19,8 +19,6 @@ class UI {
         this._connection.addHandler(joinVoiceType, (msg) => { this.updateClients(msg); });
         this._connection.addHandler(leftVoiceType, (msg) => { this.updateClients(msg); });
         this._mode = InputMode.PAUSE;
-        this._mouse = new THREE.Vector3();
-        this._keys = new Set();
         this._keyMap = new Map();
         this._keyMap.set(38, upKey);
         this._keyMap.set(87, upKey);
@@ -43,12 +41,11 @@ class UI {
     toggleVoice() {
         this._voice.toggleVoice();
     }
-    keys() { return this._keys; }
     createKeyMsg() {
         const msg = {
             T: keyType,
             Key: {
-                K: Array.from(this._keys),
+                K: Array.from(g_keys),
                 M: {},
             },
         };
@@ -101,8 +98,8 @@ class UI {
             this.pointerLock();
         }
         else {
-            if (this._keys.size > 0) {
-                this._keys.clear();
+            if (g_keys.size > 0) {
+                g_keys.clear();
             }
         }
     }
@@ -190,8 +187,8 @@ class UI {
             if (!this._keyMap.has(e.keyCode))
                 return;
             const key = this._keyMap.get(e.keyCode);
-            if (!this._keys.has(key)) {
-                this._keys.add(key);
+            if (!g_keys.has(key)) {
+                g_keys.add(key);
             }
         };
         const releaseKey = (e) => {
@@ -205,8 +202,8 @@ class UI {
             if (!this._keyMap.has(e.keyCode))
                 return;
             const key = this._keyMap.get(e.keyCode);
-            if (this._keys.has(key)) {
-                this._keys.delete(key);
+            if (g_keys.has(key)) {
+                g_keys.delete(key);
             }
         };
         document.addEventListener('keydown', recordKey);
@@ -218,31 +215,31 @@ class UI {
                 if (elm("cursor").style.visibility != "hidden") {
                     elm("cursor").style.visibility = "hidden";
                 }
-                this._mouse.x = e.clientX;
-                this._mouse.y = e.clientY;
+                g_mouse.x = e.clientX;
+                g_mouse.y = e.clientY;
             }
             else {
                 if (elm("cursor").style.visibility != "visible") {
                     elm("cursor").style.visibility = "visible";
                 }
-                this._mouse.x += e.movementX;
-                this._mouse.y += e.movementY;
+                g_mouse.x += e.movementX;
+                g_mouse.y += e.movementY;
             }
-            if (this._mouse.x > window.innerWidth) {
-                this._mouse.x = window.innerWidth;
+            if (g_mouse.x > window.innerWidth) {
+                g_mouse.x = window.innerWidth;
             }
-            else if (this._mouse.x < 0) {
-                this._mouse.x = 0;
+            else if (g_mouse.x < 0) {
+                g_mouse.x = 0;
             }
-            if (this._mouse.y > window.innerHeight) {
-                this._mouse.y = window.innerHeight;
+            if (g_mouse.y > window.innerHeight) {
+                g_mouse.y = window.innerHeight;
             }
-            else if (this._mouse.y < 0) {
-                this._mouse.y = 0;
+            else if (g_mouse.y < 0) {
+                g_mouse.y = 0;
             }
-            elm("cursor").style.left = (this._mouse.x - this._cursorWidth / 2) + "px";
-            elm("cursor").style.top = (this._mouse.y - this._cursorHeight / 2) + "px";
-            this._renderer.setMouseFromPixels(this._mouse);
+            elm("cursor").style.left = (g_mouse.x - this._cursorWidth / 2) + "px";
+            elm("cursor").style.top = (g_mouse.y - this._cursorHeight / 2) + "px";
+            this._renderer.setMouseFromPixels(g_mouse);
         };
         document.addEventListener('mousemove', recordMouse);
         document.onmousedown = (e) => {
@@ -253,8 +250,8 @@ class UI {
             if ("which" in e && e.which == 3 || "button" in e && e.button == 2) {
                 button = altMouseClick;
             }
-            if (!this._keys.has(button)) {
-                this._keys.add(button);
+            if (!g_keys.has(button)) {
+                g_keys.add(button);
             }
         };
         document.onmouseup = (e) => {
@@ -265,7 +262,7 @@ class UI {
             if ("which" in e && e.which == 3 || "button" in e && e.button == 2) {
                 button = altMouseClick;
             }
-            this._keys.delete(button);
+            g_keys.delete(button);
         };
         elm("overlay").onclick = (e) => {
             if (this._mode != InputMode.PAUSE) {

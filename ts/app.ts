@@ -39,3 +39,6 @@ function connect() {
 	}
 	startGame();
 }
+
+var g_keys = new Set<number>();
+var g_mouse = new THREE.Vector3();

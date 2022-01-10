@@ -5,7 +5,7 @@ enum Layer {
 
 class Renderer {
 	private readonly _cameraOffsetY = 1.2;
-	private readonly _cameraOffsetZ = 13.0;
+	private readonly _cameraOffsetZ = 12.0;
 
 	private _canvas : HTMLElement
 
@@ -13,6 +13,8 @@ class Renderer {
 	private _camera : any;
 	private _renderer : any;
 	private _composer : any;
+
+	private _loader : any;
 
 	private _mousePixels : any;
 
@@ -30,6 +32,9 @@ class Renderer {
 
 		this.resizeCanvas();
 		window.onresize = () => { this.resizeCanvas(); };
+
+		this._loader = new THREE.GLTFLoader();
+
 
 /*
 		const renderScene = null; // new THREE.RenderPass(this._scene, this._camera)			
@@ -56,8 +61,14 @@ class Renderer {
 	}
 	
 	setCamera(player : any, adj : any) : void {
+		if (this._camera.position.distanceToSquared(player) < 1) {
+			this._camera.position.x = player.x + adj.x;
+			this._camera.position.y = Math.max(this._cameraOffsetY, player.y + adj.y + this._cameraOffsetY);
+		}
+
 		this._camera.position.x = player.x + adj.x;
-		this._camera.position.y = Math.max(this._cameraOffsetY, player.y + adj.y + this._cameraOffsetY);
+		this._camera.position.y = player.y + adj.y + this._cameraOffsetY;
+		this._camera.position.y = Math.max(this._camera.position.y, this._cameraOffsetY);
 
 		this._scene.setPlayerPosition(player);
 	}
@@ -86,16 +97,7 @@ class Renderer {
 		return mouseWorld;
 	}
 
-	add(space : number, id : number, mesh : any) : void { this._scene.add(space, id, mesh); }
-	has(space : number, id : number) : boolean { return this._scene.has(space, id); }
-	get(space : number, id : number) : any { return this._scene.get(space, id); }
-	delete(space : number, id : number) : void { this._scene.delete(space, id); }
-	clear(space : number) : void { this._scene.clear(space); }
-	clearObjects() : void { this._scene.clearObjects(); }
-
-	updatePlayer(id : number, msg : any) : void { this._scene.updatePlayer(id, msg); }
-	updatePosition(space : number, id : number, x : number, y : number) : void { this._scene.updatePosition(space, id, x, y); }
-	renderShots(shots : Array<any>) : void { this._scene.renderShots(shots); }
+	scene() : any { return this._scene; }
 
 	private resizeCanvas() : void {
 		const width = window.innerWidth;

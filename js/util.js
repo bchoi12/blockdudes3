@@ -24,10 +24,15 @@ function space(sid) {
 function id(sid) {
     return Number(sid.split(",")[1]);
 }
-function mapToJSON(map) {
-    const object = {};
-    for (const [key, value] of Object.entries(map)) {
-        object[key] = value;
+function arrayToString(array) {
+    return array.join(",");
+}
+function normalize(radians) {
+    if (radians >= 2 * Math.PI) {
+        radians -= Math.floor(radians / (2 * Math.PI)) * 2 * Math.PI;
     }
-    return object;
+    if (radians < 0) {
+        radians += (Math.floor(-radians / (2 * Math.PI)) + 1) * 2 * Math.PI;
+    }
+    return radians;
 }

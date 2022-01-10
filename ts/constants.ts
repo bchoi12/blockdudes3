@@ -34,14 +34,13 @@ declare var explosionSpace : number;
 
 declare var spaceProp : number;
 declare var dimProp : number;
+declare var keysProp : number;
 declare var posProp : number;
 declare var velProp : number;
 declare var extVelProp : number;
 declare var accProp : number;
 declare var dirProp : number;
 declare var healthProp : number;
-
-declare var propNames : Map<string, any>;
 
 declare var upKey : number;
 declare var downKey : number;

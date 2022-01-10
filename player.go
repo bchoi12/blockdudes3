@@ -14,7 +14,7 @@ const (
 	turnMultiplier = 4.0
 
 	maxUpwardVel = 10.0
-	maxHorizontalVel = 8.0
+	maxHorizontalVel = 10.0
 	maxDownwardVel = -24.0
 	maxVelMultiplier = 0.9
 	extVelMultiplier = 0.98
@@ -93,8 +93,12 @@ func (p *Player) GetData() ObjectData {
 func (p *Player) SetData(od ObjectData) {
 	p.Profile.SetData(od)
 
+	if od.Has(keysProp) {
+		p.lastKeys = p.keys
+		p.keys = od.Get(keysProp).(map[KeyType]bool)
+	}
 	if od.Has(dirProp) {
-		p.mouse = od.Get(dirProp).(Vec2)
+		p.updateMouse(od.Get(dirProp).(Vec2))
 	}
 }
 
