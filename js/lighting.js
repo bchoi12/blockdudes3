@@ -4,9 +4,9 @@ class Lighting {
         this._shadowMapHeight = 1024;
         this._shadowBias = -0.00018;
         this._scene = new THREE.Scene();
-        const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x232323, 1.5);
+        const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x232323, 2.0);
         this._scene.add(hemisphereLight);
-        this._sunLight = new THREE.DirectionalLight(0xfdfbfd, 2.0);
+        this._sunLight = new THREE.DirectionalLight(0xfdfbfd, 1.0);
         this._sunLightOffset = new THREE.Vector3(-50, 50, 50);
         this._sunLight.position.copy(this._sunLightOffset);
         this._sunLight.castShadow = true;

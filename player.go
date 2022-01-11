@@ -87,6 +87,10 @@ func (p *Player) GetData() ObjectData {
 	od.Set(extVelProp, p.Profile.ExtVel())
 	od.Set(accProp, p.Profile.Acc())
 	od.Set(dirProp, p.mouse)
+
+	if len(p.keys) > 0 {
+		od.Set(keysProp, p.keys)
+	}
 	return od
 }
 
@@ -98,7 +102,7 @@ func (p *Player) SetData(od ObjectData) {
 		p.keys = od.Get(keysProp).(map[KeyType]bool)
 	}
 	if od.Has(dirProp) {
-		p.updateMouse(od.Get(dirProp).(Vec2))
+		p.mouse = od.Get(dirProp).(Vec2)
 	}
 }
 
@@ -301,7 +305,7 @@ func (p *Player) respawn() {
 }
 
 func (p *Player) updateKeys(keyMsg KeyMsg) {
-	if keyMsg.S <= p.lastKeyUpdate {
+	if keyMsg.S < p.lastKeyUpdate {
 		return
 	}
 	p.lastKeyUpdate = keyMsg.S

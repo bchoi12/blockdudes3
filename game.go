@@ -51,6 +51,14 @@ func (g *Game) delete(sid SpacedId) {
 	g.grid.Delete(sid)
 }
 
+func (g *Game) getData(sid SpacedId) ObjectData {
+	if !isWasm {
+		panic("getData called outside of WASM")
+	}
+
+	return g.grid.Get(sid).GetData()
+}
+
 func (g *Game) setData(sid SpacedId, od ObjectData) {
 	if !isWasm {
 		panic("setData called outside of WASM")

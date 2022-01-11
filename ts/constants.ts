@@ -54,6 +54,8 @@ declare var altMouseClick : number;
 declare var wasmAdd : any;
 declare var wasmHas : any;
 declare var wasmDelete : any;
+declare var wasmUpdateKeys : any;
+declare var wasmGetData : any;
 declare var wasmSetData : any;
 declare var wasmLoadLevel : any;
 declare var wasmUpdateState : any;

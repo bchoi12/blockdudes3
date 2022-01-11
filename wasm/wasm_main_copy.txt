@@ -79,6 +79,8 @@ func setGameAPI() {
 	js.Global().Set("wasmAdd", Add(game))
 	js.Global().Set("wasmHas", Has(game))
 	js.Global().Set("wasmDelete", Delete(game))
+	js.Global().Set("wasmUpdateKeys", UpdateKeys(game))
+	js.Global().Set("wasmGetData", GetData(game))
 	js.Global().Set("wasmSetData", SetData(game))
 	js.Global().Set("wasmLoadLevel", LoadLevel(game))
 	js.Global().Set("wasmUpdateState", UpdateState(game))
@@ -127,6 +129,49 @@ func Delete(g *Game) js.Func {
 		id := IdType(args[1].Int())
 		g.delete(Id(space, id))
 
+		return nil
+    })
+}
+
+func UpdateKeys(g *Game) js.Func {  
+    return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		if len(args) != 2 {
+			fmt.Println("UpdateKeys: Expected 2 argument(s), got ", len(args))
+			return nil
+		}
+
+		id := IdType(args[0].Int())
+		if !g.has(Id(playerSpace, id)) {
+			fmt.Println("UpdateKeys: Player does not exist: ", id)
+			return nil
+		}
+
+		keyMsg := KeyMsg {
+			K: parseKeysAsArray(args[1].Get("K").String()),
+			M: parseVec2(args[1].Get("M")),
+			S: SeqNumType(args[1].Get("S").Int()),
+		}
+
+		g.processKeyMsg(id, keyMsg)
+		return nil
+    })
+}
+
+func GetData(g *Game) js.Func {  
+    return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		if len(args) != 2 {
+			fmt.Println("SetData: Expected 2 argument(s), got ", len(args))
+			return nil
+		}
+
+		space := SpaceType(args[0].Int())
+		id := IdType(args[1].Int())
+		if !g.has(Id(space, id)) {
+			fmt.Println("GetData: Object does not exist: ", space, id)
+			return nil
+		}
+
+		g.getData(Id(space, id)).Props()
 		return nil
     })
 }
@@ -206,7 +251,7 @@ func getObjectData(data js.Value) ObjectData {
 
 	prop, err = getPropData(data, keysProp)
 	if err == nil {
-		od.Set(keysProp, parseKeys(prop.String()))
+		od.Set(keysProp, parseKeysAsProp(prop.String()))
 	}
 
 	prop, err = getPropData(data, posProp)
@@ -255,8 +300,20 @@ func parseVec2(vec js.Value) Vec2 {
 	return NewVec2(vec.Get("X").Float(), vec.Get("Y").Float())
 }
 
-func parseKeys(keyStr string) map[KeyType]bool {
-	keys := make(map[KeyType]bool, 0)
+func parseKeysAsArray(keyStr string) []KeyType {
+	keys := make([]KeyType, 0)
+	for _, key := range(strings.Split(keyStr, ",")) {
+		int, err := strconv.Atoi(key)
+		if err != nil {
+			continue
+		}
+		keys = append(keys, KeyType(int))
+	}
+	return keys
+}
+
+func parseKeysAsProp(keyStr string) map[KeyType]bool {
+	keys := make(map[KeyType]bool)
 	for _, key := range(strings.Split(keyStr, ",")) {
 		int, err := strconv.Atoi(key)
 		if err != nil {

@@ -63,12 +63,13 @@ class UI {
 		this._voice.toggleVoice();
 	}
 
-	createKeyMsg() : any {
+	createKeyMsg(seqNum : number) : any {
 		const msg = {
 			T: keyType,
 			Key: {
 				K: Array.from(g_keys),
 				M: {},
+				S: seqNum,
 			},
 		};
 
@@ -78,8 +79,15 @@ class UI {
 				X: mouse.x,
 				Y: mouse.y,
 			}
-		}	
+		}
+
 		return msg;
+	}
+
+	createWasmKeyMsg(seqNum : number) : any {
+		let msg = this.createKeyMsg(seqNum);
+		msg.Key.K = arrayToString(msg.Key.K);
+		return msg.Key
 	}
 
 	renderer() : Renderer { return this._renderer; }

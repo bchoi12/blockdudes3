@@ -5,15 +5,8 @@ enum GameState {
 class Game {
 	private readonly _statsInterval = 500;
 
-	private readonly _extendCameraXThreshold = 0.8;
-	private readonly _extendCameraYThreshold = 0.8;
-	private readonly _extendCameraX = 0.0;
-	private readonly _extendCameraY = 0.0;
-
-	private readonly _meMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff} );
-	private readonly _otherMaterial = new THREE.MeshStandardMaterial( { color: 0x00ff00 } );
 	private readonly _objectMaterial = new THREE.MeshStandardMaterial( {color: 0x444444 } );
-	private readonly _bombMaterial = new THREE.MeshStandardMaterial( {color: 0x7777ff, wireframe: true } );
+	private readonly _bombMaterial = new THREE.MeshStandardMaterial( {color: 0x4444bb, wireframe: true } );
 	
 	private _ui : UI;
 	private _renderer : Renderer;
@@ -28,8 +21,6 @@ class Game {
 	private _currentObjects : Set<string>
 
 	constructor(ui : UI, connection : Connection) {
-		this._meMaterial.shadowSide = THREE.FrontSide;
-		this._otherMaterial.shadowSide = THREE.FrontSide;
 		this._objectMaterial.shadowSide = THREE.FrontSide;
 
 		this._ui = ui;
@@ -81,9 +72,8 @@ class Game {
 		this._connection.addSender(keyType, () => {
 			if (!defined(this._id)) return;
 
-			const msg = this._ui.createKeyMsg();
 			this._keyUpdates++;
-			msg.Key.S = this._keyUpdates;
+			const msg = this._ui.createKeyMsg(this._keyUpdates);
 			this._connection.sendData(msg);
 		}, frameMillis);
 	}
@@ -151,6 +141,7 @@ class Game {
 				}
 				deleteObjects.delete(sid(space, id));
 
+				sanitizeWasmData(object);
 				wasmSetData(space, id, object);
 				this._renderer.scene().update(space, id, object);
 			}
@@ -166,6 +157,8 @@ class Game {
 		for (const [stringId, player] of Object.entries(msg.Ps) as [string, any]) {
 			const id = Number(stringId);
 
+
+			sanitizeWasmData(player);
 			wasmSetData(playerSpace, id, player);
 			this._renderer.scene().update(playerSpace, id, player);
 		}
@@ -178,13 +171,12 @@ class Game {
 	}
 
 	private extrapolateState() {
-		const msg = this._ui.createKeyMsg();
-		const data = new Map<number, any>();
-		data[keysProp] = arrayToString(msg.Key.K);
-		data[dirProp] = msg.Key.M;
-		wasmSetData(playerSpace, this._id, data);
-		const state = JSON.parse(wasmUpdateState());
+		if (defined(this._id) && wasmHas(playerSpace, this._id)) {
+			const keyMsg = this._ui.createWasmKeyMsg(this._keyUpdates);
+			wasmUpdateKeys(this._id, keyMsg);
+		}
 
+		const state = JSON.parse(wasmUpdateState());
 		for (const [stringSpace, objects] of Object.entries(state.Os) as [string, any]) {
 			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
 				const space = Number(stringSpace);
@@ -228,15 +220,6 @@ class Game {
 
 		const playerRender = this._renderer.scene().get(playerSpace, this._id);
 		const adj = new THREE.Vector3();
-/*
-		const mouse = this._renderer.getMouseScreen();
-		if (Math.abs(mouse.x) > this._extendCameraXThreshold) {
-			adj.x = Math.sign(mouse.x) * (Math.abs(mouse.x) - this._extendCameraXThreshold) / (1 - this._extendCameraXThreshold) * this._extendCameraX;
-		}
-		if (Math.abs(mouse.y) > this._extendCameraYThreshold) {
-			adj.y = Math.sign(mouse.y) * (Math.abs(mouse.y) - this._extendCameraYThreshold) / (1 - this._extendCameraYThreshold) * this._extendCameraY;
-		}
-*/
 		this._renderer.setCamera(playerRender.mesh().position, adj);
 	}
 }

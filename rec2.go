@@ -119,10 +119,10 @@ func (r *Rec2) Snap(profile Profile, lastProfile Profile) (float64, float64) {
 		}
 
 		xcollision, ycollision := true, true
-		if oy <= overlapEpsilon || Abs(relativeVel.X) < zeroVelEpsilon || !Or(collideLeft, collideRight) {
+		if Abs(relativeVel.X) < zeroVelEpsilon || !Or(collideLeft, collideRight) {
 			xcollision = false
 		}
-		if ox <= overlapEpsilon || Abs(relativeVel.Y) < zeroVelEpsilon || !Or(collideTop, collideBottom) {
+		if Abs(relativeVel.Y) < zeroVelEpsilon || !Or(collideTop, collideBottom) {
 			ycollision = false
 		}
 

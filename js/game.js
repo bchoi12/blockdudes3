@@ -5,16 +5,8 @@ var GameState;
 class Game {
     constructor(ui, connection) {
         this._statsInterval = 500;
-        this._extendCameraXThreshold = 0.8;
-        this._extendCameraYThreshold = 0.8;
-        this._extendCameraX = 0.0;
-        this._extendCameraY = 0.0;
-        this._meMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
-        this._otherMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
         this._objectMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
-        this._bombMaterial = new THREE.MeshStandardMaterial({ color: 0x7777ff, wireframe: true });
-        this._meMaterial.shadowSide = THREE.FrontSide;
-        this._otherMaterial.shadowSide = THREE.FrontSide;
+        this._bombMaterial = new THREE.MeshStandardMaterial({ color: 0x4444bb, wireframe: true });
         this._objectMaterial.shadowSide = THREE.FrontSide;
         this._ui = ui;
         this._renderer = this._ui.renderer();
@@ -55,9 +47,8 @@ class Game {
         this._connection.addSender(keyType, () => {
             if (!defined(this._id))
                 return;
-            const msg = this._ui.createKeyMsg();
             this._keyUpdates++;
-            msg.Key.S = this._keyUpdates;
+            const msg = this._ui.createKeyMsg(this._keyUpdates);
             this._connection.sendData(msg);
         }, frameMillis);
     }
@@ -115,6 +106,7 @@ class Game {
                     this._renderer.scene().add(space, id, renderObj);
                 }
                 deleteObjects.delete(sid(space, id));
+                sanitizeWasmData(object);
                 wasmSetData(space, id, object);
                 this._renderer.scene().update(space, id, object);
             }
@@ -126,6 +118,7 @@ class Game {
         });
         for (const [stringId, player] of Object.entries(msg.Ps)) {
             const id = Number(stringId);
+            sanitizeWasmData(player);
             wasmSetData(playerSpace, id, player);
             this._renderer.scene().update(playerSpace, id, player);
         }
@@ -135,11 +128,10 @@ class Game {
         this._lastGameUpdate = msg.S;
     }
     extrapolateState() {
-        const msg = this._ui.createKeyMsg();
-        const data = new Map();
-        data[keysProp] = arrayToString(msg.Key.K);
-        data[dirProp] = msg.Key.M;
-        wasmSetData(playerSpace, this._id, data);
+        if (defined(this._id) && wasmHas(playerSpace, this._id)) {
+            const keyMsg = this._ui.createWasmKeyMsg(this._keyUpdates);
+            wasmUpdateKeys(this._id, keyMsg);
+        }
         const state = JSON.parse(wasmUpdateState());
         for (const [stringSpace, objects] of Object.entries(state.Os)) {
             for (const [stringId, object] of Object.entries(objects)) {

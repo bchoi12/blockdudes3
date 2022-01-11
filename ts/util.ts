@@ -27,7 +27,7 @@ function space(sid : string) : number {
 function id(sid : string) : number {
 	return Number(sid.split(",")[1])
 }
-function arrayToString(array : Array<number>) : string {
+function arrayToString(array : Array<any>) : string {
 	return array.join(",");
 }
 
@@ -39,4 +39,13 @@ function normalize(radians : number) : number {
 		radians += (Math.floor(-radians / (2 * Math.PI))+1) * 2 * Math.PI;
 	}
 	return radians;
+}
+
+function sanitizeWasmData(msg : any) : void {
+	if (msg.hasOwnProperty(keysProp)) {
+		const keys = Object.keys(msg[keysProp]);
+		if (keys.length > 0) {
+			msg[keysProp] = arrayToString(keys);
+		}
+	}
 }
