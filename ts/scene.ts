@@ -2,9 +2,7 @@ class Scene {
 	private readonly _lineMaterial = new THREE.LineBasicMaterial( { color: 0xffff00 } );
 
 	private _scene : any;
-
 	private _lighting : Lighting;
-
 	private _renders : Map<number, Map<number, RenderObject>>;
 
 	constructor() {
@@ -42,14 +40,16 @@ class Scene {
 
 	delete(space : number, id : number) : void {
 		const map = this.getMap(space);
-		this._scene.remove(map.get(id).mesh());
-		map.delete(id);
+		if (map.has(id)) {
+			this._scene.remove(map.get(id).mesh());
+			map.delete(id);
+		}
 	}
 
 	clear(space : number) : void {
 		const map = this.getMap(space);
 		map.forEach((id, object) => {
-			this._scene.remove(map.get(object));
+			this.delete(space, id);
 		});
 		map.clear();
 	}
@@ -65,6 +65,12 @@ class Scene {
 	update(space : number, id : number, msg : any) : void {
 		const map = this.getMap(space);
 		const object = map.get(id);
+
+		if (!defined(object)) {
+			this.delete(space, id);
+			return;
+		}
+
 		object.update(msg);
 	}
 

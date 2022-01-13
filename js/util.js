@@ -36,11 +36,3 @@ function normalize(radians) {
     }
     return radians;
 }
-function sanitizeWasmData(msg) {
-    if (msg.hasOwnProperty(keysProp)) {
-        const keys = Object.keys(msg[keysProp]);
-        if (keys.length > 0) {
-            msg[keysProp] = arrayToString(keys);
-        }
-    }
-}

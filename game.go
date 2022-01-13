@@ -4,6 +4,10 @@ import (
 	"time"
 )
 
+const (
+	debugMode bool = true
+)
+
 type Game struct {
 	grid *Grid
 	level LevelIdType

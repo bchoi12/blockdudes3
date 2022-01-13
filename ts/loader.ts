@@ -15,7 +15,7 @@ class Loader {
 		this._cache = new Map<Model, any>();
 
 		this._paths = new Map<Model, string>();
-		this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken4.glb");
+		this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken3.glb");
 
 		debug(this._paths);
 	}
@@ -52,17 +52,14 @@ class Loader {
 	}
 
 	private process(model : Model, data : any) : void {
-		const materials = new Map<string, any>();
-
 		switch (model) {
 			case Model.CHICKEN:
 				debug(data);
 				data.scene.animations = data.animations;
-				data.scene.scale.set(0.5, 0.5, 0.5);
-
 				data.scene.getObjectByName("mesh").castShadow = true;
 				data.scene.getObjectByName("mesh").receiveShadow = true;
-				data.scene.getObjectByName("mesh").position.y = 0;
+				data.scene.getObjectByName("profileMesh").visible = false;
+				data.scene.getObjectByName("hitMesh").visible = false;
 				break;
 			default:
 				debug("Model " + model + " could not be processed.");

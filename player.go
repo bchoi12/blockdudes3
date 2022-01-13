@@ -87,10 +87,13 @@ func (p *Player) GetData() ObjectData {
 	od.Set(extVelProp, p.Profile.ExtVel())
 	od.Set(accProp, p.Profile.Acc())
 	od.Set(dirProp, p.mouse)
+	od.Set(keysProp, p.keys)
 
-	if len(p.keys) > 0 {
-		od.Set(keysProp, p.keys)
+	if (debugMode) {
+		od.Set(profilePosProp, p.Profile.Pos())
+		od.Set(profileDimProp, p.Profile.Dim())
 	}
+
 	return od
 }
 
@@ -98,7 +101,6 @@ func (p *Player) SetData(od ObjectData) {
 	p.Profile.SetData(od)
 
 	if od.Has(keysProp) {
-		p.lastKeys = p.keys
 		p.keys = od.Get(keysProp).(map[KeyType]bool)
 	}
 	if od.Has(dirProp) {
@@ -276,7 +278,7 @@ func (p *Player) checkCollisions(grid *Grid, lastProfile Profile) {
 		}
 		if yadj > 0 {
 			p.grounded = true
-			p.Profile.SetExtVel(NewVec2(other.Vel().X, other.Vel().Y))
+			p.Profile.SetExtVel(NewVec2(other.TotalVel().X, other.TotalVel().Y))
 		}
 	}
 
@@ -309,7 +311,7 @@ func (p *Player) updateKeys(keyMsg KeyMsg) {
 		return
 	}
 	p.lastKeyUpdate = keyMsg.S
-	keys := make(map[KeyType]bool, len(keyMsg.K))
+	keys := make(map[KeyType]bool)
 	for _, key := range(keyMsg.K) {
 		keys[key] = true
 	}

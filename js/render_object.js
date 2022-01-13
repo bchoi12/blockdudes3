@@ -1,5 +1,6 @@
 class RenderObject {
     constructor(mesh) {
+        this._debugMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000, wireframe: true });
         this._mesh = mesh;
         this._activeActions = new Set();
     }

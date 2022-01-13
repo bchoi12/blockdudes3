@@ -4,9 +4,8 @@ enum GameState {
 
 class Game {
 	private readonly _statsInterval = 500;
-
 	private readonly _objectMaterial = new THREE.MeshStandardMaterial( {color: 0x444444 } );
-	private readonly _bombMaterial = new THREE.MeshStandardMaterial( {color: 0x4444bb, wireframe: true } );
+	private readonly _bombMaterial = new THREE.MeshStandardMaterial( {color: 0x4444bb} );
 	
 	private _ui : UI;
 	private _renderer : Renderer;
@@ -16,8 +15,10 @@ class Game {
 	private _id : number;
 	private _keyUpdates : number;
 	private _lastGameUpdate : number;
+	private _lastGameUpdateTime : any;
 	private _animateFrames : number;
 
+	private _currentPlayerData : any;
 	private _currentObjects : Set<string>
 
 	constructor(ui : UI, connection : Connection) {
@@ -30,6 +31,7 @@ class Game {
 
 		this._keyUpdates = 0;
 		this._lastGameUpdate = 0;
+		this._lastGameUpdateTime = Date.now();
 		this._animateFrames = 0;
 
 		this._currentObjects = new Set();
@@ -84,6 +86,23 @@ class Game {
 		if (wasmHas(playerSpace, id)) return;
 
 		this._loader.load(Model.CHICKEN, (mesh) => {
+			const profileBox = new THREE.Box3().setFromObject(mesh.getObjectByName("profileMesh"));
+			let size = new THREE.Vector3();
+			profileBox.getSize(size);
+
+			const playerMesh = mesh.getObjectByName("mesh");
+			const scaleX = initData.Dim.X / size.z;
+			const scaleY = initData.Dim.Y / size.y;
+			const scaleZ = 0.6 / size.x;
+			playerMesh.scale.set(scaleZ, scaleY, scaleX);
+
+			// Recenter the mesh
+			let meshBox = new THREE.Box3().setFromObject(playerMesh);
+			playerMesh.position.y -= meshBox.min.y;
+
+			// Model origin is at feet
+			playerMesh.position.y -= initData.Dim.Y / 2;
+
 			const player = new RenderPlayer(mesh);
 			player.mesh().position.x = initData.Pos.X;
 			player.mesh().position.y = initData.Pos.Y;
@@ -128,7 +147,7 @@ class Game {
 
 				if (!wasmHas(space, id)) {
 					wasmAdd(space, id, { Pos: object[posProp], Dim: object[dimProp] });
-					const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 6, 4), this._bombMaterial);
+					const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 12, 8), this._bombMaterial);
 					mesh.rotation.x = Math.random() * Math.PI;	
 					mesh.rotation.y = Math.random() * Math.PI;	
 					mesh.rotation.z = Math.random() * Math.PI;	
@@ -141,7 +160,7 @@ class Game {
 				}
 				deleteObjects.delete(sid(space, id));
 
-				sanitizeWasmData(object);
+				this.sanitizeData(object);
 				wasmSetData(space, id, object);
 				this._renderer.scene().update(space, id, object);
 			}
@@ -157,8 +176,13 @@ class Game {
 		for (const [stringId, player] of Object.entries(msg.Ps) as [string, any]) {
 			const id = Number(stringId);
 
+			if (!wasmHas(playerSpace, id)) continue;
 
-			sanitizeWasmData(player);
+			if (id === this._id) {
+				this._currentPlayerData = player;
+			}
+
+			this.sanitizePlayerData(player);
 			wasmSetData(playerSpace, id, player);
 			this._renderer.scene().update(playerSpace, id, player);
 		}
@@ -168,10 +192,11 @@ class Game {
 		}
 
 		this._lastGameUpdate = msg.S;
+		this._lastGameUpdateTime = Date.now();
 	}
 
 	private extrapolateState() {
-		if (defined(this._id) && wasmHas(playerSpace, this._id)) {
+		if (defined(this._id)) {
 			const keyMsg = this._ui.createWasmKeyMsg(this._keyUpdates);
 			wasmUpdateKeys(this._id, keyMsg);
 		}
@@ -191,7 +216,44 @@ class Game {
 			const id = Number(stringId);
 			if (!this._renderer.scene().has(playerSpace, id)) continue;
 
-			this._renderer.scene().update(playerSpace, id, player);
+			if (id != this._id || !defined(this._currentPlayerData)) {
+				this._renderer.scene().update(playerSpace, id, player);
+			} else {
+				this._renderer.scene().update(playerSpace, id, this.interpolateState(this._currentPlayerData, player));
+			}
+		}
+	}
+
+	private interpolateState(currentData : any, nextData : any) : any {
+		const millisElapsed = Date.now() - this._lastGameUpdateTime;
+		const weight = Math.min(millisElapsed / (frameMillis * 3), 1);
+
+		const data = nextData;
+		data[posProp] = this.interpolateVec2(currentData[posProp], nextData[posProp], weight);
+		data[velProp] = this.interpolateVec2(currentData[velProp], nextData[velProp], weight);
+		data[accProp] = this.interpolateVec2(currentData[accProp], nextData[accProp], weight);
+		return data;
+	}
+
+	private interpolateVec2(current : any, next : any, weight : number) : any {
+		const vec = current;
+		vec.X = current.X * (1 - weight) + next.X * weight;
+		vec.Y = current.Y * (1 - weight) + next.Y * weight;
+		return vec;
+	}
+
+	private sanitizeData(data : any) : void {
+		return;
+	}
+
+	private sanitizePlayerData(data : any) : void {
+		this.sanitizeData(data);
+
+		if (data.hasOwnProperty(keysProp)) {
+			const keys = Object.keys(data[keysProp]);
+			if (keys.length > 0) {
+				data[keysProp] = arrayToString(keys);
+			}
 		}
 	}
 

@@ -16,6 +16,10 @@ const (
 	dirProp
 
 	healthProp
+
+	// debug props
+	profileDimProp
+	profilePosProp
 )
 
 type PropMap map[Prop]interface{}

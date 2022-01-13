@@ -192,7 +192,7 @@ func (r *Room) addClient(c *Client) error {
 		return err
 	}
 
-	r.game.add(NewInit(Id(playerSpace, c.id), NewVec2(5, 5), NewVec2(0.9, 1.0)))
+	r.game.add(NewInit(Id(playerSpace, c.id), NewVec2(5, 5), NewVec2(0.8, 1.44)))
 	playerJoinMsg := r.game.createPlayerJoinMsg(c.id)
 	r.send(&playerJoinMsg)
 

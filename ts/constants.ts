@@ -2,6 +2,7 @@ const dev : boolean = location.hostname === "localhost" || location.hostname ===
 
 /* WASM variables */
 declare var frameMillis : number;
+declare var debugMode : boolean;
 
 declare var pingType: number;
 declare var candidateType : number;
@@ -41,6 +42,8 @@ declare var extVelProp : number;
 declare var accProp : number;
 declare var dirProp : number;
 declare var healthProp : number;
+declare var profileDimProp : number;
+declare var profilePosProp : number;
 
 declare var upKey : number;
 declare var downKey : number;

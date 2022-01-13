@@ -28,13 +28,15 @@ class Scene {
     }
     delete(space, id) {
         const map = this.getMap(space);
-        this._scene.remove(map.get(id).mesh());
-        map.delete(id);
+        if (map.has(id)) {
+            this._scene.remove(map.get(id).mesh());
+            map.delete(id);
+        }
     }
     clear(space) {
         const map = this.getMap(space);
         map.forEach((id, object) => {
-            this._scene.remove(map.get(object));
+            this.delete(space, id);
         });
         map.clear();
     }
@@ -48,6 +50,10 @@ class Scene {
     update(space, id, msg) {
         const map = this.getMap(space);
         const object = map.get(id);
+        if (!defined(object)) {
+            this.delete(space, id);
+            return;
+        }
         object.update(msg);
     }
     renderShots(shots) {

@@ -25,6 +25,7 @@ func main() {
 
 func setGlobals() {
 	js.Global().Set("frameMillis", frameMillis)
+	js.Global().Set("debugMode", debugMode)
 
 	js.Global().Set("pingType", int(pingType))
 	js.Global().Set("candidateType", int(candidateType))
@@ -64,6 +65,8 @@ func setGlobals() {
 	js.Global().Set("accProp", int(accProp))
 	js.Global().Set("dirProp", int(dirProp))
 	js.Global().Set("healthProp", int(healthProp))
+	js.Global().Set("profileDimProp", int(profileDimProp))
+	js.Global().Set("profilePosProp", int(profilePosProp))
 
 	js.Global().Set("upKey", int(upKey))
 	js.Global().Set("downKey", int(downKey))
@@ -171,8 +174,7 @@ func GetData(g *Game) js.Func {
 			return nil
 		}
 
-		g.getData(Id(space, id)).Props()
-		return nil
+		return g.getData(Id(space, id)).Props()
     })
 }
 

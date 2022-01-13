@@ -9,7 +9,7 @@ class Loader {
         this._loader = new THREE.GLTFLoader();
         this._cache = new Map();
         this._paths = new Map();
-        this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken4.glb");
+        this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken3.glb");
         debug(this._paths);
     }
     preload(models) {
@@ -29,15 +29,14 @@ class Loader {
         });
     }
     process(model, data) {
-        const materials = new Map();
         switch (model) {
             case Model.CHICKEN:
                 debug(data);
                 data.scene.animations = data.animations;
-                data.scene.scale.set(0.5, 0.5, 0.5);
                 data.scene.getObjectByName("mesh").castShadow = true;
                 data.scene.getObjectByName("mesh").receiveShadow = true;
-                data.scene.getObjectByName("mesh").position.y = 0;
+                data.scene.getObjectByName("profileMesh").visible = false;
+                data.scene.getObjectByName("hitMesh").visible = false;
                 break;
             default:
                 debug("Model " + model + " could not be processed.");

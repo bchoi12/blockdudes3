@@ -5,6 +5,10 @@ declare var THREE: any;
 const go = new Go();
 document.addEventListener('DOMContentLoaded', (event) => {
 	if (dev) {
+		debug("Dev mode enabled!");
+	}
+
+	if (dev) {
 		inputElm("name").value = "b";
 		inputElm("room").value = "room";
 	} else {

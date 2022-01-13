@@ -1,4 +1,5 @@
 class RenderObject {
+	protected readonly _debugMaterial = new THREE.MeshStandardMaterial({color: 0xff0000, wireframe: true });
 
 	protected _mesh : any;
 

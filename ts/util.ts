@@ -40,12 +40,3 @@ function normalize(radians : number) : number {
 	}
 	return radians;
 }
-
-function sanitizeWasmData(msg : any) : void {
-	if (msg.hasOwnProperty(keysProp)) {
-		const keys = Object.keys(msg[keysProp]);
-		if (keys.length > 0) {
-			msg[keysProp] = arrayToString(keys);
-		}
-	}
-}
