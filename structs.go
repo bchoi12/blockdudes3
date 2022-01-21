@@ -58,6 +58,11 @@ func (l *Line) Scale(scale float64) {
 	l.R.Scale(scale)
 }
 
+func (l *Line) Rotate(angle float64) {
+	l.O.Rotate(angle)
+	l.R.Rotate(angle)
+}
+
 type Vec2 struct {
 	X float64
 	Y float64
@@ -98,6 +103,14 @@ func (v *Vec2) Negate() {
 	v.Y = -v.Y
 }
 
+func (v *Vec2) Rotate(angle float64) {
+	x := math.Cos(angle) * v.X - math.Sin(angle) * v.Y
+	y := math.Sin(angle) * v.X + math.Cos(angle) * v.Y
+
+	v.X = x
+	v.Y = y
+}
+
 func (v *Vec2) ClampX(min float64, max float64) bool {
 	if v.X < min {
 		v.X = min
@@ -120,6 +133,22 @@ func (v *Vec2) ClampY(min float64, max float64) bool {
 		return true
 	}
 	return false
+}
+
+func (v Vec2) Angle() float64 {
+	if v.IsZero() {
+		return 0
+	}
+
+	if v.X == 0 {
+		return math.Pi - float64(Sign(v.Y)) * math.Pi / 2.0
+	}
+
+	rad := math.Atan(v.Y / v.X)
+	if rad < 0 {
+		rad += 2.0 * math.Pi
+	}
+	return rad
 }
 
 func (v Vec2) IsZero() bool {

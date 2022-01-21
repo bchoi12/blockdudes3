@@ -80,19 +80,20 @@ class Game {
 		}, frameMillis);
 	}
 
-	private addPlayer(initData : any) {
-		const id = initData.Id;
-
+	private addPlayer(id : number, data : any) {
 		if (wasmHas(playerSpace, id)) return;
 
 		this._loader.load(Model.CHICKEN, (mesh) => {
+			const pos = data[posProp];
+			const dim = data[dimProp];
+
 			const profileBox = new THREE.Box3().setFromObject(mesh.getObjectByName("profileMesh"));
 			let size = new THREE.Vector3();
 			profileBox.getSize(size);
 
 			const playerMesh = mesh.getObjectByName("mesh");
-			const scaleX = initData.Dim.X / size.z;
-			const scaleY = initData.Dim.Y / size.y;
+			const scaleX = dim.X / size.z;
+			const scaleY = dim.Y / size.y;
 			const scaleZ = 0.6 / size.x;
 			playerMesh.scale.set(scaleZ, scaleY, scaleX);
 
@@ -101,14 +102,14 @@ class Game {
 			playerMesh.position.y -= meshBox.min.y;
 
 			// Model origin is at feet
-			playerMesh.position.y -= initData.Dim.Y / 2;
+			playerMesh.position.y -= dim.Y / 2;
 
 			const player = new RenderPlayer(mesh);
-			player.mesh().position.x = initData.Pos.X;
-			player.mesh().position.y = initData.Pos.Y;
+			player.mesh().position.x = pos.X;
+			player.mesh().position.y = pos.Y;
 
 			this._renderer.scene().add(playerSpace, id, player);
-			wasmAdd(playerSpace, id, initData);
+			wasmAdd(playerSpace, id, data);
 		});
 	}
 
@@ -118,17 +119,20 @@ class Game {
 	}
 
 	private updatePlayers(msg : any) : void {
+		debug(msg);
 		switch(msg.T) {
 			case playerInitType:
 				this._id = msg.Id
-				msg.Ps.forEach((initData) => {
-					this.addPlayer(initData);
-				});
+				for (const [stringId, player] of Object.entries(msg.Ps) as [string, any]) {
+					const id = Number(stringId);
+					this.addPlayer(id, player);
+				}
 				break;
 			case playerJoinType:
-				msg.Ps.forEach((initData) => {
-					this.addPlayer(initData);
-				});
+				for (const [stringId, player] of Object.entries(msg.Ps) as [string, any]) {
+					const id = Number(stringId);
+					this.addPlayer(id, player);
+				}
 				break;
 			case leftType:
 				this.deletePlayer(msg.Client.Id);
@@ -146,7 +150,7 @@ class Game {
 				const id = Number(stringId);
 
 				if (!wasmHas(space, id)) {
-					wasmAdd(space, id, { Pos: object[posProp], Dim: object[dimProp] });
+					wasmAdd(space, id, object);
 					const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 12, 8), this._bombMaterial);
 					mesh.rotation.x = Math.random() * Math.PI;	
 					mesh.rotation.y = Math.random() * Math.PI;	
@@ -226,12 +230,16 @@ class Game {
 
 	private interpolateState(currentData : any, nextData : any) : any {
 		const millisElapsed = Date.now() - this._lastGameUpdateTime;
-		const weight = Math.min(millisElapsed / (frameMillis * 3), 1);
+		const weight = 1 - Math.min(millisElapsed / (frameMillis * 3), 1);
 
 		const data = nextData;
 		data[posProp] = this.interpolateVec2(currentData[posProp], nextData[posProp], weight);
-		data[velProp] = this.interpolateVec2(currentData[velProp], nextData[velProp], weight);
-		data[accProp] = this.interpolateVec2(currentData[accProp], nextData[accProp], weight);
+		if (currentData.hasOwnProperty(velProp) && nextData.hasOwnProperty(velProp)) {
+			data[velProp] = this.interpolateVec2(currentData[velProp], nextData[velProp], weight);
+		}
+		if (currentData.hasOwnProperty(accProp) && nextData.hasOwnProperty(accProp)) {
+			data[accProp] = this.interpolateVec2(currentData[accProp], nextData[accProp], weight);
+		}
 		return data;
 	}
 
@@ -261,19 +269,23 @@ class Game {
 		this._currentObjects.clear();
 		this._renderer.scene().clearObjects();
 
-		const objects = JSON.parse(wasmLoadLevel(msg.L));
-		objects.Os.forEach((initData) => {
-			const id = initData.Id;
-			const space = initData.S;
-			const mesh = new THREE.Mesh(new THREE.BoxGeometry(initData.Dim.X, initData.Dim.Y, 1.0), this._objectMaterial);	
-			mesh.castShadow = true;
-			mesh.receiveShadow = true;
+		const level = JSON.parse(wasmLoadLevel(msg.L));
+		debug(level);
 
-			const renderObj = new RenderObject(mesh);
-			mesh.position.x = initData.Pos.X;
-			mesh.position.y = initData.Pos.Y;
-			this._renderer.scene().add(space, id, renderObj);
-		});
+		for (const [stringSpace, objects] of Object.entries(level.Os) as [string, any]) {
+			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
+				const space = Number(stringSpace);
+				const id = Number(stringId);
+				const mesh = new THREE.Mesh(new THREE.BoxGeometry(object[dimProp].X, object[dimProp].Y, 1.0), this._objectMaterial);	
+				mesh.castShadow = true;
+				mesh.receiveShadow = true;
+
+				const renderObj = new RenderObject(mesh);
+				mesh.position.x = object[posProp].X;
+				mesh.position.y = object[posProp].Y;
+				this._renderer.scene().add(space, id, renderObj);
+			}
+		}
 	}
 
 	private updateCamera() : void {

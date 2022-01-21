@@ -6,16 +6,46 @@ import (
 
 const (
 	zeroVelEpsilon float64 = 1e-6
-	overlapEpsilon float64 = 1e-3
-	lastOverlapEpsilon float64 = 0.1
+	overlapEpsilon float64 = 0.01
 )
 
-type ProfileOptions struct {
-	solid bool
-	collideTop, collideBottom, collideLeft, collideRight bool
+const (
+	unknownCollisionType = iota
+	rigidCollisionType
+	platformCollisionType
+)
+
+type ProfileData struct {
+	*BaseData
+}
+
+func NewProfileData(solid bool) Data {
+	data := ProfileData {
+		BaseData: NewBaseData(),
+	}
+	data.Set(solidProp, solid)
+	return data
+}
+
+type ProfileMath interface {
+	Contains(point Vec2) bool
+	Intersects(line Line) (bool, float64)
+	Overlap(profile Profile) float64
+}
+
+type SnapResults struct {
+	snap bool
+	ignored bool
+	posAdj Vec2
+	newVel Vec2
 }
 
 type Profile interface {
+	ProfileMath
+
+	Dim() Vec2
+	SetDim(dim Vec2)
+
 	Pos() Vec2
 	SetPos(pos Vec2)
 	Vel() Vec2
@@ -26,92 +56,146 @@ type Profile interface {
 	Acc() Vec2
 	SetAcc(acc Vec2)
 
-	SetData(od ObjectData)
-
-	Dim() Vec2
-	SetDim(dim Vec2)
-	Width() float64
-	Height() float64
-
-	GetOptions() ProfileOptions
-	SetOptions(options ProfileOptions)
+	GetData() Data
+	SetData(data Data)
 	Solid() bool
 
-	DistX(profile Profile) float64
-	DistY(profile Profile) float64
-	DistSqr(profile Profile) float64
-	Dist(profile Profile) float64
-	OverlapX(profile Profile) float64
-	OverlapY(profile Profile) float64
+	Snap(profile Profile) SnapResults
 
-	// Not implemented by BaseProfile
-	Intersects(line Line) (bool, float64)
-	Overlap(profile Profile) float64
-	Snap(profile Profile, lastProfile Profile) (float64, float64)
+	distX(profile Profile) float64
+	distY(profile Profile) float64
+	distSqr(profile Profile) float64
+	dist(profile Profile) float64
+}
+
+type SubProfile interface {
+	ProfileMath
+
+	Origin() Vec2
+	SetOrigin(origin Vec2)
+	Offset() Vec2
+	SetOffset(offset Vec2)
+
+	Rotate(dir Vec2)
 }
 
 type BaseProfile struct {
-	options ProfileOptions
-	pos, vel, evel, acc, dim Vec2
+	Init
+	vel, extVel, acc Vec2
+	solid bool
 }
 
-func (bp BaseProfile) Pos() Vec2 { return bp.pos }
-func (bp *BaseProfile) SetPos(pos Vec2) { bp.pos = pos }
+func NewBaseProfile(init Init, data Data) BaseProfile {
+	bp := BaseProfile {
+		Init: init,
+		vel: NewVec2(0, 0),
+		extVel: NewVec2(0, 0),
+		acc: NewVec2(0, 0),
+		solid: data.Get(solidProp).(bool),
+	}
+	return bp
+}
+
 func (bp BaseProfile) Vel() Vec2 { return bp.vel }
 func (bp *BaseProfile) SetVel(vel Vec2) { bp.vel = vel }
-func (bp BaseProfile) ExtVel() Vec2 { return bp.evel }
-func (bp *BaseProfile) SetExtVel(evel Vec2) { bp.evel = evel }
+func (bp BaseProfile) ExtVel() Vec2 { return bp.extVel }
+func (bp *BaseProfile) SetExtVel(extVel Vec2) { bp.extVel = extVel }
 func (bp BaseProfile) TotalVel() Vec2 {
-	total := bp.vel
-	total.Add(bp.evel, 1)
+	total := bp.Vel()
+	total.Add(bp.ExtVel(), 1)
 	return total
 }
 func (bp BaseProfile) Acc() Vec2 { return bp.acc }
 func (bp *BaseProfile) SetAcc(acc Vec2) { bp.acc = acc }
 
-func (bp *BaseProfile) SetData(od ObjectData) {
-	if od.Has(dimProp) {
-		bp.SetDim(od.Get(dimProp).(Vec2))
+func (bp BaseProfile) GetData() Data {
+	data := NewProfileData(bp.solid)
+	data.Merge(bp.Init.GetData())
+
+	if !bp.Vel().IsZero() {
+		data.Set(velProp, bp.Vel())
 	}
-	if od.Has(posProp) {
-		bp.SetPos(od.Get(posProp).(Vec2))
+	if !bp.ExtVel().IsZero() {
+		data.Set(extVelProp, bp.ExtVel())
 	}
-	if od.Has(velProp) {
-		bp.SetVel(od.Get(velProp).(Vec2))
+	if !bp.Acc().IsZero() {
+		data.Set(accProp, bp.Acc())
 	}
-	if od.Has(extVelProp) {
-		bp.SetExtVel(od.Get(extVelProp).(Vec2))
+	return data
+}
+
+func (bp *BaseProfile) SetData(data Data) {
+	bp.Init.SetData(data)
+
+	if data.Has(velProp) {
+		bp.SetVel(data.Get(velProp).(Vec2))
+	} else {
+		bp.SetVel(NewVec2(0, 0))
 	}
-	if od.Has(accProp) {
-		bp.SetAcc(od.Get(accProp).(Vec2))
+	if data.Has(extVelProp) {
+		bp.SetExtVel(data.Get(extVelProp).(Vec2))
+	} else {
+		bp.SetExtVel(NewVec2(0, 0))
+	}
+	if data.Has(accProp) {
+		bp.SetAcc(data.Get(accProp).(Vec2))
+	} else {
+		bp.SetAcc(NewVec2(0, 0))
 	}
 }
 
-func (bp BaseProfile) Dim() Vec2 { return bp.dim }
-func (bp *BaseProfile) SetDim(dim Vec2) { bp.dim = dim }
-func (bp BaseProfile) Width() float64 { return bp.dim.X }
-func (bp BaseProfile) Height() float64 { return bp.dim.Y }
-func (bp BaseProfile) GetOptions() ProfileOptions { return bp.options }
-func (bp *BaseProfile) SetOptions(options ProfileOptions) { bp.options = options }
-func (bp BaseProfile) Solid() bool { return bp.options.solid }
+func (bp BaseProfile) Solid() bool { return bp.solid }
 
-func (bp BaseProfile) DistX(profile Profile) float64 {
+func (bp BaseProfile) distX(profile Profile) float64 {
 	return Abs(profile.Pos().X - bp.Pos().X)
 }
-func (bp BaseProfile) DistY(profile Profile) float64 {
+func (bp BaseProfile) distY(profile Profile) float64 {
 	return Abs(profile.Pos().Y - bp.Pos().Y)
 }
-func (bp BaseProfile) DistSqr(profile Profile) float64 {
-	x := bp.DistX(profile)
-	y := bp.DistY(profile)
+func (bp BaseProfile) distSqr(profile Profile) float64 {
+	x := bp.distX(profile)
+	y := bp.distY(profile)
 	return x * x + y * y
 }
-func (bp BaseProfile) Dist(profile Profile) float64 {
-	return math.Sqrt(bp.DistSqr(profile))
+func (bp BaseProfile) dist(profile Profile) float64 {
+	return math.Sqrt(bp.distSqr(profile))
 }
-func (bp BaseProfile) OverlapX(profile Profile) float64 {
-	return (bp.Width()/2 + profile.Width()/2) - bp.DistX(profile)
+
+func (bp BaseProfile) Contains(point Vec2) bool {
+	pos := bp.Pos()
+	dim := bp.Dim()
+	if Abs(pos.X - point.X) > dim.X / 2 {
+		return false
+	}
+	if Abs(pos.Y - point.Y) > dim.Y / 2 {
+		return false
+	}
+	return true
 }
-func (bp BaseProfile) OverlapY(profile Profile) float64 {
-	return (bp.Height()/2 + profile.Height()/2) - bp.DistY(profile)
+
+func (bp BaseProfile) Intersects(line Line) (bool, float64) {
+	pos := bp.Pos()
+	if Abs(pos.X - line.O.X) > bp.Dim().X / 2 + Abs(line.R.X) {
+		return false, 1.0
+	}
+	if Abs(pos.Y - line.O.Y) > bp.Dim().Y / 2 + Abs(line.R.Y) {
+		return false, 1.0
+	}
+	return true, 1.0
+}
+
+func (bp BaseProfile) Overlap(profile Profile) float64 {
+	if bp.distX(profile) > (bp.Dim().X + profile.Dim().X) / 2 {
+		return 0
+	}
+	if bp.distY(profile) > (bp.Dim().Y + profile.Dim().Y) / 2 {
+		return 0
+	}
+	return 1.0
+}
+
+func (bp *BaseProfile) Snap(profile Profile) SnapResults {
+	return SnapResults {
+		snap: false,
+	}
 }

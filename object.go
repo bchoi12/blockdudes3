@@ -12,7 +12,7 @@ type Attachment struct {
 type ObjectUpdate func(thing Thing, grid *Grid, buffer *UpdateBuffer, ts float64)
 type Object struct {
 	Init
-	Profile
+	profile Profile
 
 	parent Attachment
 	children []Attachment
@@ -22,6 +22,15 @@ type Object struct {
 
 	// TODO: delete
 	update ObjectUpdate
+}
+
+func NewObject(init Init, profile Profile) *Object {
+	object := &Object {
+		Init: init,
+		profile: profile,
+	}
+
+	return object
 }
 
 func (o *Object) PrepareUpdate(now time.Time) float64 {
@@ -36,12 +45,8 @@ func (o *Object) EndUpdate() {
 	o.UpdateChildren()
 }
 
-func (o *Object) GetProfile() Profile {
-	return o.Profile
-}
-
-func (o *Object) SetProfileOptions(options ProfileOptions) {
-	o.Profile.SetOptions(options)
+func (o Object) GetProfile() Profile {
+	return o.profile
 }
 
 func (o *Object) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
@@ -79,14 +84,12 @@ func (o *Object) UpdateChildren() {
 	}
 }
 
-func (o *Object) SetData(od ObjectData) {
-	o.Profile.SetData(od)
+func (o *Object) SetData(data Data) {
+	o.profile.SetData(data)
 }
 
-func (o *Object) GetData() ObjectData {
+func (o Object) GetData() Data {
 	od := NewObjectData()
-	od.Set(posProp, o.Profile.Pos())
-	od.Set(dimProp, o.Profile.Dim())
-	od.Set(velProp, o.Profile.Vel())
+	od.Merge(o.GetProfile().GetData())
 	return od
 }

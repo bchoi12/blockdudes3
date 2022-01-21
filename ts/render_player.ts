@@ -31,10 +31,18 @@ class RenderPlayer extends RenderObject {
 	}
 
 	override update(msg : any) : void {
-		const pos = msg[posProp]
-		const vel = msg[velProp];
-		const acc = msg[accProp];
-		const dir = msg[dirProp];
+		let pos = msg[posProp]
+		let vel = msg[velProp];
+		if (!defined(vel)) {
+			vel = {X: 0, Y: 0};
+		}
+
+		let acc = msg[accProp];
+		if (!defined(acc)) {
+			acc = {X: 0, Y: 0};
+		}
+
+		let dir = msg[dirProp];
 
 		this._mesh.position.x = pos.X;
 		this._mesh.position.y = pos.Y;

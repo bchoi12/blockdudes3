@@ -29,7 +29,7 @@ const (
 )
 
 type Player struct {
-	Object
+	*Object
 
 	weapon *Weapon
 	altWeapon *Weapon
@@ -40,22 +40,25 @@ type Player struct {
 	grounded bool
 	walled int
 
+	ignoredColliders map[SpacedId]bool
+
 	keys map[KeyType]bool
 	// Keys held down during last update cycle
 	lastKeys map[KeyType] bool
 	lastKeyUpdate SeqNumType
+
 	mouse Vec2
+	dir Vec2
 }
 
 func NewPlayer(init Init) *Player {
+	// subProfiles := make([]Profile, 1)
+	// subProfiles[0] = NewRec2(NewVec2(0, 1), init.Dim())
 	player := &Player {
-		Object: Object {
-			Init: init,
-			Profile: NewRec2(init.Pos, init.Dim),
-		},
+		Object: NewObject(init, NewRec2(init, NewProfileData(true))),
 
-		weapon: NewWeapon(init.Id, spaceBurst),
-		altWeapon: NewWeapon(init.Id, spaceBlast),
+		weapon: NewWeapon(init.GetId(), spaceBurst),
+		altWeapon: NewWeapon(init.GetId(), spaceBlast),
 
 		canDash: true,
 		jumpFrames: 0,
@@ -63,48 +66,40 @@ func NewPlayer(init Init) *Player {
 		grounded: false,
 		walled: 0,
 
+		ignoredColliders: make(map[SpacedId]bool, 0),
+
 		keys: make(map[KeyType]bool, 0),
 		lastKeys: make(map[KeyType]bool, 0),
 		lastKeyUpdate: 0,
-		mouse: init.Pos,
+		dir: init.Pos(),
 	}
 	player.respawn()
 	return player
 }
 
-type PlayerData struct {
-	Pos Vec2
-	Vel Vec2
-	EVel Vec2
-	Acc Vec2
-	Dir Vec2
-}
+func (p *Player) GetData() Data {
+	data := NewPlayerData()
+	data.Merge(p.GetProfile().GetData())
 
-func (p *Player) GetData() ObjectData {
-	od := NewObjectData()
-	od.Set(posProp, p.Profile.Pos())
-	od.Set(velProp, p.Profile.Vel())
-	od.Set(extVelProp, p.Profile.ExtVel())
-	od.Set(accProp, p.Profile.Acc())
-	od.Set(dirProp, p.mouse)
-	od.Set(keysProp, p.keys)
+	data.Set(dirProp, p.dir)
+	data.Set(keysProp, p.keys)
 
 	if (debugMode) {
-		od.Set(profilePosProp, p.Profile.Pos())
-		od.Set(profileDimProp, p.Profile.Dim())
+		data.Set(profilePosProp, p.GetProfile().Pos())
+		data.Set(profileDimProp, p.GetProfile().Dim())
 	}
 
-	return od
+	return data
 }
 
-func (p *Player) SetData(od ObjectData) {
-	p.Profile.SetData(od)
+func (p *Player) SetData(data Data) {
+	p.GetProfile().SetData(data)
 
-	if od.Has(keysProp) {
-		p.keys = od.Get(keysProp).(map[KeyType]bool)
+	if data.Has(keysProp) {
+		p.keys = data.Get(keysProp).(map[KeyType]bool)
 	}
-	if od.Has(dirProp) {
-		p.mouse = od.Get(dirProp).(Vec2)
+	if data.Has(dirProp) {
+		p.dir = data.Get(dirProp).(Vec2)
 	}
 }
 
@@ -115,11 +110,10 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	}
 	p.lastUpdateTime = now
 
-	lastProfile:= *p.GetProfile().(*Rec2)
-	pos := p.Profile.Pos()
-	vel := p.Profile.Vel()
-	evel := p.Profile.ExtVel()
-	acc := p.Profile.Acc()
+	pos := p.GetProfile().Pos()
+	vel := p.GetProfile().Vel()
+	evel := p.GetProfile().ExtVel()
+	acc := p.GetProfile().Acc()
 
 	if (p.health <= 0 || pos.Y < -5) {
 		p.respawn()
@@ -156,40 +150,10 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 		acc.X = 0
 	}
 
-	p.Profile.SetAcc(acc)
-
-	// Grounded actions
-	if p.grounded {
-		p.canJumpFrames = maxCanJumpFrames
-		p.canDash = true
-
-		// Friction
-		if Sign(acc.X) != Sign(vel.X) {
-			vel.X *= friction
-		}
-	} else {
-		p.canJumpFrames -= 1
-	}
-
-	// Jump & double jump
-	if p.jumpFrames > 0 {
-		p.jumpFrames -= 1
-	}
-	if p.keyPressed(dashKey) {
-		if p.canJumpFrames > 0 {
-			p.canJumpFrames = 0
-			acc.Y = 0
-			vel.Y = Max(0, vel.Y) + jumpVel
-			p.jumpFrames = maxJumpFrames
-		} else if p.canDash {
-			acc.Y = 0
-			vel.Y = jumpVel
-			p.canDash = false
-			p.jumpFrames = maxJumpFrames
-		}
-	}
+	p.GetProfile().SetAcc(acc)
 
 	// Shooting & recoil
+	p.updateDir()
 	var shot *Shot
 	shot = p.shoot(p.weapon, mouseClick, grid, now)
 	if shot != nil {
@@ -222,6 +186,36 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 		}
 	}
 
+	// Grounded actions
+	if p.grounded {
+		p.canJumpFrames = maxCanJumpFrames
+		p.canDash = true
+
+		// Friction
+		if Sign(acc.X) != Sign(vel.X) {
+			vel.X *= friction
+		}
+	} else {
+		p.canJumpFrames -= 1
+	}
+
+	// Jump & double jump
+	if p.jumpFrames > 0 {
+		p.jumpFrames -= 1
+	}
+	if p.keyPressed(dashKey) {
+		if p.canJumpFrames > 0 {
+			p.canJumpFrames = 0
+			acc.Y = 0
+			vel.Y = Max(0, vel.Y) + jumpVel
+			p.jumpFrames = maxJumpFrames
+		} else if p.canDash {
+			acc.Y = 0
+			vel.Y = jumpVel
+			p.canDash = false
+			p.jumpFrames = maxJumpFrames
+		}
+	}
 
 	// Calculate & clamp speed
 	vel.Add(acc, ts)
@@ -234,19 +228,20 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	if vel.Y > maxUpwardVel {
 		vel.Y *= maxVelMultiplier
 	}
-	p.Profile.SetVel(vel)
+
+	p.GetProfile().SetVel(vel)
 
 	// Slow down momentum from other objects if not grounded
 	if !p.grounded {
 		evel.X *= extVelMultiplier
 		evel.Y = 0
 	}
-	p.Profile.SetExtVel(evel)
+	p.GetProfile().SetExtVel(evel)
 
 	// Move
-	pos.Add(p.Profile.TotalVel(), ts)
-	p.Profile.SetPos(pos)
-	p.checkCollisions(grid, &lastProfile)
+	pos.Add(p.GetProfile().TotalVel(), ts)
+	p.GetProfile().SetPos(pos)
+	p.checkCollisions(grid)
 
 	// Save state
 	p.lastKeys = p.keys
@@ -256,37 +251,55 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 
 func (p *Player) shoot(w *Weapon, key KeyType, grid *Grid, now time.Time) *Shot {
 	if w.bursting(now) || p.keyDown(key) && w.canShoot(now) {
-		line := NewLine(p.Profile.Pos(), p.mouse)
+		line := NewLine(p.GetProfile().Pos(), p.dir)
 		return w.shoot(line, grid, now)
 	}
 	return nil
 }
 
-func (p *Player) checkCollisions(grid *Grid, lastProfile Profile) {
+func (p *Player) checkCollisions(grid *Grid) {
 	// Collision detection
+	ignoredColliders := make(map[SpacedId]bool, 0)
 	p.grounded, p.walled = false, 0
-	colliders := grid.GetColliders(p.Profile, ColliderOptions {self: p.GetSpacedId(), solidOnly: true})
+	colliders := grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId(), solidOnly: true})
 	for len(colliders) > 0 {
-		other := PopThing(&colliders).GetProfile()
-		if p.Profile.Overlap(other) <= 0 {
+		thing := PopThing(&colliders)
+
+		if ignored, ok := p.ignoredColliders[thing.GetSpacedId()]; ok && ignored {
+			ignoredColliders[thing.GetSpacedId()] = true
 			continue
 		}
 
-		xadj, yadj := p.Profile.Snap(other, lastProfile)
-		if xadj != 0 {
-			p.walled = -int(Sign(xadj))
+		other := thing.GetProfile()
+		results := p.GetProfile().Snap(other)
+		
+		if !results.snap {
+			if results.ignored {
+				ignoredColliders[thing.GetSpacedId()] = true
+			}
+			continue
 		}
-		if yadj > 0 {
-			p.grounded = true
-			p.Profile.SetExtVel(NewVec2(other.TotalVel().X, other.TotalVel().Y))
-		}
-	}
 
-	colliders = grid.GetColliders(p.Profile, ColliderOptions {self: p.GetSpacedId()})
+		pos := p.GetProfile().Pos()
+		pos.Add(results.posAdj, 1.0)
+		p.GetProfile().SetPos(pos)
+		if results.posAdj.X != 0 {
+			// p.walled = -int(Sign(results.posAdj.X))
+		}
+		if results.posAdj.Y > 0 {
+			p.GetProfile().SetExtVel(other.TotalVel())
+			p.grounded = true
+		}
+
+		p.GetProfile().SetVel(results.newVel)
+	}
+	p.ignoredColliders = ignoredColliders
+
+	colliders = grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId()})
 	for len(colliders) > 0 {
 		collider := PopThing(&colliders)
 		other := collider.GetProfile()
-		if p.Profile.Overlap(other) <= 0 {
+		if p.GetProfile().Overlap(other) <= 0 {
 			continue
 		}
 
@@ -299,11 +312,12 @@ func (p *Player) checkCollisions(grid *Grid, lastProfile Profile) {
 
 func (p *Player) respawn() {
 	p.health = 100
+	p.canDash = true
 
 	rand.Seed(time.Now().Unix())
-	p.Profile.SetPos(NewVec2(float64(1 + rand.Intn(19)), 20))
-	p.Profile.SetVel(NewVec2(0, 0))
-	p.Profile.SetAcc(NewVec2(0, 0))
+	p.GetProfile().SetPos(NewVec2(float64(1 + rand.Intn(19)), 20))
+	p.GetProfile().SetVel(NewVec2(0, 0))
+	p.GetProfile().SetAcc(NewVec2(0, 0))
 }
 
 func (p *Player) updateKeys(keyMsg KeyMsg) {
@@ -320,10 +334,15 @@ func (p *Player) updateKeys(keyMsg KeyMsg) {
 	p.updateMouse(keyMsg.M)
 }
 
-func (p *Player) updateMouse(mouseWorld Vec2) {
-	p.mouse = mouseWorld
-	p.mouse.Sub(p.Profile.Pos(), 1.0)
-	p.mouse.Normalize()
+func (p *Player) updateMouse(mouse Vec2) {
+	p.mouse = mouse
+	p.updateDir()
+}
+
+func (p *Player) updateDir() {
+	p.dir = p.mouse
+	p.dir.Sub(p.GetProfile().Pos(), 1.0)
+	p.dir.Normalize()
 }
 
 func (p *Player) keyDown(key KeyType) bool {

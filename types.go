@@ -45,6 +45,7 @@ const (
 	unknownSpace SpaceType = iota
 	playerSpace
 	wallSpace
+	platformSpace
 	bombSpace
 	explosionSpace
 )
@@ -69,6 +70,9 @@ const (
 	mouseClick
 	altMouseClick
 )
+
+type PlayerPropMap map[IdType]PropMap
+type ObjectPropMap map[SpaceType]map[IdType]PropMap
 
 type PingMsg struct {
 	T MessageType
@@ -107,25 +111,25 @@ type ChatMsg struct {
 type GameStateMsg struct {
 	T MessageType
 	S SeqNumType
-	Ps map[IdType]PropMap
-	Os map[SpaceType]map[IdType]PropMap
+	Ps PlayerPropMap
+	Os ObjectPropMap
 	Ss []ShotData
 }
 
 type PlayerInitMsg struct {
 	T MessageType
 	Id IdType
-	Ps []Init
+	Ps PlayerPropMap
+}
+
+type ObjectInitMsg struct {
+	T MessageType
+	Os ObjectPropMap
 }
 
 type LevelInitMsg struct {
 	T MessageType
 	L LevelIdType
-}
-
-type ObjectInitMsg struct {
-	T MessageType
-	Os []Init
 }
 
 type KeyMsg struct {

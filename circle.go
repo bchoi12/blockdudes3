@@ -4,60 +4,46 @@ type Circle struct {
 	BaseProfile
 }
 
-func CircleProfileOptions() ProfileOptions {
-	return ProfileOptions {
-		solid: false,
-	}
-}
-
-func NewCircle(pos Vec2, dim Vec2) *Circle {
+func NewCircle(init Init, data Data) *Circle {
 	return &Circle {
-		BaseProfile {
-			options: CircleProfileOptions(),
-			pos: pos,
-			dim: dim,
-			vel: NewVec2(0, 0),
-			evel: NewVec2(0, 0),
-			acc: NewVec2(0, 0),
-		},
+		BaseProfile: NewBaseProfile(init, data),
 	}
 }
 
 func (c Circle) Radius() float64 {
-	return c.BaseProfile.dim.X
+	return c.Dim().X
 }
 
 func (c Circle) RadiusSqr() float64 {
 	return c.Radius() * c.Radius()
 }
 
+func (c Circle) Contains(point Vec2) bool {
+	pos := c.Pos()
+	distX := pos.X - point.X
+	distY := pos.Y - point.Y
+
+	return distX * distX + distY * distY <= c.RadiusSqr()
+}
 
 func (c Circle) Intersects(line Line) (bool, float64) {
+	// TODO: circle intersects line
 	return false, 1.0
 }
 
 func (c Circle) Overlap(profile Profile) float64 {
 	switch other := profile.(type) {
+	case *RotPoly:
+		return other.Overlap(&c)
 	case *Rec2:
 		return other.Overlap(&c)
 	case *Circle:
 		radius := c.Radius() + other.Radius()
-		if c.DistSqr(other) <= radius * radius {
-			return radius - c.Dist(other)
+		if c.distSqr(other) <= radius * radius {
+			return radius - c.dist(other)
 		}
 		return 0
 	default:
 		return 0
-	}
-}
-
-func (c *Circle) Snap(profile Profile, lastProfile Profile) (float64, float64) {
-	switch other := profile.(type) {
-	case *Rec2:
-		return other.Snap(c, lastProfile)
-	case *Circle:
-		return 0, 0
-	default:
-		return 0, 0
 	}
 }

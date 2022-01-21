@@ -4,39 +4,11 @@ type Rec2 struct {
 	BaseProfile
 }
 
-func Rec2ProfileOptions() ProfileOptions {
-	return ProfileOptions {
-		solid: true,
-
-		collideTop: true,
-		collideBottom: true,
-		collideLeft: true,
-		collideRight: true,
+func NewRec2(init Init, data Data) *Rec2 {
+	rec2 := &Rec2 {
+		BaseProfile: NewBaseProfile(init, data),
 	}
-}
-
-func PlatformProfileOptions() ProfileOptions {
-	return ProfileOptions {
-		solid: true,
-
-		collideTop: true,
-		collideBottom: false,
-		collideLeft: false,
-		collideRight: false,
-	}
-}
-
-func NewRec2(pos Vec2, dim Vec2) *Rec2 {
-	return &Rec2 {
-		BaseProfile {
-			options: Rec2ProfileOptions(),
-			pos: pos,
-			dim: dim,
-			vel: NewVec2(0, 0),
-			evel: NewVec2(0, 0),
-			acc: NewVec2(0, 0),
-		},
-	}
+	return rec2
 }
 
 func (r Rec2) GetSides() []Line {
@@ -52,10 +24,14 @@ func (r Rec2) GetSides() []Line {
 }
 
 func (r Rec2) Intersects(line Line) (bool, float64) {
-	sides := r.GetSides()
+	collision, closest := r.BaseProfile.Intersects(line)
+	if !collision {
+		return collision, closest
+	}
 
-	collision := false
-	closest := 1.0
+	sides := r.GetSides()
+	collision = false
+	closest = 1.0
 	for _, side := range(sides) {
 		hit, t := line.Intersects(side)
 
@@ -67,8 +43,17 @@ func (r Rec2) Intersects(line Line) (bool, float64) {
 	return collision, closest
 }
 
+func (r Rec2) OverlapX(profile Profile) float64 {
+	return (r.Dim().X/2 + profile.Dim().X/2) - r.distX(profile)
+}
+func (r Rec2) OverlapY(profile Profile) float64 {
+	return (r.Dim().Y/2 + profile.Dim().Y/2) - r.distY(profile)
+}
+
 func (r Rec2) Overlap(profile Profile) float64 {
 	switch other := profile.(type) {
+	case *RotPoly:
+		return other.Overlap(&r)
 	case *Rec2:
 		return r.OverlapX(other) * r.OverlapY(other)
 	case *Circle:
@@ -81,7 +66,7 @@ func (r Rec2) Overlap(profile Profile) float64 {
 			return 0
 		}
 
-		if r.DistX(other) <= r.Width() / 2 || r.DistY(other) <= r.Height() / 2 || r.DistSqr(other) <= other.RadiusSqr() {
+		if r.distX(other) <= r.Dim().X / 2 || r.distY(other) <= r.Dim().Y / 2 || r.distSqr(other) <= other.RadiusSqr() {
 			return ox * oy
 		}
 		return 0
@@ -90,108 +75,123 @@ func (r Rec2) Overlap(profile Profile) float64 {
 	}
 }
 
-func (r *Rec2) Snap(profile Profile, lastProfile Profile) (float64, float64) {
+func (r *Rec2) Snap(profile Profile) SnapResults {
+	results := SnapResults {
+		snap: false,
+		ignored: false,
+	}
+
 	switch other := profile.(type) {
 	case *Rec2:
-		options := other.GetOptions()
-		if !options.solid {
-			return 0, 0
+		if !other.Solid() {
+			return results
 		}
 
 		ox := r.OverlapX(other)
 		if ox <= 0 {
-			return 0, 0
+			return results
 		}
 
 		oy := r.OverlapY(other)
 		if oy <= 0 {
-			return 0, 0
+			return results
 		}
 
+		// Figure out collision direction
 		relativeVel := NewVec2(r.TotalVel().X - other.TotalVel().X, r.TotalVel().Y - other.TotalVel().Y)
-		collideTop := options.collideTop && relativeVel.Y <= zeroVelEpsilon && lastProfile.OverlapY(other) <= lastOverlapEpsilon
-		collideBottom := options.collideBottom && relativeVel.Y >= zeroVelEpsilon && lastProfile.OverlapY(other) <= lastOverlapEpsilon
-		collideLeft := options.collideLeft && relativeVel.X >= zeroVelEpsilon && lastProfile.OverlapX(other) <= lastOverlapEpsilon
-		collideRight := options.collideRight && relativeVel.X <= zeroVelEpsilon && lastProfile.OverlapX(other) <= lastOverlapEpsilon
-
-		if !Or(collideTop, collideBottom, collideLeft, collideRight) {
-			return 0, 0
+		collide := NewVec2(1, 1)
+		if relativeVel.X > 0 {
+			collide.X = -1
+		}
+		if relativeVel.Y > 0 {
+			collide.Y = -1
 		}
 
-		xcollision, ycollision := true, true
-		if Abs(relativeVel.X) < zeroVelEpsilon || !Or(collideLeft, collideRight) {
-			xcollision = false
+		// Check that relative velocity is nonzero.
+		// Skip small overlap since we should always correct that.
+		if ox > overlapEpsilon && Abs(relativeVel.X) < zeroVelEpsilon  {
+			collide.X = 0
 		}
-		if Abs(relativeVel.Y) < zeroVelEpsilon || !Or(collideTop, collideBottom) {
-			ycollision = false
-		}
-
-		if ox <= overlapEpsilon && oy <= overlapEpsilon {
-			xcollision = true
-			ycollision = false
+		if oy > overlapEpsilon && Abs(relativeVel.Y) < zeroVelEpsilon {
+			collide.Y = 0
 		}
 
-		if !xcollision && !ycollision {
-			return 0, 0
-		}
-
-		if xcollision && ycollision { 
+		// If collision happens in both X, Y compute which overlap is greater based on velocity.
+		// NOTE: needs to happen early
+		// TODO: do we need to check for nonzero velocity here?
+		if collide.X != 0 && collide.Y != 0 {
 			tx := Abs(ox / relativeVel.X)
 			ty := Abs(oy / relativeVel.Y)
 
-			if tx < ty {
-				xcollision = false
+			if tx > ty {
+				collide.X = 0
 			}
-			if ty < tx {
-				ycollision = false
-			}
-		}
-
-		xadj, yadj := 0.0, 0.0
-		pos := r.Pos()
-		vel := r.Vel()
-		if xcollision {
-			xadj = ox
-			if pos.X < other.Pos().X {
-				xadj = -xadj
-			}
-			if !collideLeft && xadj < 0 || !collideRight && xadj > 0 {
-				xadj = 0
-			} else {
-				pos.Add(NewVec2(xadj, 0), 1.0)
-
-				if xadj > 0 {
-					vel.X = Max(0, vel.X)
-				} else if xadj < 0 {
-					vel.X = Min(0, vel.X)
-				}
-			}
-		}
-		if ycollision {
-			yadj = oy
-			if pos.Y < other.Pos().Y {
-				yadj = -yadj
-			}
-			if !collideBottom && yadj < 0 || !collideTop && yadj > 0 {
-				yadj = 0
-			} else {
-				pos.Add(NewVec2(0, yadj), 1.0)
-			
-				if yadj > 0 {
-					vel.Y = Max(0, vel.Y)
-				} else if yadj < 0 {
-					vel.Y = Min(0, vel.Y)
-				}
+			if ty > tx {
+				collide.Y = 0
 			}
 		}
 
-		r.SetPos(pos)
-		r.SetVel(vel)
+		// Special treatment for platform.
+		if !collide.IsZero() && other.GetSpace() == platformSpace {
+			collide.X = 0
+			if collide.Y < 0 {
+				collide.Y = 0
+			}
 
-		return xadj, yadj
-	case *Circle:
-		return 0, 0
+			if collide.IsZero() {
+				results.ignored = true
+				return results
+			}
+		}
+
+		// If overlap is small, correct it but don't change velocity.
+		if ox < overlapEpsilon || oy < overlapEpsilon {
+			results.snap = true
+			results.posAdj = NewVec2(0, 0)
+
+			if ox < overlapEpsilon {
+				results.posAdj.X = ox * collide.X
+			}
+			if oy < overlapEpsilon {
+				results.posAdj.Y = oy * collide.Y
+			}
+
+			results.newVel = r.Vel()
+			return results
+		}
+
+		// Compile the results.
+		posAdj := NewVec2(0, 0)
+		newVel := r.Vel()
+		if collide.X != 0 {
+			results.snap = true
+			posAdj.X = ox * collide.X
+
+			if posAdj.X > 0 {
+				newVel.X = Max(0, newVel.X)
+			} else if posAdj.X < 0 {
+				newVel.X = Min(0, newVel.X)
+			}
+		}
+		if collide.Y != 0 {
+			results.snap = true
+			posAdj.Y = oy * collide.Y
+		
+			if posAdj.Y > 0 {
+				newVel.Y = Max(0, newVel.Y)
+			} else if posAdj.Y < 0 {
+				newVel.Y = Min(0, newVel.Y)
+			}
+		}
+
+		results.posAdj = posAdj
+		results.newVel = newVel
+		return results
 	default:
-		return 0, 0
+		return results
 	}
+}
+
+func (r *Rec2) Rotate(dir Vec2) {
+	panic("Trying to rotate rec2")
 }

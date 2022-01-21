@@ -22,7 +22,7 @@ func (s *Shot) Resolve(grid *Grid) {
 		s.line.Scale(hit.t)
 
 		if s.weapon.class == spaceBlast {
-			bomb := NewBomb(NewInit(grid.NextSpacedId(bombSpace), NewVec2(hit.hit.X, hit.hit.Y), NewVec2(1, 1)))
+			bomb := NewBomb(NewInit(grid.NextSpacedId(bombSpace), NewInitData(NewVec2(hit.hit.X, hit.hit.Y), NewVec2(1, 1))))
 			if target := grid.Get(hit.target); target != nil {
 				target = target.(*Object)
 				offset := hit.hit
@@ -43,18 +43,18 @@ func (s *Shot) Hit(target Thing, grid *Grid) {
 	switch thing := target.(type) {
 	case *Player:
 		thing.health -= 20
-		vel := thing.Profile.Vel()
+		vel := thing.GetProfile().Vel()
 		force := s.line.R
 		force.Normalize()
 		vel.Add(force, s.weapon.pushFactor)
-		thing.Profile.SetVel(vel)
+		thing.GetProfile().SetVel(vel)
 	}
 }
 
 func (s *Shot) getShotData() ShotData {
 	hits := make([]HitData, len(s.hits))
 	for _, hit := range(s.hits) {
-		hits = append(hits, hit.getHitData())
+		hits = append(hits, hit.GetData())
 	}
 
 	return ShotData {
@@ -72,14 +72,14 @@ type Hit struct {
 }
 
 type HitData struct {
-	IS SpaceType
+	S SpaceType
 	Id IdType
 	H Vec2
 }
 
-func (h *Hit) getHitData() HitData {
+func (h *Hit) GetData() HitData {
 	return HitData {
-		IS: h.target.space,
+		S: h.target.space,
 		Id: h.target.id,
 		H: h.hit,
 	}

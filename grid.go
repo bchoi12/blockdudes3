@@ -137,6 +137,15 @@ func (g *Grid) GetThings(space SpaceType) map[IdType]Thing {
 	return g.spacedThings[space]
 }
 
+func (g *Grid) GetManyThings(spaces ...SpaceType) map[SpaceType]map[IdType]Thing {
+	things := make(map[SpaceType]map[IdType]Thing)
+
+	for _, space := range(spaces) {
+		things[space] = g.spacedThings[space]
+	}
+	return things
+}
+
 type ColliderOptions struct {
 	self SpacedId
 	solidOnly bool

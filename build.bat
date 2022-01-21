@@ -1,1 +1,1 @@
-go build -o bin/bossman69.exe -v .
+go build -o bin/blockdudes3.exe -v .

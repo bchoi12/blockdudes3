@@ -5,30 +5,15 @@ import (
 	"time"
 )
 
-type SpacedId struct {
-	space SpaceType
-	id IdType
-}
-
-func Id(space SpaceType, id IdType) SpacedId {
-	return SpacedId {
-		space: space,
-		id: id,
-	}
-}
-
 type Thing interface {
-	SetId(id IdType)
-	SetSpace(space SpaceType)
-	SetSpacedId(sid SpacedId)
-
+	GetSpacedId() SpacedId
 	GetId() IdType
 	GetSpace() SpaceType
-	GetSpacedId() SpacedId
 
-	GetInit() Init
 	GetProfile() Profile
-	SetProfileOptions(options ProfileOptions)
+
+	SetData(data Data)
+	GetData() Data
 
 	SetParent(attach Attachment)
 	AddChild(attach Attachment)
@@ -36,52 +21,6 @@ type Thing interface {
 	GetChildren() []Attachment
 
 	UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool
-
-	// Called by WASM only
-	SetData(od ObjectData)
-	// For client communication only
-	GetData() ObjectData
-}
-
-type Init struct {
-	Id IdType
-	S SpaceType
-	Pos Vec2
-	Dim Vec2
-}
-
-func NewInit(sid SpacedId, pos Vec2, dim Vec2) Init {
-	return Init {
-		Id: sid.id,
-		S: sid.space,
-		Pos: pos,
-		Dim: dim,
-	}
-}
-
-func (i *Init) SetId(id IdType) {
-	i.Id = id
-}
-func (i *Init) SetSpace(space SpaceType) {
-	i.S = space
-}
-func (i *Init) SetSpacedId(sid SpacedId) {
-	i.SetId(sid.id)
-	i.SetSpace(sid.space)
-}
-
-func (i Init) GetId() IdType {
-	return i.Id
-}
-func (i Init) GetSpace() SpaceType {
-	return i.S
-}
-func (i Init) GetSpacedId() SpacedId {
-	return Id(i.S, i.Id)
-}
-
-func (i Init) GetInit() Init {
-	return i
 }
 
 type ThingItem struct {

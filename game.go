@@ -29,11 +29,13 @@ func newGame() *Game {
 func (g *Game) add(init Init) {
 	var thing Thing
 
-	switch init.S {
+	switch init.GetSpace() {
 	case playerSpace:
 		thing = NewPlayer(init)
 	case wallSpace:
 		thing = NewWall(init)
+	case platformSpace:
+		thing = NewPlatform(init)
 	case bombSpace:
 		thing = NewBomb(init)
 	case explosionSpace:
@@ -55,7 +57,7 @@ func (g *Game) delete(sid SpacedId) {
 	g.grid.Delete(sid)
 }
 
-func (g *Game) getData(sid SpacedId) ObjectData {
+func (g *Game) getData(sid SpacedId) Data {
 	if !isWasm {
 		panic("getData called outside of WASM")
 	}
@@ -63,13 +65,13 @@ func (g *Game) getData(sid SpacedId) ObjectData {
 	return g.grid.Get(sid).GetData()
 }
 
-func (g *Game) setData(sid SpacedId, od ObjectData) {
+func (g *Game) setData(sid SpacedId, data Data) {
 	if !isWasm {
 		panic("setData called outside of WASM")
 	}
 
 	thing := g.grid.Get(sid)
-	thing.SetData(od)
+	thing.SetData(data)
 	g.grid.Upsert(thing)
 }
 
@@ -106,11 +108,11 @@ func (g *Game) updateThing(thing Thing, now time.Time) {
 }
 
 func (g* Game) createPlayerInitMsg(id IdType) PlayerInitMsg {
-	players := make([]Init, 0)
+	players := make(PlayerPropMap)
 
 	for _, t := range(g.grid.GetThings(playerSpace)) {
 		player := t.(*Player)
-		players = append(players, NewInit(player.GetSpacedId(), player.Profile.Pos(), player.Profile.Dim()))
+		players[player.GetId()] = player.GetData().Props()
 	}
 
 	return PlayerInitMsg{
@@ -121,9 +123,9 @@ func (g* Game) createPlayerInitMsg(id IdType) PlayerInitMsg {
 }
 
 func (g* Game) createPlayerJoinMsg(id IdType) PlayerInitMsg {
+	players := make(PlayerPropMap)
 	player := g.grid.Get(Id(playerSpace, id)).(*Player)
-	players := make([]Init, 1)
-	players[0] = NewInit(player.GetSpacedId(), player.Profile.Pos(), player.Profile.Dim())
+	players[id] = player.GetData().Props()
 	return PlayerInitMsg{
 		T: playerJoinType,
 		Ps: players,
@@ -138,11 +140,14 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 }
 
 func (g *Game) createObjectInitMsg() ObjectInitMsg {
-	objs := make([]Init, 0)
+	objs := make(map[SpaceType]map[IdType]PropMap)
 
-	for _, t := range(g.grid.GetThings(wallSpace)) {
-		obj := t.(*Object)
-		objs = append(objs, obj.GetInit())
+	for space, things := range(g.grid.GetManyThings(platformSpace, wallSpace)) {
+		objs[space] = make(map[IdType]PropMap)
+		for id, thing := range(things) {
+			obj := thing.(*Object)
+			objs[space][id] = obj.GetData().Props()
+		}
 	}
 
 	return ObjectInitMsg{

@@ -4,22 +4,25 @@ import (
 	"time"
 )
 
-func NewRec2Object(init Init) Object {
-	return Object {
-		Init: init,
-		Profile: NewRec2(init.Pos, init.Dim),
-	}
-}
 func NewCircleObject(init Init) Object {
 	return Object {
 		Init: init,
-		Profile: NewCircle(init.Pos, init.Dim),
+		profile: NewCircle(init, NewProfileData(false)),
 	}
 }
 
 func NewWall(init Init) *Object {
-	object := NewRec2Object(init)
-	return &object
+	return &Object {
+		Init: init,
+		profile: NewRec2(init, NewProfileData(true)),
+	}
+}
+
+func NewPlatform(init Init) *Object {
+	return &Object {
+		Init: init,
+		profile: NewRec2(init, NewProfileData(true)),
+	}
 }
 
 type Bomb struct {
@@ -47,21 +50,13 @@ func (b *Bomb) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool
 		dim := b.GetProfile().Dim()
 		dim.Scale(3.6)
 
-		init := NewInit(grid.NextSpacedId(explosionSpace), pos, dim)
+		init := NewInit(grid.NextSpacedId(explosionSpace), NewInitData(pos, dim))
 		explosion := NewExplosion(init)
 		
 		grid.Upsert(explosion)
 		grid.Delete(b.GetSpacedId())
 	}
 	return true
-}
-
-func (b *Bomb) GetData() ObjectData {
-	od := NewObjectData()
-	od.Set(posProp, b.Profile.Pos())
-	od.Set(dimProp, b.Profile.Dim())
-	od.Set(velProp, b.Profile.Vel())
-	return od
 }
 
 type Explosion struct {
@@ -85,15 +80,15 @@ func (e *Explosion) Hit(p *Player) {
 	}
 	e.hits[p.GetSpacedId()] = true
 
-	dir := p.Profile.Pos()
+	dir := p.GetProfile().Pos()
 	dir.Sub(e.GetProfile().Pos(), 1.0)
 	if (dir.IsZero()) {
 		dir.X = 1
 	}
 	dir.Normalize()
 	dir.Scale(60)
-	dir.Add(p.Profile.Vel(), 1.0)
-	p.Profile.SetVel(dir)
+	dir.Add(p.GetProfile().Vel(), 1.0)
+	p.GetProfile().SetVel(dir)
 }
 
 func (e *Explosion) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
@@ -110,9 +105,9 @@ func (e *Explosion) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time)
 	return true
 }
 
-func (e *Explosion) GetData() ObjectData {
+func (e *Explosion) GetData() Data {
 	od := NewObjectData()
-	od.Set(posProp, e.Profile.Pos())
-	od.Set(dimProp, e.Profile.Dim())
+	od.Set(posProp, e.GetProfile().Pos())
+	od.Set(dimProp, e.GetProfile().Dim())
 	return od
 }

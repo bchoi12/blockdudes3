@@ -5,7 +5,7 @@ class RenderObject {
         this._activeActions = new Set();
     }
     update(msg) {
-        if (defined(msg[posProp])) {
+        if (msg.hasOwnProperty(posProp)) {
             const pos = msg[posProp];
             this._mesh.position.x = pos.X;
             this._mesh.position.y = pos.Y;

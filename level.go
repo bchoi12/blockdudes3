@@ -15,62 +15,57 @@ func (g *Game) loadTestLevel() {
 	var init Init
 
 	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(4, -4), NewVec2(8, 8))
+	init = NewInit(id, NewInitData(NewVec2(4, -4), NewVec2(8, 8)))
+	g.add(init)
+
+	id = g.grid.NextSpacedId(platformSpace)
+	init = NewInit(id, NewInitData(NewVec2(4, 2), NewVec2(3.0, 0.2)))
 	g.add(init)
 
 	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(4, 2), NewVec2(3.0, 0.2))
-	g.add(init)
-	g.grid.Get(id).(*Object).SetProfileOptions(PlatformProfileOptions())
-
-	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(16, -3), NewVec2(8, 8))
+	init = NewInit(id, NewInitData(NewVec2(16, -3), NewVec2(8, 8)))
 	g.add(init)
 
 	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(13.5, 2.9), NewVec2(3, 0.2))
+	init = NewInit(id, NewInitData(NewVec2(13.5, 2.9), NewVec2(3, 0.2)))
 	g.add(init)
 
 	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(18.5, 2.9), NewVec2(3, 0.2))
+	init = NewInit(id, NewInitData(NewVec2(18.5, 2.9), NewVec2(3, 0.2)))
 	g.add(init)
 
 	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(12.1, 4), NewVec2(0.2, 2))
+	init = NewInit(id, NewInitData(NewVec2(12.1, 4), NewVec2(0.2, 2)))
 	g.add(init)
 
 	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(16, 4.9), NewVec2(8, 0.2))
+	init = NewInit(id, NewInitData(NewVec2(16, 4.9), NewVec2(8, 0.2)))
 	g.add(init)
 
 	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(19.9, 2), NewVec2(0.2, 2))
+	init = NewInit(id, NewInitData(NewVec2(19.9, 2), NewVec2(0.2, 2)))
 	g.add(init)
 
 	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(27, -3), NewVec2(10, 12))
+	init = NewInit(id, NewInitData(NewVec2(27, -3), NewVec2(10, 12)))
 	g.add(init)
 
-	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(24, 5), NewVec2(3, 0.2))
+	id = g.grid.NextSpacedId(platformSpace)
+	init = NewInit(id, NewInitData(NewVec2(24, 5), NewVec2(3, 0.2)))
 	g.add(init)
-	g.grid.Get(id).(*Object).SetProfileOptions(PlatformProfileOptions())
 
-	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(30, 5), NewVec2(3, 0.2))
+	id = g.grid.NextSpacedId(platformSpace)
+	init = NewInit(id, NewInitData(NewVec2(30, 5), NewVec2(3, 0.2)))
 	g.add(init)
-	g.grid.Get(id).(*Object).SetProfileOptions(PlatformProfileOptions())
 
-	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(27, 7), NewVec2(3, 0.2))
+	id = g.grid.NextSpacedId(platformSpace)
+	init = NewInit(id, NewInitData(NewVec2(27, 7), NewVec2(3, 0.2)))
 	g.add(init)
-	g.grid.Get(id).(*Object).SetProfileOptions(PlatformProfileOptions())
 
 
-	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(10, -1), NewVec2(3, 0.2))
+	id = g.grid.NextSpacedId(platformSpace)
+	init = NewInit(id, NewInitData(NewVec2(10, -1), NewVec2(3, 0.2)))
 	g.add(init)
-	g.grid.Get(id).(*Object).SetProfileOptions(PlatformProfileOptions())
 	g.grid.Get(id).(*Object).update = func(thing Thing, grid *Grid, buffer *UpdateBuffer, ts float64) {
 		switch prof := (thing.GetProfile()).(type) {
 		case *Rec2:
@@ -88,15 +83,23 @@ func (g *Game) loadTestLevel() {
 			pos.Add(vel, ts)
 			prof.SetVel(vel)
 			prof.SetPos(pos)
+
+/*
+			for _, player := range(grid.GetThings(playerSpace)) {
+				_, yadj := player.GetProfile().Snap(prof)
+				if yadj > 0 {
+					player.(*Player).grounded = true
+				}
+			}
+*/
 		default:
 			return
 		}
 	}
 
-	id = g.grid.NextSpacedId(wallSpace)
-	init = NewInit(id, NewVec2(16, 7), NewVec2(3, 0.2))
+	id = g.grid.NextSpacedId(platformSpace)
+	init = NewInit(id, NewInitData(NewVec2(16, 7), NewVec2(3, 0.2)))
 	g.add(init)
-	g.grid.Get(id).(*Object).SetProfileOptions(PlatformProfileOptions())
 	g.grid.Get(id).(*Object).update = func(thing Thing, grid *Grid, buffer *UpdateBuffer, ts float64) {
 		switch prof := (thing.GetProfile()).(type) {
 		case *Rec2:
@@ -114,6 +117,15 @@ func (g *Game) loadTestLevel() {
 			pos.Add(vel, ts)
 			prof.SetVel(vel)
 			prof.SetPos(pos)
+
+/*
+			for _, player := range(grid.GetThings(playerSpace)) {
+				_, yadj := player.GetProfile().Snap(prof)
+				if yadj > 0 {
+					player.(*Player).grounded = true
+				}
+			}
+*/
 		default:
 			return
 		}

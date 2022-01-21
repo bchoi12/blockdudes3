@@ -98,10 +98,8 @@ func Add(g *Game) js.Func {
 
 		space := SpaceType(args[0].Int())
 		id := IdType(args[1].Int())
-		pos := args[2].Get("Pos")
-		dim := args[2].Get("Dim")
+		init := NewInit(Id(space, id), getData(args[2]))
 
-		init := NewInit(Id(space, id), parseVec2(pos), parseVec2(dim))
 		g.add(init)
 		return nil
     })
@@ -163,7 +161,7 @@ func UpdateKeys(g *Game) js.Func {
 func GetData(g *Game) js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		if len(args) != 2 {
-			fmt.Println("SetData: Expected 2 argument(s), got ", len(args))
+			fmt.Println("GetData: Expected 2 argument(s), got ", len(args))
 			return nil
 		}
 
@@ -192,13 +190,13 @@ func SetData(g *Game) js.Func {
 			return nil
 		}
 
-		od := getObjectData(args[2])
-		if (od.Size() == 0) {
+		data := getData(args[2])
+		if (data.Size() == 0) {
 			fmt.Println("SetData: called with empty property list")
 			return nil
 		}
 
-		g.setData(Id(space, id), od)
+		g.setData(Id(space, id), data)
 		return nil
     })
 }
@@ -236,57 +234,57 @@ func UpdateState(g *Game) js.Func {
     })
 }
 
-func getObjectData(data js.Value) ObjectData {
+func getData(data js.Value) Data {
 	var prop js.Value
 	var err error
-	od := NewObjectData()
+	bd := NewBaseData()
 
 	prop, err = getPropData(data, spaceProp)
 	if err == nil {
-		od.Set(spaceProp, SpaceType(prop.Int()))
+		bd.Set(spaceProp, SpaceType(prop.Int()))
 	}
 
 	prop, err = getPropData(data, dimProp)
 	if err == nil {
-		od.Set(dimProp, parseVec2(prop))
+		bd.Set(dimProp, parseVec2(prop))
 	}
 
 	prop, err = getPropData(data, keysProp)
 	if err == nil {
-		od.Set(keysProp, parseKeysAsProp(prop.String()))
+		bd.Set(keysProp, parseKeysAsProp(prop.String()))
 	}
 
 	prop, err = getPropData(data, posProp)
 	if err == nil {
-		od.Set(posProp, parseVec2(prop))
+		bd.Set(posProp, parseVec2(prop))
 	}
 
 	prop, err = getPropData(data, velProp)
 	if err == nil {
-		od.Set(velProp, parseVec2(prop))
+		bd.Set(velProp, parseVec2(prop))
 	}
 
 	prop, err = getPropData(data, extVelProp)
 	if err == nil {
-		od.Set(extVelProp, parseVec2(prop))
+		bd.Set(extVelProp, parseVec2(prop))
 	}
 
 	prop, err = getPropData(data, accProp)
 	if err == nil {
-		od.Set(accProp, parseVec2(prop))
+		bd.Set(accProp, parseVec2(prop))
 	}
 
 	prop, err = getPropData(data, dirProp)
 	if err == nil {
-		od.Set(dirProp, parseVec2(prop))
+		bd.Set(dirProp, parseVec2(prop))
 	}
 
 	prop, err = getPropData(data, healthProp)
 	if err == nil {
-		od.Set(healthProp, prop.Int())
+		bd.Set(healthProp, prop.Int())
 	}
 
-	return od
+	return bd
 }
 
 func getPropData(data js.Value, prop Prop) (js.Value, error) {
