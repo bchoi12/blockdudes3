@@ -33,7 +33,6 @@ declare var wallSpace : number;
 declare var bombSpace : number;
 declare var explosionSpace : number;
 
-declare var spaceProp : number;
 declare var dimProp : number;
 declare var keysProp : number;
 declare var posProp : number;
@@ -41,9 +40,11 @@ declare var velProp : number;
 declare var extVelProp : number;
 declare var accProp : number;
 declare var dirProp : number;
+declare var weaponDirProp : number;
 declare var healthProp : number;
 declare var profileDimProp : number;
 declare var profilePosProp : number;
+declare var profilePointsProp : number;
 
 declare var upKey : number;
 declare var downKey : number;

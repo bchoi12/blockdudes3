@@ -1,6 +1,6 @@
 class Scene {
     constructor() {
-        this._lineMaterial = new THREE.LineBasicMaterial({ color: 0xffff00 });
+        this._lineMaterial = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 3 });
         this.reset();
     }
     scene() { return this._scene; }
@@ -59,15 +59,19 @@ class Scene {
     renderShots(shots) {
         shots.forEach((shot) => {
             const points = [
-                new THREE.Vector3(shot.O.X, shot.O.Y, 0),
-                new THREE.Vector3(shot.E.X, shot.E.Y, 0),
+                new THREE.Vector3(shot.O.X, shot.O.Y, 0.5),
+                new THREE.Vector3(shot.E.X, shot.E.Y, 0.5),
             ];
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
             const line = new THREE.Line(geometry, this._lineMaterial);
             this._scene.add(line);
+            const light = new THREE.PointLight(0xffff00, 1, 3, 2);
+            light.position.set(shot.O.X, shot.O.Y, 1);
+            this._scene.add(light);
             setTimeout(() => {
                 this._scene.remove(line);
-            }, 50);
+                this._scene.remove(light);
+            }, 60);
         });
     }
     setPlayerPosition(position) {

@@ -19,6 +19,14 @@ func (c Circle) RadiusSqr() float64 {
 }
 
 func (c Circle) Contains(point Vec2) bool {
+	if c.subContains(point) {
+		return true
+	}
+
+	if c.Guide() {
+		return false
+	}
+
 	pos := c.Pos()
 	distX := pos.X - point.X
 	distY := pos.Y - point.Y
@@ -27,11 +35,21 @@ func (c Circle) Contains(point Vec2) bool {
 }
 
 func (c Circle) Intersects(line Line) (bool, float64) {
+	collision, closest := c.subIntersects(line)
+
+	if c.Guide() {
+		return collision, closest
+	}
+
 	// TODO: circle intersects line
-	return false, 1.0
+	return collision, closest
 }
 
 func (c Circle) Overlap(profile Profile) float64 {
+	if overlap := c.subOverlap(profile); overlap > 0 {
+		return overlap
+	}
+
 	switch other := profile.(type) {
 	case *RotPoly:
 		return other.Overlap(&c)

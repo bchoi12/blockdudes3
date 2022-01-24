@@ -5,7 +5,7 @@ enum Layer {
 
 class Renderer {
 	private readonly _cameraOffsetY = 1.2;
-	private readonly _cameraOffsetZ = 12.0;
+	private readonly _cameraOffsetZ = 30.0;
 
 	private _canvas : HTMLElement
 
@@ -22,7 +22,7 @@ class Renderer {
 		this._canvas = canvas;
 
 		this._scene = new Scene();
-		this._camera = new THREE.PerspectiveCamera(45, this._canvas.offsetWidth / this._canvas.offsetHeight, 0.1, 1000);
+		this._camera = new THREE.PerspectiveCamera(20, this._canvas.offsetWidth / this._canvas.offsetHeight, 0.1, 1000);
 		this._camera.position.z = this._cameraOffsetZ;
 
 		this._renderer = new THREE.WebGLRenderer( {canvas: this._canvas, antialias: true});

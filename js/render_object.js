@@ -3,6 +3,7 @@ class RenderObject {
         this._debugMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000, wireframe: true });
         this._mesh = mesh;
         this._activeActions = new Set();
+        this._lastMixerUpdate = Date.now();
     }
     update(msg) {
         if (msg.hasOwnProperty(posProp)) {
@@ -13,6 +14,12 @@ class RenderObject {
     }
     mesh() {
         return this._mesh;
+    }
+    updateMixer() {
+        const now = Date.now();
+        const seconds = (now - this._lastMixerUpdate) / 1000;
+        this._mixer.update(2 * seconds);
+        this._lastMixerUpdate = now;
     }
     setWeight(action, weight) {
         action.enabled = true;

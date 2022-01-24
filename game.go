@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	debugMode bool = true
+	debugMode bool = false
 )
 
 type Game struct {
@@ -145,8 +145,7 @@ func (g *Game) createObjectInitMsg() ObjectInitMsg {
 	for space, things := range(g.grid.GetManyThings(platformSpace, wallSpace)) {
 		objs[space] = make(map[IdType]PropMap)
 		for id, thing := range(things) {
-			obj := thing.(*Object)
-			objs[space][id] = obj.GetData().Props()
+			objs[space][id] = thing.GetData().Props()
 		}
 	}
 

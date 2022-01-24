@@ -6,6 +6,7 @@ import (
 
 const (
 	floatEpsilon float64 = 1e-8
+	approxEpsilon float64 = 1e-3
 )
 
 type Line struct {
@@ -72,6 +73,13 @@ func NewVec2(x float64, y float64) Vec2 {
 	return Vec2 {
 		X: x,
 		Y: y,
+	}
+}
+
+func NewVec2FromAngle(rad float64) Vec2 {
+	return Vec2 {
+		X: math.Cos(rad),
+		Y: math.Sin(rad),
 	}
 }
 
@@ -153,6 +161,10 @@ func (v Vec2) Angle() float64 {
 
 func (v Vec2) IsZero() bool {
 	return Abs(v.X) < floatEpsilon && Abs(v.Y) < floatEpsilon
+}
+
+func (v Vec2) ApproxUnit() bool {
+		return Abs(v.LenSquared() - 1) <  approxEpsilon
 }
 
 func (v Vec2) Len() float64 {

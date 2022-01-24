@@ -6,10 +6,10 @@ var Layer;
 class Renderer {
     constructor(canvas) {
         this._cameraOffsetY = 1.2;
-        this._cameraOffsetZ = 12.0;
+        this._cameraOffsetZ = 30.0;
         this._canvas = canvas;
         this._scene = new Scene();
-        this._camera = new THREE.PerspectiveCamera(45, this._canvas.offsetWidth / this._canvas.offsetHeight, 0.1, 1000);
+        this._camera = new THREE.PerspectiveCamera(20, this._canvas.offsetWidth / this._canvas.offsetHeight, 0.1, 1000);
         this._camera.position.z = this._cameraOffsetZ;
         this._renderer = new THREE.WebGLRenderer({ canvas: this._canvas, antialias: true });
         this._renderer.setClearColor(0x87cefa);

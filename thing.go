@@ -6,15 +6,12 @@ import (
 )
 
 type Thing interface {
-	GetSpacedId() SpacedId
-	GetId() IdType
-	GetSpace() SpaceType
+	InitMethods
+	Profile
 
 	GetProfile() Profile
-
 	SetData(data Data)
 	GetData() Data
-
 	SetParent(attach Attachment)
 	AddChild(attach Attachment)
 	GetParent() Attachment

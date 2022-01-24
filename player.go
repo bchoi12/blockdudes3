@@ -6,15 +6,18 @@ import (
 )
 
 const (
+	sqrtHalf float64 = .7071
+)
+
+const (
 	gravityAcc = -18.0
-	walledAcc = -9.0
 	downAcc = -18.0
 	rightAcc = 16.0
 	leftAcc = -rightAcc
-	turnMultiplier = 4.0
+	turnMultiplier = 3.0
 
-	maxUpwardVel = 10.0
-	maxHorizontalVel = 10.0
+	maxUpwardVel = 12.0
+	maxHorizontalVel = 12.0
 	maxDownwardVel = -24.0
 	maxVelMultiplier = 0.9
 	extVelMultiplier = 0.98
@@ -22,23 +25,25 @@ const (
 	jumpVel = 10.0
 
 	friction = 0.4
-	airResistance = 0.92
+	airResistance = 0.9
 
 	maxJumpFrames int = 20
 	maxCanJumpFrames int = 6
+
+	bodySubProfile ProfileKey = 1
 )
 
 type Player struct {
-	*Object
+	Object
 
 	weapon *Weapon
 	altWeapon *Weapon
 
 	canDash bool
+	grounded bool
+
 	jumpFrames int
 	canJumpFrames int
-	grounded bool
-	walled int
 
 	ignoredColliders map[SpacedId]bool
 
@@ -48,14 +53,32 @@ type Player struct {
 	lastKeyUpdate SeqNumType
 
 	mouse Vec2
-	dir Vec2
+	weaponDir Vec2
+}
+
+func NewPlayerData() Data {
+	return NewData()
 }
 
 func NewPlayer(init Init) *Player {
-	// subProfiles := make([]Profile, 1)
-	// subProfiles[0] = NewRec2(NewVec2(0, 1), init.Dim())
+	profile := NewRec2(init, NewProfileData(true))
+	profile.SetGuide(true)
+	points := make([]Vec2, 4)
+	points[0] = NewVec2(0.48, -0.53)
+	points[1] = NewVec2(0.48, 0.53)
+	points[2] = NewVec2(-0.48, 0.53)
+	points[3] = NewVec2(-0.48, -0.53)
+
+	rpInit := init
+	rpInit.SetDim(NewVec2(10, 10))
+
+	rotPoly := NewRotPoly(rpInit, NewProfileData(false), points)
+	subProfile := NewSubProfile(rotPoly)
+	subProfile.SetOffset(NewVec2(0, 0.22))
+	profile.AddSubProfile(bodySubProfile, subProfile)
+
 	player := &Player {
-		Object: NewObject(init, NewRec2(init, NewProfileData(true))),
+		Object: NewObject(profile, NewObjectData()),
 
 		weapon: NewWeapon(init.GetId(), spaceBurst),
 		altWeapon: NewWeapon(init.GetId(), spaceBlast),
@@ -64,14 +87,15 @@ func NewPlayer(init Init) *Player {
 		jumpFrames: 0,
 		canJumpFrames: 0,
 		grounded: false,
-		walled: 0,
 
 		ignoredColliders: make(map[SpacedId]bool, 0),
 
 		keys: make(map[KeyType]bool, 0),
 		lastKeys: make(map[KeyType]bool, 0),
 		lastKeyUpdate: 0,
-		dir: init.Pos(),
+
+		mouse: NewVec2(0, 0),
+		weaponDir: NewVec2(1, 0),
 	}
 	player.respawn()
 	return player
@@ -79,27 +103,29 @@ func NewPlayer(init Init) *Player {
 
 func (p *Player) GetData() Data {
 	data := NewPlayerData()
-	data.Merge(p.GetProfile().GetData())
+	data.Merge(p.Object.GetData())
 
-	data.Set(dirProp, p.dir)
+	data.Set(dirProp, p.Dir())
+	data.Set(weaponDirProp, p.weaponDir)
 	data.Set(keysProp, p.keys)
 
 	if (debugMode) {
-		data.Set(profilePosProp, p.GetProfile().Pos())
-		data.Set(profileDimProp, p.GetProfile().Dim())
+		data.Set(profilePosProp, p.Pos())
+		data.Set(profileDimProp, p.Dim())
+		data.Set(profilePointsProp, p.GetSubProfile(bodySubProfile).Profile.(*RotPoly).Points())
 	}
 
 	return data
 }
 
 func (p *Player) SetData(data Data) {
-	p.GetProfile().SetData(data)
+	p.Object.SetData(data)
 
 	if data.Has(keysProp) {
 		p.keys = data.Get(keysProp).(map[KeyType]bool)
 	}
 	if data.Has(dirProp) {
-		p.dir = data.Get(dirProp).(Vec2)
+		p.SetDir(data.Get(dirProp).(Vec2))
 	}
 }
 
@@ -110,10 +136,10 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	}
 	p.lastUpdateTime = now
 
-	pos := p.GetProfile().Pos()
-	vel := p.GetProfile().Vel()
-	evel := p.GetProfile().ExtVel()
-	acc := p.GetProfile().Acc()
+	pos := p.Pos()
+	vel := p.Vel()
+	evel := p.ExtVel()
+	acc := p.Acc()
 
 	if (p.health <= 0 || pos.Y < -5) {
 		p.respawn()
@@ -131,11 +157,6 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 		}
 	}
 
-	// Wall sliding
-	if p.walled != 0 && vel.Y < 0 {
-		acc.Y = Max(acc.Y, walledAcc)
-	}
-
 	// Left & right
 	if p.keyDown(leftKey) != p.keyDown(rightKey) {
 		if p.keyDown(leftKey) {
@@ -150,7 +171,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 		acc.X = 0
 	}
 
-	p.GetProfile().SetAcc(acc)
+	p.SetAcc(acc)
 
 	// Shooting & recoil
 	p.updateDir()
@@ -158,31 +179,18 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	shot = p.shoot(p.weapon, mouseClick, grid, now)
 	if shot != nil {
 		buffer.rawShots = append(buffer.rawShots, shot)
-		vel.Add(shot.recoil, 1)
 
-		if p.grounded {
-			vel.Y = Max(0, vel.Y)
-		}
-		if p.walled == -1 {
-			vel.X = Max(0, vel.X)
-		}
-		if p.walled == 1 {
-			vel.X = Min(vel.X, 0)
+		if !p.grounded {
+			vel.Add(shot.recoil, 1)
 		}
 	} else {
 		shot = p.shoot(p.altWeapon, altMouseClick, grid, now)
 		if shot != nil {
 			buffer.rawShots = append(buffer.rawShots, shot)
-			vel.Add(shot.recoil, 1)
-		}
-		if p.grounded {
-			vel.Y = Max(0, vel.Y)
-		}
-		if p.walled == -1 {
-			vel.X = Max(0, vel.X)
-		}
-		if p.walled == 1 {
-			vel.X = Min(vel.X, 0)
+
+			if !p.grounded {
+				vel.Add(shot.recoil, 1)
+			}
 		}
 	}
 
@@ -229,18 +237,18 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 		vel.Y *= maxVelMultiplier
 	}
 
-	p.GetProfile().SetVel(vel)
+	p.SetVel(vel)
 
 	// Slow down momentum from other objects if not grounded
 	if !p.grounded {
 		evel.X *= extVelMultiplier
 		evel.Y = 0
 	}
-	p.GetProfile().SetExtVel(evel)
+	p.SetExtVel(evel)
 
 	// Move
-	pos.Add(p.GetProfile().TotalVel(), ts)
-	p.GetProfile().SetPos(pos)
+	pos.Add(p.TotalVel(), ts)
+	p.SetPos(pos)
 	p.checkCollisions(grid)
 
 	// Save state
@@ -251,7 +259,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 
 func (p *Player) shoot(w *Weapon, key KeyType, grid *Grid, now time.Time) *Shot {
 	if w.bursting(now) || p.keyDown(key) && w.canShoot(now) {
-		line := NewLine(p.GetProfile().Pos(), p.dir)
+		line := NewLine(p.Pos(), p.weaponDir)
 		return w.shoot(line, grid, now)
 	}
 	return nil
@@ -260,7 +268,7 @@ func (p *Player) shoot(w *Weapon, key KeyType, grid *Grid, now time.Time) *Shot 
 func (p *Player) checkCollisions(grid *Grid) {
 	// Collision detection
 	ignoredColliders := make(map[SpacedId]bool, 0)
-	p.grounded, p.walled = false, 0
+	p.grounded = false
 	colliders := grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId(), solidOnly: true})
 	for len(colliders) > 0 {
 		thing := PopThing(&colliders)
@@ -271,7 +279,7 @@ func (p *Player) checkCollisions(grid *Grid) {
 		}
 
 		other := thing.GetProfile()
-		results := p.GetProfile().Snap(other)
+		results := p.Snap(other)
 		
 		if !results.snap {
 			if results.ignored {
@@ -280,18 +288,15 @@ func (p *Player) checkCollisions(grid *Grid) {
 			continue
 		}
 
-		pos := p.GetProfile().Pos()
+		pos := p.Pos()
 		pos.Add(results.posAdj, 1.0)
-		p.GetProfile().SetPos(pos)
-		if results.posAdj.X != 0 {
-			// p.walled = -int(Sign(results.posAdj.X))
-		}
+		p.SetPos(pos)
 		if results.posAdj.Y > 0 {
-			p.GetProfile().SetExtVel(other.TotalVel())
+			p.SetExtVel(other.TotalVel())
 			p.grounded = true
 		}
 
-		p.GetProfile().SetVel(results.newVel)
+		p.SetVel(results.newVel)
 	}
 	p.ignoredColliders = ignoredColliders
 
@@ -299,7 +304,7 @@ func (p *Player) checkCollisions(grid *Grid) {
 	for len(colliders) > 0 {
 		collider := PopThing(&colliders)
 		other := collider.GetProfile()
-		if p.GetProfile().Overlap(other) <= 0 {
+		if p.Overlap(other) <= 0 {
 			continue
 		}
 
@@ -315,9 +320,9 @@ func (p *Player) respawn() {
 	p.canDash = true
 
 	rand.Seed(time.Now().Unix())
-	p.GetProfile().SetPos(NewVec2(float64(1 + rand.Intn(19)), 20))
-	p.GetProfile().SetVel(NewVec2(0, 0))
-	p.GetProfile().SetAcc(NewVec2(0, 0))
+	p.SetPos(NewVec2(float64(1 + rand.Intn(19)), 20))
+	p.SetVel(NewVec2(0, 0))
+	p.SetAcc(NewVec2(0, 0))
 }
 
 func (p *Player) updateKeys(keyMsg KeyMsg) {
@@ -340,9 +345,21 @@ func (p *Player) updateMouse(mouse Vec2) {
 }
 
 func (p *Player) updateDir() {
-	p.dir = p.mouse
-	p.dir.Sub(p.GetProfile().Pos(), 1.0)
-	p.dir.Normalize()
+	if p.lastKeyUpdate <= 0 {
+		return
+	}
+
+	dir := p.mouse
+	dir.Sub(p.Pos(), 1.0)
+	dir.Normalize()
+
+	p.weaponDir = dir
+
+	if Abs(dir.X) < sqrtHalf {
+		dir.X = sqrtHalf * FSignPos(dir.X)
+		dir.Y = sqrtHalf * FSignPos(dir.Y)
+	}
+	p.SetDir(dir)
 }
 
 func (p *Player) keyDown(key KeyType) bool {

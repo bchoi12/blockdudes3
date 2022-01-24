@@ -5,6 +5,12 @@ type SpacedId struct {
 	id IdType
 }
 
+type SpacedIdMethods interface {
+	GetId() IdType
+	GetSpace() SpaceType
+	GetSpacedId() SpacedId
+}
+
 func Id(space SpaceType, id IdType) SpacedId {
 	return SpacedId {
 		space: space,
@@ -30,6 +36,16 @@ type Init struct {
 	dim Vec2
 }
 
+type InitMethods interface {
+	SpacedIdMethods
+	Pos() Vec2
+	SetPos(pos Vec2)
+	Dim() Vec2
+	SetDim(dim Vec2)
+	GetData() Data
+	SetData(data Data)
+}
+
 func NewInit(sid SpacedId, data Data) Init {
 	return Init {
 		SpacedId: sid,
@@ -38,14 +54,8 @@ func NewInit(sid SpacedId, data Data) Init {
 	}
 }
 
-type InitData struct {
-	*BaseData
-}
-
 func NewInitData(pos Vec2, dim Vec2) Data {
-	data := InitData {
-		BaseData: NewBaseData(),
-	}
+	data := NewData()
 	data.Set(posProp, pos)
 	data.Set(dimProp, dim)
 	return data
@@ -73,6 +83,14 @@ func (i Init) GetData() Data {
 }
 
 func (i *Init) SetData(data Data) {
-	i.SetPos(data.Get(posProp).(Vec2))
-	i.SetDim(data.Get(dimProp).(Vec2))
+	if data.Size() == 0 {
+		return
+	}
+
+	if data.Has(posProp) {
+		i.SetPos(data.Get(posProp).(Vec2))
+	}
+	if data.Has(dimProp) {
+		i.SetDim(data.Get(dimProp).(Vec2))
+	}
 }

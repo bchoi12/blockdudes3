@@ -24,14 +24,13 @@ func (r Rec2) GetSides() []Line {
 }
 
 func (r Rec2) Intersects(line Line) (bool, float64) {
-	collision, closest := r.BaseProfile.Intersects(line)
-	if !collision {
+	collision, closest := r.subIntersects(line)
+
+	if r.Guide() {
 		return collision, closest
 	}
 
 	sides := r.GetSides()
-	collision = false
-	closest = 1.0
 	for _, side := range(sides) {
 		hit, t := line.Intersects(side)
 
@@ -51,6 +50,10 @@ func (r Rec2) OverlapY(profile Profile) float64 {
 }
 
 func (r Rec2) Overlap(profile Profile) float64 {
+	if overlap := r.subOverlap(profile); overlap > 0 {
+		return overlap
+	}
+
 	switch other := profile.(type) {
 	case *RotPoly:
 		return other.Overlap(&r)

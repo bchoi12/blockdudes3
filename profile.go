@@ -9,28 +9,21 @@ const (
 	overlapEpsilon float64 = 0.01
 )
 
-const (
-	unknownCollisionType = iota
-	rigidCollisionType
-	platformCollisionType
-)
-
-type ProfileData struct {
-	*BaseData
-}
-
+// TODO: remove param
 func NewProfileData(solid bool) Data {
-	data := ProfileData {
-		BaseData: NewBaseData(),
-	}
+	data := NewData()
 	data.Set(solidProp, solid)
 	return data
 }
 
 type ProfileMath interface {
 	Contains(point Vec2) bool
+	subContains(point Vec2) bool
 	Intersects(line Line) (bool, float64)
+	subIntersects(line Line) (bool, float64)
 	Overlap(profile Profile) float64
+	subOverlap(profile Profile) float64
+	Snap(profile Profile) SnapResults
 }
 
 type SnapResults struct {
@@ -40,14 +33,11 @@ type SnapResults struct {
 	newVel Vec2
 }
 
+type ProfileKey uint8
 type Profile interface {
+	InitMethods
 	ProfileMath
 
-	Dim() Vec2
-	SetDim(dim Vec2)
-
-	Pos() Vec2
-	SetPos(pos Vec2)
 	Vel() Vec2
 	SetVel(vel Vec2)
 	ExtVel() Vec2
@@ -56,11 +46,18 @@ type Profile interface {
 	Acc() Vec2
 	SetAcc(acc Vec2)
 
+	Dir() Vec2
+	SetDir(dir Vec2)
+	Solid() bool
+	SetSolid(solid bool)
+	Guide() bool
+	SetGuide(guide bool)
+
 	GetData() Data
 	SetData(data Data)
-	Solid() bool
 
-	Snap(profile Profile) SnapResults
+	AddSubProfile(key ProfileKey, subProfile SubProfile)
+	GetSubProfile(key ProfileKey) SubProfile
 
 	distX(profile Profile) float64
 	distY(profile Profile) float64
@@ -68,21 +65,12 @@ type Profile interface {
 	dist(profile Profile) float64
 }
 
-type SubProfile interface {
-	ProfileMath
-
-	Origin() Vec2
-	SetOrigin(origin Vec2)
-	Offset() Vec2
-	SetOffset(offset Vec2)
-
-	Rotate(dir Vec2)
-}
-
 type BaseProfile struct {
 	Init
-	vel, extVel, acc Vec2
-	solid bool
+	vel, extVel, acc, dir Vec2
+	solid, guide State
+
+	subProfiles map[ProfileKey]SubProfile
 }
 
 func NewBaseProfile(init Init, data Data) BaseProfile {
@@ -91,25 +79,64 @@ func NewBaseProfile(init Init, data Data) BaseProfile {
 		vel: NewVec2(0, 0),
 		extVel: NewVec2(0, 0),
 		acc: NewVec2(0, 0),
-		solid: data.Get(solidProp).(bool),
+		dir: NewVec2(1, 0),
+		solid: NewState(false),
+		guide: NewState(false),
+
+		subProfiles: make(map[ProfileKey]SubProfile),
 	}
+	bp.SetData(data)
+
 	return bp
 }
 
+func (bp *BaseProfile) SetPos(pos Vec2) {
+	bp.Init.SetPos(pos)
+	for _, sp := range(bp.subProfiles) {
+		sp.SetPos(pos)
+	}
+}
 func (bp BaseProfile) Vel() Vec2 { return bp.vel }
-func (bp *BaseProfile) SetVel(vel Vec2) { bp.vel = vel }
+func (bp *BaseProfile) SetVel(vel Vec2) {
+	bp.vel = vel
+	for _, sp := range(bp.subProfiles) {
+		sp.SetVel(vel)
+	}
+}
 func (bp BaseProfile) ExtVel() Vec2 { return bp.extVel }
-func (bp *BaseProfile) SetExtVel(extVel Vec2) { bp.extVel = extVel }
+func (bp *BaseProfile) SetExtVel(extVel Vec2) {
+	bp.extVel = extVel
+	for _, sp := range(bp.subProfiles) {
+		sp.SetExtVel(extVel)
+	}
+}
 func (bp BaseProfile) TotalVel() Vec2 {
 	total := bp.Vel()
 	total.Add(bp.ExtVel(), 1)
 	return total
 }
 func (bp BaseProfile) Acc() Vec2 { return bp.acc }
-func (bp *BaseProfile) SetAcc(acc Vec2) { bp.acc = acc }
+func (bp *BaseProfile) SetAcc(acc Vec2) {
+	bp.acc = acc
+	for _, sp := range(bp.subProfiles) {
+		sp.SetAcc(acc)
+	}
+}
+
+func (bp BaseProfile) Dir() Vec2 { return bp.dir }
+func (bp *BaseProfile) SetDir(dir Vec2) {
+	bp.dir = dir
+	for _, sp := range(bp.subProfiles) {
+		sp.SetDir(dir)
+	}
+}
+func (bp BaseProfile) Solid() bool { return bp.solid.Peek().(bool) }
+func (bp *BaseProfile) SetSolid(solid bool) { bp.solid.Set(solid) }
+func (bp BaseProfile) Guide() bool { return bp.guide.Peek().(bool) }
+func (bp *BaseProfile) SetGuide(guide bool) { bp.guide.Set(guide) }
 
 func (bp BaseProfile) GetData() Data {
-	data := NewProfileData(bp.solid)
+	data := NewData()
 	data.Merge(bp.Init.GetData())
 
 	if !bp.Vel().IsZero() {
@@ -121,11 +148,29 @@ func (bp BaseProfile) GetData() Data {
 	if !bp.Acc().IsZero() {
 		data.Set(accProp, bp.Acc())
 	}
+	if solid, ok := bp.solid.Pop(); ok {
+		data.Set(solidProp, solid.(bool))
+	}
+	if guide, ok := bp.guide.Pop(); ok {
+		data.Set(guideProp, guide.(bool))
+	}
+
 	return data
 }
 
 func (bp *BaseProfile) SetData(data Data) {
+	if data.Size() == 0 {
+		return
+	}
+
 	bp.Init.SetData(data)
+
+	if data.Has(solidProp) {
+		bp.solid.Set(data.Get(solidProp).(bool))
+	}
+	if data.Has(guideProp) {
+		bp.guide.Set(data.Get(guideProp).(bool))
+	}
 
 	if data.Has(velProp) {
 		bp.SetVel(data.Get(velProp).(Vec2))
@@ -144,7 +189,8 @@ func (bp *BaseProfile) SetData(data Data) {
 	}
 }
 
-func (bp BaseProfile) Solid() bool { return bp.solid }
+func (bp *BaseProfile) AddSubProfile(key ProfileKey, subProfile SubProfile) { bp.subProfiles[key] = subProfile }
+func (bp BaseProfile) GetSubProfile(key ProfileKey) SubProfile { return bp.subProfiles[key] }
 
 func (bp BaseProfile) distX(profile Profile) float64 {
 	return Abs(profile.Pos().X - bp.Pos().X)
@@ -162,29 +208,50 @@ func (bp BaseProfile) dist(profile Profile) float64 {
 }
 
 func (bp BaseProfile) Contains(point Vec2) bool {
+	if bp.subContains(point) {
+		return true
+	}
+
+	if bp.Guide() {
+		return false
+	}
+
 	pos := bp.Pos()
 	dim := bp.Dim()
-	if Abs(pos.X - point.X) > dim.X / 2 {
-		return false
+
+	if Abs(pos.X - point.X) <= dim.X / 2 && Abs(pos.Y - point.Y) <= dim.Y / 2 {
+		return true
 	}
-	if Abs(pos.Y - point.Y) > dim.Y / 2 {
-		return false
-	}
-	return true
+	return false
 }
 
-func (bp BaseProfile) Intersects(line Line) (bool, float64) {
-	pos := bp.Pos()
-	if Abs(pos.X - line.O.X) > bp.Dim().X / 2 + Abs(line.R.X) {
-		return false, 1.0
+func (bp BaseProfile) subContains(point Vec2) bool {
+	for _, sp := range(bp.subProfiles) {
+		if sp.Contains(point) {
+			return true
+		}
 	}
-	if Abs(pos.Y - line.O.Y) > bp.Dim().Y / 2 + Abs(line.R.Y) {
-		return false, 1.0
+	return false
+}
+
+func (bp BaseProfile) subIntersects(line Line) (bool, float64) {
+	for _, sp := range(bp.subProfiles) {
+		if collision, t := sp.Intersects(line); collision {
+			return collision, t
+		}
 	}
-	return true, 1.0
+	return false, 1.0
 }
 
 func (bp BaseProfile) Overlap(profile Profile) float64 {
+	if overlap := bp.subOverlap(profile); overlap > 0 {
+		return overlap
+	}
+
+	if bp.Guide() {
+		return 0
+	}
+
 	if bp.distX(profile) > (bp.Dim().X + profile.Dim().X) / 2 {
 		return 0
 	}
@@ -192,6 +259,15 @@ func (bp BaseProfile) Overlap(profile Profile) float64 {
 		return 0
 	}
 	return 1.0
+}
+
+func (bp BaseProfile) subOverlap(profile Profile) float64 {
+	for _, sp := range(bp.subProfiles) {
+		if overlap := sp.Overlap(profile); overlap > 0 {
+			return overlap
+		}
+	}
+	return 0
 }
 
 func (bp *BaseProfile) Snap(profile Profile) SnapResults {

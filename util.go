@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/vmihailenco/msgpack/v5"
+	"math"
 	"time"
 )
 
@@ -29,6 +30,14 @@ func GetTimestep(now time.Time, lastUpdate time.Time) float64 {
 		timeStep = now.Sub(lastUpdate)
 	}
 	return float64(timeStep) / float64(time.Second)
+}
+
+func NormalizeAngle(rad float64) float64 {
+	if rad >= 0 && rad < 2 * math.Pi {
+		return rad
+	}
+
+	return rad - float64(IntDown(rad / (2 * math.Pi))) * 2.0 * math.Pi
 }
 
 func Mod(a, b int) int {
@@ -76,6 +85,24 @@ func Sign(n float64) int {
 	if n == 0 {
 		return 0
 	} else if n < 0 {
+		return -1
+	} else {
+		return 1
+	}
+}
+
+func FSign(n float64) float64 {
+	if n == 0 {
+		return 0
+	} else if n < 0 {
+		return -1
+	} else {
+		return 1
+	}
+}
+
+func FSignPos(n float64) float64 {
+	if n < 0 {
 		return -1
 	} else {
 		return 1

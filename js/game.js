@@ -82,7 +82,6 @@ class Game {
         wasmDelete(playerSpace, id);
     }
     updatePlayers(msg) {
-        debug(msg);
         switch (msg.T) {
             case playerInitType:
                 this._id = msg.Id;
@@ -178,7 +177,7 @@ class Game {
     }
     interpolateState(currentData, nextData) {
         const millisElapsed = Date.now() - this._lastGameUpdateTime;
-        const weight = 1 - Math.min(millisElapsed / (frameMillis * 3), 1);
+        const weight = Math.min(millisElapsed / (frameMillis * 3), 1) * 0.5;
         const data = nextData;
         data[posProp] = this.interpolateVec2(currentData[posProp], nextData[posProp], weight);
         if (currentData.hasOwnProperty(velProp) && nextData.hasOwnProperty(velProp)) {
@@ -211,7 +210,6 @@ class Game {
         this._currentObjects.clear();
         this._renderer.scene().clearObjects();
         const level = JSON.parse(wasmLoadLevel(msg.L));
-        debug(level);
         for (const [stringSpace, objects] of Object.entries(level.Os)) {
             for (const [stringId, object] of Object.entries(objects)) {
                 const space = Number(stringSpace);

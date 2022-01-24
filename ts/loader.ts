@@ -15,7 +15,7 @@ class Loader {
 		this._cache = new Map<Model, any>();
 
 		this._paths = new Map<Model, string>();
-		this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken3.glb");
+		this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken5.glb");
 
 		debug(this._paths);
 	}
@@ -58,6 +58,7 @@ class Loader {
 				data.scene.animations = data.animations;
 				data.scene.getObjectByName("mesh").castShadow = true;
 				data.scene.getObjectByName("mesh").receiveShadow = true;
+
 				data.scene.getObjectByName("profileMesh").visible = false;
 				data.scene.getObjectByName("hitMesh").visible = false;
 				break;

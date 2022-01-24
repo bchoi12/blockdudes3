@@ -24,7 +24,6 @@ func (s *Shot) Resolve(grid *Grid) {
 		if s.weapon.class == spaceBlast {
 			bomb := NewBomb(NewInit(grid.NextSpacedId(bombSpace), NewInitData(NewVec2(hit.hit.X, hit.hit.Y), NewVec2(1, 1))))
 			if target := grid.Get(hit.target); target != nil {
-				target = target.(*Object)
 				offset := hit.hit
 				offset.Sub(grid.Get(hit.target).GetProfile().Pos(), 1.0)
 				target.AddChild(Attachment {bomb, offset})
@@ -42,12 +41,12 @@ func (s *Shot) Resolve(grid *Grid) {
 func (s *Shot) Hit(target Thing, grid *Grid) {
 	switch thing := target.(type) {
 	case *Player:
-		thing.health -= 20
+		thing.health -= 10
 		vel := thing.GetProfile().Vel()
 		force := s.line.R
 		force.Normalize()
 		vel.Add(force, s.weapon.pushFactor)
-		thing.GetProfile().SetVel(vel)
+		thing.SetVel(vel)
 	}
 }
 

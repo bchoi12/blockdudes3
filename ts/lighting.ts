@@ -12,7 +12,7 @@ class Lighting {
 	constructor() {
 		this._scene = new THREE.Scene();
 
-		const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x232323, 2.0);
+		const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x232323, 1.8);
 		this._scene.add(hemisphereLight);
 
 		this._sunLight = new THREE.DirectionalLight(0xfdfbfd, 1.0);

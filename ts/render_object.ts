@@ -4,12 +4,16 @@ class RenderObject {
 	protected _mesh : any;
 
 	protected _mixer : any;
+	protected _lastMixerUpdate : number;
+
 	protected _actions : Map<any, any>;
 	protected _activeActions : Set<any>;
 	
 	constructor(mesh : any) {
 		this._mesh = mesh;
 		this._activeActions = new Set();
+
+		this._lastMixerUpdate = Date.now();
 	}
 
 	update(msg : any) : void {
@@ -22,6 +26,13 @@ class RenderObject {
 
 	mesh() : any {
 		return this._mesh;
+	}
+
+	protected updateMixer() {
+		const now = Date.now();
+		const seconds = (now - this._lastMixerUpdate) / 1000;
+		this._mixer.update(2 * seconds)
+		this._lastMixerUpdate = now;
 	}
 
 	protected setWeight(action : any, weight : number) : void {

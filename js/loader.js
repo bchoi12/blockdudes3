@@ -9,7 +9,7 @@ class Loader {
         this._loader = new THREE.GLTFLoader();
         this._cache = new Map();
         this._paths = new Map();
-        this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken3.glb");
+        this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken5.glb");
         debug(this._paths);
     }
     preload(models) {
