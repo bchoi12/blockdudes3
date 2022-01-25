@@ -18,50 +18,45 @@ func (c Circle) RadiusSqr() float64 {
 	return c.Radius() * c.Radius()
 }
 
-func (c Circle) Contains(point Vec2) bool {
-	if c.subContains(point) {
-		return true
+func (c Circle) Contains(point Vec2) ContainResults {
+	results := c.BaseProfile.Contains(point)
+	if results.contains {
+		return results
 	}
 
-	if c.Guide() {
-		return false
-	}
-
+	selfResults := NewContainResults()
 	pos := c.Pos()
 	distX := pos.X - point.X
 	distY := pos.Y - point.Y
-
-	return distX * distX + distY * distY <= c.RadiusSqr()
+	selfResults.contains = distX * distX + distY * distY <= c.RadiusSqr()
+	
+	results.Merge(selfResults)
+	return results
 }
 
-func (c Circle) Intersects(line Line) (bool, float64) {
-	collision, closest := c.subIntersects(line)
-
-	if c.Guide() {
-		return collision, closest
-	}
+func (c Circle) Intersects(line Line) IntersectResults {
+	results := c.BaseProfile.Intersects(line)
 
 	// TODO: circle intersects line
-	return collision, closest
+	return results
 }
 
-func (c Circle) Overlap(profile Profile) float64 {
-	if overlap := c.subOverlap(profile); overlap > 0 {
-		return overlap
-	}
+func (c Circle) Overlap(profile Profile) OverlapResults {
+	results := c.BaseProfile.Overlap(profile)
 
 	switch other := profile.(type) {
 	case *RotPoly:
-		return other.Overlap(&c)
+		results.Merge(other.Overlap(&c))
 	case *Rec2:
-		return other.Overlap(&c)
+		results.Merge(other.Overlap(&c))
 	case *Circle:
+		circResults := NewOverlapResults()
 		radius := c.Radius() + other.Radius()
 		if c.distSqr(other) <= radius * radius {
-			return radius - c.dist(other)
+			circResults.overlap = true
+			circResults.amount = c.dimOverlap(other)
 		}
-		return 0
-	default:
-		return 0
+		results.Merge(circResults)
 	}
+	return results
 }

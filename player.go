@@ -112,7 +112,7 @@ func (p *Player) GetData() Data {
 	if (debugMode) {
 		data.Set(profilePosProp, p.Pos())
 		data.Set(profileDimProp, p.Dim())
-		data.Set(profilePointsProp, p.GetSubProfile(bodySubProfile).Profile.(*RotPoly).Points())
+		data.Set(profilePointsProp, p.GetSubProfile(bodySubProfile).Profile.(*RotPoly).points)
 	}
 
 	return data
@@ -126,6 +126,9 @@ func (p *Player) SetData(data Data) {
 	}
 	if data.Has(dirProp) {
 		p.SetDir(data.Get(dirProp).(Vec2))
+	}
+	if data.Has(weaponDirProp) {
+		p.weaponDir = data.Get(weaponDirProp).(Vec2)
 	}
 }
 
@@ -304,7 +307,9 @@ func (p *Player) checkCollisions(grid *Grid) {
 	for len(colliders) > 0 {
 		collider := PopThing(&colliders)
 		other := collider.GetProfile()
-		if p.Overlap(other) <= 0 {
+
+		results := p.Overlap(other)
+		if !results.overlap {
 			continue
 		}
 
@@ -355,6 +360,11 @@ func (p *Player) updateDir() {
 
 	p.weaponDir = dir
 
+	lastDir := p.Dir()
+	// Don't turn around right at dir.X = 0
+	if Abs(dir.X) < 0.3 && SignPos(dir.X) != SignPos(lastDir.X) {
+		dir.X = FSign(dir.X) * Abs(dir.X)
+	}
 	if Abs(dir.X) < sqrtHalf {
 		dir.X = sqrtHalf * FSignPos(dir.X)
 		dir.Y = sqrtHalf * FSignPos(dir.Y)

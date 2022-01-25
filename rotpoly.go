@@ -2,18 +2,20 @@ package main
 
 type RotPoly struct {
 	BaseProfile
+	verts []Vec2
 
 	points []Vec2
 	sides []Line
-
 }
 
-func NewRotPoly(init Init, data Data, points []Vec2) *RotPoly {
+func NewRotPoly(init Init, data Data, verts []Vec2) *RotPoly {
 	// TODO: shape needs to be convex
 	rotPoly := &RotPoly {
 		BaseProfile: NewBaseProfile(init, data),
-		points: points,
-		sides: make([]Line, len(points)),
+		verts: verts,
+
+		points: make([]Vec2, len(verts)),
+		sides: make([]Line, len(verts)),
 	}
 	rotPoly.computeSides()
 
@@ -23,21 +25,27 @@ func NewRotPoly(init Init, data Data, points []Vec2) *RotPoly {
 func (rp *RotPoly) computeSides() {
 	angle := rp.Dir().Angle()
 
-	for i, point := range(rp.points) {
-		next := (i + 1) % len(rp.points)
+	for i := range(rp.verts) {
+		if i == 0 {
+			rp.points[i] = rp.verts[i]
+			rp.points[i].Rotate(angle)
+			rp.points[i].Add(rp.Pos(), 1.0)			
+		}
+		j := (i + 1) % len(rp.verts)
+		rp.points[j] = rp.verts[j]
+		rp.points[j].Rotate(angle)
+		rp.points[j].Add(rp.Pos(), 1.0)
 
-		nextPoint := rp.points[next]
+		ray := rp.points[j]
+		ray.Sub(rp.points[i], 1.0)
 
-		// TODO: skip rotation when possible to speed things up?
-		point.Rotate(angle)
-		nextPoint.Rotate(angle)
-		point.Add(rp.Pos(), 1.0)
-		nextPoint.Add(rp.Pos(), 1.0)
-		nextPoint.Sub(point, 1.0)
-
-		rp.sides[i].O = point
-		rp.sides[i].R = nextPoint
+		rp.sides[i].O = rp.points[i]
+		rp.sides[i].R = ray
 	}
+}
+
+func (rp RotPoly) getSides() []Line {
+	return rp.sides
 }
 
 func (rp *RotPoly) SetPos(pos Vec2) {
@@ -50,26 +58,11 @@ func (rp *RotPoly) SetDir(dir Vec2) {
 	rp.computeSides()
 }
 
-func (rp RotPoly) Points() []Vec2 {
-	points := make([]Vec2, len(rp.sides))
+func (rp RotPoly) Contains(point Vec2) ContainResults {
+	results := rp.BaseProfile.Contains(point)
 
-	for i, side := range(rp.sides) {
-		points[i] = side.Point(1.0)
-	}
-	return points
-}
-
-func (rp RotPoly) GetSides() []Line {
-	return rp.sides
-}
-
-func (rp RotPoly) Contains(point Vec2) bool {
-	if rp.subContains(point) {
-		return true
-	}
-
-	if rp.Guide() {
-		return false
+	if results.contains {
+		return results
 	}
 
 	// 0 intersections = false
@@ -77,61 +70,64 @@ func (rp RotPoly) Contains(point Vec2) bool {
 	// 2 intersections = false
 	testLine := NewLine(point, rp.Dim())
 	intersections := 0
-	for _, side := range(rp.GetSides()) {
-		if intersects, _ := testLine.Intersects(side); intersects {
+	for _, side := range(rp.getSides()) {
+		if testResults := testLine.Intersects(side); testResults.hit {
 			intersections += 1
 		}
 
 		if intersections > 1 {
-			return false
+			return results
 		}
 	}
 
 	if intersections == 0 {
-		return false
+		return results
 	}
 
 	// Check for exit line
 	testLine.O.Add(rp.Dim(), 1.0)
-	for _, side := range(rp.GetSides()) {
-		if intersects, _ := testLine.Intersects(side); intersects {
-			return false
+	for _, side := range(rp.getSides()) {
+		if testResults := testLine.Intersects(side); testResults.hit {
+			return results
 		}
 	}
-	return true
+
+	results.contains = true
+	return results
 }
 
-func (rp RotPoly) Intersects(line Line) (bool, float64) {
-	collision, closest := rp.subIntersects(line)
+func (rp RotPoly) Intersects(line Line) IntersectResults {
+	results := rp.BaseProfile.Intersects(line)
 
-	if rp.Guide() {
-		return collision, closest
-	}
-
-	sides := rp.GetSides()
+	sides := rp.getSides()
 	for _, side := range(sides) {
-		hit, t := line.Intersects(side)
-
-		if hit {
-			collision = true
-			closest = Min(closest, t)
-		}
+		results.Merge(line.Intersects(side))
 	}
-	return collision, closest
+	return results
 }
 
-func (rp RotPoly) Overlap(profile Profile) float64 {
-	if overlap := rp.subOverlap(profile); overlap > 0{
-		return overlap
+func (rp RotPoly) Overlap(profile Profile) OverlapResults {
+	results := rp.BaseProfile.Overlap(profile)
+
+	selfResults := NewOverlapResults()
+	if profile.Contains(rp.Pos()).contains || rp.Contains(profile.Pos()).contains {
+		selfResults.overlap = true
+		selfResults.amount = rp.dimOverlap(profile)
 	}
 
-	if profile.Contains(rp.Pos()) || rp.Contains(profile.Pos()) {
-		return 1.0
+	if selfResults.overlap {
+		results.Merge(selfResults)
+		return results
 	}
-	for _, side := range(rp.GetSides()) {
-		if intersects, _ := profile.Intersects(side); intersects {
-			return 1.0
+
+	for _, side := range(rp.getSides()) {
+		if testResults := profile.Intersects(side); testResults.hit {
+			selfResults.overlap = true
+			selfResults.amount = rp.dimOverlap(profile)
+			break
 		}
 	}
-	return 0
+
+	results.Merge(selfResults)
+	return results
 }

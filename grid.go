@@ -165,14 +165,14 @@ func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ThingHeap {
 			continue
 		}
 
-		overlap := prof.Overlap(thing.GetProfile())
-		if overlap > 0 {
+		results := prof.Overlap(thing.GetProfile())
+		if results.overlap {
 			item := &ThingItem {
 				id: sid.id,
 				thing: thing,
 			}
 			heap.Push(item)
-			heap.priority(item, overlap)
+			heap.priority(item, results.amount)
 		}
 	}
 	return heap
@@ -191,15 +191,15 @@ func (g *Grid) GetLineCollider(line Line, options ColliderOptions) (bool, *Hit) 
 				continue
 			}
 
-			_, t := thing.GetProfile().Intersects(line)
-			if t < hit.t {
-				point := line.Point(t)
+			results := thing.GetProfile().Intersects(line)
+			if results.t < hit.t {
+				point := line.Point(results.t)
 				collision = coord.contains(g, point)
 
 				if collision {				
 					hit.target = thing.GetSpacedId()
 					hit.hit = point
-					hit.t = t
+					hit.t = results.t
 				}
 			}
 		}
@@ -219,21 +219,21 @@ func (g *Grid) GetLineCollider(line Line, options ColliderOptions) (bool, *Hit) 
 		}
 		yline := NewLine(ystart, NewVec2(float64(g.unitLength), 0))
 
-		xcollide, xt := line.Intersects(xline)
-		ycollide, yt := line.Intersects(yline)
+		xresults := line.Intersects(xline)
+		yresults := line.Intersects(yline)
 
-		if !xcollide && !ycollide {
+		if !xresults.hit && !yresults.hit {
 			break
 		}
-		if xcollide && (xt <= yt || !ycollide) {
+		if xresults.hit && (xresults.t <= yresults.t || !yresults.hit) {
 			coord.advance(g, int(Sign(line.R.X)), 0)
-			if hit.t < xt {
+			if hit.t < xresults.t {
 				break
 			}
 		}
-		if ycollide && (yt <= xt || !xcollide) {
+		if yresults.hit && (yresults.t <= xresults.t || !xresults.hit) {
 			coord.advance(g, 0, int(Sign(line.R.Y)))
-			if hit.t < yt {
+			if hit.t < yresults.t {
 				break
 			}
 		}

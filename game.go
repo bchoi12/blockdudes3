@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	debugMode bool = false
+	debugMode bool = true
 )
 
 type Game struct {

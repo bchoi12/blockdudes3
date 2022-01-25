@@ -68,21 +68,12 @@ class RenderPlayer extends RenderObject {
 		const neck = player.getObjectByName("neck");
 		let angle = new THREE.Vector3(dir.X > 0 ? 1 : -1, 0, 0).angleTo(new THREE.Vector3(dir.X, dir.Y, 0));
 		angle = normalize(angle) * -Math.sign(dir.Y);
-		/*
-		if (angle > Math.PI / 4 && angle < 3 * Math.PI / 4) {
-			angle = Math.PI / 4;
-		} else if (angle < -Math.PI / 4 && angle > -3 * Math.PI / 4) {
-			angle = -Math.PI / 4;
-		}
-		*/
 		neck.rotation.x = angle;
 
 		let armAngle = new THREE.Vector3(weaponDir.X > 0 ? 1 : -1, 0, 0).angleTo(new THREE.Vector3(weaponDir.X, weaponDir.Y, 0));
 		armAngle = normalize(armAngle) * -Math.sign(weaponDir.Y);
-		["armL", "armR"].forEach((name) => {
-			const bone = player.getObjectByName(name);
-			bone.rotation.x = armAngle - Math.PI / 2;
-		});
+		const arm = player.getObjectByName("armR");
+		arm.rotation.x = armAngle - Math.PI / 2;
 
 		if (Math.abs(vel.X) > 0.1 && Math.sign(vel.X) == Math.sign(acc.X)) {
 			this.fadeTo(PlayerAction.Idle, PlayerAction.Walk, 1.0);

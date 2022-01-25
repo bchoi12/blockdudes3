@@ -51,10 +51,24 @@ func Max(a, b float64) float64 {
 	return b
 }
 
+func AbsMax(a, b float64) float64 {
+	if Abs(a) > Abs(b) {
+		return a
+	}
+	return b
+}
+
 func Min(a, b float64) float64 {
 	if a < b {
 		return a
 	} 
+	return b
+}
+
+func AbsMin(a, b float64) float64 {
+	if Abs(a) < Abs(b) {
+		return a
+	}
 	return b
 }
 
@@ -85,6 +99,14 @@ func Sign(n float64) int {
 	if n == 0 {
 		return 0
 	} else if n < 0 {
+		return -1
+	} else {
+		return 1
+	}
+}
+
+func SignPos(n float64) int {
+	if n < 0 {
 		return -1
 	} else {
 		return 1

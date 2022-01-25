@@ -25,20 +25,23 @@ func NewLine(origin Vec2, ray Vec2) Line {
 	}
 }
 
-func (l Line) Intersects(o Line) (bool, float64) {
+func (l Line) Intersects(o Line) IntersectResults {
+	results := NewIntersectResults()
+
 	c := l.R.X * o.R.Y - l.R.Y * o.R.X
 
     if Abs(c) < floatEpsilon {
-    	return false, -1
+    	return results
     } 
 
     s := (-l.R.Y * (l.O.X - o.O.X) + l.R.X * (l.O.Y - o.O.Y)) / c
     t := ( o.R.X * (l.O.Y - o.O.Y) - o.R.Y * (l.O.X - o.O.X)) / c
 
     if s >= 0 && s <= 1 && t >= 0 && t <= 1 {
-    	return true, t
+    	results.hit = true
+    	results.t = t
     }
-    return false, -1
+    return results
 }
 
 func (l Line) Point(scale float64) Vec2 {
@@ -149,7 +152,7 @@ func (v Vec2) Angle() float64 {
 	}
 
 	if v.X == 0 {
-		return math.Pi - float64(Sign(v.Y)) * math.Pi / 2.0
+		return math.Pi - FSign(v.Y) * math.Pi / 2.0
 	}
 
 	rad := math.Atan(v.Y / v.X)

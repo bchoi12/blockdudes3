@@ -79,6 +79,8 @@ func (p *Platform) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) 
 	pos.Add(vel, ts)
 	p.GetProfile().SetVel(vel)
 	p.GetProfile().SetPos(pos)
+
+	p.UpdateChildren()
 	return true
 }
 

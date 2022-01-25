@@ -11,7 +11,7 @@ func NewRec2(init Init, data Data) *Rec2 {
 	return rec2
 }
 
-func (r Rec2) GetSides() []Line {
+func (r Rec2) getSides() []Line {
 	bottomLeft := NewVec2(r.Pos().X - r.Dim().X / 2, r.Pos().Y - r.Dim().Y / 2)
 	topRight := NewVec2(r.Pos().X + r.Dim().X / 2, r.Pos().Y + r.Dim().Y / 2)
 
@@ -23,81 +23,78 @@ func (r Rec2) GetSides() []Line {
 	return sides
 }
 
-func (r Rec2) Intersects(line Line) (bool, float64) {
-	collision, closest := r.subIntersects(line)
+func (r Rec2) Contains(point Vec2) ContainResults {
+	results := r.BaseProfile.Contains(point)
 
-	if r.Guide() {
-		return collision, closest
+	if results.contains {
+		return results
 	}
 
-	sides := r.GetSides()
+	selfResults := NewContainResults()
+	pos := r.Pos()
+	dim := r.Dim()
+	if Abs(pos.X - point.X) <= dim.X / 2 && Abs(pos.Y - point.Y) <= dim.Y / 2 {
+		selfResults.contains = true
+	}
+
+	results.Merge(selfResults)
+	return results
+}
+
+func (r Rec2) Intersects(line Line) IntersectResults {
+	results := r.BaseProfile.Intersects(line)
+
+	sides := r.getSides()
 	for _, side := range(sides) {
-		hit, t := line.Intersects(side)
-
-		if hit {
-			collision = true
-			closest = Min(closest, t)
-		}
+		results.Merge(line.Intersects(side))
 	}
-	return collision, closest
+	return results
 }
 
-func (r Rec2) OverlapX(profile Profile) float64 {
-	return (r.Dim().X/2 + profile.Dim().X/2) - r.distX(profile)
-}
-func (r Rec2) OverlapY(profile Profile) float64 {
-	return (r.Dim().Y/2 + profile.Dim().Y/2) - r.distY(profile)
-}
-
-func (r Rec2) Overlap(profile Profile) float64 {
-	if overlap := r.subOverlap(profile); overlap > 0 {
-		return overlap
-	}
+func (r Rec2) Overlap(profile Profile) OverlapResults {
+	results := r.BaseProfile.Overlap(profile)
 
 	switch other := profile.(type) {
 	case *RotPoly:
-		return other.Overlap(&r)
+		results.Merge(other.Overlap(&r))
 	case *Rec2:
-		return r.OverlapX(other) * r.OverlapY(other)
-	case *Circle:
-		ox := r.OverlapX(other)
-		if ox <= 0 {
-			return 0
+		recResults := NewOverlapResults()
+		if do := r.dimOverlap(other); do > 0 {
+			recResults.overlap = true
+			recResults.amount = do
 		}
-		oy := r.OverlapY(other)
-		if oy <= 0 { 
-			return 0
+		results.Merge(recResults)
+	case *Circle:
+		do := r.dimOverlap(other)
+		if do < 0 {
+			break
 		}
 
+		circResults := NewOverlapResults()
 		if r.distX(other) <= r.Dim().X / 2 || r.distY(other) <= r.Dim().Y / 2 || r.distSqr(other) <= other.RadiusSqr() {
-			return ox * oy
+			circResults.overlap = true
+			circResults.amount = do
 		}
-		return 0
-	default:
-		return 0
+		results.Merge(circResults)
 	}
+	return results
 }
 
 func (r *Rec2) Snap(profile Profile) SnapResults {
-	results := SnapResults {
-		snap: false,
-		ignored: false,
-	}
+	results := r.BaseProfile.Snap(profile)
 
 	switch other := profile.(type) {
 	case *Rec2:
 		if !other.Solid() {
-			return results
+			break
 		}
-
-		ox := r.OverlapX(other)
+		ox := r.dimOverlapX(other)
 		if ox <= 0 {
-			return results
+			break
 		}
-
-		oy := r.OverlapY(other)
+		oy := r.dimOverlapY(other)
 		if oy <= 0 {
-			return results
+			break
 		}
 
 		// Figure out collision direction
@@ -108,6 +105,14 @@ func (r *Rec2) Snap(profile Profile) SnapResults {
 		}
 		if relativeVel.Y > 0 {
 			collide.Y = -1
+		}
+
+		relativePos := NewVec2(r.Pos().X - other.Pos().X, r.Pos().Y - other.Pos().Y)
+		if Sign(collide.X) != Sign(relativePos.X) {
+			collide.X = 0
+		}
+		if Sign(collide.Y) != Sign(relativePos.Y) {
+			collide.Y = 0
 		}
 
 		// Check that relative velocity is nonzero.
@@ -143,24 +148,16 @@ func (r *Rec2) Snap(profile Profile) SnapResults {
 
 			if collide.IsZero() {
 				results.ignored = true
-				return results
+				break
 			}
 		}
 
 		// If overlap is small, correct it but don't change velocity.
 		if ox < overlapEpsilon || oy < overlapEpsilon {
 			results.snap = true
-			results.posAdj = NewVec2(0, 0)
-
-			if ox < overlapEpsilon {
-				results.posAdj.X = ox * collide.X
-			}
-			if oy < overlapEpsilon {
-				results.posAdj.Y = oy * collide.Y
-			}
-
-			results.newVel = r.Vel()
-			return results
+			results.posAdj = NewVec2(ox * collide.X, oy * collide.Y)
+			results.newVel = r.Vel()		
+			break
 		}
 
 		// Compile the results.
@@ -189,12 +186,6 @@ func (r *Rec2) Snap(profile Profile) SnapResults {
 
 		results.posAdj = posAdj
 		results.newVel = newVel
-		return results
-	default:
-		return results
 	}
-}
-
-func (r *Rec2) Rotate(dir Vec2) {
-	panic("Trying to rotate rec2")
+	return results
 }
