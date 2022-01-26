@@ -18,7 +18,7 @@ class RenderObject {
     updateMixer() {
         const now = Date.now();
         const seconds = (now - this._lastMixerUpdate) / 1000;
-        this._mixer.update(2 * seconds);
+        this._mixer.update(seconds);
         this._lastMixerUpdate = now;
     }
     setWeight(action, weight) {

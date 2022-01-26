@@ -50,8 +50,8 @@ func (g *Grid) Upsert(thing Thing) {
 	coords := g.getCoords(thing.GetProfile())
 	sid := thing.GetSpacedId()
 
-	if _, ok := g.spacedThings[sid.space]; !ok {
-		g.spacedThings[sid.space] = make(map[IdType]Thing, 0)
+	if _, ok := g.spacedThings[sid.GetSpace()]; !ok {
+		g.spacedThings[sid.GetSpace()] = make(map[IdType]Thing, 0)
 	}
 
 	// Check for equality
@@ -73,12 +73,12 @@ func (g *Grid) Upsert(thing Thing) {
 	} else {
 		// Insert since it's missing
 		g.things[sid] = thing
-		g.spacedThings[sid.space][sid.id] = thing
+		g.spacedThings[sid.GetSpace()][sid.GetId()] = thing
 
-		if lastId, ok := g.lastId[sid.space]; !ok {
-			g.lastId[sid.space] = sid.id
-		} else if sid.id > lastId {
-			g.lastId[sid.space] = sid.id
+		if lastId, ok := g.lastId[sid.GetSpace()]; !ok {
+			g.lastId[sid.GetSpace()] = sid.GetId()
+		} else if sid.GetId() > lastId {
+			g.lastId[sid.GetSpace()] = sid.GetId()
 		}
 	}
 
@@ -105,7 +105,7 @@ func (g *Grid) deleteCoords(sid SpacedId) {
 func (g *Grid) Delete(sid SpacedId) {
 	g.deleteCoords(sid)
 	delete(g.things, sid)
-	delete(g.spacedThings[sid.space], sid.id)
+	delete(g.spacedThings[sid.GetSpace()], sid.GetId())
 }
 
 func (g *Grid) Has(sid SpacedId) bool {
@@ -114,7 +114,7 @@ func (g *Grid) Has(sid SpacedId) bool {
 }
 
 func (g *Grid) Get(sid SpacedId) Thing {
-	return g.spacedThings[sid.space][sid.id]
+	return g.spacedThings[sid.GetSpace()][sid.GetId()]
 }
 
 func (g *Grid) NextId(space SpaceType) IdType {
@@ -161,14 +161,14 @@ func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ThingHeap {
 		if options.solidOnly && !thing.GetProfile().Solid() {
 			continue
 		}
-		if options.ignore != nil && options.ignore[sid.space] {
+		if options.ignore != nil && options.ignore[sid.GetSpace()] {
 			continue
 		}
 
 		results := prof.Overlap(thing.GetProfile())
 		if results.overlap {
 			item := &ThingItem {
-				id: sid.id,
+				id: sid.GetId(),
 				thing: thing,
 			}
 			heap.Push(item)
@@ -178,33 +178,38 @@ func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ThingHeap {
 	return heap
 }
 
-func (g *Grid) GetLineCollider(line Line, options ColliderOptions) (bool, *Hit) {
-	var collision bool
-	hit := &Hit {
-		t: 1.0,
-	}
+func (g *Grid) GetHits(line Line, options ColliderOptions) *Hit {
+	var hit *Hit
 
 	coord := g.getCoord(line.O)
 	for {
+		closest := 1.0
 		for id, thing := range(g.grid[coord]) {
-			if id == options.self || options.ignore != nil && options.ignore[id.space] {
+			if id == options.self || options.ignore != nil && options.ignore[id.GetSpace()] {
 				continue
 			}
 
 			results := thing.GetProfile().Intersects(line)
-			if results.t < hit.t {
-				point := line.Point(results.t)
-				collision = coord.contains(g, point)
+			if !results.hit {
+				continue
+			}
+			point := line.Point(results.t)
+			if !coord.contains(g, point) {
+				continue
+			}
 
-				if collision {				
-					hit.target = thing.GetSpacedId()
-					hit.hit = point
-					hit.t = results.t
-				}
+			if results.t < closest {
+				hit = NewHit()
+				hit.SetSpacedId(thing.GetSpacedId())
+				hit.SetPos(point)
+				hit.SetDir(line.R)
+				hit.SetT(results.t)
+
+				closest = results.t
 			}
 		}
-		if collision {
-			return true, hit
+		if hit != nil {
+			return hit
 		}
 
 		xstart := NewVec2(float64(coord.x), float64(coord.y))
@@ -227,19 +232,19 @@ func (g *Grid) GetLineCollider(line Line, options ColliderOptions) (bool, *Hit) 
 		}
 		if xresults.hit && (xresults.t <= yresults.t || !yresults.hit) {
 			coord.advance(g, int(Sign(line.R.X)), 0)
-			if hit.t < xresults.t {
+			if closest < xresults.t {
 				break
 			}
 		}
 		if yresults.hit && (yresults.t <= xresults.t || !xresults.hit) {
 			coord.advance(g, 0, int(Sign(line.R.Y)))
-			if hit.t < yresults.t {
+			if closest < yresults.t {
 				break
 			}
 		}
 	}
 
-	return collision, hit
+	return hit
 }
 
 func (g* Grid) getCoord(point Vec2) GridCoord {

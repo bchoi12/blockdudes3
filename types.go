@@ -72,6 +72,7 @@ const (
 )
 
 type PlayerPropMap map[IdType]PropMap
+type ShotPropMaps []PropMap
 type ObjectPropMap map[SpaceType]map[IdType]PropMap
 
 type PingMsg struct {
@@ -112,8 +113,8 @@ type GameStateMsg struct {
 	T MessageType
 	S SeqNumType
 	Ps PlayerPropMap
+	Ss ShotPropMaps
 	Os ObjectPropMap
-	Ss []ShotData
 }
 
 type PlayerInitMsg struct {

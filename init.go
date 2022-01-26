@@ -1,8 +1,8 @@
 package main
 
 type SpacedId struct {
-	space SpaceType
-	id IdType
+	S SpaceType
+	Id IdType
 }
 
 type SpacedIdMethods interface {
@@ -13,17 +13,17 @@ type SpacedIdMethods interface {
 
 func Id(space SpaceType, id IdType) SpacedId {
 	return SpacedId {
-		space: space,
-		id: id,
+		S: space,
+		Id: id,
 	}
 }
 
 func (sid SpacedId) GetId() IdType {
-	return sid.id
+	return sid.Id
 }
 
 func (sid SpacedId) GetSpace() SpaceType {
-	return sid.space
+	return sid.S
 }
 
 func (sid SpacedId) GetSpacedId() SpacedId {

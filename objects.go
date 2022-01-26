@@ -5,20 +5,25 @@ import (
 )
 
 func NewRec2Object(init Init) Object {
+	profile := NewRec2(init, NewData())
+	profile.SetSolid(true)
 	return Object {
-		Profile: NewRec2(init, NewProfileData(true)),
+		Profile: profile,
 	}
 }
 
 func NewCircleObject(init Init) Object {
+	profile := NewCircle(init, NewData())
 	return Object {
-		Profile: NewCircle(init, NewProfileData(false)),
+		Profile: profile,
 	}
 }
 
 func NewWall(init Init) *Object {
+	profile := NewRec2(init, NewData())
+	profile.SetSolid(true)
 	return &Object {
-		Profile: NewRec2(init, NewProfileData(true)),
+		Profile: profile,
 	}
 }
 

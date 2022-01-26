@@ -4,17 +4,19 @@ type Prop uint8
 const (
 	unknownProp Prop = iota
 
+	spacedIdProp
 	dimProp
-	solidProp
-	guideProp
 	keysProp
 	posProp
+	endPosProp
 
 	velProp
 	extVelProp
 	accProp
 	dirProp
 	healthProp
+
+	hitsProp
 	weaponDirProp
 
 	// debug props

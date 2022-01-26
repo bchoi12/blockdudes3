@@ -57,16 +57,19 @@ class Scene {
         object.update(msg);
     }
     renderShots(shots) {
+        debug(shots);
         shots.forEach((shot) => {
+            const origin = shot[posProp];
+            const endpoint = shot[endPosProp];
             const points = [
-                new THREE.Vector3(shot.O.X, shot.O.Y, 0.5),
-                new THREE.Vector3(shot.E.X, shot.E.Y, 0.5),
+                new THREE.Vector3(origin.X, origin.Y, 0.5),
+                new THREE.Vector3(endpoint.X, endpoint.Y, 0.5),
             ];
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
             const line = new THREE.Line(geometry, this._lineMaterial);
             this._scene.add(line);
             const light = new THREE.PointLight(0xffff00, 1, 3, 2);
-            light.position.set(shot.O.X, shot.O.Y, 1);
+            light.position.set(origin.X, origin.Y, 1);
             this._scene.add(light);
             setTimeout(() => {
                 this._scene.remove(line);

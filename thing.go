@@ -30,8 +30,8 @@ type ThingItem struct {
 
 type ThingHeap []*ThingItem
 
-func PopThing(things *ThingHeap) Thing {
-	item := heap.Pop(things).(*ThingItem)
+func PopThing(th *ThingHeap) Thing {
+	item := heap.Pop(th).(*ThingItem)
 	return item.thing
 }
 

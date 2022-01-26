@@ -9,13 +9,6 @@ const (
 	overlapEpsilon float64 = 0.05
 )
 
-// TODO: remove param
-func NewProfileData(solid bool) Data {
-	data := NewData()
-	data.Set(solidProp, solid)
-	return data
-}
-
 type ProfileKey uint8
 type Profile interface {
 	InitMethods
@@ -134,12 +127,6 @@ func (bp BaseProfile) GetData() Data {
 	if !bp.Acc().IsZero() {
 		data.Set(accProp, bp.Acc())
 	}
-	if solid, ok := bp.solid.Pop(); ok {
-		data.Set(solidProp, solid.(bool))
-	}
-	if guide, ok := bp.guide.Pop(); ok {
-		data.Set(guideProp, guide.(bool))
-	}
 
 	return data
 }
@@ -150,13 +137,6 @@ func (bp *BaseProfile) SetData(data Data) {
 	}
 
 	bp.Init.SetData(data)
-
-	if data.Has(solidProp) {
-		bp.solid.Set(data.Get(solidProp).(bool))
-	}
-	if data.Has(guideProp) {
-		bp.guide.Set(data.Get(guideProp).(bool))
-	}
 
 	if data.Has(velProp) {
 		bp.SetVel(data.Get(velProp).(Vec2))

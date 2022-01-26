@@ -61,7 +61,8 @@ func NewPlayerData() Data {
 }
 
 func NewPlayer(init Init) *Player {
-	profile := NewRec2(init, NewProfileData(true))
+	profile := NewRec2(init, NewData())
+	profile.SetSolid(true)
 	profile.SetGuide(true)
 	points := make([]Vec2, 4)
 	points[0] = NewVec2(0.48, -0.53)
@@ -72,7 +73,7 @@ func NewPlayer(init Init) *Player {
 	rpInit := init
 	rpInit.SetDim(NewVec2(10, 10))
 
-	rotPoly := NewRotPoly(rpInit, NewProfileData(false), points)
+	rotPoly := NewRotPoly(rpInit, NewData(), points)
 	subProfile := NewSubProfile(rotPoly)
 	subProfile.SetOffset(NewVec2(0, 0.22))
 	profile.AddSubProfile(bodySubProfile, subProfile)

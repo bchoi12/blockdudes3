@@ -50,6 +50,10 @@ func (l Line) Point(scale float64) Vec2 {
 	return point
 }
 
+func (l Line) Origin() Vec2 {
+	return l.O
+}
+
 func (l Line) Endpoint() Vec2 {
 	return l.Point(1.0)
 }
