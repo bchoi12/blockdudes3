@@ -2,6 +2,7 @@ class RenderObject {
     constructor(mesh) {
         this._debugMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000, wireframe: true });
         this._mesh = mesh;
+        this._lastUpdate = Date.now();
         this._activeActions = new Set();
         this._lastMixerUpdate = Date.now();
     }
@@ -14,6 +15,9 @@ class RenderObject {
     }
     mesh() {
         return this._mesh;
+    }
+    addMesh(mesh) {
+        this._mesh.add(mesh);
     }
     updateMixer() {
         const now = Date.now();

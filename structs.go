@@ -58,6 +58,10 @@ func (l Line) Endpoint() Vec2 {
 	return l.Point(1.0)
 }
 
+func (l Line) LenSquared() float64 {
+	return l.R.LenSquared()
+}
+
 func (l *Line) Normalize() {
 	l.R.Normalize()
 }

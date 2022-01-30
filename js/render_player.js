@@ -2,11 +2,12 @@ var PlayerAction;
 (function (PlayerAction) {
     PlayerAction["Idle"] = "Idle";
     PlayerAction["Walk"] = "Walk";
+    PlayerAction["Jump"] = "Jump";
 })(PlayerAction || (PlayerAction = {}));
 class RenderPlayer extends RenderObject {
     constructor(mesh) {
         super(mesh);
-        this._rotationOffset = -0.15;
+        this._rotationOffset = -0.1;
         this._pointsMaterial = new THREE.PointsMaterial({ color: 0x000000, size: 0.2 });
         this._mixer = new THREE.AnimationMixer(mesh);
         this._actions = new Map();
@@ -19,6 +20,7 @@ class RenderPlayer extends RenderObject {
             this._actions.set(action, clip);
         }
         this.fadeOut(PlayerAction.Walk, 0);
+        this.fadeOut(PlayerAction.Jump, 0);
         if (debugMode) {
             this._profileMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), this._debugMaterial);
             this._mesh.add(this._profileMesh);
@@ -29,6 +31,16 @@ class RenderPlayer extends RenderObject {
             this._profilePointsMesh = new THREE.Points(this._profilePoints, this._pointsMaterial);
             this._mesh.add(this._profilePointsMesh);
         }
+    }
+    setWeapon(weapon) {
+        if (!defined(this._weapon)) {
+            this._mesh.getObjectByName("armR").add(weapon.mesh());
+        }
+        this._weapon = weapon;
+    }
+    shoot(shot) {
+        this._mesh.getObjectByName("armR").position.z = -0.1;
+        this._weapon.shoot(shot);
     }
     update(msg) {
         let pos = msg[posProp];
@@ -42,6 +54,7 @@ class RenderPlayer extends RenderObject {
         }
         let dir = msg[dirProp];
         let weaponDir = msg[weaponDirProp];
+        let grounded = msg[groundedProp];
         this._mesh.position.x = pos.X;
         this._mesh.position.y = pos.Y;
         const player = this._mesh.getObjectByName("mesh");
@@ -57,12 +70,28 @@ class RenderPlayer extends RenderObject {
         armAngle = normalize(armAngle) * -Math.sign(weaponDir.Y);
         const arm = player.getObjectByName("armR");
         arm.rotation.x = armAngle - Math.PI / 2;
-        if (Math.abs(vel.X) > 0.1 && Math.sign(vel.X) == Math.sign(acc.X)) {
-            this.fadeTo(PlayerAction.Idle, PlayerAction.Walk, 1.0);
+        if (arm.position.z < 0) {
+            arm.position.z += 0.4 * Math.max(0, (Date.now() - this._lastUpdate) / 1000);
+        }
+        if (arm.position.z > 0) {
+            arm.position.z = 0;
+        }
+        if (!grounded) {
+            this.fadeOut(PlayerAction.Idle, 0.1);
+            this.fadeOut(PlayerAction.Walk, 0.1);
+            this.fadeIn(PlayerAction.Jump, 0.1);
+        }
+        else if (Math.abs(vel.X) > 0.1 && Math.sign(vel.X) == Math.sign(acc.X)) {
+            this.fadeOut(PlayerAction.Idle, 0.2);
+            this.fadeOut(PlayerAction.Jump, 0.2);
+            this.fadeIn(PlayerAction.Walk, 0.2);
         }
         else {
-            this.fadeTo(PlayerAction.Walk, PlayerAction.Idle, 0.4);
+            this.fadeOut(PlayerAction.Walk, 0.1);
+            this.fadeOut(PlayerAction.Jump, 0.1);
+            this.fadeIn(PlayerAction.Idle, 0.1);
         }
+        this._lastUpdate = Date.now();
         this.updateMixer();
         if (debugMode) {
             const profilePos = msg[profilePosProp];

@@ -16,6 +16,8 @@ const (
 	dirProp
 	healthProp
 
+	groundedProp
+	shotTypeProp
 	hitsProp
 	weaponDirProp
 

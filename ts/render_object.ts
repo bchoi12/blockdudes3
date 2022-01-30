@@ -2,6 +2,7 @@ class RenderObject {
 	protected readonly _debugMaterial = new THREE.MeshStandardMaterial({color: 0xff0000, wireframe: true });
 
 	protected _mesh : any;
+	protected _lastUpdate : number;
 
 	protected _mixer : any;
 	protected _lastMixerUpdate : number;
@@ -11,6 +12,8 @@ class RenderObject {
 	
 	constructor(mesh : any) {
 		this._mesh = mesh;
+		this._lastUpdate = Date.now();
+
 		this._activeActions = new Set();
 
 		this._lastMixerUpdate = Date.now();
@@ -26,6 +29,10 @@ class RenderObject {
 
 	mesh() : any {
 		return this._mesh;
+	}
+
+	addMesh(mesh : any) : void {
+		this._mesh.add(mesh);
 	}
 
 	protected updateMixer() {

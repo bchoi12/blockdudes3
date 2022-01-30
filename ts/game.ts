@@ -84,32 +84,21 @@ class Game {
 		if (wasmHas(playerSpace, id)) return;
 
 		this._loader.load(Model.CHICKEN, (mesh) => {
-			const pos = data[posProp];
-			const dim = data[dimProp];
-
-			const profileBox = new THREE.Box3().setFromObject(mesh.getObjectByName("profileMesh"));
-			let size = new THREE.Vector3();
-			profileBox.getSize(size);
-
 			const playerMesh = mesh.getObjectByName("mesh");
-			const scaleX = dim.X / size.z;
-			const scaleY = dim.Y / size.y;
-			const scaleZ = 0.6 / size.x;
-			playerMesh.scale.set(scaleZ, scaleY, scaleX);
-
-			// Recenter the mesh
-			let meshBox = new THREE.Box3().setFromObject(playerMesh);
-			playerMesh.position.y -= meshBox.min.y;
-
 			// Model origin is at feet
-			playerMesh.position.y -= dim.Y / 2;
+			playerMesh.position.y -= data[dimProp].Y / 2;
 
 			const player = new RenderPlayer(mesh);
+			const pos = data[posProp];
 			player.mesh().position.x = pos.X;
 			player.mesh().position.y = pos.Y;
 
 			this._renderer.scene().add(playerSpace, id, player);
 			wasmAdd(playerSpace, id, data);
+
+			this._loader.load(Model.UZI, (weaponMesh) => {
+				player.setWeapon(new RenderWeapon(weaponMesh));
+			});
 		});
 	}
 
@@ -274,7 +263,7 @@ class Game {
 			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
 				const space = Number(stringSpace);
 				const id = Number(stringId);
-				const mesh = new THREE.Mesh(new THREE.BoxGeometry(object[dimProp].X, object[dimProp].Y, 1.0), this._objectMaterial);	
+				const mesh = new THREE.Mesh(new THREE.BoxGeometry(object[dimProp].X, object[dimProp].Y, 5.0), this._objectMaterial);	
 				mesh.castShadow = true;
 				mesh.receiveShadow = true;
 

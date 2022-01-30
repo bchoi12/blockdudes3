@@ -56,6 +56,9 @@ func setGlobals() {
 	js.Global().Set("bombSpace", int(bombSpace))
 	js.Global().Set("explosionSpace", int(explosionSpace))
 
+	js.Global().Set("burstShotType", int(burstShotType))
+	js.Global().Set("bombShotType", int(bombShotType))
+
 	js.Global().Set("spacedIdProp", int(spacedIdProp))
 	js.Global().Set("dimProp", int(dimProp))
 	js.Global().Set("keysProp", int(keysProp))
@@ -66,6 +69,8 @@ func setGlobals() {
 	js.Global().Set("accProp", int(accProp))
 	js.Global().Set("dirProp", int(dirProp))
 	js.Global().Set("healthProp", int(healthProp))
+	js.Global().Set("groundedProp", int(groundedProp))
+	js.Global().Set("shotTypeProp", int(shotTypeProp))
 	js.Global().Set("hitsProp", int(hitsProp))
 	js.Global().Set("weaponDirProp", int(weaponDirProp))
 

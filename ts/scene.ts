@@ -1,6 +1,4 @@
 class Scene {
-	private readonly _lineMaterial = new THREE.LineBasicMaterial( { color: 0xffff00, linewidth: 3} );
-
 	private _scene : any;
 	private _lighting : Lighting;
 	private _renders : Map<number, Map<number, RenderObject>>;
@@ -75,27 +73,10 @@ class Scene {
 	}
 
 	renderShots(shots : Array<any>) : void {
-		debug(shots);
 		shots.forEach((shot) => {
-			const origin = shot[posProp];
-			const endpoint = shot[endPosProp];
-
-			const points = [
-				new THREE.Vector3(origin.X, origin.Y, 0.5),
-				new THREE.Vector3(endpoint.X, endpoint.Y, 0.5),
-			];
-			const geometry = new THREE.BufferGeometry().setFromPoints(points);
-			const line = new THREE.Line(geometry, this._lineMaterial);
-			this._scene.add(line);
-
-			const light = new THREE.PointLight(0xffff00, 1, 3, 2);
-			light.position.set(origin.X, origin.Y, 1);
-			this._scene.add(light);
-
-			setTimeout(() => {
-				this._scene.remove(line);
-				this._scene.remove(light);
-			}, 60)
+			const sid = shot[spacedIdProp];
+			const owner = this.get(sid.S, sid.Id);
+			owner.shoot(shot);
 		})
 	}
 

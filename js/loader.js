@@ -2,6 +2,7 @@ var Model;
 (function (Model) {
     Model[Model["UNKNOWN"] = 0] = "UNKNOWN";
     Model[Model["CHICKEN"] = 1] = "CHICKEN";
+    Model[Model["UZI"] = 10] = "UZI";
 })(Model || (Model = {}));
 class Loader {
     constructor() {
@@ -9,7 +10,8 @@ class Loader {
         this._loader = new THREE.GLTFLoader();
         this._cache = new Map();
         this._paths = new Map();
-        this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken5.glb");
+        this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken6.glb");
+        this._paths.set(Model.UZI, this._modelPrefix + "uzi.glb");
         debug(this._paths);
     }
     preload(models) {
@@ -35,8 +37,9 @@ class Loader {
                 data.scene.animations = data.animations;
                 data.scene.getObjectByName("mesh").castShadow = true;
                 data.scene.getObjectByName("mesh").receiveShadow = true;
-                data.scene.getObjectByName("profileMesh").visible = false;
-                data.scene.getObjectByName("hitMesh").visible = false;
+                break;
+            case Model.UZI:
+                debug(data);
                 break;
             default:
                 debug("Model " + model + " could not be processed.");

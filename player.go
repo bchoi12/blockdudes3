@@ -36,11 +36,11 @@ const (
 type Player struct {
 	Object
 
-	weapon *Weapon
-	altWeapon *Weapon
+	weapon Weapon
+	grounded State
 
 	canDash bool
-	grounded bool
+
 
 	jumpFrames int
 	canJumpFrames int
@@ -53,7 +53,6 @@ type Player struct {
 	lastKeyUpdate SeqNumType
 
 	mouse Vec2
-	weaponDir Vec2
 }
 
 func NewPlayerData() Data {
@@ -80,14 +79,12 @@ func NewPlayer(init Init) *Player {
 
 	player := &Player {
 		Object: NewObject(profile, NewObjectData()),
+		weapon: NewBaseWeapon(init.GetSpacedId()),
 
-		weapon: NewWeapon(init.GetId(), spaceBurst),
-		altWeapon: NewWeapon(init.GetId(), spaceBlast),
-
+		grounded: NewState(false),
 		canDash: true,
 		jumpFrames: 0,
 		canJumpFrames: 0,
-		grounded: false,
 
 		ignoredColliders: make(map[SpacedId]bool, 0),
 
@@ -96,18 +93,24 @@ func NewPlayer(init Init) *Player {
 		lastKeyUpdate: 0,
 
 		mouse: NewVec2(0, 0),
-		weaponDir: NewVec2(1, 0),
 	}
 	player.respawn()
 	return player
+}
+
+func (p Player) Grounded() bool {
+	return p.grounded.Peek().(bool)
 }
 
 func (p *Player) GetData() Data {
 	data := NewPlayerData()
 	data.Merge(p.Object.GetData())
 
+	if grounded, ok := p.grounded.Pop(); ok {
+		data.Set(groundedProp, grounded)
+	}
 	data.Set(dirProp, p.Dir())
-	data.Set(weaponDirProp, p.weaponDir)
+	data.Set(weaponDirProp, p.weapon.Dir())
 	data.Set(keysProp, p.keys)
 
 	if (debugMode) {
@@ -122,6 +125,9 @@ func (p *Player) GetData() Data {
 func (p *Player) SetData(data Data) {
 	p.Object.SetData(data)
 
+	if data.Has(groundedProp) {
+		p.grounded.Set(data.Get(groundedProp).(bool))
+	}
 	if data.Has(keysProp) {
 		p.keys = data.Get(keysProp).(map[KeyType]bool)
 	}
@@ -129,7 +135,7 @@ func (p *Player) SetData(data Data) {
 		p.SetDir(data.Get(dirProp).(Vec2))
 	}
 	if data.Has(weaponDirProp) {
-		p.weaponDir = data.Get(weaponDirProp).(Vec2)
+		p.weapon.SetDir(data.Get(weaponDirProp).(Vec2))
 	}
 }
 
@@ -144,6 +150,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	vel := p.Vel()
 	evel := p.ExtVel()
 	acc := p.Acc()
+	grounded := p.Grounded()
 
 	if (p.health <= 0 || pos.Y < -5) {
 		p.respawn()
@@ -152,8 +159,8 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 
 	// Gravity & air resistance
 	acc.Y = gravityAcc
-	if !p.grounded {
-		if p.jumpFrames == 0 || !p.keyDown(dashKey) || vel.Y <= 0 {
+	if !grounded {
+		if p.jumpFrames == 0 || vel.Y <= 0 {
 			acc.Y += downAcc
 		}
 		if acc.X == 0 {
@@ -179,27 +186,20 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 
 	// Shooting & recoil
 	p.updateDir()
-	var shot *Shot
-	shot = p.shoot(p.weapon, mouseClick, grid, now)
-	if shot != nil {
-		buffer.rawShots = append(buffer.rawShots, shot)
-
-		if !p.grounded {
-			vel.Add(shot.recoil, 1)
-		}
-	} else {
-		shot = p.shoot(p.altWeapon, altMouseClick, grid, now)
-		if shot != nil {
-			buffer.rawShots = append(buffer.rawShots, shot)
-
-			if !p.grounded {
-				vel.Add(shot.recoil, 1)
-			}
-		}
+	p.weapon.SetPos(p.GetSubProfile(bodySubProfile).Pos())
+	if p.keyDown(mouseClick) {
+		p.weapon.PressTrigger(primaryTrigger)
+	}
+	if p.keyDown(altMouseClick) {
+		p.weapon.PressTrigger(secondaryTrigger)
+	}
+	shots := p.weapon.Shoot(now)
+	if len(shots) > 0 {
+		buffer.rawShots = append(buffer.rawShots, shots...)
 	}
 
 	// Grounded actions
-	if p.grounded {
+	if grounded {
 		p.canJumpFrames = maxCanJumpFrames
 		p.canDash = true
 
@@ -244,7 +244,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	p.SetVel(vel)
 
 	// Slow down momentum from other objects if not grounded
-	if !p.grounded {
+	if !grounded {
 		evel.X *= extVelMultiplier
 		evel.Y = 0
 	}
@@ -261,18 +261,10 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	return true
 }
 
-func (p *Player) shoot(w *Weapon, key KeyType, grid *Grid, now time.Time) *Shot {
-	if w.bursting(now) || p.keyDown(key) && w.canShoot(now) {
-		line := NewLine(p.Pos(), p.weaponDir)
-		return w.shoot(line, grid, now)
-	}
-	return nil
-}
-
 func (p *Player) checkCollisions(grid *Grid) {
 	// Collision detection
 	ignoredColliders := make(map[SpacedId]bool, 0)
-	p.grounded = false
+	grounded := false
 	colliders := grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId(), solidOnly: true})
 	for len(colliders) > 0 {
 		thing := PopThing(&colliders)
@@ -297,7 +289,7 @@ func (p *Player) checkCollisions(grid *Grid) {
 		p.SetPos(pos)
 		if results.posAdj.Y > 0 {
 			p.SetExtVel(other.TotalVel())
-			p.grounded = true
+			grounded = true
 		}
 
 		p.SetVel(results.newVel)
@@ -319,6 +311,8 @@ func (p *Player) checkCollisions(grid *Grid) {
 			object.Hit(p)
 		}
 	}
+
+	p.grounded.Set(grounded)
 }
 
 func (p *Player) respawn() {
@@ -355,14 +349,16 @@ func (p *Player) updateDir() {
 		return
 	}
 
-	dir := p.mouse
-	dir.Sub(p.Pos(), 1.0)
-	dir.Normalize()
-
-	p.weaponDir = dir
+	weaponDir := p.mouse
+	weaponDir.Sub(p.GetSubProfile(bodySubProfile).Pos(), 1.0)
+	weaponDir.Normalize()
+	p.weapon.SetDir(weaponDir)
 
 	lastDir := p.Dir()
 	// Don't turn around right at dir.X = 0
+	dir := p.mouse
+	dir.Sub(p.Pos(), 1.0)
+	dir.Normalize()
 	if Abs(dir.X) < 0.3 && SignPos(dir.X) != SignPos(lastDir.X) {
 		dir.X = FSign(dir.X) * Abs(dir.X)
 	}

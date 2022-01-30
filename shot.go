@@ -1,31 +1,46 @@
 package main
 
+type ShotType uint8
+const (
+	unknownShotType ShotType = iota
+
+	burstShotType
+	bombShotType
+)
+
 type Shot struct {
-	weapon *Weapon
+	weapon Weapon
 	line Line
-	recoil Vec2
+
+	shotType ShotType
+	pushForce float64
+	colliderOptions ColliderOptions
 
 	hits []*Hit
 }
 
-func NewShot(weapon *Weapon, line Line) Shot {
-	return Shot {
+func NewShot(weapon Weapon, line Line) *Shot {
+	return &Shot {
 		weapon: weapon,
 		line: line,
+
+		shotType: unknownShotType,
+		pushForce: 0,
+		colliderOptions: ColliderOptions{},
 
 		hits: make([]*Hit, 0),
 	}
 }
 
 func (s *Shot) Resolve(grid *Grid) {
-	hit := grid.GetHits(s.line, s.weapon.colliderOptions())
+	hit := grid.GetHits(s.line, s.colliderOptions)
 	if hit == nil {
 		return
 	}
 
 	s.hits = append(s.hits, hit)
 	s.line.Scale(hit.GetT())
-	if s.weapon.class == spaceBlast {
+	if s.shotType == bombShotType {
 		bomb := NewBomb(NewInit(grid.NextSpacedId(bombSpace), NewInitData(hit.Pos(), NewVec2(1, 1))))
 		if target := grid.Get(hit.GetSpacedId()); target != nil {
 			offset := hit.Pos()
@@ -45,25 +60,31 @@ func (s *Shot) hit(hit *Hit, grid *Grid) {
 		thing.health -= 10
 		vel := thing.Vel()
 		force := hit.Dir()
-		vel.Add(force, s.weapon.pushFactor)
-		thing.SetVel(vel)
+		if !thing.Grounded() {
+			vel.Add(force, s.pushForce)
+			thing.SetVel(vel)
+		}
 	}
 }
 
 func (s *Shot) GetData() Data {
 	data := NewData()
 
-	// TODO: need weapon type
+	data.Set(spacedIdProp, s.weapon.GetOwner())
+	data.Set(shotTypeProp, s.shotType)
 
-	data.Set(spacedIdProp, s.weapon.sid)
-	data.Set(posProp, s.line.Origin())
-	data.Set(endPosProp, s.line.Endpoint())
-
-	hits := make([]PropMap, len(s.hits))
-	for i, hit := range(s.hits) {
-		hits[i] = hit.GetData().Props()
+	if s.line.LenSquared() > 0 {
+		data.Set(posProp, s.line.Origin())
+		data.Set(endPosProp, s.line.Endpoint())
 	}
-	data.Set(hitsProp, hits)
+
+	if len(s.hits) > 0 {
+		hits := make([]PropMap, len(s.hits))
+		for i, hit := range(s.hits) {
+			hits[i] = hit.GetData().Props()
+		}
+		data.Set(hitsProp, hits)
+	}
 
 	return data
 }

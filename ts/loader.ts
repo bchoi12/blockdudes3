@@ -1,6 +1,8 @@
 enum Model {
 	UNKNOWN = 0,
 	CHICKEN = 1,
+
+	UZI = 10,
 }
 
 class Loader {
@@ -15,7 +17,8 @@ class Loader {
 		this._cache = new Map<Model, any>();
 
 		this._paths = new Map<Model, string>();
-		this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken5.glb");
+		this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken6.glb");
+		this._paths.set(Model.UZI, this._modelPrefix + "uzi.glb");
 
 		debug(this._paths);
 	}
@@ -58,9 +61,9 @@ class Loader {
 				data.scene.animations = data.animations;
 				data.scene.getObjectByName("mesh").castShadow = true;
 				data.scene.getObjectByName("mesh").receiveShadow = true;
-
-				data.scene.getObjectByName("profileMesh").visible = false;
-				data.scene.getObjectByName("hitMesh").visible = false;
+				break;
+			case Model.UZI:
+				debug(data);
 				break;
 			default:
 				debug("Model " + model + " could not be processed.");

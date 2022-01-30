@@ -1,11 +1,14 @@
 enum PlayerAction {
 	Idle = "Idle",
 	Walk = "Walk",
+	Jump = "Jump",
 }
 
 class RenderPlayer extends RenderObject {
-	private readonly _rotationOffset = -0.15;
+	private readonly _rotationOffset = -0.1;
 	private readonly _pointsMaterial = new THREE.PointsMaterial( { color: 0x000000, size: 0.2} );
+
+	private _weapon : RenderWeapon;
 
 	private _profileMesh : any;
 	private _profilePoints : any;
@@ -26,6 +29,7 @@ class RenderPlayer extends RenderObject {
 			this._actions.set(action, clip);
 		}
 		this.fadeOut(PlayerAction.Walk, 0);
+		this.fadeOut(PlayerAction.Jump, 0);
 
 		if (debugMode) {
 			this._profileMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), this._debugMaterial);
@@ -39,6 +43,19 @@ class RenderPlayer extends RenderObject {
 			this._profilePointsMesh = new THREE.Points(this._profilePoints, this._pointsMaterial);
 			this._mesh.add(this._profilePointsMesh);
 		}
+	}
+
+	setWeapon(weapon : RenderWeapon) : void {
+		if (!defined(this._weapon)) {
+			this._mesh.getObjectByName("armR").add(weapon.mesh());
+		}
+		this._weapon = weapon;
+	}
+
+	shoot(shot : any) : void {
+
+		this._mesh.getObjectByName("armR").position.z = -0.1;
+		this._weapon.shoot(shot);
 	}
 
 	override update(msg : any) : void {
@@ -55,6 +72,7 @@ class RenderPlayer extends RenderObject {
 
 		let dir = msg[dirProp];
 		let weaponDir = msg[weaponDirProp];
+		let grounded = msg[groundedProp];
 
 		this._mesh.position.x = pos.X;
 		this._mesh.position.y = pos.Y;
@@ -75,12 +93,28 @@ class RenderPlayer extends RenderObject {
 		const arm = player.getObjectByName("armR");
 		arm.rotation.x = armAngle - Math.PI / 2;
 
-		if (Math.abs(vel.X) > 0.1 && Math.sign(vel.X) == Math.sign(acc.X)) {
-			this.fadeTo(PlayerAction.Idle, PlayerAction.Walk, 1.0);
-		} else {
-			this.fadeTo(PlayerAction.Walk, PlayerAction.Idle, 0.4);
+		if (arm.position.z < 0) {
+			arm.position.z += 0.4 * Math.max(0, (Date.now() - this._lastUpdate) / 1000);
+		}
+		if (arm.position.z > 0) {
+			arm.position.z = 0;
 		}
 
+		if (!grounded) {
+			this.fadeOut(PlayerAction.Idle, 0.1);
+			this.fadeOut(PlayerAction.Walk, 0.1);
+			this.fadeIn(PlayerAction.Jump, 0.1);
+		} else if (Math.abs(vel.X) > 0.1 && Math.sign(vel.X) == Math.sign(acc.X)) {
+			this.fadeOut(PlayerAction.Idle, 0.2);
+			this.fadeOut(PlayerAction.Jump, 0.2);
+			this.fadeIn(PlayerAction.Walk, 0.2);
+		} else {
+			this.fadeOut(PlayerAction.Walk, 0.1);
+			this.fadeOut(PlayerAction.Jump, 0.1);
+			this.fadeIn(PlayerAction.Idle, 0.1);
+		}
+
+		this._lastUpdate = Date.now();
 		this.updateMixer();
 
 		if (debugMode) {
@@ -98,6 +132,5 @@ class RenderPlayer extends RenderObject {
 				this._profilePoints.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
 			}
 		}
-		
 	}
 }
