@@ -18,6 +18,7 @@ type Thing interface {
 	GetChildren() []Attachment
 
 	UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool
+	EndUpdate()
 }
 
 type ThingItem struct {

@@ -59,7 +59,6 @@ func (o *Object) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 
 	ts := o.PrepareUpdate(now)
 	o.update(o, grid, buffer, ts)
-	o.EndUpdate()
 	return true
 }
 
@@ -79,11 +78,11 @@ func (o *Object) GetChildren() []Attachment {
 
 func (o *Object) UpdateChildren() {
 	for _, attachment := range(o.children) {
-		childPos := o.GetProfile().Pos()
+		childPos := o.Pos()
 		childPos.Add(attachment.offset, 1.0)
-		attachment.thing.GetProfile().SetPos(childPos)
-		attachment.thing.GetProfile().SetVel(o.GetProfile().TotalVel())
-		attachment.thing.GetProfile().SetAcc(o.GetProfile().Acc())
+		attachment.thing.SetPos(childPos)
+		attachment.thing.SetVel(o.TotalVel())
+		attachment.thing.SetAcc(o.Acc())
 	}
 }
 

@@ -21,13 +21,15 @@ type Profile interface {
 	TotalVel() Vec2
 	Acc() Vec2
 	SetAcc(acc Vec2)
-
 	Dir() Vec2
 	SetDir(dir Vec2)
+
 	Solid() bool
 	SetSolid(solid bool)
 	Guide() bool
 	SetGuide(guide bool)
+	Grounded() bool
+	SetGrounded(grounded bool)
 
 	GetData() Data
 	SetData(data Data)
@@ -47,9 +49,10 @@ type Profile interface {
 type BaseProfile struct {
 	Init
 	vel, extVel, acc, dir Vec2
-	solid, guide State
+	solid, guide, grounded State
 
 	subProfiles map[ProfileKey]SubProfile
+	ignoredColliders map[SpacedId]bool
 }
 
 func NewBaseProfile(init Init, data Data) BaseProfile {
@@ -61,8 +64,10 @@ func NewBaseProfile(init Init, data Data) BaseProfile {
 		dir: NewVec2(1, 0),
 		solid: NewState(false),
 		guide: NewState(false),
+		grounded: NewState(false),
 
 		subProfiles: make(map[ProfileKey]SubProfile),
+		ignoredColliders: make(map[SpacedId]bool),
 	}
 	bp.SetData(data)
 
@@ -113,6 +118,8 @@ func (bp BaseProfile) Solid() bool { return bp.solid.Peek().(bool) }
 func (bp *BaseProfile) SetSolid(solid bool) { bp.solid.Set(solid) }
 func (bp BaseProfile) Guide() bool { return bp.guide.Peek().(bool) }
 func (bp *BaseProfile) SetGuide(guide bool) { bp.guide.Set(guide) }
+func (bp *BaseProfile) Grounded() bool { return bp.grounded.Peek().(bool) }
+func (bp *BaseProfile) SetGrounded(grounded bool) { bp.grounded.Set(grounded) }
 
 func (bp BaseProfile) GetData() Data {
 	data := NewData()
@@ -126,6 +133,13 @@ func (bp BaseProfile) GetData() Data {
 	}
 	if !bp.Acc().IsZero() {
 		data.Set(accProp, bp.Acc())
+	}
+
+	if solid, ok := bp.solid.Pop(); ok {
+		data.Set(solidProp, solid)
+	}
+	if grounded, ok := bp.grounded.Pop(); ok {
+		data.Set(groundedProp, grounded)
 	}
 
 	return data
@@ -152,6 +166,13 @@ func (bp *BaseProfile) SetData(data Data) {
 		bp.SetAcc(data.Get(accProp).(Vec2))
 	} else {
 		bp.SetAcc(NewVec2(0, 0))
+	}
+
+	if data.Has(solidProp) {
+		bp.SetSolid(data.Get(solidProp).(bool))
+	}
+	if data.Has(groundedProp) {
+		bp.SetGrounded(data.Get(groundedProp).(bool))
 	}
 }
 
@@ -182,6 +203,15 @@ func (bp BaseProfile) distSqr(profile Profile) float64 {
 func (bp BaseProfile) dist(profile Profile) float64 {
 	return math.Sqrt(bp.distSqr(profile))
 }
+func (bp BaseProfile) getIgnored() map[SpacedId]bool {
+	return bp.ignoredColliders
+}
+func (bp *BaseProfile) resetIgnored() {
+	bp.ignoredColliders = make(map[SpacedId]bool, 0)
+}
+func (bp *BaseProfile) addIgnored(sid SpacedId) {
+	bp.ignoredColliders[sid] = true
+}
 
 func (bp BaseProfile) Contains(point Vec2) ContainResults {
 	results := NewContainResults()
@@ -207,10 +237,10 @@ func (bp BaseProfile) Overlap(profile Profile) OverlapResults {
 	return results
 }
 
-func (bp BaseProfile) Snap(profile Profile) SnapResults {
+func (bp BaseProfile) Snap(colliders ThingHeap) SnapResults {
 	results := NewSnapResults()
 	for _, sp := range(bp.subProfiles) {
-		results.Merge(sp.Snap(profile))
+		results.Merge(sp.Snap(colliders))
 	}
 	return results
 }

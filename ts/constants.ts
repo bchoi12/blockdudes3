@@ -46,6 +46,7 @@ declare var extVelProp : number;
 declare var accProp : number;
 declare var dirProp : number;
 declare var healthProp : number;
+declare var solidProp : number;
 declare var groundedProp : number;
 declare var shotTypeProp : number;
 declare var hitsProp : number;

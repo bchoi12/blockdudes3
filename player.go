@@ -27,6 +27,7 @@ const (
 	friction = 0.4
 	airResistance = 0.9
 
+	// TODO: base on time instead of number of frames
 	maxJumpFrames int = 20
 	maxCanJumpFrames int = 6
 
@@ -35,12 +36,9 @@ const (
 
 type Player struct {
 	Object
-
 	weapon Weapon
-	grounded State
 
 	canDash bool
-
 
 	jumpFrames int
 	canJumpFrames int
@@ -53,10 +51,6 @@ type Player struct {
 	lastKeyUpdate SeqNumType
 
 	mouse Vec2
-}
-
-func NewPlayerData() Data {
-	return NewData()
 }
 
 func NewPlayer(init Init) *Player {
@@ -81,7 +75,6 @@ func NewPlayer(init Init) *Player {
 		Object: NewObject(profile, NewObjectData()),
 		weapon: NewBaseWeapon(init.GetSpacedId()),
 
-		grounded: NewState(false),
 		canDash: true,
 		jumpFrames: 0,
 		canJumpFrames: 0,
@@ -98,17 +91,10 @@ func NewPlayer(init Init) *Player {
 	return player
 }
 
-func (p Player) Grounded() bool {
-	return p.grounded.Peek().(bool)
-}
-
 func (p *Player) GetData() Data {
-	data := NewPlayerData()
+	data := NewData()
 	data.Merge(p.Object.GetData())
 
-	if grounded, ok := p.grounded.Pop(); ok {
-		data.Set(groundedProp, grounded)
-	}
 	data.Set(dirProp, p.Dir())
 	data.Set(weaponDirProp, p.weapon.Dir())
 	data.Set(keysProp, p.keys)
@@ -125,9 +111,6 @@ func (p *Player) GetData() Data {
 func (p *Player) SetData(data Data) {
 	p.Object.SetData(data)
 
-	if data.Has(groundedProp) {
-		p.grounded.Set(data.Get(groundedProp).(bool))
-	}
 	if data.Has(keysProp) {
 		p.keys = data.Get(keysProp).(map[KeyType]bool)
 	}
@@ -262,39 +245,8 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 }
 
 func (p *Player) checkCollisions(grid *Grid) {
-	// Collision detection
-	ignoredColliders := make(map[SpacedId]bool, 0)
-	grounded := false
 	colliders := grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId(), solidOnly: true})
-	for len(colliders) > 0 {
-		thing := PopThing(&colliders)
-
-		if ignored, ok := p.ignoredColliders[thing.GetSpacedId()]; ok && ignored {
-			ignoredColliders[thing.GetSpacedId()] = true
-			continue
-		}
-
-		other := thing.GetProfile()
-		results := p.Snap(other)
-		
-		if !results.snap {
-			if results.ignored {
-				ignoredColliders[thing.GetSpacedId()] = true
-			}
-			continue
-		}
-
-		pos := p.Pos()
-		pos.Add(results.posAdj, 1.0)
-		p.SetPos(pos)
-		if results.posAdj.Y > 0 {
-			p.SetExtVel(other.TotalVel())
-			grounded = true
-		}
-
-		p.SetVel(results.newVel)
-	}
-	p.ignoredColliders = ignoredColliders
+	p.Snap(colliders)
 
 	colliders = grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId()})
 	for len(colliders) > 0 {
@@ -311,8 +263,6 @@ func (p *Player) checkCollisions(grid *Grid) {
 			object.Hit(p)
 		}
 	}
-
-	p.grounded.Set(grounded)
 }
 
 func (p *Player) respawn() {

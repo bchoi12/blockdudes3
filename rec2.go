@@ -80,112 +80,131 @@ func (r Rec2) Overlap(profile Profile) OverlapResults {
 	return results
 }
 
-func (r *Rec2) Snap(profile Profile) SnapResults {
-	results := r.BaseProfile.Snap(profile)
+func (r *Rec2) Snap(colliders ThingHeap) SnapResults {
+	ignored := r.getIgnored()
+	results := r.BaseProfile.Snap(colliders)
 
-	switch other := profile.(type) {
-	case *Rec2:
-		if !other.Solid() {
-			break
+	r.resetIgnored()
+	for len(colliders) > 0 {
+		thing := PopThing(&colliders)
+		results.Merge(r.snapThing(thing, ignored))
+	}
+
+	grounded := false
+	if results.snap {
+		pos := r.Pos()
+		pos.Add(results.posAdj, 1.0)
+		r.SetPos(pos)
+		r.SetVel(results.newVel)
+		if results.posAdj.Y > 0 {
+			r.SetExtVel(results.extVel)
+			grounded = true
+		}	
+	}
+	r.SetGrounded(grounded)
+	return results
+}
+
+func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
+	results := NewSnapResults()
+	ox := r.dimOverlapX(other)
+	if ox <= 0 {
+		return results
+	}
+	oy := r.dimOverlapY(other)
+	if oy <= 0 {
+		return results
+	}
+	if _, ok := ignored[other.GetSpacedId()]; ok {
+		r.addIgnored(other.GetSpacedId())
+		return results
+	}
+	if !other.Solid() {
+		return results
+	}
+
+	// Figure out collision direction
+	relativePos := NewVec2(r.Pos().X - other.Pos().X, r.Pos().Y - other.Pos().Y)
+	adjSign := NewVec2(FSign(relativePos.X), FSign(relativePos.Y))
+
+	// Special treatment for platform.
+	if !adjSign.IsZero() && other.GetSpace() == platformSpace {
+		adjSign.X = 0
+		if adjSign.Y < 0 {
+			adjSign.Y = 0
 		}
-		ox := r.dimOverlapX(other)
-		if ox <= 0 {
-			break
+	}
+
+	// If overlap is small, correct it but don't change velocity.
+	if ox < overlapEpsilon || oy < overlapEpsilon && adjSign.Y == 1 {
+		results.snap = true
+		if ox < overlapEpsilon {
+			results.posAdj.X = ox * adjSign.X
 		}
-		oy := r.dimOverlapY(other)
-		if oy <= 0 {
-			break
+		if oy < overlapEpsilon {
+			results.posAdj.Y = oy * adjSign.Y
+		}
+		results.newVel = r.Vel()
+		if results.posAdj.Y > 0 {
+			results.extVel = other.TotalVel()
+		}
+		return results
+	}
+
+	// Velocity checks
+	relativeVel := NewVec2(r.TotalVel().X - other.TotalVel().X, r.TotalVel().Y - other.TotalVel().Y)
+	if Sign(adjSign.X) == Sign(relativeVel.X) || Abs(relativeVel.X) < zeroVelEpsilon {
+		adjSign.X = 0
+	}
+	if Sign(adjSign.Y) == Sign(relativeVel.Y) || Abs(relativeVel.Y) < zeroVelEpsilon {
+		adjSign.Y = 0
+	}
+
+	// If collision happens in both X, Y compute which overlap is greater based on velocity.
+	// NOTE: needs to happen early
+	// TODO: do we need to check for nonzero velocity here?
+	if !adjSign.IsZero() && Abs(relativeVel.X) > zeroVelEpsilon && Abs(relativeVel.Y) > zeroVelEpsilon {
+		tx := Abs(ox / relativeVel.X)
+		ty := Abs(oy / relativeVel.Y)
+
+		if tx > ty {
+			adjSign.X = 0
+		}
+		if ty > tx {
+			adjSign.Y = 0
+		}
+	}
+
+	// Have overlap, but no pos adjustment for some reason.
+	if adjSign.IsZero() {
+		r.addIgnored(other.GetSpacedId())
+		return results
+	}
+
+	// Compile the results.
+	posAdj := NewVec2(ox * adjSign.X, oy * adjSign.Y)
+	newVel := r.Vel()
+
+	if !posAdj.IsZero() {
+		results.snap = true
+
+		if posAdj.X > 0 {
+			newVel.X = Max(0, newVel.X)
+		} else if posAdj.X < 0 {
+			newVel.X = Min(0, newVel.X)
 		}
 
-		// Figure out collision direction
-		relativeVel := NewVec2(r.TotalVel().X - other.TotalVel().X, r.TotalVel().Y - other.TotalVel().Y)
-		collide := NewVec2(1, 1)
-		if relativeVel.X > 0 {
-			collide.X = -1
+		if posAdj.Y > 0 {
+			newVel.Y = Max(0, newVel.Y)
+		} else if posAdj.Y < 0 {
+			newVel.Y = Min(0, newVel.Y)
 		}
-		if relativeVel.Y > 0 {
-			collide.Y = -1
-		}
+	}
 
-		relativePos := NewVec2(r.Pos().X - other.Pos().X, r.Pos().Y - other.Pos().Y)
-		if Sign(collide.X) != Sign(relativePos.X) {
-			collide.X = 0
-		}
-		if Sign(collide.Y) != Sign(relativePos.Y) {
-			collide.Y = 0
-		}
-
-		// Check that relative velocity is nonzero.
-		// Skip small overlap since we should always correct that.
-		if ox > overlapEpsilon && Abs(relativeVel.X) < zeroVelEpsilon  {
-			collide.X = 0
-		}
-		if oy > overlapEpsilon && Abs(relativeVel.Y) < zeroVelEpsilon {
-			collide.Y = 0
-		}
-
-		// If collision happens in both X, Y compute which overlap is greater based on velocity.
-		// NOTE: needs to happen early
-		// TODO: do we need to check for nonzero velocity here?
-		if collide.X != 0 && collide.Y != 0 {
-			tx := Abs(ox / relativeVel.X)
-			ty := Abs(oy / relativeVel.Y)
-
-			if tx > ty {
-				collide.X = 0
-			}
-			if ty > tx {
-				collide.Y = 0
-			}
-		}
-
-		// Special treatment for platform.
-		if !collide.IsZero() && other.GetSpace() == platformSpace {
-			collide.X = 0
-			if collide.Y < 0 {
-				collide.Y = 0
-			}
-
-			if collide.IsZero() {
-				results.ignored = true
-				break
-			}
-		}
-
-		// If overlap is small, correct it but don't change velocity.
-		if ox < overlapEpsilon || oy < overlapEpsilon {
-			results.snap = true
-			results.posAdj = NewVec2(ox * collide.X, oy * collide.Y)
-			results.newVel = r.Vel()		
-			break
-		}
-
-		// Compile the results.
-		posAdj := NewVec2(0, 0)
-		newVel := r.Vel()
-		if collide.X != 0 {
-			results.snap = true
-			posAdj.X = ox * collide.X
-
-			if posAdj.X > 0 {
-				newVel.X = Max(0, newVel.X)
-			} else if posAdj.X < 0 {
-				newVel.X = Min(0, newVel.X)
-			}
-		}
-		if collide.Y != 0 {
-			results.snap = true
-			posAdj.Y = oy * collide.Y
-		
-			if posAdj.Y > 0 {
-				newVel.Y = Max(0, newVel.Y)
-			} else if posAdj.Y < 0 {
-				newVel.Y = Min(0, newVel.Y)
-			}
-		}
-
-		results.posAdj = posAdj
-		results.newVel = newVel
+	results.posAdj = posAdj
+	results.newVel = newVel
+	if results.posAdj.Y > 0 {
+		results.extVel = other.TotalVel()
 	}
 	return results
 }

@@ -11,6 +11,7 @@ class RenderPlayer extends RenderObject {
         this._pointsMaterial = new THREE.PointsMaterial({ color: 0x000000, size: 0.2 });
         this._mixer = new THREE.AnimationMixer(mesh);
         this._actions = new Map();
+        this._armOrigin = mesh.getObjectByName("armR").position.clone();
         mesh.getObjectByName("mesh").rotation.y = Math.PI / 2 + this._rotationOffset;
         for (let action in PlayerAction) {
             const clip = this._mixer.clipAction(THREE.AnimationClip.findByName(mesh.animations, PlayerAction[action]));
@@ -39,7 +40,12 @@ class RenderPlayer extends RenderObject {
         this._weapon = weapon;
     }
     shoot(shot) {
-        this._mesh.getObjectByName("armR").position.z = -0.1;
+        const arm = this._mesh.getObjectByName("armR");
+        const axis = new THREE.Vector3(1, 0, 0);
+        const recoil = new THREE.Vector3(0, 0, -0.1);
+        recoil.applyAxisAngle(axis, arm.rotation.x);
+        arm.position.y = this._armOrigin.y - recoil.z;
+        arm.position.z = this._armOrigin.z + recoil.y;
         this._weapon.shoot(shot);
     }
     update(msg) {
@@ -70,12 +76,9 @@ class RenderPlayer extends RenderObject {
         armAngle = normalize(armAngle) * -Math.sign(weaponDir.Y);
         const arm = player.getObjectByName("armR");
         arm.rotation.x = armAngle - Math.PI / 2;
-        if (arm.position.z < 0) {
-            arm.position.z += 0.4 * Math.max(0, (Date.now() - this._lastUpdate) / 1000);
-        }
-        if (arm.position.z > 0) {
-            arm.position.z = 0;
-        }
+        let armOffset = this._armOrigin.clone().sub(arm.position);
+        armOffset.setLength(Math.min(armOffset.length(), 0.4 * Math.max(0, (Date.now() - this._lastUpdate) / 1000)));
+        arm.position.add(armOffset);
         if (!grounded) {
             this.fadeOut(PlayerAction.Idle, 0.1);
             this.fadeOut(PlayerAction.Walk, 0.1);

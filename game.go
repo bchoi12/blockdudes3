@@ -104,14 +104,15 @@ func (g *Game) updateThing(thing Thing, now time.Time) {
 	if updated && g.grid.Has(thing.GetSpacedId()) {
 		g.grid.Upsert(thing)
 		g.updateBuffer.rawThings[thing.GetSpacedId()] = thing
+		thing.EndUpdate()
 	}
+
 }
 
 func (g* Game) createPlayerInitMsg(id IdType) PlayerInitMsg {
 	players := make(PlayerPropMap)
 
-	for _, t := range(g.grid.GetThings(playerSpace)) {
-		player := t.(*Player)
+	for _, player := range(g.grid.GetThings(playerSpace)) {
 		players[player.GetId()] = player.GetData().Props()
 	}
 
@@ -124,7 +125,7 @@ func (g* Game) createPlayerInitMsg(id IdType) PlayerInitMsg {
 
 func (g* Game) createPlayerJoinMsg(id IdType) PlayerInitMsg {
 	players := make(PlayerPropMap)
-	player := g.grid.Get(Id(playerSpace, id)).(*Player)
+	player := g.grid.Get(Id(playerSpace, id))
 	players[id] = player.GetData().Props()
 	return PlayerInitMsg{
 		T: playerJoinType,

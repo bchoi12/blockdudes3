@@ -1,11 +1,7 @@
-enum GameState {
-	UNKNOWN = 0,
-}
-
 class Game {
 	private readonly _statsInterval = 500;
 	private readonly _objectMaterial = new THREE.MeshStandardMaterial( {color: 0x444444 } );
-	private readonly _bombMaterial = new THREE.MeshStandardMaterial( {color: 0x4444bb} );
+	private readonly _bombMaterial = new THREE.MeshStandardMaterial( {color: 0x4444bb, transparent: true, opacity: 0.5} );
 	
 	private _ui : UI;
 	private _renderer : Renderer;

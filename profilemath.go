@@ -4,7 +4,11 @@ type ProfileMath interface {
 	Contains(point Vec2) ContainResults
 	Intersects(line Line) IntersectResults
 	Overlap(profile Profile) OverlapResults
-	Snap(profile Profile) SnapResults
+	Snap(colliders ThingHeap) SnapResults
+
+	getIgnored() map[SpacedId]bool
+	resetIgnored()
+	addIgnored(sid SpacedId) 
 }
 
 type ContainResults struct {
@@ -65,6 +69,7 @@ type SnapResults struct {
 	ignored bool
 	posAdj Vec2
 	newVel Vec2
+	extVel Vec2
 }
 
 func NewSnapResults() SnapResults {
@@ -73,6 +78,7 @@ func NewSnapResults() SnapResults {
 		ignored: false,
 		posAdj: NewVec2(0, 0),
 		newVel: NewVec2(0, 0),
+		extVel: NewVec2(0, 0),
 	}
 }
 
@@ -90,4 +96,10 @@ func (sr *SnapResults) Merge(other SnapResults) {
 
 	vel.X = AbsMax(vel.X, otherVel.X)
 	vel.Y = AbsMax(vel.Y, otherVel.Y)
+
+	extVel := &sr.extVel
+	otherExtVel := other.extVel
+
+	extVel.X = AbsMax(extVel.X, otherExtVel.X)
+	extVel.Y = AbsMax(extVel.Y, otherExtVel.Y)
 }

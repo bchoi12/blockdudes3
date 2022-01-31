@@ -1,12 +1,8 @@
-var GameState;
-(function (GameState) {
-    GameState[GameState["UNKNOWN"] = 0] = "UNKNOWN";
-})(GameState || (GameState = {}));
 class Game {
     constructor(ui, connection) {
         this._statsInterval = 500;
         this._objectMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
-        this._bombMaterial = new THREE.MeshStandardMaterial({ color: 0x4444bb });
+        this._bombMaterial = new THREE.MeshStandardMaterial({ color: 0x4444bb, transparent: true, opacity: 0.5 });
         this._objectMaterial.shadowSide = THREE.FrontSide;
         this._ui = ui;
         this._renderer = this._ui.renderer();

@@ -16,6 +16,7 @@ const (
 	dirProp
 	healthProp
 
+	solidProp
 	groundedProp
 	shotTypeProp
 	hitsProp
