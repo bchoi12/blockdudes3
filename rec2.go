@@ -90,7 +90,6 @@ func (r *Rec2) Snap(colliders ThingHeap) SnapResults {
 		results.Merge(r.snapThing(thing, ignored))
 	}
 
-	grounded := false
 	if results.snap {
 		pos := r.Pos()
 		pos.Add(results.posAdj, 1.0)
@@ -98,10 +97,9 @@ func (r *Rec2) Snap(colliders ThingHeap) SnapResults {
 		r.SetVel(results.newVel)
 		if results.posAdj.Y > 0 {
 			r.SetExtVel(results.extVel)
-			grounded = true
 		}	
 	}
-	r.SetGrounded(grounded)
+	r.SetGrounded(results.snap)
 	return results
 }
 

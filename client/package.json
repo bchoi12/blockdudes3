@@ -1,0 +1,25 @@
+{
+  "name": "blockdudes3",
+  "version": "1.0.0",
+  "description": "block dudes 3",
+  "main": "js/app.js",
+  "dependencies": {
+    "@msgpack/msgpack": "^2.7.2",
+    "three": "^0.137.5"
+  },
+  "devDependencies": {
+    "@types/msgpack": "0.0.31",
+    "@types/three": "^0.137.0",
+    "webpack": "^5.68.0",
+    "webpack-cli": "^4.9.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/bchoi12/blockdudes3"
+  },
+  "author": "bchoi12",
+  "license": "ISC"
+}

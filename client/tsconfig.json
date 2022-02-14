@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "target": "es2019",
+        "outDir": "src",
+        "removeComments": true,
+        "rootDir": "ts",
+        "moduleResolution": "node",
+    },
+    "include": ["ts/*.ts"],
+}

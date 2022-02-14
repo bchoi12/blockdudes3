@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>block dudes 3</title>
+
+    <link href="./style.css" rel="stylesheet">
+ 	<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Lato:regular,italic,bold,bolditalic" />
+</head>
+
+<body>
+	<main>
+		<div id="js-check">Javascript could not be loaded.</div>
+		<div id="div-login">
+			<iframe name="iframe-empty" style="display:none"></iframe>
+			<form id="form-login" action="about:blank" target="iframe-empty">
+				<input id="name" type="text" placeholder="name" maxlength="16" required>
+				<input id="room" type="text" placeholder="room" maxlength="10" required>
+				<input id="login" type="submit" value="enter">
+			</form>
+		</div>
+		<div id="div-game">
+			<div id="div-canvas">	
+				<canvas id="renderer" width="800" height="600" oncontextmenu="return false;">Your browser is too old</canvas>
+			</div>
+			<div id="stats" class="no-select ui"></div>
+			<div id="messages" class="no-select chat-hide ui"></div>
+			<div id="form-send-message" class="no-select ui">
+				<form action="about:blank" target="iframe-empty" onsubmit="return false;">
+					<input id="message-box" type="text" placeholder="Press enter to chat" maxlength="256">
+					<input type="submit" value="" style="display: none;">
+				</form>
+			</div>
+			<img id="cursor" src="./img/cursor.png" alt="cursor" class="no-select" />
+			<div id="overlay">
+				<div id="clients" class="ui"></div>
+				<span class="no-select ui"><br><b>Paused</b><br><br>Click to continue<br><br></span>
+				<button id="voice" class="ui">voice</button>
+			</div>
+		</div>
+	</main>
+
+	<script src="./wasm_exec.js"></script>
+	<script src="./main.js"></script>
+</body>

@@ -9,7 +9,7 @@ cp "wasm/wasm_main.go" "wasm/wasm_main_copy.txt"
 $env:GOOS="js"
 $env:GOARCH="wasm"
 cd wasm
-go build -o game.wasm -v .
+go build -o ../client/game.wasm -v .
 cd ..
 Remove-Item Env:\GOOS
 Remove-Item Env:\GOARCH
