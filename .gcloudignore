@@ -1,0 +1,10 @@
+.env
+.docker_build/
+bin/
+wasm/
+
+Procfile
+*.ps1
+
+client/*
+!client/dist/*
