@@ -76,6 +76,9 @@ func (g *Game) setData(sid SpacedId, data Data) {
 }
 
 func (g *Game) processKeyMsg(id IdType, keyMsg KeyMsg) {
+	if !g.grid.Has(Id(playerSpace, id)) {
+		return
+	}
 	player := g.grid.Get(Id(playerSpace, id)).(*Player)
 	player.updateKeys(keyMsg)
 }

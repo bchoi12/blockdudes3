@@ -6,5 +6,5 @@ network:
   session_affinity: true
 resources:
   cpu: 4
-  memory_gb: 
+  memory_gb: 8
   disk_size_gb: 10
