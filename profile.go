@@ -6,7 +6,7 @@ import (
 
 const (
 	zeroVelEpsilon float64 = 1e-6
-	overlapEpsilon float64 = 0.05
+	overlapEpsilon float64 = 0.01
 )
 
 type ProfileKey uint8

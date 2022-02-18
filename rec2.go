@@ -94,12 +94,28 @@ func (r *Rec2) Snap(colliders ThingHeap) SnapResults {
 		pos := r.Pos()
 		pos.Add(results.posAdj, 1.0)
 		r.SetPos(pos)
-		r.SetVel(results.newVel)
+
+		vel := r.Vel()
+
+		if results.posAdj.X > 0 {
+			vel.X = Max(0, vel.X)
+		} else if results.posAdj.X < 0 {
+			vel.X = Min(0, vel.X)
+		}
+		if results.posAdj.Y > 0 {
+			vel.Y = Max(0, vel.Y)
+		} else if results.posAdj.Y < 0 {
+			vel.Y = Min(0, vel.Y)
+		}
+		r.SetVel(vel)
+
 		if results.posAdj.Y > 0 {
 			r.SetExtVel(results.extVel)
 		}	
 	}
-	r.SetGrounded(results.snap)
+
+	// Only set this once
+	r.SetGrounded(results.posAdj.Y > 0)
 	return results
 }
 
@@ -125,43 +141,29 @@ func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
 	relativePos := NewVec2(r.Pos().X - other.Pos().X, r.Pos().Y - other.Pos().Y)
 	adjSign := NewVec2(FSign(relativePos.X), FSign(relativePos.Y))
 
-	// Special treatment for platform.
-	if !adjSign.IsZero() && other.GetSpace() == platformSpace {
-		adjSign.X = 0
-		if adjSign.Y < 0 {
+	relativeVel := NewVec2(r.TotalVel().X - other.TotalVel().X, r.TotalVel().Y - other.TotalVel().Y)
+	// Zero out adjustments according to relative velocity.
+	if !adjSign.IsZero() {
+		if Sign(adjSign.X) == Sign(relativeVel.X) || Abs(relativeVel.X) < zeroVelEpsilon {
+			adjSign.X = 0
+		}
+		if Sign(adjSign.Y) == Sign(relativeVel.Y) || Abs(relativeVel.Y) < zeroVelEpsilon {
 			adjSign.Y = 0
 		}
 	}
 
-	// If overlap is small, correct it but don't change velocity.
-	if ox < overlapEpsilon || oy < overlapEpsilon && adjSign.Y == 1 {
-		results.snap = true
-		if ox < overlapEpsilon {
-			results.posAdj.X = ox * adjSign.X
+	if adjSign.X != 0 && adjSign.Y != 0 {
+		if Sign(adjSign.X) != Sign(relativeVel.X) && oy < overlapEpsilon {
+			adjSign.X = 0
 		}
-		if oy < overlapEpsilon {
-			results.posAdj.Y = oy * adjSign.Y
+		if Sign(adjSign.Y) != Sign(relativeVel.Y) && ox < overlapEpsilon {
+			adjSign.Y = 0
 		}
-		results.newVel = r.Vel()
-		if results.posAdj.Y > 0 {
-			results.extVel = other.TotalVel()
-		}
-		return results
-	}
-
-	// Velocity checks
-	relativeVel := NewVec2(r.TotalVel().X - other.TotalVel().X, r.TotalVel().Y - other.TotalVel().Y)
-	if Sign(adjSign.X) == Sign(relativeVel.X) || Abs(relativeVel.X) < zeroVelEpsilon {
-		adjSign.X = 0
-	}
-	if Sign(adjSign.Y) == Sign(relativeVel.Y) || Abs(relativeVel.Y) < zeroVelEpsilon {
-		adjSign.Y = 0
 	}
 
 	// If collision happens in both X, Y compute which overlap is greater based on velocity.
 	// NOTE: needs to happen early
-	// TODO: do we need to check for nonzero velocity here?
-	if !adjSign.IsZero() && Abs(relativeVel.X) > zeroVelEpsilon && Abs(relativeVel.Y) > zeroVelEpsilon {
+	if adjSign.X != 0 && adjSign.Y != 0 {
 		tx := Abs(ox / relativeVel.X)
 		ty := Abs(oy / relativeVel.Y)
 
@@ -173,30 +175,26 @@ func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
 		}
 	}
 
+	// Special treatment for platform.
+	if !adjSign.IsZero() && other.GetSpace() == platformSpace {
+		adjSign.X = 0
+		if adjSign.Y < 0 {
+			adjSign.Y = 0
+		}
+	}
+
 	// Have overlap, but no pos adjustment for some reason.
 	if adjSign.IsZero() {
 		r.addIgnored(other.GetSpacedId())
 		return results
 	}
 
-	// Compile the results.
+	// Normal collision.
 	posAdj := NewVec2(ox * adjSign.X, oy * adjSign.Y)
 	newVel := r.Vel()
 
 	if !posAdj.IsZero() {
 		results.snap = true
-
-		if posAdj.X > 0 {
-			newVel.X = Max(0, newVel.X)
-		} else if posAdj.X < 0 {
-			newVel.X = Min(0, newVel.X)
-		}
-
-		if posAdj.Y > 0 {
-			newVel.Y = Max(0, newVel.Y)
-		} else if posAdj.Y < 0 {
-			newVel.Y = Min(0, newVel.Y)
-		}
 	}
 
 	results.posAdj = posAdj
