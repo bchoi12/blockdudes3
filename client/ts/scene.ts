@@ -3,27 +3,31 @@ import * as THREE from 'three';
 import { Lighting } from './lighting.js'
 import { RenderObject } from './render_object.js'
 import { LogUtil, Util } from './util.js'
+import { Weather } from './weather.js'
 
 export class Scene {
-	private _scene : any;
+	private _scene : THREE.Scene;
 	private _lighting : Lighting;
+	private _weather : Weather;
 	private _renders : Map<number, Map<number, RenderObject>>;
 
 	constructor() {
 		this.reset();
 	}
 
-	scene() : any { return this._scene; }
+	scene() : THREE.Scene { return this._scene; }
 
 	reset() : void {
 		this._scene = new THREE.Scene();
 		this._lighting = new Lighting();
 		this._scene.add(this._lighting.scene());
+		this._weather = new Weather();
+		this._scene.add(this._weather.scene())
 
 		this._renders = new Map();
 	}
 
-	add(space : number, id : number, object : any) : void {
+	add(space : number, id : number, object : RenderObject) : void {
 		const map = this.getMap(space);
 		if (map.has(id)) {
 			LogUtil.d("Overwriting object space " + space + ", id " + id + "!");
@@ -86,8 +90,9 @@ export class Scene {
 		})
 	}
 
-	setPlayerPosition(position : any) {
+	setPlayerPosition(position : THREE.Vector3) {
 		this._lighting.setTarget(position);
+		this._weather.update();
 	}
 
 	private getMap(space : number) : Map<number, any> {

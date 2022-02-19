@@ -1,13 +1,25 @@
 import * as THREE from 'three';
+import { Sky } from 'three/examples/jsm/objects/Sky.js';
 export class Lighting {
     constructor() {
         this._shadowMapWidth = 1024;
         this._shadowMapHeight = 1024;
         this._shadowBias = -0.00018;
         this._scene = new THREE.Scene();
-        const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x232323, 1.8);
+        const sky = new Sky();
+        sky.scale.setScalar(4000);
+        const uniforms = sky.material.uniforms;
+        uniforms['turbidity'].value = 20;
+        uniforms['rayleigh'].value = 0.2;
+        uniforms['mieCoefficient'].value = 0.00003;
+        uniforms['mieDirectionalG'].value = 0.999;
+        const sun = new THREE.Vector3();
+        sun.setFromSphericalCoords(1, 1.45, -0.93 * Math.PI);
+        uniforms['sunPosition'].value.copy(sun);
+        this._scene.add(sky);
+        const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x232323, 1.2);
         this._scene.add(hemisphereLight);
-        this._sunLight = new THREE.DirectionalLight(0xfdfbfd, 1.0);
+        this._sunLight = new THREE.DirectionalLight(0xfdfbfd, 2.0);
         this._sunLightOffset = new THREE.Vector3(-50, 50, 50);
         this._sunLight.position.copy(this._sunLightOffset);
         this._sunLight.castShadow = true;

@@ -22,7 +22,7 @@ class Game {
 	private _id : number;
 	private _keyUpdates : number;
 	private _lastGameUpdate : number;
-	private _lastGameUpdateTime : any;
+	private _lastGameUpdateTime : number;
 	private _animateFrames : number;
 
 	private _currentPlayerData : any;

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Lighting } from './lighting.js';
 import { LogUtil, Util } from './util.js';
+import { Weather } from './weather.js';
 export class Scene {
     constructor() {
         this.reset();
@@ -10,6 +11,8 @@ export class Scene {
         this._scene = new THREE.Scene();
         this._lighting = new Lighting();
         this._scene.add(this._lighting.scene());
+        this._weather = new Weather();
+        this._scene.add(this._weather.scene());
         this._renders = new Map();
     }
     add(space, id, object) {
@@ -67,6 +70,7 @@ export class Scene {
     }
     setPlayerPosition(position) {
         this._lighting.setTarget(position);
+        this._weather.update();
     }
     getMap(space) {
         if (!this._renders.has(space)) {

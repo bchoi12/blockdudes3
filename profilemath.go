@@ -68,7 +68,6 @@ type SnapResults struct {
 	snap bool
 	ignored bool
 	posAdj Vec2
-	newVel Vec2
 	extVel Vec2
 }
 
@@ -77,7 +76,6 @@ func NewSnapResults() SnapResults {
 		snap: false,
 		ignored: false,
 		posAdj: NewVec2(0, 0),
-		newVel: NewVec2(0, 0),
 		extVel: NewVec2(0, 0),
 	}
 }
@@ -87,19 +85,10 @@ func (sr *SnapResults) Merge(other SnapResults) {
 
 	pos := &sr.posAdj
 	otherPos := other.posAdj
-
 	pos.X = AbsMax(pos.X, otherPos.X)
 	pos.Y = AbsMax(pos.Y, otherPos.Y)
 
-	vel := &sr.newVel
-	otherVel := other.newVel
-
-	vel.X = AbsMax(vel.X, otherVel.X)
-	vel.Y = AbsMax(vel.Y, otherVel.Y)
-
 	extVel := &sr.extVel
-	otherExtVel := other.extVel
-
-	extVel.X = AbsMax(extVel.X, otherExtVel.X)
-	extVel.Y = AbsMax(extVel.Y, otherExtVel.Y)
+	extVel.X = AbsMax(extVel.X, other.extVel.X)
+	extVel.Y = AbsMax(extVel.Y, other.extVel.Y)
 }

@@ -14,11 +14,11 @@ export class Renderer {
 	private _canvas : HTMLElement
 
 	private _scene : Scene;
-	private _camera : any;
-	private _renderer : any;
+	private _camera : THREE.PerspectiveCamera;
+	private _renderer : THREE.WebGLRenderer;
 	private _composer : any;
 
-	private _mousePixels : any;
+	private _mousePixels : THREE.Vector3;
 
 	constructor(canvas : HTMLElement) {
 		this._canvas = canvas;
@@ -30,6 +30,11 @@ export class Renderer {
 		this._renderer = new THREE.WebGLRenderer( {canvas: this._canvas, antialias: true});
 		// this._renderer.setClearColor(0x3c3b5f);
 		this._renderer.setClearColor(0x87cefa);
+
+		this._renderer.outputEncoding = THREE.sRGBEncoding;
+		this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
+		this._renderer.toneMappingExposure = 0.5;
+
 		this._renderer.shadowMap.enabled = true;
 		this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 

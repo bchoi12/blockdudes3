@@ -15,6 +15,9 @@ export class Renderer {
         this._camera.position.z = this._cameraOffsetZ;
         this._renderer = new THREE.WebGLRenderer({ canvas: this._canvas, antialias: true });
         this._renderer.setClearColor(0x87cefa);
+        this._renderer.outputEncoding = THREE.sRGBEncoding;
+        this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this._renderer.toneMappingExposure = 0.5;
         this._renderer.shadowMap.enabled = true;
         this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.resizeCanvas();
