@@ -1,23 +1,21 @@
 import * as THREE from 'three';
 
-import { Connection } from './connection.js'
 import { Model, Loader } from './loader.js'
-import { Renderer } from './renderer.js'
 import { RenderObject } from './render_object.js'
 import { RenderPlayer } from './render_player.js'
 import { RenderWeapon } from './render_weapon.js'
-import { UI } from './ui.js'
 import { GameUtil, Util } from './util.js'
+
+import { connection } from './connection.js'
+import { renderer } from './renderer.js'
+import { ui } from './ui.js'
 
 class Game {
 	private readonly _statsInterval = 500;
 	private readonly _objectMaterial = new THREE.MeshStandardMaterial( {color: 0x444444 } );
 	private readonly _bombMaterial = new THREE.MeshStandardMaterial( {color: 0x4444bb, transparent: true, opacity: 0.5} );
 	
-	private _ui : UI;
-	private _renderer : Renderer;
 	private _loader : Loader;
-	private _connection : Connection;
 
 	private _id : number;
 	private _keyUpdates : number;
@@ -28,13 +26,10 @@ class Game {
 	private _currentPlayerData : any;
 	private _currentObjects : Set<string>
 
-	constructor(ui : UI, connection : Connection) {
+	constructor() {
 		this._objectMaterial.shadowSide = THREE.FrontSide;
 
-		this._ui = ui;
-		this._renderer = this._ui.renderer();
 		this._loader = new Loader();
-		this._connection = connection;
 
 		this._keyUpdates = 0;
 		this._lastGameUpdate = 0;
@@ -42,19 +37,32 @@ class Game {
 		this._animateFrames = 0;
 
 		this._currentObjects = new Set();
+	}
 
-		this.initServerTalk();
+	setup() : void {
+		connection.addHandler(gameStateType, (msg : any) => { this.updateGameState(msg); });
+		connection.addHandler(playerInitType, (msg : any) => { this.updatePlayers(msg); });
+		connection.addHandler(playerJoinType, (msg : any) => { this.updatePlayers(msg); });
+		connection.addHandler(leftType, (msg : any) => { this.updatePlayers(msg); });
+		connection.addHandler(levelInitType, (msg : any) => { this.initLevel(msg); });
 	}
 
 	start() : void {
-		this._ui.displayGame();
+		connection.addSender(keyType, () => {
+			if (!Util.defined(this._id)) return;
+
+			this._keyUpdates++;
+			const msg = ui.createKeyMsg(this._keyUpdates);
+			connection.sendData(msg);
+		}, frameMillis);
+
 		this.animate();
 
 		const self = this;
 		function updateStats() {
-			const ping = self._connection.ping();
+			const ping = connection.ping();
 			const fps = self._animateFrames * 1000 / self._statsInterval;
-			self._ui.updateStats(ping, fps);
+			ui.updateStats(ping, fps);
 
 			self._animateFrames = 0;
 			setTimeout(updateStats, self._statsInterval);		
@@ -65,26 +73,10 @@ class Game {
 	private animate() : void {
 		this.extrapolateState();
 		this.updateCamera();
-		this._renderer.render();
+		renderer.render();
 
 		requestAnimationFrame(() => { this.animate(); });
 		this._animateFrames++;
-	}
-
-	private initServerTalk() : void {
-		this._connection.addHandler(gameStateType, (msg : any) => { this.updateGameState(msg); });
-		this._connection.addHandler(playerInitType, (msg : any) => { this.updatePlayers(msg); });
-		this._connection.addHandler(playerJoinType, (msg : any) => { this.updatePlayers(msg); });
-		this._connection.addHandler(leftType, (msg : any) => { this.updatePlayers(msg); });
-		this._connection.addHandler(levelInitType, (msg : any) => { this.initLevel(msg); });
-
-		this._connection.addSender(keyType, () => {
-			if (!Util.defined(this._id)) return;
-
-			this._keyUpdates++;
-			const msg = this._ui.createKeyMsg(this._keyUpdates);
-			this._connection.sendData(msg);
-		}, frameMillis);
 	}
 
 	private addPlayer(id : number, data : any) {
@@ -100,7 +92,7 @@ class Game {
 			player.mesh().position.x = pos.X;
 			player.mesh().position.y = pos.Y;
 
-			this._renderer.scene().add(playerSpace, id, player);
+			renderer.sceneMap().add(playerSpace, id, player);
 			wasmAdd(playerSpace, id, data);
 
 			this._loader.load(Model.UZI, (weaponMesh) => {
@@ -110,7 +102,7 @@ class Game {
 	}
 
 	private deletePlayer(id : number) {
-		this._renderer.scene().delete(playerSpace, id);
+		renderer.sceneMap().delete(playerSpace, id);
 		wasmDelete(playerSpace, id);
 	}
 
@@ -155,20 +147,20 @@ class Game {
 					const renderObj = new RenderObject(mesh);
 
 					this._currentObjects.add(GameUtil.sid(space, id));
-					this._renderer.scene().add(space, id, renderObj);
+					renderer.sceneMap().add(space, id, renderObj);
 				}
 				deleteObjects.delete(GameUtil.sid(space, id));
 
 				this.sanitizeData(object);
 				wasmSetData(space, id, object);
-				this._renderer.scene().update(space, id, object);
+				renderer.sceneMap().update(space, id, object);
 			}
 		}
 
 		// Haven't seen these objects so delete them.
 		deleteObjects.forEach((sid) => {
 			this._currentObjects.delete(sid);
-			this._renderer.scene().delete(GameUtil.space(sid), GameUtil.id(sid));
+			renderer.sceneMap().delete(GameUtil.space(sid), GameUtil.id(sid));
 			wasmDelete(GameUtil.space(sid), GameUtil.id(sid));
 		});
 
@@ -183,11 +175,11 @@ class Game {
 
 			this.sanitizePlayerData(player);
 			wasmSetData(playerSpace, id, player);
-			this._renderer.scene().update(playerSpace, id, player);
+			renderer.sceneMap().update(playerSpace, id, player);
 		}
 
 		if (msg.Ss.length > 0) {
-			this._renderer.scene().renderShots(msg.Ss);
+			renderer.sceneMap().renderShots(msg.Ss);
 		}
 
 		this._lastGameUpdate = msg.S;
@@ -196,7 +188,7 @@ class Game {
 
 	private extrapolateState() {
 		if (Util.defined(this._id)) {
-			const keyMsg = this._ui.createWasmKeyMsg(this._keyUpdates);
+			const keyMsg = ui.createWasmKeyMsg(this._keyUpdates);
 			wasmUpdateKeys(this._id, keyMsg);
 		}
 
@@ -205,20 +197,20 @@ class Game {
 			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
 				const space = Number(stringSpace);
 				const id = Number(stringId);
-				if (!this._renderer.scene().has(space, id)) continue;
+				if (!renderer.sceneMap().has(space, id)) continue;
 
-				this._renderer.scene().update(space, id, object);
+				renderer.sceneMap().update(space, id, object);
 			}
 		}
 
 		for (const [stringId, player] of Object.entries(state.Ps) as [string, any]) {
 			const id = Number(stringId);
-			if (!this._renderer.scene().has(playerSpace, id)) continue;
+			if (!renderer.sceneMap().has(playerSpace, id)) continue;
 
 			if (id != this._id || !Util.defined(this._currentPlayerData)) {
-				this._renderer.scene().update(playerSpace, id, player);
+				renderer.sceneMap().update(playerSpace, id, player);
 			} else {
-				this._renderer.scene().update(playerSpace, id, this.interpolateState(this._currentPlayerData, player));
+				renderer.sceneMap().update(playerSpace, id, this.interpolateState(this._currentPlayerData, player));
 			}
 		}
 	}
@@ -262,7 +254,7 @@ class Game {
 
 	private initLevel(msg :any) : void {
 		this._currentObjects.clear();
-		this._renderer.scene().clearObjects();
+		renderer.sceneMap().clearObjects();
 
 		const level = JSON.parse(wasmLoadLevel(msg.L));
 
@@ -277,19 +269,18 @@ class Game {
 				const renderObj = new RenderObject(mesh);
 				mesh.position.x = object[posProp].X;
 				mesh.position.y = object[posProp].Y;
-				this._renderer.scene().add(space, id, renderObj);
+				renderer.sceneMap().add(space, id, renderObj);
 			}
 		}
 	}
 
 	private updateCamera() : void {
 		if (!Util.defined(this._id)) return;
-		if (!this._renderer.scene().has(playerSpace, this._id)) return;
+		if (!renderer.sceneMap().has(playerSpace, this._id)) return;
 
-		const playerRender = this._renderer.scene().get(playerSpace, this._id);
-		const adj = new THREE.Vector3();
-		this._renderer.setCamera(playerRender.mesh().position, adj);
+		const playerRender = renderer.sceneMap().get(playerSpace, this._id);
+		renderer.setCamera(playerRender.mesh().position);
 	}
 }
 
-export { Game }
+export const game = new Game();

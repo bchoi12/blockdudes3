@@ -1,8 +1,9 @@
 import * as THREE from 'three';
-export class Weather {
+import { SceneComponent } from './scene_component.js';
+export class Weather extends SceneComponent {
     constructor() {
+        super();
         this._cloudMaterial = new THREE.MeshStandardMaterial({ color: 0xeeeeee, transparent: true, opacity: 0.7 });
-        this._scene = new THREE.Scene();
         this._clouds = new Array();
         let cloud = new THREE.Mesh(new THREE.BoxGeometry(8.0, 1.0, 6.0), this._cloudMaterial);
         cloud.position.x = 6;
@@ -26,10 +27,7 @@ export class Weather {
             this._scene.add(cloud);
         });
     }
-    scene() {
-        return this._scene;
-    }
-    update() {
+    update(position) {
         this._clouds.forEach((cloud) => {
             cloud.position.x += 0.01;
         });

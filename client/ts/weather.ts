@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 
-export class Weather {
+import { SceneComponent } from './scene_component.js'
+
+export class Weather extends SceneComponent {
 	private readonly _cloudMaterial = new THREE.MeshStandardMaterial( {color: 0xeeeeee, transparent: true, opacity: 0.7} );
 
 	private _clouds : Array<THREE.Mesh>;
 
-	private _scene : THREE.Scene;
-
 	constructor() {
-		this._scene = new THREE.Scene();
+		super();
 
 		this._clouds = new Array<THREE.Mesh>();
 
@@ -38,11 +38,7 @@ export class Weather {
 		});
 	}
 
-	scene() : THREE.Scene {
-		return this._scene;
-	}
-
-	update() : void {
+	update(position : THREE.Vector3) : void {
 		this._clouds.forEach((cloud) => {
 			cloud.position.x += 0.01;
 		});

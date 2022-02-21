@@ -1,8 +1,8 @@
 import { encode, decode } from "@msgpack/msgpack";
 import { Pinger } from './pinger.js';
 import { LogUtil, Util } from './util.js';
-export class Connection {
-    constructor(room, name) {
+class Connection {
+    constructor() {
         this._iceConfig = {
             "iceServers": [
                 {
@@ -15,16 +15,13 @@ export class Connection {
         };
         this._handlers = new Map();
         this._senders = new Map();
-        this._room = room;
-        this._name = name;
     }
-    connect() {
+    connect(room, name, socketSuccess, dcSuccess) {
         if (Util.defined(this._ws))
             return;
         const prefix = Util.isDev() ? "ws://" : "wss://";
-        const endpoint = prefix + window.location.host + "/newclient/room=" + this._room + "&name=" + this._name;
-        this.initWebSocket(endpoint);
-        this._pinger = new Pinger(this);
+        const endpoint = prefix + window.location.host + "/newclient/room=" + room + "&name=" + name;
+        this.initWebSocket(endpoint, socketSuccess, dcSuccess);
     }
     newPeerConnection() {
         return new RTCPeerConnection(this._iceConfig);
@@ -61,6 +58,9 @@ export class Connection {
         return this._id;
     }
     ping() {
+        if (!Util.defined(this._pinger)) {
+            return 0;
+        }
         return this._pinger.ping();
     }
     send(msg) {
@@ -90,7 +90,7 @@ export class Connection {
     ready() {
         return Util.defined(this._id) && this.wsReady() && this.dcReady();
     }
-    initWebSocket(endpoint) {
+    initWebSocket(endpoint, socketSuccess, dcSuccess) {
         this._ws = new WebSocket(endpoint);
         this._ws.binaryType = "arraybuffer";
         this._ws.onopen = () => {
@@ -100,7 +100,9 @@ export class Connection {
             });
             this.addHandler(answerType, (msg) => { this.setRemoteDescription(msg); });
             this.addHandler(candidateType, (msg) => { this.addIceCandidate(msg); });
-            this.initWebRTC();
+            this._pinger = new Pinger();
+            socketSuccess();
+            this.initWebRTC(dcSuccess);
         };
         this._ws.onmessage = (event) => {
             this.handlePayload(event.data);
@@ -109,7 +111,7 @@ export class Connection {
             LogUtil.d("Websocket closed");
         };
     }
-    initWebRTC() {
+    initWebRTC(cb) {
         this._wrtc = new RTCPeerConnection(this._iceConfig);
         const dataChannelConfig = {
             ordered: false,
@@ -130,6 +132,7 @@ export class Connection {
             LogUtil.d("successfully created data channel");
             this._dc = event.channel;
             this._dc.onmessage = (event) => { this.handlePayload(event.data); };
+            cb();
         };
     }
     setRemoteDescription(msg) {
@@ -170,3 +173,4 @@ export class Connection {
         this._handlers.get(msg.T).forEach((handler) => { handler(msg); });
     }
 }
+export const connection = new Connection();

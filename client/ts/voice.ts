@@ -1,13 +1,13 @@
-import { Connection } from './connection.js'
 import { LogUtil, HtmlUtil, Util } from './util.js'
 
-export class Voice {
+import { connection } from './connection.js'
+
+class Voice {
 	private readonly _voiceOfferOptions = {
 		offerToReceiveAudio: true,
 		offerToReceiveVideo: false,
 	};
 
-	private _connection : Connection;
 	private _stream : MediaStream;
 
 	private _enabled : boolean;
@@ -16,18 +16,8 @@ export class Voice {
 	private _voiceCandidates : Map<number, Array<RTCIceCandidate>>;
 	private _audio : Map<number, HTMLAudioElement>;
 
-	constructor(connection : Connection) {
-		this._connection = connection;
-
+	constructor() {
 		this._enabled = false;
-
-		this._connection.addHandler(joinVoiceType, (msg : any) => { this.addVoice(msg); });
-		this._connection.addHandler(leftType, (msg : any) => { this.removeVoice(msg); });
-		this._connection.addHandler(leftVoiceType, (msg : any) => { this.removeVoice(msg); });
-		this._connection.addHandler(voiceOfferType, (msg : any) => { this.processVoiceOffer(msg) });
-		this._connection.addHandler(voiceAnswerType, (msg : any) => { this.processVoiceAnswer(msg) });
-		this._connection.addHandler(voiceCandidateType, (msg : any) => { this.processVoiceCandidate(msg) });
-
 		this._voice = new Map();
 		this._voiceCandidates = new Map();
 		this._audio = new Map();
@@ -37,8 +27,17 @@ export class Voice {
 		return this._enabled;
 	}
 
+	setup() : void {
+		connection.addHandler(joinVoiceType, (msg : any) => { this.addVoice(msg); });
+		connection.addHandler(leftType, (msg : any) => { this.removeVoice(msg); });
+		connection.addHandler(leftVoiceType, (msg : any) => { this.removeVoice(msg); });
+		connection.addHandler(voiceOfferType, (msg : any) => { this.processVoiceOffer(msg) });
+		connection.addHandler(voiceAnswerType, (msg : any) => { this.processVoiceAnswer(msg) });
+		connection.addHandler(voiceCandidateType, (msg : any) => { this.processVoiceCandidate(msg) });
+	}
+
 	toggleVoice() : void {
-		if (!this._connection.ready()) {
+		if (!connection.ready()) {
 			return;
 		}
 
@@ -50,7 +49,7 @@ export class Voice {
 		    }).then((stream) => {
 		    	this._stream = stream;
 		      	this._stream.getTracks().forEach(track => track.enabled = true);
-				this._connection.send({ T: joinVoiceType });
+				connection.send({ T: joinVoiceType });
 		    }).catch((e) => {
 		    	this._enabled = false;
 		    	LogUtil.d("Failed to enable voice chat: " + e);
@@ -67,7 +66,7 @@ export class Voice {
 			});
 			this._audio.clear();
 
-			this._connection.send({ T: leftVoiceType });
+			connection.send({ T: leftVoiceType });
 			this._enabled = false;
 		}
 	}
@@ -78,7 +77,7 @@ export class Voice {
 		}
 
 		// Create connection for the new client.
-		if (this._connection.id() != msg.Client.Id) {
+		if (connection.id() != msg.Client.Id) {
 			this.createPeerConnection(msg.Client.Id, false);
 			return;
 		}
@@ -86,14 +85,14 @@ export class Voice {
 		// Send an offer to all existing clients.
 		for (const [stringId, client] of Object.entries(msg.Clients) as [string, any]) {
 			const id = Number(stringId);
-			if (this._connection.id() == id) continue;
+			if (connection.id() == id) continue;
 
 			this.createPeerConnection(id, true);
 		}
 	}
 
 	private removeVoice(msg : any) : void {
-		const id = this._connection.id();
+		const id = connection.id();
 		if (id == msg.Client.Id) {
 			return;
 		}
@@ -120,13 +119,13 @@ export class Voice {
 		this._audio.set(id, audioElement);
 		HtmlUtil.elm("client-" + id).appendChild(audioElement);
 
-		const pc = this._connection.newPeerConnection();
+		const pc = connection.newPeerConnection();
 		this._voice.set(id, pc);
       	this._stream.getTracks().forEach(track => pc.addTrack(track, this._stream));
 
 		pc.onicecandidate = (event) => {
 			if (event && event.candidate) {
-				this._connection.send({T: voiceCandidateType, JSONPeer: {To: id, JSON: event.candidate.toJSON() }});
+				connection.send({T: voiceCandidateType, JSONPeer: {To: id, JSON: event.candidate.toJSON() }});
 			}
 		}
 		pc.onconnectionstatechange = () => {
@@ -142,7 +141,7 @@ export class Voice {
 			return pc.setLocalDescription(description);
 		}).then(() => {
 			if (sendOffer) {
-				this._connection.send({T: voiceOfferType, JSONPeer: {To: id, JSON: pc.localDescription.toJSON()}});
+				connection.send({T: voiceOfferType, JSONPeer: {To: id, JSON: pc.localDescription.toJSON()}});
 			}
 		});	
 	}
@@ -156,7 +155,7 @@ export class Voice {
 				pc.createAnswer().then((description) => {
 					return pc.setLocalDescription(description);
 				}).then(() => {
-					this._connection.send({T: voiceAnswerType, JSONPeer: {To: msg.From, JSON: pc.localDescription.toJSON() }});
+					connection.send({T: voiceAnswerType, JSONPeer: {To: msg.From, JSON: pc.localDescription.toJSON() }});
 				})
 			}
 		}, (e) => LogUtil.d("Failed to set remote description from offer from " + msg.From + ": " + e));
@@ -190,3 +189,5 @@ export class Voice {
 		pc.addIceCandidate(candidate).then(() => {}, (e) => { LogUtil.d("Failed to add candidate: " + e); });
 	}
 }
+
+export const voice = new Voice();

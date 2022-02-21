@@ -310,7 +310,7 @@ func (p *Player) updateDir() {
 	dir.Sub(p.Pos(), 1.0)
 	dir.Normalize()
 	if Abs(dir.X) < 0.3 && SignPos(dir.X) != SignPos(lastDir.X) {
-		dir.X = FSign(dir.X) * Abs(dir.X)
+		dir.X = FSignPos(lastDir.X) * Abs(dir.X)
 	}
 	if Abs(dir.X) < sqrtHalf {
 		dir.X = sqrtHalf * FSignPos(dir.X)

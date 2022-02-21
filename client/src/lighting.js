@@ -1,11 +1,12 @@
 import * as THREE from 'three';
+import { SceneComponent } from './scene_component.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
-export class Lighting {
+export class Lighting extends SceneComponent {
     constructor() {
+        super();
         this._shadowMapWidth = 1024;
         this._shadowMapHeight = 1024;
         this._shadowBias = -0.00018;
-        this._scene = new THREE.Scene();
         const sky = new Sky();
         sky.scale.setScalar(4000);
         const uniforms = sky.material.uniforms;
@@ -31,8 +32,7 @@ export class Lighting {
         this._scene.add(this._sunLight);
         this._scene.add(this._sunLight.target);
     }
-    scene() { return this._scene; }
-    setTarget(position) {
+    update(position) {
         this._sunLight.target.position.copy(position);
     }
 }

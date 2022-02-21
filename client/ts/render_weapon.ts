@@ -17,7 +17,7 @@ export class RenderWeapon extends RenderObject {
 
 		this._shotOrigin = mesh.getObjectByName("shoot").position;
 
-		this._light = new THREE.PointLight(0x00ff00, 3, 5, 2);
+		this._light = new THREE.PointLight(0x00ff00, 3, 3);
 		this._light.position.copy(this._shotOrigin);
 		this._light.visible = false;
 		mesh.add(this._light)

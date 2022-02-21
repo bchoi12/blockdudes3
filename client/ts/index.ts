@@ -1,7 +1,8 @@
-import { Connection } from './connection.js'
-import { Game } from './game.js'
 import { LogUtil, HtmlUtil, Util } from './util.js'
-import { UI } from './ui.js'
+
+import { connection } from './connection.js'
+import { game } from './game.js'
+import { ui } from './ui.js'
 
 declare var Go: any;
 
@@ -21,28 +22,19 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 	WebAssembly.instantiateStreaming(fetch("./game.wasm"), go.importObject).then((result) => {
 		go.run(result.instance);
+
+		ui.setup();
+		game.setup();
 	});
 })
 
 function connect() {
 	const room = HtmlUtil.inputElm("room").value.trim();
 	const name = HtmlUtil.inputElm("name").value.trim();
-
-	const connection = new Connection(room, name);
-	const ui = new UI(HtmlUtil.elm("div-game"), connection);
-	const game = new Game(ui, connection);
-
-	connection.connect();
-	
-	function startGame() {
-		if (connection.ready()) {
-			LogUtil.d("Start game");
-			game.start();
-		} else {
-			setTimeout(startGame, 100);
-		}
-	}
-	startGame();
+	connection.connect(room, name, () => {
+	}, () => {
+		game.start();
+		ui.displayGame();
+	});
 }
-
 HtmlUtil.elm("form-login").onsubmit = connect;

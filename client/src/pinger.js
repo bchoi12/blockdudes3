@@ -1,13 +1,13 @@
+import { connection } from './connection.js';
 export class Pinger {
-    constructor(connection) {
+    constructor() {
         this._pingInterval = 500;
         this._maxPings = 4;
-        this._connection = connection;
         this._ping = 0;
         this._pings = [];
         this._pingTimes = [];
         this._lastPingNumber = 0;
-        this._connection.addHandler(pingType, (msg) => {
+        connection.addHandler(pingType, (msg) => {
             const index = msg.S % this._maxPings;
             this._pings[index] = Date.now() - this._pingTimes[index];
             this._pings.forEach((ping) => {
@@ -15,9 +15,9 @@ export class Pinger {
             });
             this._ping = Math.ceil(this._ping / this._pings.length);
         });
-        this._connection.addSender(pingType, () => {
-            if (this._connection.ready()) {
-                this._connection.sendData({
+        connection.addSender(pingType, () => {
+            if (connection.ready()) {
+                connection.sendData({
                     T: pingType,
                     Ping: {
                         S: this._lastPingNumber,

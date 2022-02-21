@@ -2,18 +2,26 @@ import * as THREE from 'three';
 import { Lighting } from './lighting.js';
 import { LogUtil, Util } from './util.js';
 import { Weather } from './weather.js';
-export class Scene {
+export class SceneMap {
     constructor() {
         this.reset();
     }
     scene() { return this._scene; }
     reset() {
         this._scene = new THREE.Scene();
-        this._lighting = new Lighting();
-        this._scene.add(this._lighting.scene());
-        this._weather = new Weather();
-        this._scene.add(this._weather.scene());
         this._renders = new Map();
+        this._components = new Array();
+        this.addComponent(new Lighting());
+        this.addComponent(new Weather());
+    }
+    addComponent(component) {
+        this._components.push(component);
+        this._scene.add(component.scene());
+    }
+    updateComponents(position) {
+        this._components.forEach((component) => {
+            component.update(position);
+        });
     }
     add(space, id, object) {
         const map = this.getMap(space);
@@ -67,10 +75,6 @@ export class Scene {
             const owner = this.get(sid.S, sid.Id);
             owner.shoot(shot);
         });
-    }
-    setPlayerPosition(position) {
-        this._lighting.setTarget(position);
-        this._weather.update();
     }
     getMap(space) {
         if (!this._renders.has(space)) {

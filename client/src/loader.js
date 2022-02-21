@@ -14,7 +14,6 @@ export class Loader {
         this._paths = new Map();
         this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken6.glb");
         this._paths.set(Model.UZI, this._modelPrefix + "uzi.glb");
-        LogUtil.d(this._paths);
     }
     preload(models) {
         models.forEach((model) => {
@@ -35,13 +34,11 @@ export class Loader {
     process(model, data) {
         switch (model) {
             case Model.CHICKEN:
-                LogUtil.d(data);
                 data.scene.animations = data.animations;
                 data.scene.getObjectByName("mesh").castShadow = true;
                 data.scene.getObjectByName("mesh").receiveShadow = true;
                 break;
             case Model.UZI:
-                LogUtil.d(data);
                 break;
             default:
                 LogUtil.d("Model " + model + " could not be processed.");

@@ -2,14 +2,17 @@ import * as THREE from 'three';
 
 import { Lighting } from './lighting.js'
 import { RenderObject } from './render_object.js'
+import { SceneComponent } from './scene_component.js'
 import { LogUtil, Util } from './util.js'
 import { Weather } from './weather.js'
 
-export class Scene {
+export class SceneMap {
 	private _scene : THREE.Scene;
 	private _lighting : Lighting;
 	private _weather : Weather;
 	private _renders : Map<number, Map<number, RenderObject>>;
+
+	private _components : Array<SceneComponent>;
 
 	constructor() {
 		this.reset();
@@ -19,12 +22,22 @@ export class Scene {
 
 	reset() : void {
 		this._scene = new THREE.Scene();
-		this._lighting = new Lighting();
-		this._scene.add(this._lighting.scene());
-		this._weather = new Weather();
-		this._scene.add(this._weather.scene())
-
 		this._renders = new Map();
+
+		this._components = new Array<SceneComponent>();
+		this.addComponent(new Lighting());
+		this.addComponent(new Weather());
+	}
+
+	addComponent(component : SceneComponent) {
+		this._components.push(component);
+		this._scene.add(component.scene());
+	}
+
+	updateComponents(position : THREE.Vector3) : void {
+		this._components.forEach((component) => {
+			component.update(position);
+		});
 	}
 
 	add(space : number, id : number, object : RenderObject) : void {
@@ -88,11 +101,6 @@ export class Scene {
 			const owner = this.get(sid.S, sid.Id);
 			owner.shoot(shot);
 		})
-	}
-
-	setPlayerPosition(position : THREE.Vector3) {
-		this._lighting.setTarget(position);
-		this._weather.update();
 	}
 
 	private getMap(space : number) : Map<number, any> {

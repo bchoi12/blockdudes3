@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 
-import { Connection } from './connection.js'
 import { HtmlUtil, Util } from './util.js'
-import { Renderer } from './renderer.js'
-import { Voice } from './voice.js'
+
+import { connection } from './connection.js'
+import { renderer } from './renderer.js'
+import { voice } from './voice.js'
 
 enum InputMode {
 	UNKNOWN = 0,
@@ -12,77 +13,43 @@ enum InputMode {
 	CHAT = 3,
 }
 
-var g_keys = new Set<number>();
-var g_mouse = new THREE.Vector3();
+class UI {
+	private readonly _divGame = "div-game";
 
-export class UI {
 	private readonly _chatKeyCode = 13;
-
 	private readonly _cursorWidth = 20;
 	private readonly _cursorHeight = 20;
 
 	private _div : HTMLElement;
-	private _renderer : Renderer;
-	private _connection : Connection;
 
+	private _mouse : THREE.Vector3;
+	private _keys : Set<number>;
 	private _mode : InputMode;
 	private _keyMap : Map<number, number>;
 
 	private _clients : Map<number, HTMLElement>;
-	private _voice : Voice;
 
-	constructor(div : HTMLElement, connection : Connection) {
-		this._div = div;
-		this._renderer = new Renderer(HtmlUtil.elm("renderer"));
-		this._connection = connection;
-		this._connection.addHandler(chatType, (msg : any) => { this.chat(msg) })
- 		this._connection.addHandler(joinType, (msg : any) => { this.updateClients(msg) });
-		this._connection.addHandler(leftType, (msg : any) => { this.updateClients(msg) });
-		this._connection.addHandler(joinVoiceType, (msg : any) => { this.updateClients(msg) })
-		this._connection.addHandler(leftVoiceType, (msg : any) => { this.updateClients(msg) })
+	constructor() {
+		this._div = HtmlUtil.elm(this._divGame);
 
+		this._mouse = new THREE.Vector3();
+		this._keys = new Set<number>();
 		this._mode = InputMode.PAUSE;
-
 		this._keyMap = new Map();
-		this._keyMap.set(38, upKey);
-		this._keyMap.set(87, upKey);
-		this._keyMap.set(40, downKey);
-		this._keyMap.set(83, downKey);
-		this._keyMap.set(37, leftKey);
-		this._keyMap.set(65, leftKey);
-		this._keyMap.set(39, rightKey);
-		this._keyMap.set(68, rightKey);
-		this._keyMap.set(32, dashKey);
-
 		this._clients = new Map();
-		this._voice = new Voice(connection);
-
-		HtmlUtil.elm("voice").onclick = (e) => {
-			e.stopPropagation();
-
-			this.toggleVoice();
-		};
-	}
-
-	addDiv(div : HTMLElement) : void {
-		// TODO
-	}
-
-	toggleVoice() : void {
-		this._voice.toggleVoice();
 	}
 
 	createKeyMsg(seqNum : number) : any {
 		const msg = {
 			T: keyType,
 			Key: {
-				K: Array.from(g_keys),
+				K: Array.from(this._keys),
 				M: {},
 				S: seqNum,
 			},
 		};
 
-   		const mouse = this._renderer.getMouseWorld();
+   		const mouse = renderer.getMouseWorld();
 		if (Util.defined(mouse)) {
 			msg.Key.M = {
 				X: mouse.x,
@@ -99,7 +66,29 @@ export class UI {
 		return msg.Key
 	}
 
-	renderer() : Renderer { return this._renderer; }
+	setup() : void {
+		this._keyMap.set(38, upKey);
+		this._keyMap.set(87, upKey);
+		this._keyMap.set(40, downKey);
+		this._keyMap.set(83, downKey);
+		this._keyMap.set(37, leftKey);
+		this._keyMap.set(65, leftKey);
+		this._keyMap.set(39, rightKey);
+		this._keyMap.set(68, rightKey);
+		this._keyMap.set(32, dashKey);
+
+		connection.addHandler(chatType, (msg : any) => { this.chat(msg) })
+ 		connection.addHandler(joinType, (msg : any) => { this.updateClients(msg) });
+		connection.addHandler(leftType, (msg : any) => { this.updateClients(msg) });
+		connection.addHandler(joinVoiceType, (msg : any) => { this.updateClients(msg) });
+		connection.addHandler(leftVoiceType, (msg : any) => { this.updateClients(msg) });
+
+		HtmlUtil.elm("voice").onclick = (e) => {
+			e.stopPropagation();
+			voice.toggleVoice();
+		};
+		voice.setup();
+	}
 
 	displayGame() : void {
 		HtmlUtil.elm("div-login").style.display = "none";
@@ -146,8 +135,8 @@ export class UI {
 			HtmlUtil.inputElm("message-box").blur();
 			this.pointerLock();
 		} else {
-			if (g_keys.size > 0) {
-				g_keys.clear();
+			if (this._keys.size > 0) {
+				this._keys.clear();
 			}
 		}
 	}
@@ -222,13 +211,13 @@ export class UI {
 	}
 
 	private pointerLock() : void {
-		this._renderer.elm().requestPointerLock();
+		renderer.elm().requestPointerLock();
 	}
 	private pointerUnlock() : void {
 		document.exitPointerLock();
 	}
 	private pointerLocked() : boolean {
-		return document.pointerLockElement == this._renderer.elm()
+		return document.pointerLockElement == renderer.elm()
 	}
 
 	private initKeyListeners() : void {
@@ -244,8 +233,8 @@ export class UI {
 			if (!this._keyMap.has(e.keyCode)) return;
 
 			const key = this._keyMap.get(e.keyCode);
-			if (!g_keys.has(key)) {
-				g_keys.add(key);
+			if (!this._keys.has(key)) {
+				this._keys.add(key);
 			}
 		};
 		const releaseKey = (e : any) => {
@@ -259,8 +248,8 @@ export class UI {
 			if (!this._keyMap.has(e.keyCode)) return;
 
 			const key = this._keyMap.get(e.keyCode);
-			if (g_keys.has(key)) {
-				g_keys.delete(key);
+			if (this._keys.has(key)) {
+				this._keys.delete(key);
 			}
 		};
 
@@ -274,30 +263,30 @@ export class UI {
     			if (HtmlUtil.elm("cursor").style.visibility != "hidden") {
 					HtmlUtil.elm("cursor").style.visibility = "hidden";
 				}
-    			g_mouse.x = e.clientX;
-    			g_mouse.y = e.clientY;
+    			this._mouse.x = e.clientX;
+    			this._mouse.y = e.clientY;
     		} else {
     			if (HtmlUtil.elm("cursor").style.visibility != "visible") {
 					HtmlUtil.elm("cursor").style.visibility = "visible";
 				}
-				g_mouse.x += e.movementX;
-				g_mouse.y += e.movementY;
+				this._mouse.x += e.movementX;
+				this._mouse.y += e.movementY;
 	    	}
 
-    		if (g_mouse.x > window.innerWidth) {
-    			g_mouse.x = window.innerWidth;
-    		} else if (g_mouse.x < 0) {
-    			g_mouse.x = 0;
+    		if (this._mouse.x > window.innerWidth) {
+    			this._mouse.x = window.innerWidth;
+    		} else if (this._mouse.x < 0) {
+    			this._mouse.x = 0;
     		}
-    		if (g_mouse.y > window.innerHeight) {
-    			g_mouse.y = window.innerHeight;
-    		} else if (g_mouse.y < 0) {
-    			g_mouse.y = 0;
+    		if (this._mouse.y > window.innerHeight) {
+    			this._mouse.y = window.innerHeight;
+    		} else if (this._mouse.y < 0) {
+    			this._mouse.y = 0;
     		}
 
-    		HtmlUtil.elm("cursor").style.left = (g_mouse.x - this._cursorWidth / 2) + "px";
-    		HtmlUtil.elm("cursor").style.top = (g_mouse.y - this._cursorHeight / 2) + "px";
-    		this._renderer.setMouseFromPixels(g_mouse);
+    		HtmlUtil.elm("cursor").style.left = (this._mouse.x - this._cursorWidth / 2) + "px";
+    		HtmlUtil.elm("cursor").style.top = (this._mouse.y - this._cursorHeight / 2) + "px";
+    		renderer.setMouseFromPixels(this._mouse);
     	};
     	document.addEventListener('mousemove', recordMouse);
 
@@ -311,8 +300,8 @@ export class UI {
 		        button = altMouseClick;
 		    }
 
-			if (!g_keys.has(button)) {
-				g_keys.add(button);
+			if (!this._keys.has(button)) {
+				this._keys.add(button);
 			}
 		};
 		document.onmouseup = (e : any) => {
@@ -325,7 +314,7 @@ export class UI {
 		        button = altMouseClick;
 		    }
 
-			g_keys.delete(button);
+			this._keys.delete(button);
 		};
 
 		HtmlUtil.elm("overlay").onclick = (e : any) => {
@@ -347,7 +336,7 @@ export class UI {
 			return;
 		}
 
-		if (!this._connection.ready()) {
+		if (!connection.ready()) {
 			this.print("Unable to send message, not connected to server!")
 		}
 
@@ -358,7 +347,7 @@ export class UI {
 			}
 		};
 
-		if (this._connection.send(message)) {
+		if (connection.send(message)) {
 			HtmlUtil.inputElm("message-box").value = "";
 			this.changeInputMode(InputMode.GAME);
 		} else {
@@ -366,3 +355,5 @@ export class UI {
 		}
 	}
 }
+
+export const ui = new UI();
