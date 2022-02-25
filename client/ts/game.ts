@@ -82,7 +82,7 @@ class Game {
 	private addPlayer(id : number, data : any) {
 		if (wasmHas(playerSpace, id)) return;
 
-		this._loader.load(Model.CHICKEN, (mesh) => {
+		this._loader.load(Model.CHICKEN, (mesh : THREE.Mesh) => {
 			const playerMesh = mesh.getObjectByName("mesh");
 			// Model origin is at feet
 			playerMesh.position.y -= data[dimProp].Y / 2;
@@ -95,7 +95,7 @@ class Game {
 			renderer.sceneMap().add(playerSpace, id, player);
 			wasmAdd(playerSpace, id, data);
 
-			this._loader.load(Model.UZI, (weaponMesh) => {
+			this._loader.load(Model.UZI, (weaponMesh : THREE.Mesh) => {
 				player.setWeapon(new RenderWeapon(weaponMesh));
 			});
 		});

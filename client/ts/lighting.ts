@@ -26,7 +26,6 @@ export class Lighting extends SceneComponent {
 		const sun = new THREE.Vector3();
 		sun.setFromSphericalCoords(1, 1.45, -0.93 * Math.PI);
 		uniforms['sunPosition'].value.copy( sun );
-
 		this._scene.add(sky);
 
 		const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x232323, 1.2);

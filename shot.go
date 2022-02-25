@@ -1,11 +1,13 @@
 package main
 
+// WASM
 type ShotType uint8
 const (
 	unknownShotType ShotType = iota
 
 	burstShotType
 	bombShotType
+	rocketShotType
 )
 
 type Shot struct {
@@ -33,6 +35,18 @@ func NewShot(weapon Weapon, line Line) *Shot {
 }
 
 func (s *Shot) Resolve(grid *Grid) {
+	if s.shotType == rocketShotType {
+		rocket := NewRocket(NewInit(grid.NextSpacedId(rocketSpace), NewInitData(s.line.O, NewVec2(0.5, 0.5))))
+		rocket.SetOwner(s.weapon.GetOwner())
+		acc := s.line.R
+		acc.Normalize()
+		acc.Scale(50)
+		rocket.SetAcc(acc)
+		rocket.SetMaxSpeed(25)
+		grid.Upsert(rocket)
+		return
+	}
+
 	hit := grid.GetHits(s.line, s.colliderOptions)
 	if hit == nil {
 		return
@@ -51,6 +65,7 @@ func (s *Shot) Resolve(grid *Grid) {
 	}
 
 	s.hit(hit, grid)
+	return
 }
 
 func (s *Shot) hit(hit *Hit, grid *Grid) {

@@ -99,7 +99,6 @@ class UI {
 			this.changeInputMode(InputMode.PAUSE);
 		});
 
-
 		this.initMouseListener();
 		this.initKeyListeners();
 	}
@@ -159,31 +158,31 @@ class UI {
 			case leftVoiceType:
 				this.print(this.clientName(msg.Client) + " left voice chat");
 		}
-
-		const addClient = (client : any) => {
-			const id = client.Id;
-			const html = document.createElement("span");
-			html.id = "client-" + id;
-			html.textContent = this.clientName(client);
-			html.appendChild(document.createElement("br"));
-
-			HtmlUtil.elm("clients").appendChild(html);
-			this._clients.set(id, html);
-		};
-		const removeClient = (id : number) => {
-			HtmlUtil.elm("clients").removeChild(this._clients.get(id));
-			this._clients.delete(id);
-		};
-
 		if (this._clients.size == 0) {
 			for (let [stringId, client] of Object.entries(msg.Clients) as [string, any]) {
-				addClient(client);
+				this.addClient(client);
 			}
 		} else if (msg.T == joinType) {
-			addClient(msg.Client)
+			this.addClient(msg.Client)
 		} else if (msg.T == leftType) {
-			removeClient(msg.Client.Id);
+			this.removeClient(msg.Client.Id);
 		}
+	}
+
+	private addClient(client : any) : void {
+		const id = client.Id;
+		const html = document.createElement("span");
+		html.id = "client-" + id;
+		html.textContent = this.clientName(client);
+		html.appendChild(document.createElement("br"));
+
+		HtmlUtil.elm("clients").appendChild(html);
+		this._clients.set(id, html);
+	}
+
+	private removeClient(id : number) : void {
+		HtmlUtil.elm("clients").removeChild(this._clients.get(id));
+		this._clients.delete(id);
 	}
 
 	private print(message : string) : void {

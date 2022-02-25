@@ -3,6 +3,7 @@ import { connection } from './connection.js';
 import { game } from './game.js';
 import { ui } from './ui.js';
 const go = new Go();
+let wasmLoaded = false;
 document.addEventListener('DOMContentLoaded', (event) => {
     HtmlUtil.elm("js-check").style.display = "none";
     if (Util.isDev()) {
@@ -19,15 +20,16 @@ document.addEventListener('DOMContentLoaded', (event) => {
         go.run(result.instance);
         ui.setup();
         game.setup();
+        wasmLoaded = true;
     });
 });
-function connect() {
+HtmlUtil.elm("form-login").onsubmit = () => {
+    if (!wasmLoaded)
+        return;
     const room = HtmlUtil.inputElm("room").value.trim();
     const name = HtmlUtil.inputElm("name").value.trim();
-    connection.connect(room, name, () => {
-    }, () => {
+    connection.connect(room, name, () => { }, () => {
         game.start();
         ui.displayGame();
     });
-}
-HtmlUtil.elm("form-login").onsubmit = connect;
+};

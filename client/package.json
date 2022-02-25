@@ -5,6 +5,7 @@
   "main": "js/app.js",
   "dependencies": {
     "@msgpack/msgpack": "^2.7.2",
+    "howler": "^2.2.3",
     "normalize.css": "^8.0.1",
     "three": "^0.137.5"
   },

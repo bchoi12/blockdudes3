@@ -29,10 +29,12 @@ declare var objectInitType : number;
 declare var playerSpace : number;
 declare var wallSpace : number;
 declare var bombSpace : number;
+declare var rocketSpace : number;
 declare var explosionSpace : number;
 
 declare var burstShotType : number;
 declare var bombShotType : number;
+declare var rocketShotType : number;
 
 declare var spacedIdProp : number;
 declare var dimProp : number;

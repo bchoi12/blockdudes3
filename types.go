@@ -47,6 +47,7 @@ const (
 	wallSpace
 	platformSpace
 	bombSpace
+	rocketSpace
 	explosionSpace
 )
 

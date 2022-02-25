@@ -66,7 +66,7 @@ func (r Rec2) Overlap(profile Profile) OverlapResults {
 		results.Merge(recResults)
 	case *Circle:
 		do := r.dimOverlap(other)
-		if do < 0 {
+		if do <= 0 {
 			break
 		}
 

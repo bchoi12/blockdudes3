@@ -3,16 +3,16 @@ import * as THREE from 'three';
 export class RenderObject {
 	protected readonly _debugMaterial = new THREE.MeshStandardMaterial({color: 0xff0000, wireframe: true });
 
-	protected _mesh : any;
+	protected _mesh : THREE.Mesh;
 	protected _lastUpdate : number;
 
-	protected _mixer : any;
+	protected _mixer : THREE.AnimationMixer;
 	protected _lastMixerUpdate : number;
 
-	protected _actions : Map<any, any>;
-	protected _activeActions : Set<any>;
+	protected _actions : Map<string, THREE.AnimationAction>;
+	protected _activeActions : Set<string>;
 	
-	constructor(mesh : any) {
+	constructor(mesh : THREE.Mesh) {
 		this._mesh = mesh;
 		this._lastUpdate = Date.now();
 

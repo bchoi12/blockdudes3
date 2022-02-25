@@ -53,11 +53,14 @@ func setGlobals() {
 
 	js.Global().Set("playerSpace", int(playerSpace))
 	js.Global().Set("wallSpace", int(wallSpace))
+	js.Global().Set("platformSpace", int(platformSpace))
 	js.Global().Set("bombSpace", int(bombSpace))
+	js.Global().Set("rocketSpace", int(rocketSpace))
 	js.Global().Set("explosionSpace", int(explosionSpace))
 
 	js.Global().Set("burstShotType", int(burstShotType))
 	js.Global().Set("bombShotType", int(bombShotType))
+	js.Global().Set("rocketShotType", int(rocketShotType))
 
 	js.Global().Set("spacedIdProp", int(spacedIdProp))
 	js.Global().Set("dimProp", int(dimProp))

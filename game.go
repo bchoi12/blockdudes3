@@ -38,6 +38,8 @@ func (g *Game) add(init Init) {
 		thing = NewPlatform(init)
 	case bombSpace:
 		thing = NewBomb(init)
+	case rocketSpace:
+		thing = NewRocket(init)
 	case explosionSpace:
 		thing = NewExplosion(init)
 	default:

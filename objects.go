@@ -108,8 +108,8 @@ func (b *Bomb) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool
 
 	b.health -= int(1000 * ts)
 	if b.health <= 0 {
-		pos := b.GetProfile().Pos()
-		dim := b.GetProfile().Dim()
+		pos := b.Pos()
+		dim := b.Dim()
 		dim.Scale(3.6)
 
 		init := NewInit(grid.NextSpacedId(explosionSpace), NewInitData(pos, dim))
@@ -117,6 +117,72 @@ func (b *Bomb) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool
 		
 		grid.Upsert(explosion)
 		grid.Delete(b.GetSpacedId())
+	}
+	return true
+}
+
+type Rocket struct {
+	Object
+	owner SpacedId
+	maxSpeed float64
+}
+
+func NewRocket(init Init) *Rocket {
+	rocket := &Rocket {
+		Object: NewCircleObject(init),
+	}
+	rocket.SetSolid(false)
+
+	return rocket
+}
+
+func (r *Rocket) SetOwner(owner SpacedId) {
+	r.owner = owner
+}
+
+func (r *Rocket) SetMaxSpeed(maxSpeed float64) {
+	r.maxSpeed = maxSpeed
+}
+
+func (r *Rocket) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
+	ts := r.PrepareUpdate(now)
+
+	colliders := grid.GetColliders(r.GetProfile(), ColliderOptions {
+		self: r.GetSpacedId(),
+		solidOnly: true,
+	})
+
+	acc := r.Acc()
+
+	vel := r.Vel()
+	vel.Add(acc, ts)
+
+	if vel.LenSquared() > r.maxSpeed * r.maxSpeed {
+		vel.Normalize()
+		vel.Scale(r.maxSpeed)
+	}
+	r.SetVel(vel)
+
+	pos := r.Pos()
+	pos.Add(r.TotalVel(), ts)
+	r.SetPos(pos)
+
+	if isWasm {
+		return true
+	}
+
+	for len(colliders) > 0 {
+		collider := PopThing(&colliders)
+
+		results := r.Overlap(collider.GetProfile())
+		if collider.GetSpacedId() == r.owner || !results.overlap {
+			continue
+		}
+
+		init := NewInit(grid.NextSpacedId(explosionSpace), NewInitData(r.Pos(), NewVec2(3, 3)))	
+		grid.Upsert(NewExplosion(init))
+		grid.Delete(r.GetSpacedId())
+		break
 	}
 	return true
 }

@@ -15,13 +15,13 @@ export class RenderPlayer extends RenderObject {
 	private readonly _pointsMaterial = new THREE.PointsMaterial( { color: 0x000000, size: 0.2} );
 
 	private _weapon : RenderWeapon;
-	private _armOrigin : any;
+	private _armOrigin : THREE.Vector3;
 
-	private _profileMesh : any;
-	private _profilePoints : any;
-	private _profilePointsMesh : any;
+	private _profileMesh : THREE.Mesh;
+	private _profilePoints : THREE.BufferGeometry;
+	private _profilePointsMesh : THREE.Points;
 
-	constructor(mesh : any) {
+	constructor(mesh : THREE.Mesh) {
 		super(mesh);
 		this._mixer = new THREE.AnimationMixer(mesh);
 		this._actions = new Map<PlayerAction, any>();

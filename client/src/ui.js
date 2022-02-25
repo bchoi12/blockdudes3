@@ -128,30 +128,30 @@ class UI {
             case leftVoiceType:
                 this.print(this.clientName(msg.Client) + " left voice chat");
         }
-        const addClient = (client) => {
-            const id = client.Id;
-            const html = document.createElement("span");
-            html.id = "client-" + id;
-            html.textContent = this.clientName(client);
-            html.appendChild(document.createElement("br"));
-            HtmlUtil.elm("clients").appendChild(html);
-            this._clients.set(id, html);
-        };
-        const removeClient = (id) => {
-            HtmlUtil.elm("clients").removeChild(this._clients.get(id));
-            this._clients.delete(id);
-        };
         if (this._clients.size == 0) {
             for (let [stringId, client] of Object.entries(msg.Clients)) {
-                addClient(client);
+                this.addClient(client);
             }
         }
         else if (msg.T == joinType) {
-            addClient(msg.Client);
+            this.addClient(msg.Client);
         }
         else if (msg.T == leftType) {
-            removeClient(msg.Client.Id);
+            this.removeClient(msg.Client.Id);
         }
+    }
+    addClient(client) {
+        const id = client.Id;
+        const html = document.createElement("span");
+        html.id = "client-" + id;
+        html.textContent = this.clientName(client);
+        html.appendChild(document.createElement("br"));
+        HtmlUtil.elm("clients").appendChild(html);
+        this._clients.set(id, html);
+    }
+    removeClient(id) {
+        HtmlUtil.elm("clients").removeChild(this._clients.get(id));
+        this._clients.delete(id);
     }
     print(message) {
         const messageSpan = document.createElement("span");

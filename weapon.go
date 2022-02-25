@@ -71,8 +71,8 @@ func (t *Trigger) Reload() {
 	t.ammo = t.maxAmmo
 }
 
-func NewBaseWeapon(owner SpacedId) *BaseWeapon {
-	bw := &BaseWeapon {
+func NewBaseWeapon(owner SpacedId) BaseWeapon {
+	bw := BaseWeapon {
 		owner: owner,
 		pos: NewVec2(0, 0),
 		dir: NewVec2(1, 0),
@@ -80,9 +80,6 @@ func NewBaseWeapon(owner SpacedId) *BaseWeapon {
 
 		triggers: make(map[TriggerType]*Trigger),
 	}
-
-	bw.triggers[primaryTrigger] = NewTrigger(burstShotType, 3, 100 * time.Millisecond, 300 * time.Millisecond)
-	bw.triggers[secondaryTrigger] = NewTrigger(bombShotType, 1, 50 * time.Millisecond, 800 * time.Millisecond)
 	return bw
 }
 

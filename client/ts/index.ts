@@ -7,6 +7,7 @@ import { ui } from './ui.js'
 declare var Go: any;
 
 const go = new Go();
+let wasmLoaded = false;
 document.addEventListener('DOMContentLoaded', (event) => {
 	HtmlUtil.elm("js-check").style.display = "none";
 	if (Util.isDev()) {
@@ -25,16 +26,17 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 		ui.setup();
 		game.setup();
+		wasmLoaded = true;
 	});
 })
 
-function connect() {
+HtmlUtil.elm("form-login").onsubmit = () => {
+	if (!wasmLoaded) return;
+
 	const room = HtmlUtil.inputElm("room").value.trim();
 	const name = HtmlUtil.inputElm("name").value.trim();
-	connection.connect(room, name, () => {
-	}, () => {
+	connection.connect(room, name, () => {}, () => {
 		game.start();
 		ui.displayGame();
 	});
-}
-HtmlUtil.elm("form-login").onsubmit = connect;
+};

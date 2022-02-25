@@ -1,5 +1,6 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { LogUtil, Util } from './util.js';
+import { options } from './options.js';
 export var Model;
 (function (Model) {
     Model[Model["UNKNOWN"] = 0] = "UNKNOWN";
@@ -12,7 +13,7 @@ export class Loader {
         this._loader = new GLTFLoader();
         this._cache = new Map();
         this._paths = new Map();
-        this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken6.glb");
+        this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken.glb");
         this._paths.set(Model.UZI, this._modelPrefix + "uzi.glb");
     }
     preload(models) {
@@ -35,8 +36,10 @@ export class Loader {
         switch (model) {
             case Model.CHICKEN:
                 data.scene.animations = data.animations;
-                data.scene.getObjectByName("mesh").castShadow = true;
-                data.scene.getObjectByName("mesh").receiveShadow = true;
+                if (options.enableShadows) {
+                    data.scene.getObjectByName("mesh").castShadow = true;
+                    data.scene.getObjectByName("mesh").receiveShadow = true;
+                }
                 break;
             case Model.UZI:
                 break;

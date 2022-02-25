@@ -73,7 +73,7 @@ func NewPlayer(init Init) *Player {
 
 	player := &Player {
 		Object: NewObject(profile, NewObjectData()),
-		weapon: NewBaseWeapon(init.GetSpacedId()),
+		weapon: NewWeaponRocket(init.GetSpacedId()),
 
 		canDash: true,
 		jumpFrames: 0,
