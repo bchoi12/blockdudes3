@@ -125,11 +125,13 @@ type Rocket struct {
 	Object
 	owner SpacedId
 	maxSpeed float64
+	jerk Vec2
 }
 
 func NewRocket(init Init) *Rocket {
 	rocket := &Rocket {
-		Object: NewCircleObject(init),
+		Object: NewRec2Object(init),
+		jerk: NewVec2(0, 0),
 	}
 	rocket.SetSolid(false)
 
@@ -144,15 +146,16 @@ func (r *Rocket) SetMaxSpeed(maxSpeed float64) {
 	r.maxSpeed = maxSpeed
 }
 
+func (r *Rocket) SetJerk(jerk Vec2) {
+	r.jerk = jerk
+}
+
 func (r *Rocket) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
 	ts := r.PrepareUpdate(now)
 
-	colliders := grid.GetColliders(r.GetProfile(), ColliderOptions {
-		self: r.GetSpacedId(),
-		solidOnly: true,
-	})
-
 	acc := r.Acc()
+	acc.Add(r.jerk, ts)
+	r.SetAcc(acc)
 
 	vel := r.Vel()
 	vel.Add(acc, ts)
@@ -170,6 +173,11 @@ func (r *Rocket) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	if isWasm {
 		return true
 	}
+
+	colliders := grid.GetColliders(r.GetProfile(), ColliderOptions {
+		self: r.GetSpacedId(),
+		solidOnly: true,
+	})
 
 	for len(colliders) > 0 {
 		collider := PopThing(&colliders)

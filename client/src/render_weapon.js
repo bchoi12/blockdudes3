@@ -24,6 +24,7 @@ export class RenderWeapon extends RenderObject {
     }
     shoot(shot) {
         if (shot[shotTypeProp] == rocketShotType) {
+            renderer.adjustSound(this._blastSound, this._mesh.localToWorld(this._mesh.position.clone()));
             this._blastSound.play();
             return;
         }
@@ -43,6 +44,7 @@ export class RenderWeapon extends RenderObject {
             this._light.color.setHex(0x0000ff);
         }
         this._light.intensity = 3;
+        renderer.adjustSound(this._shootSound, this._mesh.localToWorld(this._mesh.position.clone()));
         this._shootSound.play();
         setTimeout(() => {
             this._mesh.remove(line);

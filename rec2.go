@@ -71,7 +71,12 @@ func (r Rec2) Overlap(profile Profile) OverlapResults {
 		}
 
 		circResults := NewOverlapResults()
-		if r.distX(other) <= r.Dim().X / 2 || r.distY(other) <= r.Dim().Y / 2 || r.distSqr(other) <= other.RadiusSqr() {
+		// Distance to outside of rectangle
+		dist := NewVec2(r.distX(other) - r.Dim().X / 2, r.distY(other) - r.Dim().Y / 2)
+		dist.X = Max(dist.X, 0)
+		dist.Y = Max(dist.Y, 0)
+
+		if dist.X * dist.X + dist.Y * dist.Y <= other.RadiusSqr() {
 			circResults.overlap = true
 			circResults.amount = do
 		}

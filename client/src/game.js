@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Model, Loader } from './loader.js';
 import { RenderObject } from './render_object.js';
+import { RenderExplosion } from './render_explosion.js';
 import { RenderPlayer } from './render_player.js';
 import { RenderWeapon } from './render_weapon.js';
 import { GameUtil, Util } from './util.js';
@@ -109,7 +110,13 @@ class Game {
                     mesh.rotation.y = Math.random() * Math.PI;
                     mesh.rotation.z = Math.random() * Math.PI;
                     mesh.receiveShadow = true;
-                    const renderObj = new RenderObject(mesh);
+                    let renderObj;
+                    if (space === explosionSpace) {
+                        renderObj = new RenderExplosion(mesh);
+                    }
+                    else {
+                        renderObj = new RenderObject(mesh);
+                    }
                     this._currentObjects.add(GameUtil.sid(space, id));
                     renderer.sceneMap().add(space, id, renderObj);
                 }

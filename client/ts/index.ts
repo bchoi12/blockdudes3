@@ -12,10 +12,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
 	HtmlUtil.elm("js-check").style.display = "none";
 	if (Util.isDev()) {
 		LogUtil.d("Dev mode enabled!");
-	} else {
-		if (location.protocol !== "https:") {
-			location.protocol = "https:";
-		}
 	}
 
 	HtmlUtil.inputElm("name").value = "b";

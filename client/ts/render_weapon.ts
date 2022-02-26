@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {Howl} from 'howler';
 
 import { RenderObject } from './render_object.js'
-import { renderer} from './renderer.js'
+import { renderer } from './renderer.js'
 
 export class RenderWeapon extends RenderObject {
 	private readonly _shotLocation = "shoot";
@@ -40,6 +40,7 @@ export class RenderWeapon extends RenderObject {
 
 	shoot(shot : Map<number, any>) {
 		if (shot[shotTypeProp] == rocketShotType) {
+			renderer.adjustSound(this._blastSound, this._mesh.localToWorld(this._mesh.position.clone()));
 			this._blastSound.play();
 			return;
 		}
@@ -62,6 +63,7 @@ export class RenderWeapon extends RenderObject {
 		}
 		this._light.intensity = 3;
 
+		renderer.adjustSound(this._shootSound, this._mesh.localToWorld(this._mesh.position.clone()));
 		this._shootSound.play();
 
 		setTimeout(() => {

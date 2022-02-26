@@ -26,7 +26,7 @@ func newGame() *Game {
 	return game
 }
 
-func (g *Game) add(init Init) {
+func (g *Game) add(init Init) Thing {
 	var thing Thing
 
 	switch init.GetSpace() {
@@ -49,6 +49,7 @@ func (g *Game) add(init Init) {
 	if thing != nil {
 		g.grid.Upsert(thing)
 	}
+	return thing
 }
 
 func (g *Game) has(sid SpacedId) bool {

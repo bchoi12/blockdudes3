@@ -1,8 +1,5 @@
 import * as THREE from 'three'
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import {Howl} from 'howler';
 
 import { CameraController } from './camera_controller.js'
 import { SceneMap } from './scene_map.js'
@@ -62,6 +59,16 @@ class Renderer {
 
 	setMouseFromPixels(mouse : any) : void {
 		this._mousePixels = mouse.clone();
+	}
+
+	adjustSound(sound : Howl, pos : THREE.Vector3) : void {
+		let dist = new THREE.Vector2(pos.x - this._cameraController.target().x, pos.y - this._cameraController.target().y);
+		if (dist.lengthSq() <= 50) {
+			sound.volume(1);
+		} else {
+			sound.volume(50 / dist.lengthSq());
+		}
+		sound.stereo(Math.min(1, Math.max(-1, dist.x / 10)));
 	}
 	
 	getMouseScreen() : any {

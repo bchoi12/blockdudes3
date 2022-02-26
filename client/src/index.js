@@ -9,11 +9,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     if (Util.isDev()) {
         LogUtil.d("Dev mode enabled!");
     }
-    else {
-        if (location.protocol !== "https:") {
-            location.protocol = "https:";
-        }
-    }
     HtmlUtil.inputElm("name").value = "b";
     HtmlUtil.inputElm("room").value = "room";
     WebAssembly.instantiateStreaming(fetch("./game.wasm"), go.importObject).then((result) => {

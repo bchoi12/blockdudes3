@@ -63,11 +63,13 @@ func (g *Game) loadTestLevel() {
 	g.add(init)
 
 
+/*
 	id = g.grid.NextSpacedId(platformSpace)
 	init = NewInit(id, NewInitData(NewVec2(10, -1), NewVec2(3, 0.2)))
 	g.add(init)
 	g.grid.Get(id).(*Platform).SetVel(NewVec2(0, 2))
 	g.grid.Get(id).(*Platform).SetYBounds(-1, 4)
+*/
 
 	id = g.grid.NextSpacedId(platformSpace)
 	init = NewInit(id, NewInitData(NewVec2(16, 7), NewVec2(3, 0.2)))

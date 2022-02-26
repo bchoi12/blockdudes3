@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { LogUtil, Util } from './util.js';
 import { options } from './options.js';
@@ -10,6 +11,7 @@ export var Model;
 export class Loader {
     constructor() {
         this._modelPrefix = "./model/";
+        THREE.Cache.enabled = true;
         this._loader = new GLTFLoader();
         this._cache = new Map();
         this._paths = new Map();

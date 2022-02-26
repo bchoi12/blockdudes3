@@ -1,4 +1,6 @@
+import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
 import { LogUtil, Util } from './util.js'
 
 import { options } from './options.js'
@@ -18,6 +20,8 @@ export class Loader {
 	private _paths : Map<Model, string>;
 
 	constructor() {
+		THREE.Cache.enabled = true;
+
 		this._loader = new GLTFLoader();
 		this._cache = new Map<Model, any>();
 
@@ -38,22 +42,10 @@ export class Loader {
 			return;
 		}
 
-/*
-		if (this._cache.has(model)) {
-			LogUtil.d("Loading model " + model + " from cache.");
-			cb(this._cache.get(model));
-			return;
-		}
-*/
-
 		LogUtil.d("Loading model " + model + " from " + this._paths.get(model));
 		this._loader.load(this._paths.get(model), (data) => {
 			this.process(model, data);
 			cb(data.scene);
-/*
-			this._cache.set(model, data.scene);
-			cb(this._cache.get(model));
-*/
 		});
 	}
 
