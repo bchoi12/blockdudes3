@@ -168,7 +168,6 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	p.SetAcc(acc)
 
 	// Shooting & recoil
-	p.updateDir()
 	p.weapon.SetPos(p.GetSubProfile(bodySubProfile).Pos())
 	if p.keyDown(mouseClick) {
 		p.weapon.PressTrigger(primaryTrigger)
@@ -286,29 +285,18 @@ func (p *Player) updateKeys(keyMsg KeyMsg) {
 	}
 	p.keys = keys
 
-	p.updateMouse(keyMsg.M)
+	p.updateDir(keyMsg.M, keyMsg.D)
 }
 
-func (p *Player) updateMouse(mouse Vec2) {
-	p.mouse = mouse
-	p.updateDir()
-}
-
-func (p *Player) updateDir() {
+func (p *Player) updateDir(mouse Vec2, dir Vec2) {
 	if p.lastKeyUpdate <= 0 {
 		return
 	}
 
-	weaponDir := p.mouse
-	weaponDir.Sub(p.GetSubProfile(bodySubProfile).Pos(), 1.0)
-	weaponDir.Normalize()
-	p.weapon.SetDir(weaponDir)
-
 	lastDir := p.Dir()
+	// Note: any changes here should also be done in the frontend
+	p.weapon.SetDir(dir)
 	// Don't turn around right at dir.X = 0
-	dir := p.mouse
-	dir.Sub(p.Pos(), 1.0)
-	dir.Normalize()
 	if Abs(dir.X) < 0.3 && SignPos(dir.X) != SignPos(lastDir.X) {
 		dir.X = FSignPos(lastDir.X) * Abs(dir.X)
 	}

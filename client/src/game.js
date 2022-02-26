@@ -33,7 +33,7 @@ class Game {
             if (!Util.defined(this._id))
                 return;
             this._keyUpdates++;
-            const msg = ui.createKeyMsg(this._keyUpdates);
+            const msg = this.createKeyMsg();
             connection.sendData(msg);
         }, frameMillis);
         this.animate();
@@ -50,9 +50,24 @@ class Game {
     animate() {
         this.extrapolateState();
         this.updateCamera();
+        this.extrapolatePlayerDir();
         renderer.render();
         requestAnimationFrame(() => { this.animate(); });
         this._animateFrames++;
+    }
+    createKeyMsg() {
+        const msg = ui.createKeyMsg(this._keyUpdates);
+        if (renderer.sceneMap().has(playerSpace, this._id)) {
+            const mouse = renderer.getMouseWorld();
+            const player = renderer.sceneMap().get(playerSpace, this._id).mesh().position;
+            const dir = new THREE.Vector2(mouse.x - player.x, mouse.y - player.y);
+            dir.normalize();
+            msg.Key.D = {
+                X: dir.x,
+                Y: dir.y,
+            };
+        }
+        return msg;
     }
     addPlayer(id, data) {
         if (wasmHas(playerSpace, id))
@@ -149,9 +164,10 @@ class Game {
         this._lastGameUpdateTime = Date.now();
     }
     extrapolateState() {
-        if (Util.defined(this._id)) {
-            const keyMsg = ui.createWasmKeyMsg(this._keyUpdates);
-            wasmUpdateKeys(this._id, keyMsg);
+        if (renderer.sceneMap().has(playerSpace, this._id)) {
+            const keyMsg = this.createKeyMsg();
+            keyMsg.Key.K = Util.arrayToString(keyMsg.Key.K);
+            wasmUpdateKeys(this._id, keyMsg.Key);
         }
         const state = JSON.parse(wasmUpdateState());
         for (const [stringSpace, objects] of Object.entries(state.Os)) {
@@ -173,6 +189,15 @@ class Game {
             else {
                 renderer.sceneMap().update(playerSpace, id, this.interpolateState(this._currentPlayerData, player));
             }
+        }
+    }
+    extrapolatePlayerDir() {
+        if (renderer.sceneMap().has(playerSpace, this._id)) {
+            const mouse = renderer.getMouseWorld();
+            const player = renderer.sceneMap().get(playerSpace, this._id).mesh().position;
+            const dir = new THREE.Vector2(mouse.x - player.x, mouse.y - player.y);
+            dir.normalize();
+            renderer.sceneMap().get(playerSpace, this._id).setDir(dir, dir.clone());
         }
     }
     interpolateState(currentData, nextData) {

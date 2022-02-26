@@ -11,11 +11,13 @@ enum PlayerAction {
 }
 
 export class RenderPlayer extends RenderObject {
+	private readonly _sqrtHalf = .70710678;
 	private readonly _rotationOffset = -0.1;
 	private readonly _pointsMaterial = new THREE.PointsMaterial( { color: 0x000000, size: 0.2} );
 
 	private _weapon : RenderWeapon;
 	private _armOrigin : THREE.Vector3;
+	private _dir : THREE.Vector2;
 
 	private _profileMesh : THREE.Mesh;
 	private _profilePoints : THREE.BufferGeometry;
@@ -27,6 +29,7 @@ export class RenderPlayer extends RenderObject {
 		this._actions = new Map<PlayerAction, any>();
 
 		this._armOrigin = mesh.getObjectByName("armR").position.clone();
+		this._dir = new THREE.Vector2(1, 0);
 
 		mesh.getObjectByName("mesh").rotation.y = Math.PI / 2 + this._rotationOffset;
 
@@ -54,6 +57,35 @@ export class RenderPlayer extends RenderObject {
 		}
 	}
 
+	setDir(dir : THREE.Vector2, weaponDir : THREE.Vector2) {
+		if (Math.abs(dir.x) < 0.3 && MathUtil.signPos(dir.x) != MathUtil.signPos(this._dir.x)) {
+			dir.x = MathUtil.signPos(this._dir.x) * Math.abs(dir.x);
+		}
+
+		if (Math.abs(dir.x) < this._sqrtHalf) {
+			dir.x = this._sqrtHalf * MathUtil.signPos(dir.x);
+			dir.y = this._sqrtHalf * MathUtil.signPos(dir.y);
+		}
+
+		const player = this._mesh.getObjectByName("mesh");
+		if (MathUtil.signPos(dir.x) != MathUtil.signPos(player.scale.z)) {
+			player.scale.z *= -1;
+			player.rotation.y = Math.PI / 2 + Math.sign(player.scale.z) * this._rotationOffset;
+		}
+
+		const neck = player.getObjectByName("neck");
+		let angle = new THREE.Vector3(dir.x > 0 ? 1 : -1, 0, 0).angleTo(new THREE.Vector3(dir.x, dir.y, 0));
+		angle = MathUtil.normalize(angle) * -Math.sign(dir.y);
+		neck.rotation.x = angle;
+
+		let armAngle = new THREE.Vector3(weaponDir.x > 0 ? 1 : -1, 0, 0).angleTo(new THREE.Vector3(weaponDir.x, weaponDir.y, 0));
+		armAngle = MathUtil.normalize(armAngle) * -Math.sign(weaponDir.y);
+		const arm = player.getObjectByName("armR");
+		arm.rotation.x = armAngle - Math.PI / 2;
+
+		this._dir = dir;
+	}
+
 	setWeapon(weapon : RenderWeapon) : void {
 		if (!Util.defined(this._weapon)) {
 			this._mesh.getObjectByName("armR").add(weapon.mesh());
@@ -75,43 +107,23 @@ export class RenderPlayer extends RenderObject {
 
 	override update(msg : any) : void {
 		let pos = msg[posProp]
-		let vel = msg[velProp];
-		if (!Util.defined(vel)) {
-			vel = {X: 0, Y: 0};
-		}
-
-		let acc = msg[accProp];
-		if (!Util.defined(acc)) {
-			acc = {X: 0, Y: 0};
-		}
-
-		let dir = msg[dirProp];
-		let weaponDir = msg[weaponDirProp];
-		let grounded = msg[groundedProp];
-
 		this._mesh.position.x = pos.X;
 		this._mesh.position.y = pos.Y;
 
-		const player = this._mesh.getObjectByName("mesh");
-		if (Math.abs(dir.X) > 0.2 && Math.sign(dir.X) != 0 && Math.sign(dir.X) != Math.sign(player.scale.z)) {
-			player.scale.z *= -1;
-			player.rotation.y = Math.PI / 2 + Math.sign(player.scale.z) * this._rotationOffset;
+		let dir = msg[dirProp];
+		let weaponDir = msg[weaponDirProp];
+		this.setDir(new THREE.Vector2(dir.X, dir.Y), new THREE.Vector2(weaponDir.X, weaponDir.Y));
+
+		const arm = this._mesh.getObjectByName("armR");
+		if (arm.position.lengthSq() > 0) {
+			let armOffset = this._armOrigin.clone().sub(arm.position);
+			armOffset.setLength(Math.min(armOffset.length(), 0.4 * Math.max(0, (Date.now() - this._lastUpdate) / 1000)));
+			arm.position.add(armOffset);
 		}
 
-		const neck = player.getObjectByName("neck");
-		let angle = new THREE.Vector3(dir.X > 0 ? 1 : -1, 0, 0).angleTo(new THREE.Vector3(dir.X, dir.Y, 0));
-		angle = MathUtil.normalize(angle) * -Math.sign(dir.Y);
-		neck.rotation.x = angle;
-
-		let armAngle = new THREE.Vector3(weaponDir.X > 0 ? 1 : -1, 0, 0).angleTo(new THREE.Vector3(weaponDir.X, weaponDir.Y, 0));
-		armAngle = MathUtil.normalize(armAngle) * -Math.sign(weaponDir.Y);
-		const arm = player.getObjectByName("armR");
-		arm.rotation.x = armAngle - Math.PI / 2;
-
-		let armOffset = this._armOrigin.clone().sub(arm.position);
-		armOffset.setLength(Math.min(armOffset.length(), 0.4 * Math.max(0, (Date.now() - this._lastUpdate) / 1000)));
-		arm.position.add(armOffset);
-
+		const grounded = Util.getOr(msg, groundedProp, false);
+		const vel = Util.getOr(msg, velProp, {X: 0, Y: 0});
+		const acc = Util.getOr(msg, accProp, {X: 0, Y: 0})
 		if (!grounded) {
 			this.fadeOut(PlayerAction.Idle, 0.1);
 			this.fadeOut(PlayerAction.Walk, 0.1);

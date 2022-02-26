@@ -139,4 +139,5 @@ type KeyMsg struct {
 	S SeqNumType
 	K []KeyType // keys
 	M Vec2 // mouse
+	D Vec2 // direction
 }

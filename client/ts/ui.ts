@@ -40,30 +40,23 @@ class UI {
 	}
 
 	createKeyMsg(seqNum : number) : any {
+   		const mouse = renderer.getMouseWorld();
 		const msg = {
 			T: keyType,
 			Key: {
-				K: Array.from(this._keys),
-				M: {},
 				S: seqNum,
+				K: Array.from(this._keys),
+				M: {
+					X: mouse.x,
+					Y: mouse.y,
+				},
+				D: {
+					X: 1,
+					Y: 0,
+				},
 			},
 		};
-
-   		const mouse = renderer.getMouseWorld();
-		if (Util.defined(mouse)) {
-			msg.Key.M = {
-				X: mouse.x,
-				Y: mouse.y,
-			}
-		}
-
 		return msg;
-	}
-
-	createWasmKeyMsg(seqNum : number) : any {
-		let msg = this.createKeyMsg(seqNum);
-		msg.Key.K = Util.arrayToString(msg.Key.K);
-		return msg.Key
 	}
 
 	setup() : void {

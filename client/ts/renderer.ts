@@ -16,7 +16,7 @@ class Renderer {
 	private _cameraController : CameraController;
 	private _renderer : THREE.WebGLRenderer;
 
-	private _mousePixels : THREE.Vector3;
+	private _mousePixels : THREE.Vector2;
 
 	constructor() {
 		this._canvas = HtmlUtil.elm(this._rendererElm);
@@ -37,7 +37,7 @@ class Renderer {
 		this.resizeCanvas();
 		window.onresize = () => { this.resizeCanvas(); };
 
-		this._mousePixels = new THREE.Vector3(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2, 0);
+		this._mousePixels = new THREE.Vector2(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2);
 	}
 
 	elm() : HTMLElement { return this._canvas; }
@@ -71,7 +71,7 @@ class Renderer {
 		sound.stereo(Math.min(1, Math.max(-1, dist.x / 10)));
 	}
 	
-	getMouseScreen() : any {
+	getMouseScreen() : THREE.Vector2 {
 		const mouse = this._mousePixels.clone();
 		mouse.x -= window.innerWidth / 2;
 		mouse.y -= window.innerHeight / 2;
@@ -80,8 +80,10 @@ class Renderer {
 		return mouse;
 	}
 
-	getMouseWorld() : any {
-		const mouse = this.getMouseScreen();
+	getMouseWorld() : THREE.Vector3 {
+		const mouseScreen = this.getMouseScreen();
+
+		const mouse = new THREE.Vector3(mouseScreen.x, mouseScreen.y, 0);
 		const camera = this._cameraController.camera();
 		mouse.unproject(camera);
 		mouse.sub(camera.position).normalize();

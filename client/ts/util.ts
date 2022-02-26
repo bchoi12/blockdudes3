@@ -9,6 +9,13 @@ export namespace Util {
 		return array.join(",");
 	}
 
+	export function getOr(msg : any, prop : number, or : any) : any{
+		if (msg.hasOwnProperty(prop)) {
+			return msg[prop];
+		}
+		return or;
+	}
+
 	export function isDev() : boolean {
 		return dev;
 	}
@@ -55,5 +62,12 @@ export namespace MathUtil {
 			radians += (Math.floor(-radians / (2 * Math.PI))+1) * 2 * Math.PI;
 		}
 		return radians;
+	}
+
+	export function signPos(n : number) : number {
+		if (n == 0) {
+			return 1;
+		}
+		return Math.sign(n);
 	}
 }

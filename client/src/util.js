@@ -9,6 +9,13 @@ export var Util;
         return array.join(",");
     }
     Util.arrayToString = arrayToString;
+    function getOr(msg, prop, or) {
+        if (msg.hasOwnProperty(prop)) {
+            return msg[prop];
+        }
+        return or;
+    }
+    Util.getOr = getOr;
     function isDev() {
         return dev;
     }
@@ -65,4 +72,11 @@ export var MathUtil;
         return radians;
     }
     MathUtil.normalize = normalize;
+    function signPos(n) {
+        if (n == 0) {
+            return 1;
+        }
+        return Math.sign(n);
+    }
+    MathUtil.signPos = signPos;
 })(MathUtil || (MathUtil = {}));

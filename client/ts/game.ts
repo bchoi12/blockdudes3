@@ -53,7 +53,7 @@ class Game {
 			if (!Util.defined(this._id)) return;
 
 			this._keyUpdates++;
-			const msg = ui.createKeyMsg(this._keyUpdates);
+			const msg = this.createKeyMsg();
 			connection.sendData(msg);
 		}, frameMillis);
 
@@ -74,10 +74,28 @@ class Game {
 	private animate() : void {
 		this.extrapolateState();
 		this.updateCamera();
+		this.extrapolatePlayerDir();
 		renderer.render();
 
 		requestAnimationFrame(() => { this.animate(); });
 		this._animateFrames++;
+	}
+
+	private createKeyMsg() : any {
+		const msg = ui.createKeyMsg(this._keyUpdates);
+
+		if (renderer.sceneMap().has(playerSpace, this._id)) {
+	   		const mouse = renderer.getMouseWorld();
+	   		const player = renderer.sceneMap().get(playerSpace, this._id).mesh().position;
+
+	   		const dir = new THREE.Vector2(mouse.x - player.x, mouse.y - player.y);
+	   		dir.normalize();
+			msg.Key.D = {
+				X: dir.x,
+				Y: dir.y,
+			};
+		}
+		return msg;
 	}
 
 	private addPlayer(id : number, data : any) {
@@ -193,9 +211,11 @@ class Game {
 	}
 
 	private extrapolateState() {
-		if (Util.defined(this._id)) {
-			const keyMsg = ui.createWasmKeyMsg(this._keyUpdates);
-			wasmUpdateKeys(this._id, keyMsg);
+		// Update key presses.
+		if (renderer.sceneMap().has(playerSpace, this._id)) {
+			const keyMsg = this.createKeyMsg();
+			keyMsg.Key.K = Util.arrayToString(keyMsg.Key.K);
+			wasmUpdateKeys(this._id, keyMsg.Key);
 		}
 
 		const state = JSON.parse(wasmUpdateState());
@@ -218,6 +238,19 @@ class Game {
 			} else {
 				renderer.sceneMap().update(playerSpace, id, this.interpolateState(this._currentPlayerData, player));
 			}
+		}
+	}
+
+	private extrapolatePlayerDir() : void {
+		if (renderer.sceneMap().has(playerSpace, this._id)) {
+	   		const mouse = renderer.getMouseWorld();
+	   		const player = renderer.sceneMap().get(playerSpace, this._id).mesh().position;
+
+	   		const dir = new THREE.Vector2(mouse.x - player.x, mouse.y - player.y);
+	   		dir.normalize();
+
+	   		// TODO: fix weapon dir
+	   		renderer.sceneMap().get(playerSpace, this._id).setDir(dir, dir.clone());
 		}
 	}
 

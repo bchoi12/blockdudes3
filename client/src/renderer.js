@@ -19,7 +19,7 @@ class Renderer {
         }
         this.resizeCanvas();
         window.onresize = () => { this.resizeCanvas(); };
-        this._mousePixels = new THREE.Vector3(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2, 0);
+        this._mousePixels = new THREE.Vector2(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2);
     }
     elm() { return this._canvas; }
     sceneMap() { return this._sceneMap; }
@@ -56,7 +56,8 @@ class Renderer {
         return mouse;
     }
     getMouseWorld() {
-        const mouse = this.getMouseScreen();
+        const mouseScreen = this.getMouseScreen();
+        const mouse = new THREE.Vector3(mouseScreen.x, mouseScreen.y, 0);
         const camera = this._cameraController.camera();
         mouse.unproject(camera);
         mouse.sub(camera.position).normalize();

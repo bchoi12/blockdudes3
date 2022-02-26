@@ -162,9 +162,10 @@ func UpdateKeys(g *Game) js.Func {
 		}
 
 		keyMsg := KeyMsg {
+			S: SeqNumType(args[1].Get("S").Int()),
 			K: parseKeysAsArray(args[1].Get("K").String()),
 			M: parseVec2(args[1].Get("M")),
-			S: SeqNumType(args[1].Get("S").Int()),
+			D: parseVec2(args[1].Get("D")),
 		}
 
 		g.processKeyMsg(id, keyMsg)
