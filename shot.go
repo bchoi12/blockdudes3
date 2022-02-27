@@ -49,7 +49,6 @@ func (s *Shot) Resolve(grid *Grid) {
 
 		acc.Scale(2)
 		rocket.SetJerk(acc)
-		rocket.SetMaxSpeed(80)
 		grid.Upsert(rocket)
 		return
 	}

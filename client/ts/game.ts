@@ -4,6 +4,7 @@ import { Model, Loader } from './loader.js'
 import { RenderObject } from './render_object.js'
 import { RenderExplosion } from './render_explosion.js'
 import { RenderPlayer } from './render_player.js'
+import { RenderRocket } from './render_rocket.js'
 import { RenderWeapon } from './render_weapon.js'
 import { GameUtil, Util } from './util.js'
 
@@ -14,6 +15,7 @@ import { ui } from './ui.js'
 class Game {
 	private readonly _statsInterval = 500;
 	private readonly _objectMaterial = new THREE.MeshStandardMaterial( {color: 0x444444 } );
+	private readonly _explosionMaterial = new THREE.MeshStandardMaterial( {color: 0xbb4444 } );
 	private readonly _bombMaterial = new THREE.MeshStandardMaterial( {color: 0x4444bb, transparent: true, opacity: 0.5} );
 	
 	private _loader : Loader;
@@ -72,7 +74,7 @@ class Game {
 	}
 
 	private animate() : void {
-		this.extrapolateState();
+		// this.extrapolateState();
 		this.updateCamera();
 		this.extrapolatePlayerDir();
 		renderer.render();
@@ -158,20 +160,27 @@ class Game {
 				if (!wasmHas(space, id)) {
 					wasmAdd(space, id, object);
 
-					const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 12, 8), this._bombMaterial);
-					mesh.rotation.x = Math.random() * Math.PI;	
-					mesh.rotation.y = Math.random() * Math.PI;	
-					mesh.rotation.z = Math.random() * Math.PI;	
-					mesh.receiveShadow = true;
-
-					let renderObj;
-					if (space === explosionSpace) {
-						renderObj = new RenderExplosion(mesh);
-					} else {
-						renderObj = new RenderObject(mesh);
-					}
 					this._currentObjects.add(GameUtil.sid(space, id));
-					renderer.sceneMap().add(space, id, renderObj);
+
+					if (space === explosionSpace) {
+						const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 12, 8), this._explosionMaterial);
+						mesh.receiveShadow = true;
+						const renderObj = new RenderExplosion(mesh);
+						renderer.sceneMap().add(space, id, renderObj);
+					} else if (space === rocketSpace) {
+						this._loader.load(Model.ROCKET, (mesh : THREE.Mesh) => {
+							const renderObj = new RenderRocket(mesh);
+							renderer.sceneMap().add(space, id, renderObj);
+						});
+					} else {
+						const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 12, 8), this._bombMaterial);
+						mesh.rotation.x = Math.random() * Math.PI;	
+						mesh.rotation.y = Math.random() * Math.PI;	
+						mesh.rotation.z = Math.random() * Math.PI;	
+						mesh.receiveShadow = true;
+						const renderObj = new RenderObject(mesh);
+						renderer.sceneMap().add(space, id, renderObj);
+					}
 				}
 				deleteObjects.delete(GameUtil.sid(space, id));
 

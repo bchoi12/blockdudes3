@@ -126,12 +126,19 @@ type Rocket struct {
 	owner SpacedId
 	maxSpeed float64
 	jerk Vec2
+
+	creationTime time.Time
+	ttlDuration time.Duration
 }
 
 func NewRocket(init Init) *Rocket {
 	rocket := &Rocket {
 		Object: NewRec2Object(init),
 		jerk: NewVec2(0, 0),
+		maxSpeed: 80,
+
+		creationTime: time.Now(),
+		ttlDuration: 2 * time.Second,
 	}
 	rocket.SetSolid(false)
 
@@ -140,10 +147,6 @@ func NewRocket(init Init) *Rocket {
 
 func (r *Rocket) SetOwner(owner SpacedId) {
 	r.owner = owner
-}
-
-func (r *Rocket) SetMaxSpeed(maxSpeed float64) {
-	r.maxSpeed = maxSpeed
 }
 
 func (r *Rocket) SetJerk(jerk Vec2) {
@@ -174,6 +177,13 @@ func (r *Rocket) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 		return true
 	}
 
+	if time.Now().Sub(r.creationTime) >= r.ttlDuration {
+		init := NewInit(grid.NextSpacedId(explosionSpace), NewInitData(r.Pos(), NewVec2(4, 4)))	
+		grid.Upsert(NewExplosion(init))
+		grid.Delete(r.GetSpacedId())
+		return true
+	}
+
 	colliders := grid.GetColliders(r.GetProfile(), ColliderOptions {
 		self: r.GetSpacedId(),
 		solidOnly: true,
@@ -187,10 +197,10 @@ func (r *Rocket) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 			continue
 		}
 
-		init := NewInit(grid.NextSpacedId(explosionSpace), NewInitData(r.Pos(), NewVec2(3, 3)))	
+		init := NewInit(grid.NextSpacedId(explosionSpace), NewInitData(r.Pos(), NewVec2(4, 4)))	
 		grid.Upsert(NewExplosion(init))
 		grid.Delete(r.GetSpacedId())
-		break
+		return true
 	}
 	return true
 }

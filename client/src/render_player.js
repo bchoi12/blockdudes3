@@ -17,6 +17,7 @@ export class RenderPlayer extends RenderObject {
         this._actions = new Map();
         this._armOrigin = mesh.getObjectByName("armR").position.clone();
         this._dir = new THREE.Vector2(1, 0);
+        this._grounded = false;
         mesh.getObjectByName("mesh").rotation.y = Math.PI / 2 + this._rotationOffset;
         for (let action in PlayerAction) {
             const clip = this._mixer.clipAction(THREE.AnimationClip.findByName(mesh.animations, PlayerAction[action]));
@@ -89,10 +90,10 @@ export class RenderPlayer extends RenderObject {
             armOffset.setLength(Math.min(armOffset.length(), 0.4 * Math.max(0, (Date.now() - this._lastUpdate) / 1000)));
             arm.position.add(armOffset);
         }
-        const grounded = Util.getOr(msg, groundedProp, false);
+        this._grounded = Util.getOr(msg, groundedProp, this._grounded);
         const vel = Util.getOr(msg, velProp, { X: 0, Y: 0 });
         const acc = Util.getOr(msg, accProp, { X: 0, Y: 0 });
-        if (!grounded) {
+        if (!this._grounded) {
             this.fadeOut(PlayerAction.Idle, 0.1);
             this.fadeOut(PlayerAction.Walk, 0.1);
             this.fadeIn(PlayerAction.Jump, 0.1);

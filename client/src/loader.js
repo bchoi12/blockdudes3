@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { LogUtil, Util } from './util.js';
 import { options } from './options.js';
@@ -7,16 +6,17 @@ export var Model;
     Model[Model["UNKNOWN"] = 0] = "UNKNOWN";
     Model[Model["CHICKEN"] = 1] = "CHICKEN";
     Model[Model["UZI"] = 10] = "UZI";
+    Model[Model["ROCKET"] = 11] = "ROCKET";
 })(Model || (Model = {}));
 export class Loader {
     constructor() {
         this._modelPrefix = "./model/";
-        THREE.Cache.enabled = true;
         this._loader = new GLTFLoader();
         this._cache = new Map();
         this._paths = new Map();
         this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken.glb");
         this._paths.set(Model.UZI, this._modelPrefix + "uzi.glb");
+        this._paths.set(Model.ROCKET, this._modelPrefix + "rocket.glb");
     }
     preload(models) {
         models.forEach((model) => {
@@ -43,11 +43,15 @@ export class Loader {
                     data.scene.getObjectByName("mesh").receiveShadow = true;
                 }
                 break;
-            case Model.UZI:
+            case Model.UZI, Model.ROCKET:
+                if (options.enableShadows) {
+                    data.scene.getObjectByName("mesh").castShadow = true;
+                    data.scene.getObjectByName("mesh").receiveShadow = true;
+                }
                 break;
             default:
-                LogUtil.d("Model " + model + " could not be processed.");
-                return;
+                LogUtil.d("Model " + model + " processing skipped.");
+                break;
         }
     }
 }

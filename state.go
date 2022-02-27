@@ -9,11 +9,19 @@ type State struct {
 	ttl int
 }
 
-func NewState(state interface{}) State {
-	return State {
+func NewState(state interface{}) *State {
+	return &State {
 		state: state,
 		ttl: 0,
 	}
+}
+
+func (st State) TTL() int {
+	return st.ttl
+}
+
+func (st State) Peek() interface{} {
+	return st.state
 }
 
 func (st *State) Set(state interface{}) {
@@ -25,15 +33,7 @@ func (st *State) Set(state interface{}) {
 	st.ttl = stateDefaultTTL
 }
 
-func (st State) TTL() int {
-	return st.ttl
-}
-
-func (st State) Peek() interface{} {
-	return st.state
-}
-
-func (st State) Pop() (interface{}, bool) {
+func (st *State) Pop() (interface{}, bool) {
 	if st.ttl <= 0 {
 		return nil, false
 	}

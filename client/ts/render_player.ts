@@ -18,6 +18,7 @@ export class RenderPlayer extends RenderObject {
 	private _weapon : RenderWeapon;
 	private _armOrigin : THREE.Vector3;
 	private _dir : THREE.Vector2;
+	private _grounded : boolean;
 
 	private _profileMesh : THREE.Mesh;
 	private _profilePoints : THREE.BufferGeometry;
@@ -30,6 +31,7 @@ export class RenderPlayer extends RenderObject {
 
 		this._armOrigin = mesh.getObjectByName("armR").position.clone();
 		this._dir = new THREE.Vector2(1, 0);
+		this._grounded = false;
 
 		mesh.getObjectByName("mesh").rotation.y = Math.PI / 2 + this._rotationOffset;
 
@@ -121,10 +123,10 @@ export class RenderPlayer extends RenderObject {
 			arm.position.add(armOffset);
 		}
 
-		const grounded = Util.getOr(msg, groundedProp, false);
+		this._grounded = Util.getOr(msg, groundedProp, this._grounded);
 		const vel = Util.getOr(msg, velProp, {X: 0, Y: 0});
 		const acc = Util.getOr(msg, accProp, {X: 0, Y: 0})
-		if (!grounded) {
+		if (!this._grounded) {
 			this.fadeOut(PlayerAction.Idle, 0.1);
 			this.fadeOut(PlayerAction.Walk, 0.1);
 			this.fadeIn(PlayerAction.Jump, 0.1);

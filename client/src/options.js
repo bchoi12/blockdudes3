@@ -1,5 +1,7 @@
+import * as THREE from 'three';
 class Options {
     constructor() {
+        THREE.Cache.enabled = true;
         this.enableShadows = true;
         this.rendererScale = 0.66;
     }

@@ -285,14 +285,7 @@ func (p *Player) updateKeys(keyMsg KeyMsg) {
 	}
 	p.keys = keys
 
-	p.updateDir(keyMsg.M, keyMsg.D)
-}
-
-func (p *Player) updateDir(mouse Vec2, dir Vec2) {
-	if p.lastKeyUpdate <= 0 {
-		return
-	}
-
+	dir := keyMsg.D
 	lastDir := p.Dir()
 	// Note: any changes here should also be done in the frontend
 	p.weapon.SetDir(dir)

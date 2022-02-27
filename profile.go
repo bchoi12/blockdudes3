@@ -49,7 +49,7 @@ type Profile interface {
 type BaseProfile struct {
 	Init
 	vel, extVel, acc, dir Vec2
-	solid, guide, grounded State
+	solid, guide, grounded *State
 
 	subProfiles map[ProfileKey]SubProfile
 	ignoredColliders map[SpacedId]bool
