@@ -138,7 +138,7 @@ func NewRocket(init Init) *Rocket {
 		maxSpeed: 80,
 
 		creationTime: time.Now(),
-		ttlDuration: 2 * time.Second,
+		ttlDuration: 1 * time.Second,
 	}
 	rocket.SetSolid(false)
 

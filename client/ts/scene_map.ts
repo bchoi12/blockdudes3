@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { Lighting } from './lighting.js'
 import { RenderObject } from './render_object.js'
 import { SceneComponent } from './scene_component.js'
-import { LogUtil, Util } from './util.js'
+import { GameUtil, LogUtil, Util } from './util.js'
 import { Weather } from './weather.js'
 
 export class SceneMap {
@@ -46,7 +46,9 @@ export class SceneMap {
 			LogUtil.d("Overwriting object space " + space + ", id " + id + "!");
 		}
 		map.set(id, object);
-		this._scene.add(object.mesh());
+		object.onMeshLoad(() => {
+			this._scene.add(object.mesh());
+		});
 	}
 
 	has(space : number, id : number) : boolean {

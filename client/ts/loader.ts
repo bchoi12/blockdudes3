@@ -7,6 +7,7 @@ import { options } from './options.js'
 export enum Model {
 	UNKNOWN = 0,
 	CHICKEN = 1,
+	DUCK = 2,
 
 	UZI = 10,
 	ROCKET = 11,
@@ -25,6 +26,7 @@ export class Loader {
 
 		this._paths = new Map<Model, string>();
 		this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken.glb");
+		this._paths.set(Model.DUCK, this._modelPrefix + "duck.glb");
 		this._paths.set(Model.UZI, this._modelPrefix + "uzi.glb");
 		this._paths.set(Model.ROCKET, this._modelPrefix + "rocket.glb");
 	}
@@ -51,13 +53,16 @@ export class Loader {
 	private process(model : Model, data : any) : void {
 		switch (model) {
 			case Model.CHICKEN:
+			case Model.DUCK:
 				data.scene.animations = data.animations;
 				if (options.enableShadows) {
 					data.scene.getObjectByName("mesh").castShadow = true;
 					data.scene.getObjectByName("mesh").receiveShadow = true;
 				}
+				LogUtil.d(data);
 				break;
-			case Model.UZI, Model.ROCKET:
+			case Model.UZI:
+			case Model.ROCKET:
 				if (options.enableShadows) {
 					data.scene.getObjectByName("mesh").castShadow = true;
 					data.scene.getObjectByName("mesh").receiveShadow = true;

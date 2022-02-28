@@ -4,7 +4,7 @@ import { Model, Loader } from './loader.js'
 import { RenderObject } from './render_object.js'
 import { RenderExplosion } from './render_explosion.js'
 import { RenderPlayer } from './render_player.js'
-import { RenderRocket } from './render_rocket.js'
+import { RenderProjectile } from './render_projectile.js'
 import { RenderWeapon } from './render_weapon.js'
 import { GameUtil, Util } from './util.js'
 
@@ -74,7 +74,7 @@ class Game {
 	}
 
 	private animate() : void {
-		// this.extrapolateState();
+		this.extrapolateState();
 		this.updateCamera();
 		this.extrapolatePlayerDir();
 		renderer.render();
@@ -103,21 +103,20 @@ class Game {
 	private addPlayer(id : number, data : any) {
 		if (wasmHas(playerSpace, id)) return;
 
-		this._loader.load(Model.CHICKEN, (mesh : THREE.Mesh) => {
-			const playerMesh = mesh.getObjectByName("mesh");
+		const player = new RenderPlayer(playerSpace, id);
+		renderer.sceneMap().add(playerSpace, id, player);
+		renderer.sceneMap().update(playerSpace, id, data);
+		wasmAdd(playerSpace, id, data);
+
+		this._loader.load(id % 2 == 0 ? Model.CHICKEN : Model.DUCK, (mesh : THREE.Mesh) => {
 			// Model origin is at feet
-			playerMesh.position.y -= data[dimProp].Y / 2;
-
-			const player = new RenderPlayer(mesh);
-			const pos = data[posProp];
-			player.mesh().position.x = pos.X;
-			player.mesh().position.y = pos.Y;
-
-			renderer.sceneMap().add(playerSpace, id, player);
-			wasmAdd(playerSpace, id, data);
+			mesh.getObjectByName("mesh").position.y -= data[dimProp].Y / 2;
+			player.setMesh(mesh);
 
 			this._loader.load(Model.UZI, (weaponMesh : THREE.Mesh) => {
-				player.setWeapon(new RenderWeapon(weaponMesh));
+				const weapon = new RenderWeapon();
+				weapon.setMesh(weaponMesh);
+				player.setWeapon(weapon);
 			});
 		});
 	}
@@ -162,15 +161,16 @@ class Game {
 
 					this._currentObjects.add(GameUtil.sid(space, id));
 
+					let renderObj;
 					if (space === explosionSpace) {
 						const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 12, 8), this._explosionMaterial);
 						mesh.receiveShadow = true;
-						const renderObj = new RenderExplosion(mesh);
-						renderer.sceneMap().add(space, id, renderObj);
+						renderObj = new RenderExplosion(space, id);
+						renderObj.setMesh(mesh);
 					} else if (space === rocketSpace) {
+						renderObj = new RenderProjectile(space, id);
 						this._loader.load(Model.ROCKET, (mesh : THREE.Mesh) => {
-							const renderObj = new RenderRocket(mesh);
-							renderer.sceneMap().add(space, id, renderObj);
+							renderObj.setMesh(mesh);
 						});
 					} else {
 						const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 12, 8), this._bombMaterial);
@@ -178,9 +178,10 @@ class Game {
 						mesh.rotation.y = Math.random() * Math.PI;	
 						mesh.rotation.z = Math.random() * Math.PI;	
 						mesh.receiveShadow = true;
-						const renderObj = new RenderObject(mesh);
-						renderer.sceneMap().add(space, id, renderObj);
+						renderObj = new RenderObject(space, id);
+						renderObj.setMesh(mesh);
 					}
+					renderer.sceneMap().add(space, id, renderObj);
 				}
 				deleteObjects.delete(GameUtil.sid(space, id));
 
@@ -314,10 +315,10 @@ class Game {
 				mesh.castShadow = true;
 				mesh.receiveShadow = true;
 
-				const renderObj = new RenderObject(mesh);
-				mesh.position.x = object[posProp].X;
-				mesh.position.y = object[posProp].Y;
+				const renderObj = new RenderObject(space, id);
+				renderObj.setMesh(mesh);
 				renderer.sceneMap().add(space, id, renderObj);
+				renderer.sceneMap().update(space, id, object);
 			}
 		}
 	}

@@ -29,7 +29,9 @@ export class SceneMap {
             LogUtil.d("Overwriting object space " + space + ", id " + id + "!");
         }
         map.set(id, object);
-        this._scene.add(object.mesh());
+        object.onMeshLoad(() => {
+            this._scene.add(object.mesh());
+        });
     }
     has(space, id) {
         const map = this.getMap(space);

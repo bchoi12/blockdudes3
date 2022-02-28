@@ -10,31 +10,32 @@ export class RenderExplosion extends RenderObject {
 	private _sound : Howl;
 	private _exploded : boolean;
 
-	constructor(mesh : THREE.Mesh) {
-		super(mesh);
+	constructor(space : number, id : number) {
+		super(space, id);
 
 		this._light = new THREE.PointLight(0xff0000, 0, 8);
-		mesh.add(this._light)
-
 		this._sound = new Howl({
 			src: ["./sound/test3.wav"]
 		});
-
-		renderer.compile(mesh);
 		this._exploded = false;
 	}
 
-	override update(msg : any) : void {
-		if (!this._exploded && msg.hasOwnProperty(posProp)) {
-			const pos = msg[posProp]
-			this._mesh.position.x = pos.X;
-			this._mesh.position.y = pos.Y;
+	override setMesh(mesh : THREE.Mesh) {
+		mesh.add(this._light);
+		super.setMesh(mesh);
+	}
 
-			renderer.adjustSound(this._sound, this._mesh.position);
-			this._sound.play();
+	override update(msg : Map<number, any>) : void {
+		super.update(msg);
 
-			this._exploded = true;
+		if (!this.hasMesh()) {
+			return;
+		}
+
+		if (!this._exploded) {
+			renderer.playSound(this._sound, this._mesh.position);
 			this._light.intensity = 3;
+			this._exploded = true;
 		}
 	}
 }

@@ -1,24 +1,36 @@
-import * as THREE from 'three';
-export class RenderObject {
-    constructor(mesh) {
-        this._debugMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000, wireframe: true });
-        this._mesh = mesh;
-        this._lastUpdate = Date.now();
+import { RenderMesh } from './render_mesh.js';
+import { GameUtil } from './util.js';
+export class RenderObject extends RenderMesh {
+    constructor(space, id) {
+        super();
+        this._space = space;
+        this._id = id;
         this._activeActions = new Set();
         this._lastMixerUpdate = Date.now();
     }
     update(msg) {
-        if (msg.hasOwnProperty(posProp)) {
-            const pos = msg[posProp];
-            this._mesh.position.x = pos.X;
-            this._mesh.position.y = pos.Y;
+        super.update(msg);
+        if (!this.hasMesh()) {
+            return;
         }
+        const mesh = this.mesh();
+        const pos = this.pos();
+        mesh.position.x = pos.x;
+        mesh.position.y = pos.y;
     }
-    mesh() {
-        return this._mesh;
+    setMesh(mesh) {
+        super.setMesh(mesh);
+        if (this._msg.hasOwnProperty(posProp)) {
+            mesh.position.x = this._msg[posProp].X;
+            mesh.position.y = this._msg[posProp].Y;
+        }
+        mesh.name = GameUtil.sid(this._space, this._id);
     }
-    addMesh(mesh) {
-        this._mesh.add(mesh);
+    space() {
+        return this._space;
+    }
+    id() {
+        return this._id;
     }
     updateMixer() {
         const now = Date.now();

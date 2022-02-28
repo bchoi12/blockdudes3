@@ -5,29 +5,35 @@ import { RenderObject } from './render_object.js'
 import { renderer } from './renderer.js'
 import { MathUtil } from './util.js'
 
-export class RenderRocket extends RenderObject {
+export class RenderProjectile extends RenderObject {
 
 	private _lastSmoke : number;
 
-	constructor(mesh : THREE.Mesh) {
-		super(mesh);
-
-		this._mesh.rotation.y = Math.PI / 2;
-		renderer.compile(mesh);
-
+	constructor(space : number, id : number) {
+		super(space, id);
 		this._lastSmoke = 0;
 	}
 
-	override update(msg : any) : void {
-		this._mesh.position.x = msg[posProp].X;
-		this._mesh.position.y = msg[posProp].Y;
+	override setMesh(mesh : THREE.Mesh) : void {
+		mesh.rotation.y = Math.PI / 2;
+		super.setMesh(mesh);
+	}
 
-		const rocket = this._mesh.getObjectByName("mesh");
-		const angle = new THREE.Vector2(msg[velProp].X, msg[velProp].Y).angle() * -1;
+	override update(msg : Map<number, any>) : void {
+		super.update(msg);
 
-		rocket.rotation.x = angle;
-		rocket.rotateZ(.12);
+		if (!this.hasMesh()) {
+			return;
+		}
 
+		const vel = this.vel();
+		const projectile = this._mesh.getObjectByName("mesh");
+		const angle = vel.angle() * -1;
+
+		projectile.rotation.x = angle;
+		projectile.rotateZ(.12);
+
+		// TODO: make this an actual particle system
 		if (Date.now() - this._lastSmoke >= 20) {
 			const smoke = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 8), new THREE.MeshStandardMaterial( {color: 0xbbbbbb , transparent: true, opacity: 0.5} ));
 			smoke.position.copy(this._mesh.position);

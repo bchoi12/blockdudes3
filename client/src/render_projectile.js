@@ -1,20 +1,25 @@
 import * as THREE from 'three';
 import { RenderObject } from './render_object.js';
 import { renderer } from './renderer.js';
-export class RenderRocket extends RenderObject {
-    constructor(mesh) {
-        super(mesh);
-        this._mesh.rotation.y = Math.PI / 2;
-        renderer.compile(mesh);
+export class RenderProjectile extends RenderObject {
+    constructor(space, id) {
+        super(space, id);
         this._lastSmoke = 0;
     }
+    setMesh(mesh) {
+        mesh.rotation.y = Math.PI / 2;
+        super.setMesh(mesh);
+    }
     update(msg) {
-        this._mesh.position.x = msg[posProp].X;
-        this._mesh.position.y = msg[posProp].Y;
-        const rocket = this._mesh.getObjectByName("mesh");
-        const angle = new THREE.Vector2(msg[velProp].X, msg[velProp].Y).angle() * -1;
-        rocket.rotation.x = angle;
-        rocket.rotateZ(.12);
+        super.update(msg);
+        if (!this.hasMesh()) {
+            return;
+        }
+        const vel = this.vel();
+        const projectile = this._mesh.getObjectByName("mesh");
+        const angle = vel.angle() * -1;
+        projectile.rotation.x = angle;
+        projectile.rotateZ(.12);
         if (Date.now() - this._lastSmoke >= 20) {
             const smoke = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 8), new THREE.MeshStandardMaterial({ color: 0xbbbbbb, transparent: true, opacity: 0.5 }));
             smoke.position.copy(this._mesh.position);

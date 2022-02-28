@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 
-export class RenderObject {
-	protected readonly _debugMaterial = new THREE.MeshStandardMaterial({color: 0xff0000, wireframe: true });
+import { RenderMesh } from './render_mesh.js'
+import { renderer } from './renderer.js'
+import { GameUtil } from './util.js'
 
-	protected _mesh : THREE.Mesh;
-	protected _lastUpdate : number;
+export class RenderObject extends RenderMesh {
+	protected _space : number;
+	protected _id : number;
 
 	protected _mixer : THREE.AnimationMixer;
 	protected _lastMixerUpdate : number;
@@ -12,29 +14,46 @@ export class RenderObject {
 	protected _actions : Map<string, THREE.AnimationAction>;
 	protected _activeActions : Set<string>;
 	
-	constructor(mesh : THREE.Mesh) {
-		this._mesh = mesh;
-		this._lastUpdate = Date.now();
+	constructor(space : number, id : number) {
+		super();
+
+		this._space = space;
+		this._id = id;
 
 		this._activeActions = new Set();
-
 		this._lastMixerUpdate = Date.now();
 	}
 
-	update(msg : any) : void {
-		if (msg.hasOwnProperty(posProp)) {
-			const pos = msg[posProp]
-			this._mesh.position.x = pos.X;
-			this._mesh.position.y = pos.Y;
+	override update(msg : Map<number, any>) : void {
+		super.update(msg);
+
+		if (!this.hasMesh()) {
+			return;
 		}
+
+		const mesh = this.mesh();
+		const pos = this.pos();
+		mesh.position.x = pos.x;
+		mesh.position.y = pos.y;
+
 	}
 
-	mesh() : any {
-		return this._mesh;
+	override setMesh(mesh : THREE.Mesh) : void {
+		super.setMesh(mesh);
+
+		if (this._msg.hasOwnProperty(posProp)) {
+			mesh.position.x = this._msg[posProp].X;
+			mesh.position.y = this._msg[posProp].Y;
+		}
+		mesh.name = GameUtil.sid(this._space, this._id);
 	}
 
-	addMesh(mesh : any) : void {
-		this._mesh.add(mesh);
+	space() : number {
+		return this._space;
+	}
+
+	id() : number {
+		return this._id;
 	}
 
 	protected updateMixer() {
@@ -50,7 +69,7 @@ export class RenderObject {
 		action.setEffectiveWeight(weight);
 	}
 
-	protected fadeIn(action : any, duration : number) : void {
+	protected fadeIn(action : string, duration : number) : void {
 		if (!this._activeActions.has(action)) {
 			this._actions.get(action).reset();
 			this._actions.get(action).fadeIn(duration);
@@ -58,7 +77,7 @@ export class RenderObject {
 		}
 	}
 
-	protected fadeOut(action : any, duration : number) : void {
+	protected fadeOut(action : string, duration : number) : void {
 		if (this._activeActions.has(action)) {
 			this._actions.get(action).reset();
 			this._actions.get(action).fadeOut(duration);
@@ -66,7 +85,7 @@ export class RenderObject {
 		}
 	}
 
-	protected fadeTo(startAction : any, endAction : any, duration : number) : void {
+	protected fadeTo(startAction : string, endAction : string, duration : number) : void {
 		this.fadeOut(startAction, duration);
 		this.fadeIn(endAction, duration);
 	}

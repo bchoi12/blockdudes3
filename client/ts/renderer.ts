@@ -61,7 +61,7 @@ class Renderer {
 		this._mousePixels = mouse.clone();
 	}
 
-	adjustSound(sound : Howl, pos : THREE.Vector3) : void {
+	playSound(sound : Howl, pos : THREE.Vector3) : void {
 		let dist = new THREE.Vector2(pos.x - this._cameraController.target().x, pos.y - this._cameraController.target().y);
 		if (dist.lengthSq() <= 50) {
 			sound.volume(1);
@@ -69,6 +69,7 @@ class Renderer {
 			sound.volume(50 / dist.lengthSq());
 		}
 		sound.stereo(Math.min(1, Math.max(-1, dist.x / 10)));
+		sound.play();
 	}
 	
 	getMouseScreen() : THREE.Vector2 {

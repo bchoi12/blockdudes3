@@ -3,25 +3,27 @@ import { Howl } from 'howler';
 import { RenderObject } from './render_object.js';
 import { renderer } from './renderer.js';
 export class RenderExplosion extends RenderObject {
-    constructor(mesh) {
-        super(mesh);
+    constructor(space, id) {
+        super(space, id);
         this._light = new THREE.PointLight(0xff0000, 0, 8);
-        mesh.add(this._light);
         this._sound = new Howl({
             src: ["./sound/test3.wav"]
         });
-        renderer.compile(mesh);
         this._exploded = false;
     }
+    setMesh(mesh) {
+        mesh.add(this._light);
+        super.setMesh(mesh);
+    }
     update(msg) {
-        if (!this._exploded && msg.hasOwnProperty(posProp)) {
-            const pos = msg[posProp];
-            this._mesh.position.x = pos.X;
-            this._mesh.position.y = pos.Y;
-            renderer.adjustSound(this._sound, this._mesh.position);
-            this._sound.play();
-            this._exploded = true;
+        super.update(msg);
+        if (!this.hasMesh()) {
+            return;
+        }
+        if (!this._exploded) {
+            renderer.playSound(this._sound, this._mesh.position);
             this._light.intensity = 3;
+            this._exploded = true;
         }
     }
 }
