@@ -5,7 +5,7 @@ import { renderer } from './renderer.js';
 export class RenderExplosion extends RenderObject {
     constructor(space, id) {
         super(space, id);
-        this._light = new THREE.PointLight(0xff0000, 0, 8);
+        this._light = new THREE.PointLight(0xff0000, 0, 6);
         this._sound = new Howl({
             src: ["./sound/test3.wav"]
         });

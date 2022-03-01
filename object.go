@@ -17,9 +17,6 @@ type Object struct {
 	
 	health int
 	lastUpdateTime time.Time
-
-	// TODO: delete
-	update ObjectUpdate
 }
 
 func NewObjectData() Data {
@@ -53,13 +50,7 @@ func (o Object) GetProfile() Profile {
 }
 
 func (o *Object) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
-	if o.update == nil{
-		return false
-	}
-
-	ts := o.PrepareUpdate(now)
-	o.update(o, grid, buffer, ts)
-	return true
+	return false
 }
 
 func (o *Object) AddChild(attach Attachment) {

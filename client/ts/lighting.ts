@@ -47,7 +47,7 @@ export class Lighting extends SceneComponent {
 		this._scene.add(this._sunLight.target);
 	}
 
-	update(position : THREE.Vector3) : void {
+	override update(position : THREE.Vector3) : void {
 		this._sunLight.target.position.copy(position);
 	}
 }

@@ -137,8 +137,11 @@ func (bw *BaseWeapon) Shoot(now time.Time) []*Shot {
 		}
 
 		dist := bw.dir
-		dist.Scale(20)
-		shot := NewShot(bw, NewLine(bw.pos, dist))
+		dist.Scale(15)
+		shotPos := bw.offset
+		shotPos.Rotate(bw.Dir().Angle())
+		shotPos.Add(bw.pos, 1.0)
+		shot := NewShot(bw, NewLine(shotPos, dist))
 
 		shot.shotType = trigger.shotType
 		shot.pushForce = 5.0

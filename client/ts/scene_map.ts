@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 
 import { Lighting } from './lighting.js'
+import { particles } from './particles.js'
+import { RenderMesh } from './render_mesh.js'
 import { RenderObject } from './render_object.js'
 import { SceneComponent } from './scene_component.js'
 import { GameUtil, LogUtil, Util } from './util.js'
@@ -27,6 +29,7 @@ export class SceneMap {
 		this._components = new Array<SceneComponent>();
 		this.addComponent(new Lighting());
 		this.addComponent(new Weather());
+		this.addComponent(particles);
 	}
 
 	addComponent(component : SceneComponent) {
@@ -40,6 +43,18 @@ export class SceneMap {
 		});
 	}
 
+	// Add untracked mesh to the scene.
+	addMesh(mesh : RenderMesh) : void {
+		mesh.onMeshLoad(() => {
+			this._scene.add(mesh.mesh());
+		});
+	}
+
+	// Remove untracked mesh from the scene.
+	removeMesh(mesh : RenderMesh) : void {
+		this._scene.remove(mesh.mesh());
+	}
+
 	add(space : number, id : number, object : RenderObject) : void {
 		const map = this.getMap(space);
 		if (map.has(id)) {
@@ -47,7 +62,9 @@ export class SceneMap {
 		}
 		map.set(id, object);
 		object.onMeshLoad(() => {
-			this._scene.add(object.mesh());
+			if (this.has(space, id)) {
+				this._scene.add(object.mesh());
+			}
 		});
 	}
 

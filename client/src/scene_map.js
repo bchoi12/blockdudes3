@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Lighting } from './lighting.js';
+import { particles } from './particles.js';
 import { LogUtil, Util } from './util.js';
 import { Weather } from './weather.js';
 export class SceneMap {
@@ -13,6 +14,7 @@ export class SceneMap {
         this._components = new Array();
         this.addComponent(new Lighting());
         this.addComponent(new Weather());
+        this.addComponent(particles);
     }
     addComponent(component) {
         this._components.push(component);
@@ -23,6 +25,14 @@ export class SceneMap {
             component.update(position);
         });
     }
+    addMesh(mesh) {
+        mesh.onMeshLoad(() => {
+            this._scene.add(mesh.mesh());
+        });
+    }
+    removeMesh(mesh) {
+        this._scene.remove(mesh.mesh());
+    }
     add(space, id, object) {
         const map = this.getMap(space);
         if (map.has(id)) {
@@ -30,7 +40,9 @@ export class SceneMap {
         }
         map.set(id, object);
         object.onMeshLoad(() => {
-            this._scene.add(object.mesh());
+            if (this.has(space, id)) {
+                this._scene.add(object.mesh());
+            }
         });
     }
     has(space, id) {

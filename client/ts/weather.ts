@@ -38,7 +38,7 @@ export class Weather extends SceneComponent {
 		});
 	}
 
-	update(position : THREE.Vector3) : void {
+	override update(position : THREE.Vector3) : void {
 		this._clouds.forEach((cloud) => {
 			cloud.position.x += 0.01;
 		});

@@ -1,14 +1,15 @@
 import * as THREE from 'three';
 import {Howl} from 'howler';
 
+import { particles } from './particles.js'
 import { RenderMesh } from './render_mesh.js'
+import { RenderParticle } from './render_particle.js'
 import { renderer } from './renderer.js'
 
 export class RenderWeapon extends RenderMesh {
 	private readonly _shotLocation = "shoot";
 
-	private readonly _lineMaterial = new THREE.LineBasicMaterial( { color: 0x00ff00, linewidth: 3} );
-	private readonly _bombMaterial = new THREE.LineBasicMaterial( { color: 0x0000ff, linewidth: 3} );
+	private readonly _rayMaterial = new THREE.MeshStandardMaterial( {color: 0x00ff00} );
 
 	private _shotOrigin : THREE.Vector3;
 	private _light : THREE.PointLight;
@@ -46,21 +47,24 @@ export class RenderWeapon extends RenderMesh {
 		const pos = this.pos();
 		if (msg[shotTypeProp] == rocketShotType) {
 			renderer.playSound(this._blastSound, new THREE.Vector3(pos.x, pos.y, 0));
-			this._blastSound.play();
 			return;
 		}
 
-		// TODO: remove dependence from having the mesh loaded so we can shoot before the mesh exists.
 		const endpoint = msg[endPosProp];
 		const points = [
 			this._shotOrigin,
 			this._mesh.worldToLocal(new THREE.Vector3(endpoint.X, endpoint.Y, 0)),
 		];
 
-		const geometry = new THREE.BufferGeometry().setFromPoints(points);
-		const material = msg[shotTypeProp] == burstShotType ? this._lineMaterial : this._bombMaterial;
-		const line = new THREE.Line(geometry, material);
-		this._mesh.add(line);
+		const startLocal = this._mesh.worldToLocal(new THREE.Vector3(pos.x, pos.y, this._shotOrigin.z));
+		const endLocal = this._mesh.worldToLocal(new THREE.Vector3(endpoint.X, endpoint.Y, this._shotOrigin.z));
+		const posLocal = endLocal.clone().sub(startLocal).multiplyScalar(0.5);
+
+		const geometry = new THREE.BoxGeometry(0.1, endLocal.length(), 0.1)
+		const ray = new THREE.Mesh(geometry, this._rayMaterial);
+		ray.rotation.x = Math.PI / 2;
+		ray.position.copy(posLocal);
+		this._mesh.add(ray);
 
 		// TODO: make a singleton map for this
 		if (msg[shotTypeProp] == burstShotType) {
@@ -70,13 +74,12 @@ export class RenderWeapon extends RenderMesh {
 		}
 		this._light.intensity = 3;
 
-		renderer.playSound(this._shootSound, this._mesh.localToWorld(this._mesh.position.clone()));
-		this._shootSound.play();
+		renderer.playSound(this._shootSound, new THREE.Vector3(pos.x, pos.y, 0));
 
 		setTimeout(() => {
-			this._mesh.remove(line);
+			this._mesh.remove(ray);
 			this._light.intensity = 0;
-		}, 50);
+		}, 60);
 	}
 }
 

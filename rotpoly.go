@@ -9,7 +9,6 @@ type RotPoly struct {
 }
 
 func NewRotPoly(init Init, data Data, verts []Vec2) *RotPoly {
-	// TODO: shape needs to be convex
 	rotPoly := &RotPoly {
 		BaseProfile: NewBaseProfile(init, data),
 		verts: verts,

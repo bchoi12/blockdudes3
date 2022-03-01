@@ -70,4 +70,8 @@ export namespace MathUtil {
 		}
 		return Math.sign(n);
 	}
+
+	export function randomRange(min : number, max : number) : number {
+		return Math.random() * (max - min) + min;
+	}
 }

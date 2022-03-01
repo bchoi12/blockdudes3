@@ -79,4 +79,8 @@ export var MathUtil;
         return Math.sign(n);
     }
     MathUtil.signPos = signPos;
+    function randomRange(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+    MathUtil.randomRange = randomRange;
 })(MathUtil || (MathUtil = {}));
