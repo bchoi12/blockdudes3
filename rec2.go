@@ -143,19 +143,21 @@ func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
 	}
 
 	// Figure out collision direction
-	relativePos := NewVec2(r.Pos().X - other.Pos().X, r.Pos().Y - other.Pos().Y)
-	adjSign := NewVec2(FSign(relativePos.X), FSign(relativePos.Y))
+	// relativePos := NewVec2(r.Pos().X - other.Pos().X, r.Pos().Y - other.Pos().Y)
 	relativeVel := NewVec2(r.TotalVel().X - other.TotalVel().X, r.TotalVel().Y - other.TotalVel().Y)
+	adjSign := NewVec2(-FSign(relativeVel.X), -FSign(relativeVel.Y))
 
 	// Zero out adjustments according to relative velocity.
+	/*
 	if !adjSign.IsZero() {
-		if Sign(adjSign.X) == Sign(relativeVel.X) || Abs(relativeVel.X) < zeroVelEpsilon {
+		if Abs(relativeVel.X) < zeroVelEpsilon && Abs(relativeVel.Y) > zeroVelEpsilon {
 			adjSign.X = 0
 		}
-		if Sign(adjSign.Y) == Sign(relativeVel.Y) || Abs(relativeVel.Y) < zeroVelEpsilon {
+		if Abs(relativeVel.Y) < zeroVelEpsilon && Abs(relativeVel.X) > zeroVelEpsilon {
 			adjSign.Y = 0
 		}
 	}
+	*/
 
 	// Check for tiny collisions that we can ignore
 	if adjSign.X != 0 && adjSign.Y != 0 {

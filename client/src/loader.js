@@ -45,7 +45,6 @@ export class Loader {
                     data.scene.getObjectByName("mesh").castShadow = true;
                     data.scene.getObjectByName("mesh").receiveShadow = true;
                 }
-                LogUtil.d(data);
                 break;
             case Model.UZI:
             case Model.ROCKET:

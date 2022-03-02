@@ -1,5 +1,7 @@
 import * as THREE from 'three';
+import { particles } from './particles.js';
 import { RenderObject } from './render_object.js';
+import { RenderParticle } from './render_particle.js';
 import { MathUtil, Util } from './util.js';
 var PlayerAction;
 (function (PlayerAction) {
@@ -12,9 +14,10 @@ export class RenderPlayer extends RenderObject {
         super(space, id);
         this._sqrtHalf = .70710678;
         this._rotationOffset = -0.1;
+        this._cloudMaterial = new THREE.MeshStandardMaterial({ color: 0xdddddd, transparent: true, opacity: 0.7 });
         this._pointsMaterial = new THREE.PointsMaterial({ color: 0x000000, size: 0.2 });
         this._lastUpdate = Date.now();
-        this._grounded = true;
+        this._grounded = false;
         this._actions = new Map();
     }
     setMesh(mesh) {
@@ -59,8 +62,22 @@ export class RenderPlayer extends RenderObject {
             armOffset.setLength(Math.min(armOffset.length(), 0.4 * Math.max(0, (Date.now() - this._lastUpdate) / 1000)));
             arm.position.add(armOffset);
         }
-        this._grounded = Util.getOr(msg, groundedProp, this._grounded);
-        if (!this._grounded) {
+        if (this.grounded() != this._grounded) {
+            this._grounded = this.grounded();
+            if (vel.y >= 0) {
+                const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(0.3, 6, 6), this._cloudMaterial);
+                cloudMesh.position.x = pos.x;
+                cloudMesh.position.y = pos.y - this.dim().y / 2;
+                cloudMesh.position.z = 0.5;
+                const cloud = new RenderParticle();
+                cloud.setMesh(cloudMesh);
+                cloud.setUpdate(() => {
+                    cloud.mesh().scale.multiplyScalar(0.92);
+                });
+                particles.add(cloud, 800);
+            }
+        }
+        if (!this.grounded()) {
             this.fadeOut(PlayerAction.Idle, 0.1);
             this.fadeOut(PlayerAction.Walk, 0.1);
             this.fadeIn(PlayerAction.Jump, 0.1);

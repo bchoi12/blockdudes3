@@ -22,13 +22,9 @@ class Particles extends SceneComponent {
 			this._particles.set(id, particle);
 			this._scene.add(particle.mesh());
 
-			console.log("new particle " + id);
-
 			setTimeout(() => {
 				this._particles.delete(id);
 				this._scene.remove(particle.mesh());
-
-				console.log("particle gone " + id);
 			}, ttl);
 		});
 	}

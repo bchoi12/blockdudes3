@@ -42,7 +42,7 @@ export class RenderProjectile extends RenderObject {
 		projectile.rotateZ(this._rotateZ);
 
 		if (Date.now() - this._lastSmoke >= this._smokeInterval) {
-			const smokeMesh = new THREE.Mesh(new THREE.SphereGeometry(0.1 + 0.1 * Math.random(), 3, 3), this._smokeMaterial);
+			const smokeMesh = new THREE.Mesh(new THREE.SphereGeometry(MathUtil.randomRange(0.1, 0.2), 3, 3), this._smokeMaterial);
 			smokeMesh.position.x = pos.x + MathUtil.randomRange(-0.1, 0.1);
 			smokeMesh.position.y = pos.y + MathUtil.randomRange(-0.1, 0.1);
 			smokeMesh.position.z = this._positionZ + MathUtil.randomRange(-0.1, 0.1);

@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         go.run(result.instance);
         ui.setup();
         game.setup();
+        HtmlUtil.elm("wasm-check").style.display = "none";
         wasmLoaded = true;
     });
 });

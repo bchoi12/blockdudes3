@@ -50,20 +50,10 @@ export class RenderWeapon extends RenderMesh {
 			return;
 		}
 
-		const endpoint = msg[endPosProp];
-		const points = [
-			this._shotOrigin,
-			this._mesh.worldToLocal(new THREE.Vector3(endpoint.X, endpoint.Y, 0)),
-		];
-
-		const startLocal = this._mesh.worldToLocal(new THREE.Vector3(pos.x, pos.y, this._shotOrigin.z));
-		const endLocal = this._mesh.worldToLocal(new THREE.Vector3(endpoint.X, endpoint.Y, this._shotOrigin.z));
-		const posLocal = endLocal.clone().sub(startLocal).multiplyScalar(0.5);
-
-		const geometry = new THREE.BoxGeometry(0.1, endLocal.length(), 0.1)
+		const range = this.endPos().sub(this.pos()).length();
+		const geometry = new THREE.BoxGeometry(0.1, 0.1, range);
 		const ray = new THREE.Mesh(geometry, this._rayMaterial);
-		ray.rotation.x = Math.PI / 2;
-		ray.position.copy(posLocal);
+		ray.position.z = range / 2;
 		this._mesh.add(ray);
 
 		// TODO: make a singleton map for this

@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 
+import { particles } from './particles.js'
 import { RenderObject } from './render_object.js'
+import { RenderParticle } from './render_particle.js'
 import { RenderWeapon} from './render_weapon.js'
 import { MathUtil, Util } from './util.js'
 
@@ -14,13 +16,14 @@ enum PlayerAction {
 export class RenderPlayer extends RenderObject {
 	private readonly _sqrtHalf = .70710678;
 	private readonly _rotationOffset = -0.1;
+	private readonly _cloudMaterial = new THREE.MeshStandardMaterial( {color: 0xdddddd , transparent: true, opacity: 0.7} );
 	private readonly _pointsMaterial = new THREE.PointsMaterial( { color: 0x000000, size: 0.2} );
 
 	private _lastUpdate : number;
+	private _grounded : boolean;
 
 	private _weapon : RenderWeapon;
 	private _armOrigin : THREE.Vector3;
-	private _grounded : boolean;
 
 	private _profileMesh : THREE.Mesh;
 	private _profilePoints : THREE.BufferGeometry;
@@ -30,7 +33,9 @@ export class RenderPlayer extends RenderObject {
 		super(space, id);
 
 		this._lastUpdate = Date.now();
-		this._grounded = true;
+		this._grounded = false;
+
+		// TODO: initializing actions here is weird
 		this._actions = new Map<PlayerAction, any>();
 	}
 
@@ -89,8 +94,24 @@ export class RenderPlayer extends RenderObject {
 			arm.position.add(armOffset);
 		}
 
-		this._grounded = Util.getOr(msg, groundedProp, this._grounded);
-		if (!this._grounded) {
+		if (this.grounded() != this._grounded) {
+			this._grounded = this.grounded();
+
+			if (vel.y >= 0) {
+				const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(0.3, 6, 6), this._cloudMaterial);
+				cloudMesh.position.x = pos.x;
+				cloudMesh.position.y = pos.y - this.dim().y / 2;
+				cloudMesh.position.z = 0.5;
+				const cloud = new RenderParticle();
+				cloud.setMesh(cloudMesh);
+				cloud.setUpdate(() => {
+					cloud.mesh().scale.multiplyScalar(0.92);
+				});
+				particles.add(cloud, 800);
+			}
+		}
+
+		if (!this.grounded()) {
 			this.fadeOut(PlayerAction.Idle, 0.1);
 			this.fadeOut(PlayerAction.Walk, 0.1);
 			this.fadeIn(PlayerAction.Jump, 0.1);

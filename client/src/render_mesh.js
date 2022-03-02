@@ -9,7 +9,13 @@ export class RenderMesh {
         this._hasParent = false;
     }
     update(msg) {
-        this._msg = msg;
+        Object.assign(this._msg, msg);
+        if (msg.hasOwnProperty(groundedProp)) {
+            console.log("grounded: " + msg[groundedProp]);
+            console.log("after set: " + this._msg[groundedProp]);
+            console.log("has: " + this.hasGrounded());
+            console.log("grounded: " + this.grounded());
+        }
     }
     msg() {
         return this._msg;
@@ -20,6 +26,24 @@ export class RenderMesh {
     pos() {
         if (this.hasPos()) {
             return new THREE.Vector2(this._msg[posProp].X, this._msg[posProp].Y);
+        }
+        return new THREE.Vector2(0, 0);
+    }
+    hasDim() {
+        return this._msg.hasOwnProperty(dimProp);
+    }
+    dim() {
+        if (this.hasDim()) {
+            return new THREE.Vector2(this._msg[dimProp].X, this._msg[dimProp].Y);
+        }
+        return new THREE.Vector2(0, 0);
+    }
+    hasEndPos() {
+        return this._msg.hasOwnProperty(endPosProp);
+    }
+    endPos() {
+        if (this.hasEndPos()) {
+            return new THREE.Vector2(this._msg[endPosProp].X, this._msg[endPosProp].Y);
         }
         return new THREE.Vector2(0, 0);
     }
@@ -58,6 +82,15 @@ export class RenderMesh {
             return new THREE.Vector2(this._msg[weaponDirProp].X, this._msg[weaponDirProp].Y);
         }
         return new THREE.Vector2(1, 0);
+    }
+    hasGrounded() {
+        return this._msg.hasOwnProperty(groundedProp);
+    }
+    grounded() {
+        if (this.hasGrounded()) {
+            return this._msg[groundedProp];
+        }
+        return true;
     }
     mesh() {
         return this._mesh;

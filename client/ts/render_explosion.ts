@@ -13,7 +13,7 @@ export class RenderExplosion extends RenderObject {
 	constructor(space : number, id : number) {
 		super(space, id);
 
-		this._light = new THREE.PointLight(0xff0000, 0, 6);
+		this._light = new THREE.PointLight(0xff0000, 0, 3);
 		this._sound = new Howl({
 			src: ["./sound/test3.wav"]
 		});
