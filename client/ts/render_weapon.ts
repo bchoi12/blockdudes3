@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Gyroscope } from 'three/examples/jsm/misc/Gyroscope.js'
 import {Howl} from 'howler';
 
 import { particles } from './particles.js'
@@ -12,6 +13,7 @@ export class RenderWeapon extends RenderMesh {
 
 	private readonly _rayMaterial = new THREE.MeshStandardMaterial( {color: 0x00ff00} );
 
+	private _gyro : Gyroscope;
 	private _shotOrigin : THREE.Vector3;
 	private _light : THREE.PointLight;
 
@@ -21,6 +23,7 @@ export class RenderWeapon extends RenderMesh {
 	constructor() {
 		super();
 
+		this._gyro = new Gyroscope();
 		this._shotOrigin = new THREE.Vector3(0, 0, 0);
 		this._light = new THREE.PointLight(0x00ff00, 0, 3);
 		this._shootSound = new Howl({
@@ -34,6 +37,8 @@ export class RenderWeapon extends RenderMesh {
 	override setMesh(mesh : THREE.Mesh) : void {
 		mesh.rotation.x = Math.PI / 2;
 		mesh.scale.z = -1;
+
+		mesh.add(this._gyro);
 
 		this._shotOrigin = mesh.getObjectByName(this._shotLocation).position;
 		this._light.position.copy(this._shotOrigin);
@@ -52,20 +57,15 @@ export class RenderWeapon extends RenderMesh {
 		}
 
 		const localPos = this.endPos().sub(this.pos());
+		const angle = localPos.angle();
 		const range = localPos.length();
 
-		const geometry = new THREE.BoxGeometry(0.1, 0.1, range);
+		const geometry = new THREE.BoxGeometry(range, 0.1, 0.1);
 		const ray = new THREE.Mesh(geometry, this._rayMaterial);
-
-		const parentAngle = this.parent().weaponDir().angle();
-		const angleDiff = parentAngle - localPos.angle();
-
-		console.log(parentAngle + " " + localPos.angle() + " " + angleDiff);
-
-		ray.position.y = Math.sin(angleDiff) * range / 2;
-		ray.position.z = Math.cos(angleDiff) * range / 2;
-
-		this._mesh.add(ray);
+		ray.rotation.z = localPos.x > 0 ? Math.PI - angle : angle;
+		ray.position.x = Math.cos(ray.rotation.z) * range / 2;
+		ray.position.y = Math.sin(ray.rotation.z) * range / 2;
+		this._gyro.add(ray);
 
 		// TODO: make a singleton map for this
 		if (msg[shotTypeProp] == burstShotType) {
@@ -78,7 +78,7 @@ export class RenderWeapon extends RenderMesh {
 		renderer.playSound(this._shootSound, new THREE.Vector3(pos.x, pos.y, 0));
 
 		setTimeout(() => {
-			this._mesh.remove(ray);
+			this._gyro.remove(ray);
 			this._light.intensity = 0;
 		}, 60);
 	}
