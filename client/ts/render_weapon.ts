@@ -3,6 +3,7 @@ import {Howl} from 'howler';
 
 import { particles } from './particles.js'
 import { RenderMesh } from './render_mesh.js'
+import { RenderObject } from './render_object.js'
 import { RenderParticle } from './render_particle.js'
 import { renderer } from './renderer.js'
 
@@ -50,10 +51,20 @@ export class RenderWeapon extends RenderMesh {
 			return;
 		}
 
-		const range = this.endPos().sub(this.pos()).length();
+		const localPos = this.endPos().sub(this.pos());
+		const range = localPos.length();
+
 		const geometry = new THREE.BoxGeometry(0.1, 0.1, range);
 		const ray = new THREE.Mesh(geometry, this._rayMaterial);
-		ray.position.z = range / 2;
+
+		const parentAngle = this.parent().weaponDir().angle();
+		const angleDiff = parentAngle - localPos.angle();
+
+		console.log(parentAngle + " " + localPos.angle() + " " + angleDiff);
+
+		ray.position.y = Math.sin(angleDiff) * range / 2;
+		ray.position.z = Math.cos(angleDiff) * range / 2;
+
 		this._mesh.add(ray);
 
 		// TODO: make a singleton map for this

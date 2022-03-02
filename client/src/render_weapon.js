@@ -31,10 +31,15 @@ export class RenderWeapon extends RenderMesh {
             renderer.playSound(this._blastSound, new THREE.Vector3(pos.x, pos.y, 0));
             return;
         }
-        const range = this.endPos().sub(this.pos()).length();
+        const localPos = this.endPos().sub(this.pos());
+        const range = localPos.length();
         const geometry = new THREE.BoxGeometry(0.1, 0.1, range);
         const ray = new THREE.Mesh(geometry, this._rayMaterial);
-        ray.position.z = range / 2;
+        const parentAngle = this.parent().weaponDir().angle();
+        const angleDiff = parentAngle - localPos.angle();
+        console.log(parentAngle + " " + localPos.angle() + " " + angleDiff);
+        ray.position.y = Math.sin(angleDiff) * range / 2;
+        ray.position.z = Math.cos(angleDiff) * range / 2;
         this._mesh.add(ray);
         if (msg[shotTypeProp] == burstShotType) {
             this._light.color.setHex(0x00ff00);

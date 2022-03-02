@@ -25,21 +25,6 @@ export class RenderMesh {
 
 	update(msg : Map<number, any>) : void {
 		Object.assign(this._msg, msg);
-
-		/*
-		this._msg = {
-			...this._msg,
-			...msg,
-		};
-		*/
-
-		if (msg.hasOwnProperty(groundedProp)) {
-			console.log("grounded: " + msg[groundedProp]);
-			console.log("after set: " + this._msg[groundedProp]);
-
-			console.log("has: " + this.hasGrounded());
-			console.log("grounded: " + this.grounded());
-		}
 	}
 
 	msg() : Map<number, any> {
