@@ -72,6 +72,7 @@ class UI {
         });
         this.initMouseListener();
         this.initKeyListeners();
+        this.changeInputMode(InputMode.GAME);
     }
     updateStats(ping, fps) {
         HtmlUtil.elm("stats").textContent = "Ping : " + ping + " | FPS: " + fps;

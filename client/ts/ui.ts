@@ -94,6 +94,7 @@ class UI {
 
 		this.initMouseListener();
 		this.initKeyListeners();
+		this.changeInputMode(InputMode.GAME);
 	}
 
 	updateStats(ping : number, fps : number) {
