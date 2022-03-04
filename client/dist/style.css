@@ -9,6 +9,44 @@ html, body {
 	font-size: 2vh;
 }
 
+#div-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 60%;
+ 	margin: 0 auto;
+  font-size: 2.5vh;
+}
+
+#fieldset-form {
+	width: 90%;
+
+	padding: 20px;
+	border-radius: 10px;
+	border: 1px solid;
+}
+
+#form-login {
+	padding: 10px;
+	text-align: center;
+}
+
+.form-input {
+	text-align: center;
+	width: 80%;
+	margin-bottom: 12px;
+}
+
+#form-login #login {
+	width: 50%;
+	display: none;
+}
+
+#form-title {
+	padding: 5px;
+}
+
 #div-game {
 	display: none;
 }

@@ -143,21 +143,9 @@ func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
 	}
 
 	// Figure out collision direction
-	// relativePos := NewVec2(r.Pos().X - other.Pos().X, r.Pos().Y - other.Pos().Y)
+	relativePos := NewVec2(r.Pos().X - other.Pos().X, r.Pos().Y - other.Pos().Y)
 	relativeVel := NewVec2(r.TotalVel().X - other.TotalVel().X, r.TotalVel().Y - other.TotalVel().Y)
 	adjSign := NewVec2(-FSign(relativeVel.X), -FSign(relativeVel.Y))
-
-	// Zero out adjustments according to relative velocity.
-	/*
-	if !adjSign.IsZero() {
-		if Abs(relativeVel.X) < zeroVelEpsilon && Abs(relativeVel.Y) > zeroVelEpsilon {
-			adjSign.X = 0
-		}
-		if Abs(relativeVel.Y) < zeroVelEpsilon && Abs(relativeVel.X) > zeroVelEpsilon {
-			adjSign.Y = 0
-		}
-	}
-	*/
 
 	// Check for tiny collisions that we can ignore
 	if adjSign.X != 0 && adjSign.Y != 0 {
@@ -167,6 +155,17 @@ func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
 			adjSign.Y = 0
 		}
 	}
+
+	// Zero out adjustments according to relative velocity.
+	if adjSign.X != 0 && adjSign.Y != 0 {
+		if SignPos(relativePos.X) == SignPos(relativeVel.X) || Abs(relativeVel.X) < zeroVelEpsilon && Abs(relativeVel.Y) > zeroVelEpsilon {
+			adjSign.X = 0
+		}
+		if SignPos(relativePos.Y) == SignPos(relativeVel.Y) || Abs(relativeVel.Y) < zeroVelEpsilon && Abs(relativeVel.X) > zeroVelEpsilon {
+			adjSign.Y = 0
+		}
+	}
+
 
 	// If collision happens in both X, Y compute which overlap is greater based on velocity.
 	if adjSign.X != 0 && adjSign.Y != 0 {

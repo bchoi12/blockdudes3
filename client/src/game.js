@@ -136,11 +136,17 @@ class Game {
                             renderObj.setMesh(mesh);
                         });
                     }
-                    else {
+                    else if (space === bombSpace) {
                         const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 12, 8), this._bombMaterial);
                         mesh.rotation.x = Math.random() * Math.PI;
                         mesh.rotation.y = Math.random() * Math.PI;
                         mesh.rotation.z = Math.random() * Math.PI;
+                        mesh.receiveShadow = true;
+                        renderObj = new RenderObject(space, id);
+                        renderObj.setMesh(mesh);
+                    }
+                    else {
+                        const mesh = new THREE.Mesh(new THREE.SphereGeometry(object[dimProp].X / 2, 12, 8), this._bombMaterial);
                         mesh.receiveShadow = true;
                         renderObj = new RenderObject(space, id);
                         renderObj.setMesh(mesh);

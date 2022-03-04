@@ -24,14 +24,16 @@ export class RenderProjectile extends RenderObject {
         }
         const pos = this.pos();
         const vel = this.vel();
+        const dim = this.dim();
+        const dir = this.vel().clone().normalize();
         const angle = vel.angle() * -1;
         const projectile = this.mesh().getObjectByName("mesh");
         projectile.rotation.x = angle;
         projectile.rotateZ(this._rotateZ);
         if (Date.now() - this._lastSmoke >= this._smokeInterval) {
             const smokeMesh = new THREE.Mesh(new THREE.SphereGeometry(MathUtil.randomRange(0.1, 0.2), 3, 3), this._smokeMaterial);
-            smokeMesh.position.x = pos.x + MathUtil.randomRange(-0.1, 0.1);
-            smokeMesh.position.y = pos.y + MathUtil.randomRange(-0.1, 0.1);
+            smokeMesh.position.x = pos.x - dim.x / 2 * dir.x + MathUtil.randomRange(-0.1, 0.1);
+            smokeMesh.position.y = pos.y - dim.y / 2 * dir.y + MathUtil.randomRange(-0.1, 0.1);
             smokeMesh.position.z = this._positionZ + MathUtil.randomRange(-0.1, 0.1);
             const smoke = new RenderParticle();
             smoke.setMesh(smokeMesh);

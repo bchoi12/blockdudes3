@@ -178,9 +178,7 @@ func (r *Rocket) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	}
 
 	if time.Now().Sub(r.creationTime) >= r.ttlDuration {
-		init := NewInit(grid.NextSpacedId(explosionSpace), NewInitData(r.Pos(), NewVec2(4, 4)))	
-		grid.Upsert(NewExplosion(init))
-		grid.Delete(r.GetSpacedId())
+		r.Explode(grid)
 		return true
 	}
 
@@ -197,29 +195,42 @@ func (r *Rocket) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 			continue
 		}
 
-		init := NewInit(grid.NextSpacedId(explosionSpace), NewInitData(r.Pos(), NewVec2(4, 4)))	
-		grid.Upsert(NewExplosion(init))
-		grid.Delete(r.GetSpacedId())
+		r.Explode(grid)
 		return true
 	}
 	return true
 }
 
+func (r *Rocket) Explode(grid * Grid) {
+	init := NewInit(grid.NextSpacedId(explosionSpace), NewInitData(r.Pos(), NewVec2(4, 4)))	
+	grid.Upsert(NewExplosion(init))
+	grid.Delete(r.GetSpacedId())
+}
+
 type Explosion struct {
 	Object
 	hits map[SpacedId]bool
+
+	activeFrames int
+	creationTime time.Time
+	ttlDuration time.Duration
 }
 
 func NewExplosion(init Init) *Explosion {
 	explosion := &Explosion {
 		Object: NewCircleObject(init),
 		hits: make(map[SpacedId]bool, 0),
+		activeFrames: 3,
+		creationTime: time.Now(),
+		ttlDuration: 300 * time.Millisecond,
 	}
-	explosion.health = 300
 	return explosion
 }
 
 func (e *Explosion) Hit(p *Player) {
+	if e.activeFrames <= 0 {
+		return
+	}
 	if e.hits[p.GetSpacedId()] {
 		return
 	}
@@ -237,14 +248,14 @@ func (e *Explosion) Hit(p *Player) {
 }
 
 func (e *Explosion) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
-	ts := e.PrepareUpdate(now)
+	e.PrepareUpdate(now)
 
 	if isWasm {
 		return true
 	}
 
-	e.health -= int(1000 * ts)
-	if e.health <= 0 {
+	e.activeFrames -= 1
+	if now.Sub(e.creationTime) >= e.ttlDuration {
 		grid.Delete(e.GetSpacedId())
 	}
 	return true

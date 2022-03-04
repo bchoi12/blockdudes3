@@ -11,7 +11,7 @@ func NewCircle(init Init, data Data) *Circle {
 }
 
 func (c Circle) Radius() float64 {
-	return c.Dim().X
+	return c.Dim().X / 2
 }
 
 func (c Circle) RadiusSqr() float64 {

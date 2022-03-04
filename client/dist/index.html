@@ -16,15 +16,20 @@
 		}
 	</script>
 	<main>
-		<div id="js-check">Loading Javascript...</div>
-		<div id="wasm-check">Loading WebAssembly...</div>
 		<div id="div-login">
 			<iframe name="iframe-empty" style="display:none"></iframe>
-			<form id="form-login" action="about:blank" target="iframe-empty">
-				<input id="name" type="text" placeholder="name" maxlength="16" required>
-				<input id="room" type="text" placeholder="room" maxlength="10" required>
-				<input id="login" type="submit" value="enter">
-			</form>
+			<fieldset id="form-fieldset">
+    			<legend id="form-title">Join Game</legend>
+				<form id="form-login" action="about:blank" target="iframe-empty">
+					<input id="name" class="form-input" type="text" placeholder="Enter a name" maxlength="16" required>
+					<input id="room" class="form-input" type="text" placeholder="Enter a room code" maxlength="10" required>
+					<div id="form-button">
+						<div id="js-check">Loading Javascript...</div>
+						<div id="wasm-check">Loading WebAssembly...</div>
+						<input id="login" type="submit" value="Join">
+					</div>
+				</form>
+		    </fieldset>
 		</div>
 		<div id="div-game">
 			<div id="div-canvas">	

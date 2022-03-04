@@ -62,7 +62,7 @@ export class RenderWeapon extends RenderMesh {
 
 		const geometry = new THREE.BoxGeometry(range, 0.1, 0.1);
 		const ray = new THREE.Mesh(geometry, this._rayMaterial);
-		ray.rotation.z = localPos.x > 0 ? Math.PI - angle : angle;
+		ray.rotation.z = this.parent().dir().x > 0 ? Math.PI - angle : angle;
 		ray.position.x = Math.cos(ray.rotation.z) * range / 2;
 		ray.position.y = Math.sin(ray.rotation.z) * range / 2;
 		this._gyro.add(ray);

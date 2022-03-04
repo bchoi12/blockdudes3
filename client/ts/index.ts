@@ -12,10 +12,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
 	HtmlUtil.elm("js-check").style.display = "none";
 	if (Util.isDev()) {
 		LogUtil.d("Dev mode enabled!");
+		HtmlUtil.inputElm("name").value = "b";
 	}
 
-	HtmlUtil.inputElm("name").value = "b";
-	HtmlUtil.inputElm("room").value = "room";
+	HtmlUtil.inputElm("room").value = "test_room";
 
 	WebAssembly.instantiateStreaming(fetch("./game.wasm"), go.importObject).then((result) => {
 		go.run(result.instance);
@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 		HtmlUtil.elm("wasm-check").style.display = "none";
 		wasmLoaded = true;
+		HtmlUtil.elm("login").style.display = "inline-block";
 	});
 })
 

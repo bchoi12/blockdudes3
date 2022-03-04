@@ -167,19 +167,6 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 
 	p.SetAcc(acc)
 
-	// Shooting & recoil
-	p.weapon.SetPos(p.GetSubProfile(bodySubProfile).Pos())
-	if p.keyDown(mouseClick) {
-		p.weapon.PressTrigger(primaryTrigger)
-	}
-	if p.keyDown(altMouseClick) {
-		p.weapon.PressTrigger(secondaryTrigger)
-	}
-	shots := p.weapon.Shoot(now)
-	if len(shots) > 0 {
-		buffer.rawShots = append(buffer.rawShots, shots...)
-	}
-
 	// Grounded actions
 	if grounded {
 		p.canJumpFrames = maxCanJumpFrames
@@ -236,6 +223,19 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	pos.Add(p.TotalVel(), ts)
 	p.SetPos(pos)
 	p.checkCollisions(grid)
+
+	// Shooting & recoil
+	p.weapon.SetPos(p.GetSubProfile(bodySubProfile).Pos())
+	if p.keyDown(mouseClick) {
+		p.weapon.PressTrigger(primaryTrigger)
+	}
+	if p.keyDown(altMouseClick) {
+		p.weapon.PressTrigger(secondaryTrigger)
+	}
+	shots := p.weapon.Shoot(now)
+	if len(shots) > 0 {
+		buffer.rawShots = append(buffer.rawShots, shots...)
+	}
 
 	// Save state
 	p.lastKeys = p.keys
