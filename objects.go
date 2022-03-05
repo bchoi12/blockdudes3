@@ -89,25 +89,29 @@ func (p *Platform) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) 
 
 type Bomb struct {
 	Object
+
+	creationTime time.Time
+	ttlDuration time.Duration
 }
 
 func NewBomb(init Init) *Bomb {
 	bomb := &Bomb {
 		Object: NewCircleObject(init),
+
+		creationTime: time.Now(),
+		ttlDuration: 1200 * time.Millisecond,
 	}
-	bomb.health = 1200
 	return bomb
 }
 
 func (b *Bomb) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
-	ts := b.PrepareUpdate(now)
+	b.PrepareUpdate(now)
 
 	if isWasm {
 		return true
 	}
 
-	b.health -= int(1000 * ts)
-	if b.health <= 0 {
+	if now.Sub(b.creationTime) > b.ttlDuration {
 		pos := b.Pos()
 		dim := b.Dim()
 		dim.Scale(3.6)

@@ -61,7 +61,7 @@ class Game {
         const msg = ui.createKeyMsg(this._keyUpdates);
         if (renderer.sceneMap().has(playerSpace, this._id)) {
             const mouse = renderer.getMouseWorld();
-            const player = renderer.sceneMap().get(playerSpace, this._id).mesh().position;
+            const player = renderer.sceneMap().get(playerSpace, this._id).pos();
             const dir = new THREE.Vector2(mouse.x - player.x, mouse.y - player.y);
             dir.normalize();
             msg.Key.D = {

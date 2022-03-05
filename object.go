@@ -86,6 +86,8 @@ func (o *Object) SetData(data Data) {
 	if data.Has(healthProp) {
 		o.health = data.Get(healthProp).(int)
 	}
+
+	o.lastUpdateTime = time.Now()
 }
 
 func (o Object) GetData() Data {

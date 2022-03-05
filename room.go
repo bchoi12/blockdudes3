@@ -65,6 +65,8 @@ func createOrJoinRoom(room string, name string, ws *websocket.Conn) {
 		}
 
 		rooms[room].game.loadLevel(testLevel)
+		log.Printf("Created new room %s", room)
+
 
 		go rooms[room].run()
 	}
@@ -86,15 +88,15 @@ func (r *Room) run() {
 				r.clients[client.id] = client
 				err := r.addClient(client)
 				if err != nil {
-					log.Printf("Failed to add client to room: %v", err)
+					log.Printf("Failed to add client %s to room: %v", client.getDisplayName(), err)
 					delete(r.clients, client.id)
 					continue
 				}
-				log.Printf("New client for %s, %d total", r.id, len(r.clients))
+				log.Printf("New client %s joined %s, total=%d", client.getDisplayName(), r.id, len(r.clients))
 			case client := <-r.unregister:
 				err := r.deleteClient(client)
 				if err != nil {
-					log.Printf("Failed to delete client %d from %s: %v", client.id, r.id, err)
+					log.Printf("Failed to delete client %s from %s: %v", client.getDisplayName(), r.id, err)
 				} else if len(r.clients) == 0 {
 					return
 				}
@@ -195,7 +197,6 @@ func (r *Room) addClient(c *Client) error {
 	r.game.add(NewInit(Id(playerSpace, c.id), NewInitData(NewVec2(5, 5), NewVec2(0.8, 1.44))))
 	playerJoinMsg := r.game.createPlayerJoinMsg(c.id)
 	r.send(&playerJoinMsg)
-
 	return nil
 }
 
@@ -207,7 +208,7 @@ func (r *Room) deleteClient(c *Client) error {
 		}
 		r.game.delete(Id(playerSpace, c.id))
 		delete(r.clients, c.id)
-		log.Printf("Unregistering client %d total", len(r.clients))
+		log.Printf("Unregistering client %s, total=%d", c.getDisplayName(), len(r.clients))
 	}
 	return nil
 }

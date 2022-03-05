@@ -138,8 +138,9 @@ func (bp BaseProfile) GetData() Data {
 	if solid, ok := bp.solid.Pop(); ok {
 		data.Set(solidProp, solid)
 	}
-	if grounded, ok := bp.grounded.Pop(); ok {
-		data.Set(groundedProp, grounded)
+
+	if bp.grounded.Has() {
+		data.Set(groundedProp, bp.grounded.Peek())
 	}
 
 	return data

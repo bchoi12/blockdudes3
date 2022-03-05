@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pion/webrtc/v3"
 	"log"
+	"strconv"
 )
 
 type Client struct {
@@ -34,6 +35,10 @@ func NewClient(room* Room, ws *websocket.Conn, name string) *Client {
 	return client
 }
 
+func (c Client) getDisplayName() string {
+	return c.name + " #" + strconv.Itoa(int(c.id))
+}
+
 func (c *Client) getClientData() ClientData {
 	return ClientData {
 		Id: c.id,
@@ -56,7 +61,7 @@ func (c *Client) initWebRTC() error {
 	}
 
 	c.wrtc.OnConnectionStateChange(func(s webrtc.PeerConnectionState) {
-		log.Printf("Client data channel for %d has changed: %s", c.id, s.String())
+		log.Printf("Client data channel for %s has changed: %s", c.getDisplayName(), s.String())
 	})
 
 	ordered := false
@@ -71,7 +76,7 @@ func (c *Client) initWebRTC() error {
 	}
 
 	c.dc.OnOpen(func() {
-		log.Printf("Opened data channel for client %d: %s-%d", c.id, c.dc.Label(), c.dc.ID())
+		log.Printf("Opened data channel for %s: %s-%d", c.getDisplayName(), c.dc.Label(), c.dc.ID())
 	})
 	c.dc.OnMessage(func(msg webrtc.DataChannelMessage) {
 		imsg := IncomingMsg{
