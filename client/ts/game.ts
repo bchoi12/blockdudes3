@@ -74,7 +74,7 @@ class Game {
 	}
 
 	private animate() : void {
-		this.extrapolateState();
+		// this.extrapolateState();
 		this.updateCamera();
 		this.extrapolatePlayerDir();
 		renderer.render();
@@ -258,7 +258,7 @@ class Game {
 	private extrapolatePlayerDir() : void {
 		if (renderer.sceneMap().has(playerSpace, this._id)) {
 	   		const mouse = renderer.getMouseWorld();
-	   		const player = renderer.sceneMap().get(playerSpace, this._id).mesh().position;
+	   		const player = renderer.sceneMap().get(playerSpace, this._id).pos();
 
 	   		const dir = new THREE.Vector2(mouse.x - player.x, mouse.y - player.y);
 	   		dir.normalize();
@@ -332,7 +332,7 @@ class Game {
 		if (!renderer.sceneMap().has(playerSpace, this._id)) return;
 
 		const playerRender = renderer.sceneMap().get(playerSpace, this._id);
-		renderer.setCamera(playerRender.mesh().position);
+		renderer.setCamera(playerRender.pos());
 	}
 }
 
