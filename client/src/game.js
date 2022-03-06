@@ -50,6 +50,7 @@ class Game {
         updateStats();
     }
     animate() {
+        this.extrapolateState();
         this.updateCamera();
         this.extrapolatePlayerDir();
         renderer.render();
@@ -271,8 +272,8 @@ class Game {
             return;
         if (!renderer.sceneMap().has(playerSpace, this._id))
             return;
-        const playerRender = renderer.sceneMap().get(playerSpace, this._id);
-        renderer.setCamera(playerRender.pos());
+        const playerPos = renderer.sceneMap().get(playerSpace, this._id).pos();
+        renderer.setCamera(new THREE.Vector3(playerPos.x, playerPos.y, 0));
     }
 }
 export const game = new Game();

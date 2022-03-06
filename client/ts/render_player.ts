@@ -146,6 +146,10 @@ export class RenderPlayer extends RenderObject {
 	}
 
 	setDir(dir : THREE.Vector2, weaponDir : THREE.Vector2) {
+		if (!this.hasMesh()) {
+			return;
+		}
+
 		// Match rotation with server logic
 		if (Math.abs(dir.x) < 0.3 && MathUtil.signPos(dir.x) != MathUtil.signPos(this.dir().x)) {
 			dir.x = MathUtil.signPos(this.dir().x) * Math.abs(dir.x);

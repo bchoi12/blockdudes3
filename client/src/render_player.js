@@ -109,6 +109,9 @@ export class RenderPlayer extends RenderObject {
         }
     }
     setDir(dir, weaponDir) {
+        if (!this.hasMesh()) {
+            return;
+        }
         if (Math.abs(dir.x) < 0.3 && MathUtil.signPos(dir.x) != MathUtil.signPos(this.dir().x)) {
             dir.x = MathUtil.signPos(this.dir().x) * Math.abs(dir.x);
         }
