@@ -1,16 +1,14 @@
 import * as THREE from 'three';
 import { CameraController } from './camera_controller.js';
-import { SceneMap } from './scene_map.js';
+import { game } from './game.js';
 import { HtmlUtil } from './util.js';
 import { options } from './options.js';
 class Renderer {
     constructor() {
-        this._rendererElm = "renderer";
-        this._canvas = HtmlUtil.elm(this._rendererElm);
-        this._sceneMap = new SceneMap();
+        this._elmRenderer = "canvas-game";
+        this._canvas = HtmlUtil.elm(this._elmRenderer);
         this._cameraController = new CameraController(this._canvas.offsetWidth / this._canvas.offsetHeight);
         this._renderer = new THREE.WebGLRenderer({ canvas: this._canvas, antialias: true });
-        this._renderer.autoClear = false;
         this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this._renderer.toneMappingExposure = 1.0;
         if (options.enableShadows) {
@@ -22,16 +20,16 @@ class Renderer {
         this._mousePixels = new THREE.Vector2(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2);
     }
     elm() { return this._canvas; }
-    sceneMap() { return this._sceneMap; }
     compile(mesh) {
         this._renderer.compile(mesh, this._cameraController.camera());
     }
     render() {
-        this._renderer.clear();
-        this._sceneMap.updateComponents(this._cameraController.target());
-        this._renderer.render(this._sceneMap.scene(), this._cameraController.camera());
+        this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
     }
-    setCamera(target) {
+    cameraTarget() {
+        return this._cameraController.target();
+    }
+    setCameraTarget(target) {
         this._cameraController.setTarget(target);
     }
     setMouseFromPixels(mouse) {

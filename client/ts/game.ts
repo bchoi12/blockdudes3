@@ -6,6 +6,7 @@ import { RenderExplosion } from './render_explosion.js'
 import { RenderPlayer } from './render_player.js'
 import { RenderProjectile } from './render_projectile.js'
 import { RenderWeapon } from './render_weapon.js'
+import { SceneMap } from './scene_map.js'
 import { GameUtil, Util } from './util.js'
 
 import { connection } from './connection.js'
@@ -17,7 +18,8 @@ class Game {
 	private readonly _objectMaterial = new THREE.MeshStandardMaterial( {color: 0x444444 } );
 	private readonly _explosionMaterial = new THREE.MeshStandardMaterial( {color: 0xbb4444 } );
 	private readonly _bombMaterial = new THREE.MeshStandardMaterial( {color: 0x4444bb, transparent: true, opacity: 0.5} );
-	
+
+	private _sceneMap : SceneMap;
 	private _loader : Loader;
 
 	private _id : number;
@@ -32,6 +34,7 @@ class Game {
 	constructor() {
 		this._objectMaterial.shadowSide = THREE.FrontSide;
 
+		this._sceneMap = new SceneMap();
 		this._loader = new Loader();
 
 		this._keyUpdates = 0;
@@ -73,9 +76,14 @@ class Game {
 		updateStats();
 	}
 
+	sceneMap() : SceneMap {
+		return this._sceneMap;
+	}
+
 	private animate() : void {
 		this.extrapolateState();
 		this.updateCamera();
+		this._sceneMap.updateComponents(renderer.cameraTarget())
 		this.extrapolatePlayerDir();
 		renderer.render();
 
@@ -86,9 +94,11 @@ class Game {
 	private createKeyMsg() : any {
 		const msg = ui.createKeyMsg(this._keyUpdates);
 
-		if (renderer.sceneMap().has(playerSpace, this._id)) {
+		if (game.sceneMap().has(playerSpace, this._id)) {
 	   		const mouse = renderer.getMouseWorld();
-	   		const player = renderer.sceneMap().get(playerSpace, this._id).pos();
+	   		const player = game.sceneMap().get(playerSpace, this._id).pos();
+
+	   		// TODO: this is slightly off
 	   		const dir = new THREE.Vector2(mouse.x - player.x, mouse.y - player.y);
 	   		dir.normalize();
 			msg.Key.D = {
@@ -103,8 +113,8 @@ class Game {
 		if (wasmHas(playerSpace, id)) return;
 
 		const player = new RenderPlayer(playerSpace, id);
-		renderer.sceneMap().add(playerSpace, id, player);
-		renderer.sceneMap().update(playerSpace, id, data);
+		game.sceneMap().add(playerSpace, id, player);
+		game.sceneMap().update(playerSpace, id, data);
 		wasmAdd(playerSpace, id, data);
 
 		this._loader.load(id % 2 == 0 ? Model.CHICKEN : Model.DUCK, (mesh : THREE.Mesh) => {
@@ -121,7 +131,7 @@ class Game {
 	}
 
 	private deletePlayer(id : number) {
-		renderer.sceneMap().delete(playerSpace, id);
+		game.sceneMap().delete(playerSpace, id);
 		wasmDelete(playerSpace, id);
 	}
 
@@ -185,20 +195,20 @@ class Game {
 						renderObj = new RenderObject(space, id);
 						renderObj.setMesh(mesh);
 					}
-					renderer.sceneMap().add(space, id, renderObj);
+					game.sceneMap().add(space, id, renderObj);
 				}
 				deleteObjects.delete(GameUtil.sid(space, id));
 
 				this.sanitizeData(object);
 				wasmSetData(space, id, object);
-				renderer.sceneMap().update(space, id, object);
+				game.sceneMap().update(space, id, object);
 			}
 		}
 
 		// Haven't seen these objects so delete them.
 		deleteObjects.forEach((sid) => {
 			this._currentObjects.delete(sid);
-			renderer.sceneMap().delete(GameUtil.space(sid), GameUtil.id(sid));
+			game.sceneMap().delete(GameUtil.space(sid), GameUtil.id(sid));
 			wasmDelete(GameUtil.space(sid), GameUtil.id(sid));
 		});
 
@@ -213,11 +223,11 @@ class Game {
 
 			this.sanitizePlayerData(player);
 			wasmSetData(playerSpace, id, player);
-			renderer.sceneMap().update(playerSpace, id, player);
+			game.sceneMap().update(playerSpace, id, player);
 		}
 
 		if (msg.Ss.length > 0) {
-			renderer.sceneMap().renderShots(msg.Ss);
+			game.sceneMap().renderShots(msg.Ss);
 		}
 
 		this._lastGameUpdate = msg.S;
@@ -226,7 +236,7 @@ class Game {
 
 	private extrapolateState() {
 		// Update key presses.
-		if (renderer.sceneMap().has(playerSpace, this._id)) {
+		if (game.sceneMap().has(playerSpace, this._id)) {
 			const keyMsg = this.createKeyMsg();
 			keyMsg.Key.K = Util.arrayToString(keyMsg.Key.K);
 			wasmUpdateKeys(this._id, keyMsg.Key);
@@ -237,34 +247,34 @@ class Game {
 			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
 				const space = Number(stringSpace);
 				const id = Number(stringId);
-				if (!renderer.sceneMap().has(space, id)) continue;
+				if (!game.sceneMap().has(space, id)) continue;
 
-				renderer.sceneMap().update(space, id, object);
+				game.sceneMap().update(space, id, object);
 			}
 		}
 
 		for (const [stringId, player] of Object.entries(state.Ps) as [string, any]) {
 			const id = Number(stringId);
-			if (!renderer.sceneMap().has(playerSpace, id)) continue;
+			if (!game.sceneMap().has(playerSpace, id)) continue;
 
 			if (id != this._id || !Util.defined(this._currentPlayerData)) {
-				renderer.sceneMap().update(playerSpace, id, player);
+				game.sceneMap().update(playerSpace, id, player);
 			} else {
-				renderer.sceneMap().update(playerSpace, id, this.interpolateState(this._currentPlayerData, player));
+				game.sceneMap().update(playerSpace, id, this.interpolateState(this._currentPlayerData, player));
 			}
 		}
 	}
 
 	private extrapolatePlayerDir() : void {
-		if (renderer.sceneMap().has(playerSpace, this._id)) {
+		if (game.sceneMap().has(playerSpace, this._id)) {
 	   		const mouse = renderer.getMouseWorld();
-	   		const player = renderer.sceneMap().get(playerSpace, this._id).pos();
+	   		const player = game.sceneMap().get(playerSpace, this._id).pos();
 
 	   		const dir = new THREE.Vector2(mouse.x - player.x, mouse.y - player.y);
 	   		dir.normalize();
 
 	   		// TODO: fix weapon dir
-	   		renderer.sceneMap().get(playerSpace, this._id).setDir(dir, dir.clone());
+	   		game.sceneMap().get(playerSpace, this._id).setDir(dir, dir.clone());
 		}
 	}
 
@@ -307,7 +317,7 @@ class Game {
 
 	private initLevel(msg :any) : void {
 		this._currentObjects.clear();
-		renderer.sceneMap().clearObjects();
+		game.sceneMap().clearObjects();
 
 		const level = JSON.parse(wasmLoadLevel(msg.L));
 
@@ -321,18 +331,18 @@ class Game {
 
 				const renderObj = new RenderObject(space, id);
 				renderObj.setMesh(mesh);
-				renderer.sceneMap().add(space, id, renderObj);
-				renderer.sceneMap().update(space, id, object);
+				game.sceneMap().add(space, id, renderObj);
+				game.sceneMap().update(space, id, object);
 			}
 		}
 	}
 
 	private updateCamera() : void {
 		if (!Util.defined(this._id)) return;
-		if (!renderer.sceneMap().has(playerSpace, this._id)) return;
+		if (!game.sceneMap().has(playerSpace, this._id)) return;
 
-		const playerPos = renderer.sceneMap().get(playerSpace, this._id).pos()
-		renderer.setCamera(new THREE.Vector3(playerPos.x, playerPos.y, 0));
+		const playerPos = game.sceneMap().get(playerSpace, this._id).pos()
+		renderer.setCameraTarget(new THREE.Vector3(playerPos.x, playerPos.y, 0));
 	}
 }
 

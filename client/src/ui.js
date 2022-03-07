@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { HtmlUtil, Util } from './util.js';
 import { connection } from './connection.js';
+import { options } from './options.js';
 import { renderer } from './renderer.js';
 import { voice } from './voice.js';
 var InputMode;
@@ -8,15 +9,23 @@ var InputMode;
     InputMode[InputMode["UNKNOWN"] = 0] = "UNKNOWN";
     InputMode[InputMode["PAUSE"] = 1] = "PAUSE";
     InputMode[InputMode["GAME"] = 2] = "GAME";
-    InputMode[InputMode["CHAT"] = 3] = "CHAT";
+    InputMode[InputMode["GAME_PAUSE"] = 3] = "GAME_PAUSE";
+    InputMode[InputMode["CHAT"] = 4] = "CHAT";
 })(InputMode || (InputMode = {}));
 class UI {
     constructor() {
+        this._divLogin = "div-login";
         this._divGame = "div-game";
+        this._divOverlay = "div-overlay";
+        this._divMessages = "div-messages";
+        this._divStats = "div-stats";
+        this._fieldsetClients = "fieldset-clients";
+        this._formSendMessage = "form-send-message";
+        this._inputMessage = "input-message";
+        this._elmCursor = "cursor";
         this._chatKeyCode = 13;
         this._cursorWidth = 20;
         this._cursorHeight = 20;
-        this._div = HtmlUtil.elm(this._divGame);
         this._mouse = new THREE.Vector3();
         this._keys = new Set();
         this._mode = InputMode.PAUSE;
@@ -57,16 +66,16 @@ class UI {
         connection.addHandler(leftType, (msg) => { this.updateClients(msg); });
         connection.addHandler(joinVoiceType, (msg) => { this.updateClients(msg); });
         connection.addHandler(leftVoiceType, (msg) => { this.updateClients(msg); });
-        HtmlUtil.elm("voice").onclick = (e) => {
+        HtmlUtil.elm("button-voice").onclick = (e) => {
             e.stopPropagation();
             voice.toggleVoice();
         };
         voice.setup();
     }
     displayGame() {
-        HtmlUtil.elm("div-login").style.display = "none";
-        this._div.style.display = "block";
-        HtmlUtil.elm("message-box").style.width = HtmlUtil.elm("messages").offsetWidth + "px";
+        HtmlUtil.displayNone(this._divLogin);
+        HtmlUtil.displayBlock(this._divGame);
+        HtmlUtil.elm(this._inputMessage).style.width = HtmlUtil.elm(this._divMessages).offsetWidth + "px";
         window.addEventListener("blur", () => {
             this.changeInputMode(InputMode.PAUSE);
         });
@@ -75,31 +84,31 @@ class UI {
         this.changeInputMode(InputMode.GAME);
     }
     updateStats(ping, fps) {
-        HtmlUtil.elm("stats").textContent = "Ping : " + ping + " | FPS: " + fps;
+        HtmlUtil.elm(this._divStats).textContent = "Ping : " + ping + " | FPS: " + fps;
     }
     changeInputMode(inputMode) {
         this._mode = inputMode;
         if (this._mode == InputMode.PAUSE) {
-            HtmlUtil.elm("overlay").style.display = "block";
+            HtmlUtil.displayBlock(this._divOverlay);
             this.pointerUnlock();
         }
         else {
-            HtmlUtil.elm("overlay").style.display = "none";
+            HtmlUtil.displayNone(this._divOverlay);
         }
         if (this._mode == InputMode.CHAT) {
-            HtmlUtil.elm("messages").classList.remove("chat-hide");
-            HtmlUtil.elm("messages").classList.remove("no-select");
-            HtmlUtil.elm("messages").style.bottom = "2em";
-            HtmlUtil.inputElm("form-send-message").style.display = "block";
-            HtmlUtil.inputElm("message-box").focus();
+            HtmlUtil.notSlightlyOpaque(this._divMessages);
+            HtmlUtil.selectable(this._divMessages);
+            HtmlUtil.displayBlock(this._formSendMessage);
+            HtmlUtil.elm(this._divMessages).style.bottom = "2em";
+            HtmlUtil.inputElm(this._inputMessage).focus();
             this.pointerUnlock();
         }
         if (this._mode == InputMode.GAME) {
-            HtmlUtil.elm("messages").classList.add("chat-hide");
-            HtmlUtil.elm("messages").classList.add("no-select");
-            HtmlUtil.elm("messages").style.bottom = "1em";
-            HtmlUtil.inputElm("form-send-message").style.display = "none";
-            HtmlUtil.inputElm("message-box").blur();
+            HtmlUtil.slightlyOpaque(this._divMessages);
+            HtmlUtil.unselectable(this._divMessages);
+            HtmlUtil.displayNone(this._formSendMessage);
+            HtmlUtil.elm(this._divMessages).style.bottom = "1em";
+            HtmlUtil.inputElm(this._inputMessage).blur();
             this.pointerLock();
         }
         else {
@@ -143,19 +152,12 @@ class UI {
         html.id = "client-" + id;
         html.textContent = this.clientName(client);
         html.appendChild(document.createElement("br"));
-        HtmlUtil.elm("clients").appendChild(html);
+        HtmlUtil.elm(this._fieldsetClients).appendChild(html);
         this._clients.set(id, html);
     }
     removeClient(id) {
-        HtmlUtil.elm("clients").removeChild(this._clients.get(id));
+        HtmlUtil.elm(this._fieldsetClients).removeChild(this._clients.get(id));
         this._clients.delete(id);
-    }
-    print(message) {
-        const messageSpan = document.createElement("span");
-        messageSpan.textContent = message;
-        HtmlUtil.elm("messages").appendChild(messageSpan);
-        HtmlUtil.elm("messages").appendChild(document.createElement("br"));
-        HtmlUtil.elm("messages").scrollTop = HtmlUtil.elm("messages").scrollHeight;
     }
     chat(msg) {
         const name = this.clientName(msg.Client);
@@ -167,11 +169,20 @@ class UI {
         const nameSpan = document.createElement("span");
         nameSpan.classList.add("message-name");
         nameSpan.textContent = name + ": ";
-        HtmlUtil.elm("messages").appendChild(nameSpan);
+        HtmlUtil.elm(this._divMessages).appendChild(nameSpan);
         this.print(message);
     }
+    print(message) {
+        const messageSpan = document.createElement("span");
+        messageSpan.textContent = message;
+        HtmlUtil.elm(this._divMessages).appendChild(messageSpan);
+        HtmlUtil.elm(this._divMessages).appendChild(document.createElement("br"));
+        HtmlUtil.elm(this._divMessages).scrollTop = HtmlUtil.elm(this._divMessages).scrollHeight;
+    }
     pointerLock() {
-        renderer.elm().requestPointerLock();
+        if (options.pointerLock) {
+            renderer.elm().requestPointerLock();
+        }
     }
     pointerUnlock() {
         document.exitPointerLock();
@@ -211,21 +222,21 @@ class UI {
                 this._keys.delete(key);
             }
         };
-        document.addEventListener('keydown', recordKey);
-        document.addEventListener('keyup', releaseKey);
+        document.addEventListener("keydown", recordKey);
+        document.addEventListener("keyup", releaseKey);
     }
     initMouseListener() {
         const recordMouse = (e) => {
             if (!this.pointerLocked()) {
-                if (HtmlUtil.elm("cursor").style.visibility != "hidden") {
-                    HtmlUtil.elm("cursor").style.visibility = "hidden";
+                if (HtmlUtil.isVisible(this._elmCursor)) {
+                    HtmlUtil.hide(this._elmCursor);
                 }
                 this._mouse.x = e.clientX;
                 this._mouse.y = e.clientY;
             }
             else {
-                if (HtmlUtil.elm("cursor").style.visibility != "visible") {
-                    HtmlUtil.elm("cursor").style.visibility = "visible";
+                if (!HtmlUtil.isVisible(this._elmCursor)) {
+                    HtmlUtil.show(this._elmCursor);
                 }
                 this._mouse.x += e.movementX;
                 this._mouse.y += e.movementY;
@@ -242,11 +253,11 @@ class UI {
             else if (this._mouse.y < 0) {
                 this._mouse.y = 0;
             }
-            HtmlUtil.elm("cursor").style.left = (this._mouse.x - this._cursorWidth / 2) + "px";
-            HtmlUtil.elm("cursor").style.top = (this._mouse.y - this._cursorHeight / 2) + "px";
+            HtmlUtil.elm(this._elmCursor).style.left = (this._mouse.x - this._cursorWidth / 2) + "px";
+            HtmlUtil.elm(this._elmCursor).style.top = (this._mouse.y - this._cursorHeight / 2) + "px";
             renderer.setMouseFromPixels(this._mouse);
         };
-        document.addEventListener('mousemove', recordMouse);
+        document.addEventListener("mousemove", recordMouse);
         document.onmousedown = (e) => {
             if (this._mode != InputMode.GAME) {
                 return;
@@ -269,7 +280,7 @@ class UI {
             }
             this._keys.delete(button);
         };
-        HtmlUtil.elm("overlay").onclick = (e) => {
+        HtmlUtil.elm(this._divOverlay).onclick = (e) => {
             if (this._mode != InputMode.PAUSE) {
                 return;
             }
@@ -281,7 +292,7 @@ class UI {
             this.changeInputMode(InputMode.CHAT);
             return;
         }
-        if (HtmlUtil.inputElm("message-box").value.length == 0) {
+        if (HtmlUtil.trimmedValue(this._inputMessage).length == 0) {
             this.changeInputMode(InputMode.GAME);
             return;
         }
@@ -291,11 +302,11 @@ class UI {
         const message = {
             T: chatType,
             Chat: {
-                Message: HtmlUtil.inputElm("message-box").value.trim(),
+                Message: HtmlUtil.trimmedValue(this._inputMessage),
             }
         };
         if (connection.send(message)) {
-            HtmlUtil.inputElm("message-box").value = "";
+            HtmlUtil.inputElm(this._inputMessage).value = "";
             this.changeInputMode(InputMode.GAME);
         }
         else {

@@ -41,6 +41,10 @@ export class Weather extends SceneComponent {
 	override update(position : THREE.Vector3) : void {
 		this._clouds.forEach((cloud) => {
 			cloud.position.x += 0.01;
+
+			if (cloud.position.x > 20) {
+				cloud.position.x = -5;
+			}
 		});
 	}
 }

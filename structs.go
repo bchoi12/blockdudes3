@@ -186,10 +186,10 @@ func (v Vec2) LenSquared() float64 {
 	return v.X * v.X + v.Y * v.Y
 }
 
-func Dot(v1 Vec2, v2 Vec2) float64 {
-	return v1.X * v2.X + v1.Y * v2.Y
+func (v Vec2) Dot(other Vec2) float64 {
+	return v.X * other.X + v.Y * other.Y
 }
 
-func Cross(v1 Vec2, v2 Vec2) float64 {
-	return v1.X * v2.Y - v1.Y * v2.X
+func (v Vec2) Cross(other Vec2) float64 {
+	return v.X * other.Y - v.Y * other.X
 }

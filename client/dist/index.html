@@ -16,38 +16,40 @@
 		}
 	</script>
 	<main>
+		<iframe name="iframe-empty" style="display:none"></iframe>
 		<div id="div-login">
-			<iframe name="iframe-empty" style="display:none"></iframe>
-			<fieldset id="form-fieldset">
-    			<legend id="form-title">Join Game</legend>
+			<fieldset id="fieldset-form">
+    			<legend>Join Game</legend>
 				<form id="form-login" action="about:blank" target="iframe-empty">
-					<input id="name" class="form-input" type="text" placeholder="Enter a name" maxlength="16" required>
-					<input id="room" class="form-input" type="text" placeholder="Enter a room code" maxlength="10" required>
-					<div id="form-button">
+					<input id="input-name" class="form-input" type="text" placeholder="Enter a name" maxlength="16" required>
+					<input id="input-room" class="form-input" type="text" placeholder="Enter a room code" maxlength="10" required>
+					<div>
 						<div id="js-check">Loading Javascript...</div>
 						<div id="wasm-check">Loading WebAssembly...</div>
-						<input id="login" type="submit" value="Join">
+						<input id="button-login" type="submit" value="Join">
 					</div>
 				</form>
 		    </fieldset>
 		</div>
 		<div id="div-game">
 			<div id="div-canvas">	
-				<canvas id="renderer" width="800" height="600" oncontextmenu="return false;">Your browser is too old</canvas>
+				<canvas id="canvas-game" width="800" height="600" oncontextmenu="return false;">Your browser is too old</canvas>
 			</div>
-			<div id="stats" class="no-select ui"></div>
-			<div id="messages" class="no-select chat-hide ui"></div>
+			<div id="div-stats" class="no-select ui"></div>
+			<div id="div-messages" class="no-select slightly-opaque ui"></div>
 			<div id="form-send-message" class="no-select ui">
 				<form action="about:blank" target="iframe-empty" onsubmit="return false;">
-					<input id="message-box" type="text" placeholder="Press enter to chat" maxlength="256">
-					<input type="submit" value="" style="display: none;">
+					<input id="input-message" type="text" placeholder="Press enter to chat" maxlength="256">
+					<input id="button-message" type="submit" value="" style="display: none;">
 				</form>
 			</div>
 			<img id="cursor" src="./img/cursor.png" alt="cursor" class="no-select" />
-			<div id="overlay">
-				<div id="clients" class="ui"></div>
+			<div id="div-overlay">
+				<fieldset id="fieldset-clients" class="ui">
+					<legend>Players</legend>
+				</fieldset>
 				<span class="no-select ui"><br><b>Paused</b><br><br>Click to continue<br><br></span>
-				<button id="voice" class="ui">voice</button>
+				<button id="button-voice" class="ui">voice</button>
 			</div>
 		</div>
 	</main>

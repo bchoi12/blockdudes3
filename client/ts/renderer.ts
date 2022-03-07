@@ -2,30 +2,26 @@ import * as THREE from 'three'
 import {Howl} from 'howler';
 
 import { CameraController } from './camera_controller.js'
-import { SceneMap } from './scene_map.js'
+import { game } from './game.js'
 import { HtmlUtil } from './util.js'
 
 import { options } from './options.js'
 
+// TODO: rename to system or something
 class Renderer {
-	private readonly _rendererElm = "renderer";
+	private readonly _elmRenderer = "canvas-game";
 
-	private _canvas : HTMLElement
-
-	private _sceneMap : SceneMap;
+	private _canvas : HTMLElement;
 	private _cameraController : CameraController;
 	private _renderer : THREE.WebGLRenderer;
-
 	private _mousePixels : THREE.Vector2;
 
 	constructor() {
-		this._canvas = HtmlUtil.elm(this._rendererElm);
+		this._canvas = HtmlUtil.elm(this._elmRenderer);
 
-		this._sceneMap = new SceneMap();
 		this._cameraController = new CameraController(this._canvas.offsetWidth / this._canvas.offsetHeight);
 
 		this._renderer = new THREE.WebGLRenderer({canvas: this._canvas, antialias: true});
-		this._renderer.autoClear = false;
 		this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
 		this._renderer.toneMappingExposure = 1.0;
 
@@ -41,19 +37,19 @@ class Renderer {
 	}
 
 	elm() : HTMLElement { return this._canvas; }
-	sceneMap() : SceneMap { return this._sceneMap; }
 
 	compile(mesh : THREE.Mesh) {
 		this._renderer.compile(mesh, this._cameraController.camera());
 	}
 
 	render() : void {
-		this._renderer.clear();
-		this._sceneMap.updateComponents(this._cameraController.target())
-		this._renderer.render(this._sceneMap.scene(), this._cameraController.camera());
+		this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
 	}
 	
-	setCamera(target : THREE.Vector3) : void {
+	cameraTarget() : THREE.Vector3 {
+		return this._cameraController.target();
+	}
+	setCameraTarget(target : THREE.Vector3) : void {
 		this._cameraController.setTarget(target);
 	}
 
@@ -61,6 +57,7 @@ class Renderer {
 		this._mousePixels = mouse.clone();
 	}
 
+	// TODO: this should go under game.ts
 	playSound(sound : Howl, pos : THREE.Vector3) : void {
 		let dist = new THREE.Vector2(pos.x - this._cameraController.target().x, pos.y - this._cameraController.target().y);
 		if (dist.lengthSq() <= 50) {

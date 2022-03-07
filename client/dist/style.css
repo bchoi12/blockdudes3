@@ -9,6 +9,10 @@ html, body {
 	font-size: 2vh;
 }
 
+fieldset legend {
+	padding: 5px;
+}
+
 #div-login {
   display: flex;
   align-items: center;
@@ -20,7 +24,7 @@ html, body {
 }
 
 #fieldset-form {
-	width: 90%;
+	min-width: 50%;
 
 	padding: 20px;
 	border-radius: 10px;
@@ -32,54 +36,42 @@ html, body {
 	text-align: center;
 }
 
+#form-login #button-login {
+	width: 50%;
+	display: none;
+}
+
 .form-input {
 	text-align: center;
 	width: 80%;
 	margin-bottom: 12px;
 }
 
-#form-login #login {
-	width: 50%;
-	display: none;
-}
-
-#form-title {
-	padding: 5px;
-}
-
 #div-game {
 	display: none;
 }
-#div-game div {
+#div-game div, #div-game fieldset {
 	position: absolute;
-}
-.ui {
-	margin: 6px 12px 6px 12px;
 }
 #div-canvas {
 	margin: 0;
 	padding: 0;
 }
-
-#stats {
+#div-stats {
 	right: 0;
 	font-size: 0.8em;
 }
-
 #div-messages {
-	height: 200px;
-
-	left: 0;
-	bottom: 0;
-}
-
-#messages {
 	width: 20em;
 	height: 8em;
+
 	overflow-y: scroll;
+
+	left: 0;
 	bottom: 1em;
 }
-#message-box {
+
+#input-message {
 	padding: 2px;
 	margin: 0;
 	font-size: 1em;
@@ -94,13 +86,9 @@ html, body {
 	position: absolute;
 }
 
-#clients {
+#fieldset-clients {
 	left: 0;
 	overflow-y: scroll;
-}
-
-.client-me {
-	font-weight: bold;
 }
 
 #cursor {
@@ -108,7 +96,7 @@ html, body {
 	visibility: hidden;
 }
 
-#overlay {
+#div-overlay {
 	text-align:  center;
 
   position: fixed;
@@ -121,7 +109,15 @@ html, body {
   cursor: pointer;
 }
 
-.chat-hide {
+.ui {
+	margin: 6px 12px 6px 12px;
+}
+
+.client-me {
+	font-weight: bold;
+}
+
+.slightly-opaque {
 	opacity: 0.7;
 }
 
@@ -139,10 +135,10 @@ html, body {
 }
 .no-select {
 	user-select: none;
-    -moz-user-select: none;
-    -khtml-user-select: none;
-    -webkit-user-select: none;
-    -o-user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -o-user-select: none;
 } 
 
 .anim-blink {

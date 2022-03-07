@@ -44,6 +44,46 @@ export var HtmlUtil;
         return document.getElementById(id);
     }
     HtmlUtil.audioElm = audioElm;
+    function trimmedValue(id) {
+        return inputElm(id).value.trim();
+    }
+    HtmlUtil.trimmedValue = trimmedValue;
+    function hide(id) {
+        elm(id).style.visibility = "hidden";
+    }
+    HtmlUtil.hide = hide;
+    function show(id) {
+        elm(id).style.visibility = "visible";
+    }
+    HtmlUtil.show = show;
+    function displayNone(id) {
+        elm(id).style.display = "none";
+    }
+    HtmlUtil.displayNone = displayNone;
+    function displayBlock(id) {
+        elm(id).style.display = "block";
+    }
+    HtmlUtil.displayBlock = displayBlock;
+    function unselectable(id) {
+        elm(id).classList.add("no-select");
+    }
+    HtmlUtil.unselectable = unselectable;
+    function selectable(id) {
+        elm(id).classList.remove("no-select");
+    }
+    HtmlUtil.selectable = selectable;
+    function slightlyOpaque(id) {
+        elm(id).classList.add("slightly-opaque");
+    }
+    HtmlUtil.slightlyOpaque = slightlyOpaque;
+    function notSlightlyOpaque(id) {
+        elm(id).classList.remove("slightly-opaque");
+    }
+    HtmlUtil.notSlightlyOpaque = notSlightlyOpaque;
+    function isVisible(id) {
+        return elm(id).style.visibility !== "hidden";
+    }
+    HtmlUtil.isVisible = isVisible;
 })(HtmlUtil || (HtmlUtil = {}));
 export var GameUtil;
 (function (GameUtil) {

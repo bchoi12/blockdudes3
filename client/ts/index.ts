@@ -7,33 +7,39 @@ import { ui } from './ui.js'
 declare var Go: any;
 
 const go = new Go();
+
+const inputName = "input-name";
+const inputRoom = "input-room";
+const formLogin = "form-login";
+const buttonLogin = "button-login";
+
 let wasmLoaded = false;
+
 document.addEventListener('DOMContentLoaded', (event) => {
-	HtmlUtil.elm("js-check").style.display = "none";
+	HtmlUtil.displayNone("js-check");
 	if (Util.isDev()) {
 		LogUtil.d("Dev mode enabled!");
-		HtmlUtil.inputElm("name").value = "b";
+		HtmlUtil.inputElm(inputName).value = "b";
 	}
-
-	HtmlUtil.inputElm("room").value = "test_room";
+	HtmlUtil.inputElm(inputRoom).value = "test_room";
 
 	WebAssembly.instantiateStreaming(fetch("./game.wasm"), go.importObject).then((result) => {
 		go.run(result.instance);
+		wasmLoaded = true;
 
 		ui.setup();
 		game.setup();
 
-		HtmlUtil.elm("wasm-check").style.display = "none";
-		wasmLoaded = true;
-		HtmlUtil.elm("login").style.display = "inline-block";
+		HtmlUtil.displayNone("wasm-check");
+		HtmlUtil.elm(buttonLogin).style.display = "inline-block";
 	});
 })
 
-HtmlUtil.elm("form-login").onsubmit = () => {
+HtmlUtil.elm(formLogin).onsubmit = () => {
 	if (!wasmLoaded) return;
 
-	const room = HtmlUtil.inputElm("room").value.trim();
-	const name = HtmlUtil.inputElm("name").value.trim();
+	const room = HtmlUtil.trimmedValue(inputRoom);
+	const name = HtmlUtil.trimmedValue(inputName);
 	connection.connect(room, name, () => {}, () => {
 		game.start();
 		ui.displayGame();

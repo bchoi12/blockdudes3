@@ -89,17 +89,27 @@ func (r *Rec2) Snap(colliders ThingHeap) SnapResults {
 	ignored := r.getIgnored()
 	results := r.BaseProfile.Snap(colliders)
 
-	r.resetIgnored()
-	for len(colliders) > 0 {
-		thing := PopThing(&colliders)
-		results.Merge(r.snapThing(thing, ignored))
-	}
-
 	if results.snap {
 		pos := r.Pos()
 		pos.Add(results.posAdj, 1.0)
 		r.SetPos(pos)
+	}
 
+	r.resetIgnored()
+	for len(colliders) > 0 {
+		thing := PopThing(&colliders)
+		curResults := r.snapThing(thing, ignored)
+
+		if curResults.snap {
+			pos := r.Pos()
+			pos.Add(curResults.posAdj, 1.0)
+			r.SetPos(pos)
+		}
+
+		results.Merge(curResults)
+	}
+
+	if results.snap {
 		vel := r.Vel()
 
 		if results.posAdj.X > 0 {
@@ -126,11 +136,11 @@ func (r *Rec2) Snap(colliders ThingHeap) SnapResults {
 
 func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
 	results := NewSnapResults()
-	ox := r.dimOverlapX(other)
+	ox, oxLarge := r.dimOverlapX(other)
 	if ox <= 0 {
 		return results
 	}
-	oy := r.dimOverlapY(other)
+	oy, oyLarge := r.dimOverlapY(other)
 	if oy <= 0 {
 		return results
 	}
@@ -146,6 +156,14 @@ func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
 	relativePos := NewVec2(r.Pos().X - other.Pos().X, r.Pos().Y - other.Pos().Y)
 	relativeVel := NewVec2(r.TotalVel().X - other.TotalVel().X, r.TotalVel().Y - other.TotalVel().Y)
 	adjSign := NewVec2(-FSign(relativeVel.X), -FSign(relativeVel.Y))
+
+	// Check if we somehow got past the midpoint of the object
+	if SignPos(relativePos.X) != SignPos(relativePos.X) {
+		ox = oxLarge
+	}
+	if SignPos(relativePos.Y) != SignPos(relativePos.Y) {
+		oy = oyLarge
+	}
 
 	// Check for tiny collisions that we can ignore
 	if adjSign.X != 0 && adjSign.Y != 0 {

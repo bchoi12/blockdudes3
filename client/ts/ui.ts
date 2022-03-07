@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { HtmlUtil, Util } from './util.js'
 
 import { connection } from './connection.js'
+import { options } from './options.js'
 import { renderer } from './renderer.js'
 import { voice } from './voice.js'
 
@@ -10,17 +11,27 @@ enum InputMode {
 	UNKNOWN = 0,
 	PAUSE = 1,
 	GAME = 2,
-	CHAT = 3,
+	GAME_PAUSE = 3,
+	CHAT = 4,
 }
 
 class UI {
+	private readonly _divLogin = "div-login";
 	private readonly _divGame = "div-game";
+	private readonly _divOverlay = "div-overlay";
+	private readonly _divMessages = "div-messages";
+	private readonly _divStats = "div-stats";
+
+	private readonly _fieldsetClients = "fieldset-clients";
+
+	private readonly _formSendMessage = "form-send-message";
+	private readonly _inputMessage = "input-message"
+
+	private readonly _elmCursor = "cursor";
 
 	private readonly _chatKeyCode = 13;
 	private readonly _cursorWidth = 20;
 	private readonly _cursorHeight = 20;
-
-	private _div : HTMLElement;
 
 	private _mouse : THREE.Vector3;
 	private _keys : Set<number>;
@@ -30,8 +41,6 @@ class UI {
 	private _clients : Map<number, HTMLElement>;
 
 	constructor() {
-		this._div = HtmlUtil.elm(this._divGame);
-
 		this._mouse = new THREE.Vector3();
 		this._keys = new Set<number>();
 		this._mode = InputMode.PAUSE;
@@ -76,7 +85,7 @@ class UI {
 		connection.addHandler(joinVoiceType, (msg : any) => { this.updateClients(msg) });
 		connection.addHandler(leftVoiceType, (msg : any) => { this.updateClients(msg) });
 
-		HtmlUtil.elm("voice").onclick = (e) => {
+		HtmlUtil.elm("button-voice").onclick = (e) => {
 			e.stopPropagation();
 			voice.toggleVoice();
 		};
@@ -84,9 +93,10 @@ class UI {
 	}
 
 	displayGame() : void {
-		HtmlUtil.elm("div-login").style.display = "none";
-		this._div.style.display = "block";
-		HtmlUtil.elm("message-box").style.width = HtmlUtil.elm("messages").offsetWidth + "px";
+		HtmlUtil.displayNone(this._divLogin);
+		HtmlUtil.displayBlock(this._divGame);
+
+		HtmlUtil.elm(this._inputMessage).style.width = HtmlUtil.elm(this._divMessages).offsetWidth + "px";
 
 		window.addEventListener("blur", () => {
 			this.changeInputMode(InputMode.PAUSE);
@@ -98,34 +108,34 @@ class UI {
 	}
 
 	updateStats(ping : number, fps : number) {
-		HtmlUtil.elm("stats").textContent = "Ping : " + ping + " | FPS: " + fps;
+		HtmlUtil.elm(this._divStats).textContent = "Ping : " + ping + " | FPS: " + fps;
 	}
 
 	changeInputMode(inputMode : InputMode) : void {
 		this._mode = inputMode;
 
 		if (this._mode == InputMode.PAUSE) {
-			HtmlUtil.elm("overlay").style.display = "block";	
+			HtmlUtil.displayBlock(this._divOverlay);	
 			this.pointerUnlock();
 		} else {
-			HtmlUtil.elm("overlay").style.display = "none";	
+			HtmlUtil.displayNone(this._divOverlay);	
 		}
 
 		if (this._mode == InputMode.CHAT) {
-			HtmlUtil.elm("messages").classList.remove("chat-hide");
-			HtmlUtil.elm("messages").classList.remove("no-select");
-			HtmlUtil.elm("messages").style.bottom = "2em";
-			HtmlUtil.inputElm("form-send-message").style.display = "block";
-			HtmlUtil.inputElm("message-box").focus();
+			HtmlUtil.notSlightlyOpaque(this._divMessages);
+			HtmlUtil.selectable(this._divMessages);
+			HtmlUtil.displayBlock(this._formSendMessage);
+			HtmlUtil.elm(this._divMessages).style.bottom = "2em";
+			HtmlUtil.inputElm(this._inputMessage).focus();
 			this.pointerUnlock();
 		}
 
 		if (this._mode == InputMode.GAME) {
-			HtmlUtil.elm("messages").classList.add("chat-hide");
-			HtmlUtil.elm("messages").classList.add("no-select");
-			HtmlUtil.elm("messages").style.bottom = "1em";
-			HtmlUtil.inputElm("form-send-message").style.display = "none";
-			HtmlUtil.inputElm("message-box").blur();
+			HtmlUtil.slightlyOpaque(this._divMessages);
+			HtmlUtil.unselectable(this._divMessages);
+			HtmlUtil.displayNone(this._formSendMessage);
+			HtmlUtil.elm(this._divMessages).style.bottom = "1em";
+			HtmlUtil.inputElm(this._inputMessage).blur();
 			this.pointerLock();
 		} else {
 			if (this._keys.size > 0) {
@@ -170,22 +180,13 @@ class UI {
 		html.textContent = this.clientName(client);
 		html.appendChild(document.createElement("br"));
 
-		HtmlUtil.elm("clients").appendChild(html);
+		HtmlUtil.elm(this._fieldsetClients).appendChild(html);
 		this._clients.set(id, html);
 	}
 
 	private removeClient(id : number) : void {
-		HtmlUtil.elm("clients").removeChild(this._clients.get(id));
+		HtmlUtil.elm(this._fieldsetClients).removeChild(this._clients.get(id));
 		this._clients.delete(id);
-	}
-
-	private print(message : string) : void {
-		const messageSpan = document.createElement("span");
-		messageSpan.textContent = message;
-
-		HtmlUtil.elm("messages").appendChild(messageSpan);
-		HtmlUtil.elm("messages").appendChild(document.createElement("br"));
-		HtmlUtil.elm("messages").scrollTop = HtmlUtil.elm("messages").scrollHeight;
 	}
 
 	private chat(msg : any) : void {
@@ -199,12 +200,23 @@ class UI {
 		nameSpan.classList.add("message-name");
 		nameSpan.textContent = name + ": ";
 
-		HtmlUtil.elm("messages").appendChild(nameSpan);
+		HtmlUtil.elm(this._divMessages).appendChild(nameSpan);
 		this.print(message);
 	}
 
+	private print(message : string) : void {
+		const messageSpan = document.createElement("span");
+		messageSpan.textContent = message;
+
+		HtmlUtil.elm(this._divMessages).appendChild(messageSpan);
+		HtmlUtil.elm(this._divMessages).appendChild(document.createElement("br"));
+		HtmlUtil.elm(this._divMessages).scrollTop = HtmlUtil.elm(this._divMessages).scrollHeight;
+	}
+
 	private pointerLock() : void {
-		renderer.elm().requestPointerLock();
+		if (options.pointerLock) {
+			renderer.elm().requestPointerLock();
+		}
 	}
 	private pointerUnlock() : void {
 		document.exitPointerLock();
@@ -246,21 +258,21 @@ class UI {
 			}
 		};
 
-		document.addEventListener('keydown', recordKey);
-		document.addEventListener('keyup', releaseKey);
+		document.addEventListener("keydown", recordKey);
+		document.addEventListener("keyup", releaseKey);
 	}
 
 	private initMouseListener() : void {
 		const recordMouse = (e : any) => {
     		if (!this.pointerLocked()) {
-    			if (HtmlUtil.elm("cursor").style.visibility != "hidden") {
-					HtmlUtil.elm("cursor").style.visibility = "hidden";
+    			if (HtmlUtil.isVisible(this._elmCursor)) {
+    				HtmlUtil.hide(this._elmCursor);
 				}
     			this._mouse.x = e.clientX;
     			this._mouse.y = e.clientY;
     		} else {
-    			if (HtmlUtil.elm("cursor").style.visibility != "visible") {
-					HtmlUtil.elm("cursor").style.visibility = "visible";
+    			if (!HtmlUtil.isVisible(this._elmCursor)) {
+    				HtmlUtil.show(this._elmCursor);
 				}
 				this._mouse.x += e.movementX;
 				this._mouse.y += e.movementY;
@@ -277,11 +289,11 @@ class UI {
     			this._mouse.y = 0;
     		}
 
-    		HtmlUtil.elm("cursor").style.left = (this._mouse.x - this._cursorWidth / 2) + "px";
-    		HtmlUtil.elm("cursor").style.top = (this._mouse.y - this._cursorHeight / 2) + "px";
+    		HtmlUtil.elm(this._elmCursor).style.left = (this._mouse.x - this._cursorWidth / 2) + "px";
+    		HtmlUtil.elm(this._elmCursor).style.top = (this._mouse.y - this._cursorHeight / 2) + "px";
     		renderer.setMouseFromPixels(this._mouse);
     	};
-    	document.addEventListener('mousemove', recordMouse);
+    	document.addEventListener("mousemove", recordMouse);
 
 		document.onmousedown = (e : any) => {
 			if (this._mode != InputMode.GAME) {
@@ -310,7 +322,7 @@ class UI {
 			this._keys.delete(button);
 		};
 
-		HtmlUtil.elm("overlay").onclick = (e : any) => {
+		HtmlUtil.elm(this._divOverlay).onclick = (e : any) => {
 			if (this._mode != InputMode.PAUSE) {
 				return;
 			}
@@ -324,7 +336,7 @@ class UI {
 			return;
 		}
 
-		if (HtmlUtil.inputElm("message-box").value.length == 0) {
+		if (HtmlUtil.trimmedValue(this._inputMessage).length == 0) {
 			this.changeInputMode(InputMode.GAME);
 			return;
 		}
@@ -336,12 +348,12 @@ class UI {
 		const message = {
 			T: chatType,
 			Chat: {
-				Message: HtmlUtil.inputElm("message-box").value.trim(),
+				Message: HtmlUtil.trimmedValue(this._inputMessage),
 			}
 		};
 
 		if (connection.send(message)) {
-			HtmlUtil.inputElm("message-box").value = "";
+			HtmlUtil.inputElm(this._inputMessage).value = "";
 			this.changeInputMode(InputMode.GAME);
 		} else {
 			this.print("Failed to send chat message!");

@@ -14,13 +14,14 @@ const (
 	downAcc = -18.0
 	rightAcc = 16.0
 	leftAcc = -rightAcc
-	turnMultiplier = 3.0
+	turnMultiplier = 2.0
 
 	maxUpwardVel = 12.0
 	maxHorizontalVel = 12.0
 	maxDownwardVel = -24.0
 	maxVelMultiplier = 0.9
 	extVelMultiplier = 0.98
+	maxSpeed = 50.0
 
 	jumpVel = 10.0
 
@@ -210,12 +211,17 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 		vel.Y *= maxVelMultiplier
 	}
 
+	if vel.LenSquared() >= maxSpeed * maxSpeed {
+		vel.Normalize()
+		vel.Scale(maxSpeed)
+	}
+
 	p.SetVel(vel)
 
 	// Slow down momentum from other objects if not grounded
 	if !grounded {
 		evel.X *= extVelMultiplier
-		evel.Y = 0
+		evel.Y *= extVelMultiplier
 	}
 	p.SetExtVel(evel)
 

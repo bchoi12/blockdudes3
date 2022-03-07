@@ -40,10 +40,12 @@ func (s *Shot) Resolve(grid *Grid) {
 		rocket.SetOwner(s.weapon.GetOwner())
 		acc := s.line.R
 		acc.Normalize()
-		acc.Scale(20)
+		acc.Scale(24)
+
 		vel := s.line.R
 		vel.Normalize()
-		vel.Scale(grid.Get(s.weapon.GetOwner()).TotalVel().Len())
+		ownerVel := grid.Get(s.weapon.GetOwner()).TotalVel()
+		vel.Scale(Max(1, vel.Dot(ownerVel)))
 		rocket.SetVel(vel)
 		rocket.SetAcc(acc)
 

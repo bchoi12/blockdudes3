@@ -38,7 +38,43 @@ export namespace HtmlUtil {
 	}
 	export function audioElm(id : string) : HTMLAudioElement {
 		return (<HTMLAudioElement>document.getElementById(id));
-	}	
+	}
+
+	export function trimmedValue(id : string) : string {
+		return inputElm(id).value.trim()
+	}
+
+	export function hide(id : string) : void {
+		elm(id).style.visibility = "hidden";
+	}
+	export function show(id : string) : void {
+		elm(id).style.visibility = "visible";
+	}
+
+	export function displayNone(id : string) : void {
+		elm(id).style.display = "none";
+	}
+	export function displayBlock(id : string) : void {
+		elm(id).style.display = "block";
+	}
+
+	export function unselectable(id : string) : void {
+		elm(id).classList.add("no-select");
+	}
+	export function selectable(id : string) : void {
+		elm(id).classList.remove("no-select");
+	}
+
+	export function slightlyOpaque(id : string) : void {
+		elm(id).classList.add("slightly-opaque");
+	}
+	export function notSlightlyOpaque(id : string) : void {
+		elm(id).classList.remove("slightly-opaque");
+	}
+
+	export function isVisible(id : string) : boolean {
+		return elm(id).style.visibility !== "hidden";
+	}
 }
 
 export namespace GameUtil {
