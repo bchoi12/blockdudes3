@@ -26,7 +26,9 @@ class UI {
         this._chatKeyCode = 13;
         this._cursorWidth = 20;
         this._cursorHeight = 20;
+        this._pointerLockInterval = 3000;
         this._mouse = new THREE.Vector3();
+        this._lastPointerLock = 0;
         this._keys = new Set();
         this._mode = InputMode.PAUSE;
         this._keyMap = new Map();
@@ -181,7 +183,10 @@ class UI {
     }
     pointerLock() {
         if (options.pointerLock) {
-            renderer.elm().requestPointerLock();
+            const timeout = Math.max(0, this._pointerLockInterval - (Date.now() - this._lastPointerLock));
+            setTimeout(() => {
+                renderer.elm().requestPointerLock();
+            }, timeout);
         }
     }
     pointerUnlock() {
@@ -208,8 +213,7 @@ class UI {
             }
         };
         const releaseKey = (e) => {
-            if (e.keyCode == 27 && this._mode != InputMode.PAUSE) {
-                this.pointerUnlock();
+            if (e.keyCode == 27 && this._mode != InputMode.PAUSE && !this.pointerLocked()) {
                 this.changeInputMode(InputMode.PAUSE);
                 return;
             }
@@ -228,16 +232,10 @@ class UI {
     initMouseListener() {
         const recordMouse = (e) => {
             if (!this.pointerLocked()) {
-                if (HtmlUtil.isVisible(this._elmCursor)) {
-                    HtmlUtil.hide(this._elmCursor);
-                }
                 this._mouse.x = e.clientX;
                 this._mouse.y = e.clientY;
             }
             else {
-                if (!HtmlUtil.isVisible(this._elmCursor)) {
-                    HtmlUtil.show(this._elmCursor);
-                }
                 this._mouse.x += e.movementX;
                 this._mouse.y += e.movementY;
             }
@@ -280,6 +278,23 @@ class UI {
             }
             this._keys.delete(button);
         };
+        document.addEventListener("pointerlockchange", (event) => {
+            if (this.pointerLocked()) {
+                HtmlUtil.show(this._elmCursor);
+                this._lastPointerLock = Date.now();
+            }
+            else {
+                HtmlUtil.hide(this._elmCursor);
+                if (this._mode == InputMode.GAME) {
+                    this.changeInputMode(InputMode.PAUSE);
+                }
+            }
+        });
+        document.addEventListener("pointerlockerror", (event) => {
+            setTimeout(() => {
+                this.pointerLock();
+            }, 1000);
+        });
         HtmlUtil.elm(this._divOverlay).onclick = (e) => {
             if (this._mode != InputMode.PAUSE) {
                 return;

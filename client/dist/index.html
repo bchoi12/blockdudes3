@@ -7,6 +7,8 @@
     <link href="./normalize.css" rel="stylesheet">
     <link href="./style.css" rel="stylesheet">
  	<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Lato:regular,italic,bold,bolditalic" />
+	
+	<script src="https://kit.fontawesome.com/b400bccf87.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -33,7 +35,7 @@
 		</div>
 		<div id="div-game">
 			<div id="div-canvas">	
-				<canvas id="canvas-game" width="800" height="600" oncontextmenu="return false;">Your browser is too old</canvas>
+				<canvas id="canvas-game" width="800" height="600" oncontextmenu="return false;">Sorry but your browser is not supported.</canvas>
 			</div>
 			<div id="div-stats" class="no-select ui"></div>
 			<div id="div-messages" class="no-select slightly-opaque ui"></div>
@@ -47,6 +49,7 @@
 			<div id="div-overlay">
 				<fieldset id="fieldset-clients" class="ui">
 					<legend>Players</legend>
+					<i class="fa-solid fa-user"></i>
 				</fieldset>
 				<span class="no-select ui"><br><b>Paused</b><br><br>Click to continue<br><br></span>
 				<button id="button-voice" class="ui">voice</button>
