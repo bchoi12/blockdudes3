@@ -77,7 +77,7 @@ class Connection {
 	}
 
 	id() : number {
-		return this._id;
+		return Util.defined(this._id) ? this._id : -1;
 	}
 
 	ping() : number {

@@ -55,7 +55,7 @@ class Connection {
         this._senders.delete(type);
     }
     id() {
-        return this._id;
+        return Util.defined(this._id) ? this._id : -1;
     }
     ping() {
         if (!Util.defined(this._pinger)) {

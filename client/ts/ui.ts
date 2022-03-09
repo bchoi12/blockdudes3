@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { Icon } from './icon.js'
 import { HtmlUtil, Util } from './util.js'
 
 import { connection } from './connection.js'
@@ -181,6 +182,10 @@ class UI {
 		const html = document.createElement("span");
 		html.id = "client-" + id;
 		html.textContent = this.clientName(client);
+
+		if (id === connection.id()) {
+			html.appendChild(Icon.person());
+		}
 		html.appendChild(document.createElement("br"));
 
 		HtmlUtil.elm(this._fieldsetClients).appendChild(html);
