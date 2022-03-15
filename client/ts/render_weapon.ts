@@ -40,11 +40,15 @@ export class RenderWeapon extends RenderMesh {
 
 		mesh.add(this._gyro);
 
-		this._shotOrigin = mesh.getObjectByName(this._shotLocation).position;
+		this._shotOrigin = mesh.getObjectByName(this._shotLocation).position.clone();
 		this._light.position.copy(this._shotOrigin);
 		mesh.add(this._light)
 
 		super.setMesh(mesh);
+	}
+
+	shotOrigin() : THREE.Vector3 {
+		return this._shotOrigin.clone();
 	}
 
 	shoot(msg : Map<number, any>) {

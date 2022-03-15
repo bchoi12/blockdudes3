@@ -96,7 +96,7 @@ class Game {
 
 		if (game.sceneMap().has(playerSpace, this._id)) {
 	   		const mouse = renderer.getMouseWorld();
-	   		const player = game.sceneMap().get(playerSpace, this._id).pos();
+	   		const player = game.sceneMap().get(playerSpace, this._id).shotOrigin();
 
 	   		// TODO: this is slightly off
 	   		const dir = new THREE.Vector2(mouse.x - player.x, mouse.y - player.y);

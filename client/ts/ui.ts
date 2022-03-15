@@ -31,6 +31,7 @@ class UI {
 	private readonly _elmCursor = "cursor";
 
 	private readonly _chatKeyCode = 13;
+	private readonly _pauseKeyCode = 27;
 	private readonly _cursorWidth = 20;
 	private readonly _cursorHeight = 20;
 	private readonly _pointerLockInterval = 3000;
@@ -122,7 +123,7 @@ class UI {
 			HtmlUtil.displayBlock(this._divOverlay);	
 			this.pointerUnlock();
 		} else {
-			HtmlUtil.displayNone(this._divOverlay);	
+			HtmlUtil.displayNone(this._divOverlay);
 		}
 
 		if (this._mode == InputMode.CHAT) {
@@ -223,24 +224,21 @@ class UI {
 
 	private pointerLock() : void {
 		if (options.pointerLock) {
-			const timeout = Math.max(0, this._pointerLockInterval - (Date.now() - this._lastPointerLock))
-			setTimeout(() => {
-				renderer.elm().requestPointerLock();
-			}, timeout);
+			renderer.elm().requestPointerLock();
 		}
 	}
 	private pointerUnlock() : void {
 		document.exitPointerLock();
 	}
 	private pointerLocked() : boolean {
-		return document.pointerLockElement == renderer.elm()
+		return document.pointerLockElement === renderer.elm()
 	}
 
 	private initKeyListeners() : void {
 		const recordKey = (e : any) => {
 			if (e.repeat) return;
 
-			if (e.keyCode == this._chatKeyCode) {
+			if (e.keyCode === this._chatKeyCode) {
 				this.handleChat();
 				return;
 			}
@@ -254,8 +252,12 @@ class UI {
 			}
 		};
 		const releaseKey = (e : any) => {
-			if (e.keyCode == 27 && this._mode != InputMode.PAUSE && !this.pointerLocked()) {
-				this.changeInputMode(InputMode.PAUSE);
+			if (e.keyCode === this._pauseKeyCode) {
+				if (this._mode != InputMode.PAUSE) {
+					this.changeInputMode(InputMode.PAUSE);
+				} else {
+					this.changeInputMode(InputMode.GAME);
+				}
 				return;
 			}
 
@@ -332,7 +334,7 @@ class UI {
 				this._lastPointerLock = Date.now();
 			} else {
 				HtmlUtil.hide(this._elmCursor);
-				if (this._mode == InputMode.GAME) {
+				if (this._mode === InputMode.GAME) {
 					this.changeInputMode(InputMode.PAUSE);
 				}
 			}
@@ -340,7 +342,9 @@ class UI {
 
 		document.addEventListener("pointerlockerror", (event) => {
 			setTimeout(() => {
-				this.pointerLock();
+				if (this._mode === InputMode.GAME) {
+					this.pointerLock();
+				}
 			}, 1000);
 		});
 
@@ -353,7 +357,7 @@ class UI {
 	}
 
 	private handleChat() : void {
-		if (this._mode == InputMode.GAME) {
+		if (this._mode === InputMode.GAME) {
 			this.changeInputMode(InputMode.CHAT);
 			return;
 		}

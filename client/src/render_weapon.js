@@ -22,10 +22,13 @@ export class RenderWeapon extends RenderMesh {
         mesh.rotation.x = Math.PI / 2;
         mesh.scale.z = -1;
         mesh.add(this._gyro);
-        this._shotOrigin = mesh.getObjectByName(this._shotLocation).position;
+        this._shotOrigin = mesh.getObjectByName(this._shotLocation).position.clone();
         this._light.position.copy(this._shotOrigin);
         mesh.add(this._light);
         super.setMesh(mesh);
+    }
+    shotOrigin() {
+        return this._shotOrigin.clone();
     }
     shoot(msg) {
         super.update(msg);

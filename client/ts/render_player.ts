@@ -145,6 +145,14 @@ export class RenderPlayer extends RenderObject {
 		}
 	}
 
+	shotOrigin() : THREE.Vector3 {
+		if (!Util.defined(this._weapon)) {
+			const pos = this.pos();
+			return new THREE.Vector3(pos.x, pos.y, 0);
+		}
+		return this._weapon.mesh().localToWorld(this._weapon.shotOrigin());
+	}
+
 	setDir(dir : THREE.Vector2, weaponDir : THREE.Vector2) {
 		if (!this.hasMesh()) {
 			return;

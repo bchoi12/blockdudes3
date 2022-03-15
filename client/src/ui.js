@@ -25,6 +25,7 @@ class UI {
         this._inputMessage = "input-message";
         this._elmCursor = "cursor";
         this._chatKeyCode = 13;
+        this._pauseKeyCode = 27;
         this._cursorWidth = 20;
         this._cursorHeight = 20;
         this._pointerLockInterval = 3000;
@@ -187,23 +188,20 @@ class UI {
     }
     pointerLock() {
         if (options.pointerLock) {
-            const timeout = Math.max(0, this._pointerLockInterval - (Date.now() - this._lastPointerLock));
-            setTimeout(() => {
-                renderer.elm().requestPointerLock();
-            }, timeout);
+            renderer.elm().requestPointerLock();
         }
     }
     pointerUnlock() {
         document.exitPointerLock();
     }
     pointerLocked() {
-        return document.pointerLockElement == renderer.elm();
+        return document.pointerLockElement === renderer.elm();
     }
     initKeyListeners() {
         const recordKey = (e) => {
             if (e.repeat)
                 return;
-            if (e.keyCode == this._chatKeyCode) {
+            if (e.keyCode === this._chatKeyCode) {
                 this.handleChat();
                 return;
             }
@@ -217,8 +215,13 @@ class UI {
             }
         };
         const releaseKey = (e) => {
-            if (e.keyCode == 27 && this._mode != InputMode.PAUSE && !this.pointerLocked()) {
-                this.changeInputMode(InputMode.PAUSE);
+            if (e.keyCode === this._pauseKeyCode) {
+                if (this._mode != InputMode.PAUSE) {
+                    this.changeInputMode(InputMode.PAUSE);
+                }
+                else {
+                    this.changeInputMode(InputMode.GAME);
+                }
                 return;
             }
             if (this._mode != InputMode.GAME)
@@ -289,14 +292,16 @@ class UI {
             }
             else {
                 HtmlUtil.hide(this._elmCursor);
-                if (this._mode == InputMode.GAME) {
+                if (this._mode === InputMode.GAME) {
                     this.changeInputMode(InputMode.PAUSE);
                 }
             }
         });
         document.addEventListener("pointerlockerror", (event) => {
             setTimeout(() => {
-                this.pointerLock();
+                if (this._mode === InputMode.GAME) {
+                    this.pointerLock();
+                }
             }, 1000);
         });
         HtmlUtil.elm(this._divOverlay).onclick = (e) => {
@@ -307,7 +312,7 @@ class UI {
         };
     }
     handleChat() {
-        if (this._mode == InputMode.GAME) {
+        if (this._mode === InputMode.GAME) {
             this.changeInputMode(InputMode.CHAT);
             return;
         }
