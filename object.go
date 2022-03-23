@@ -9,24 +9,22 @@ type Attachment struct {
 	offset Vec2
 }
 
-type ObjectUpdate func(thing Thing, grid *Grid, buffer *UpdateBuffer, ts float64)
 type Object struct {
 	Profile
+	Health
+	Expiration
+
 	parent Attachment
 	children []Attachment
-	
-	health int
-	lastUpdateTime time.Time
-}
 
-func NewObjectData() Data {
-	return NewData()
+	lastUpdateTime time.Time
 }
 
 func NewObject(profile Profile, data Data) Object {
 	object := Object {
 		Profile: profile,
-		health: 0,
+		Health: NewHealth(),
+		Expiration: NewExpiration(),
 		lastUpdateTime: time.Time{},
 	}
 	object.SetData(data)
@@ -82,21 +80,13 @@ func (o *Object) SetData(data Data) {
 		return
 	}
 	o.Profile.SetData(data)
-
-	if data.Has(healthProp) {
-		o.health = data.Get(healthProp).(int)
-	}
-
+	o.Health.SetData(data)
 	o.lastUpdateTime = time.Now()
 }
 
 func (o Object) GetData() Data {
-	od := NewObjectData()
-	od.Merge(o.GetProfile().GetData())
-
-	if o.health > 0 {
-		od.Set(healthProp, o.health)
-	}
-
-	return od
+	data := NewData()
+	data.Merge(o.Profile.GetData())
+	data.Merge(o.Health.GetData())
+	return data
 }

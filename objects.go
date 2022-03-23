@@ -89,18 +89,13 @@ func (p *Platform) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) 
 
 type Bomb struct {
 	Object
-
-	creationTime time.Time
-	ttlDuration time.Duration
 }
 
 func NewBomb(init Init) *Bomb {
 	bomb := &Bomb {
 		Object: NewCircleObject(init),
-
-		creationTime: time.Now(),
-		ttlDuration: 1200 * time.Millisecond,
 	}
+	bomb.SetTTL(1200 * time.Millisecond)
 	return bomb
 }
 
@@ -111,7 +106,7 @@ func (b *Bomb) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool
 		return true
 	}
 
-	if now.Sub(b.creationTime) > b.ttlDuration {
+	if b.Expired() {
 		pos := b.Pos()
 		dim := b.Dim()
 		dim.Scale(3.6)
@@ -140,11 +135,9 @@ func NewRocket(init Init) *Rocket {
 		Object: NewRec2Object(init),
 		jerk: NewVec2(0, 0),
 		maxSpeed: 80,
-
-		creationTime: time.Now(),
-		ttlDuration: 1 * time.Second,
 	}
 	rocket.SetSolid(false)
+	rocket.SetTTL(1 * time.Second)
 
 	return rocket
 }
@@ -181,8 +174,8 @@ func (r *Rocket) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 		return true
 	}
 
-	if time.Now().Sub(r.creationTime) >= r.ttlDuration {
-		r.Explode(grid)
+	if r.Expired() {
+		r.Explode(nil, grid)
 		return true
 	}
 
@@ -199,25 +192,32 @@ func (r *Rocket) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 			continue
 		}
 
-		r.Explode(grid)
+		r.Explode(collider, grid)
 		return true
 	}
 	return true
 }
 
-func (r *Rocket) Explode(grid * Grid) {
+func (r *Rocket) Explode(collider Thing, grid *Grid) {
+	if collider != nil {
+		r.Hit(collider)
+	}
 	init := NewInit(grid.NextSpacedId(explosionSpace), NewInitData(r.Pos(), NewVec2(4, 4)))	
 	grid.Upsert(NewExplosion(init))
 	grid.Delete(r.GetSpacedId())
 }
 
+func (r *Rocket) Hit(collider Thing) {
+	switch object := collider.(type) {
+	case *Player:
+		object.TakeDamage(r.owner, 50)
+	}
+}
+
 type Explosion struct {
 	Object
 	hits map[SpacedId]bool
-
 	activeFrames int
-	creationTime time.Time
-	ttlDuration time.Duration
 }
 
 func NewExplosion(init Init) *Explosion {
@@ -225,9 +225,9 @@ func NewExplosion(init Init) *Explosion {
 		Object: NewCircleObject(init),
 		hits: make(map[SpacedId]bool, 0),
 		activeFrames: 3,
-		creationTime: time.Now(),
-		ttlDuration: 300 * time.Millisecond,
 	}
+
+	explosion.SetTTL(300 * time.Millisecond)
 	return explosion
 }
 
@@ -259,15 +259,15 @@ func (e *Explosion) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time)
 	}
 
 	e.activeFrames -= 1
-	if now.Sub(e.creationTime) >= e.ttlDuration {
+	if e.Expired() {
 		grid.Delete(e.GetSpacedId())
 	}
 	return true
 }
 
 func (e *Explosion) GetData() Data {
-	od := NewObjectData()
-	od.Set(posProp, e.GetProfile().Pos())
-	od.Set(dimProp, e.GetProfile().Dim())
-	return od
+	data := NewData()
+	data.Set(posProp, e.GetProfile().Pos())
+	data.Set(dimProp, e.GetProfile().Dim())
+	return data
 }

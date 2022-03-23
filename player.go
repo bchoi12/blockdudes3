@@ -73,7 +73,7 @@ func NewPlayer(init Init) *Player {
 	profile.AddSubProfile(bodySubProfile, subProfile)
 
 	player := &Player {
-		Object: NewObject(profile, NewObjectData()),
+		Object: NewObject(profile, NewData()),
 		weapon: NewWeaponRocket(init.GetSpacedId()),
 
 		canDash: true,
@@ -136,7 +136,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	acc := p.Acc()
 	grounded := p.Grounded()
 
-	if (p.health <= 0 || pos.Y < -5) {
+	if (p.Dead() || pos.Y < -5) {
 		p.respawn()
 		return true
 	}
@@ -271,7 +271,7 @@ func (p *Player) checkCollisions(grid *Grid) {
 }
 
 func (p *Player) respawn() {
-	p.health = 100
+	p.SetHealth(100)
 	p.canDash = true
 
 	rand.Seed(time.Now().Unix())

@@ -2,6 +2,10 @@ package main
 
 import "log"
 
+func Log(message string) {
+	log.Printf("%s", message)
+}
+
 func Debug(format string, v ...interface{}) {
 	log.Printf(format, v)
 }

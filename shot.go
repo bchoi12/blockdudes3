@@ -72,20 +72,20 @@ func (s *Shot) Resolve(grid *Grid) {
 		grid.Upsert(bomb)
 	}
 
-	s.hit(hit, grid)
+	s.Hit(hit, grid)
 	return
 }
 
-func (s *Shot) hit(hit *Hit, grid *Grid) {
+func (s *Shot) Hit(hit *Hit, grid *Grid) {
 	target := grid.Get(hit.GetSpacedId())
-	switch thing := target.(type) {
+	switch object := target.(type) {
 	case *Player:
-		thing.health -= 10
-		vel := thing.Vel()
+		object.TakeDamage(hit.spacedId, 10)
+		vel := object.Vel()
 		force := hit.Dir()
-		if !thing.Grounded() {
+		if !object.Grounded() {
 			vel.Add(force, s.pushForce)
-			thing.SetVel(vel)
+			object.SetVel(vel)
 		}
 	}
 }
