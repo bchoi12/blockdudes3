@@ -165,6 +165,8 @@ func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ThingHeap {
 			if _, ok := options.hitSpaces[sid.GetSpace()]; ok {
 				evaluate = true
 			}
+		} else {
+			evaluate = true
 		}
 		if options.hitSolids && thing.GetProfile().Solid() {
 			evaluate = true
