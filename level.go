@@ -10,6 +10,7 @@ func (g *Game) loadLevel(index LevelIdType) {
 	}
 }
 
+// TODO: currently loading is done twice in WASM and over network
 func (g *Game) loadTestLevel() {
 	var id SpacedId
 	var init Init

@@ -46,9 +46,11 @@ func setGlobals() {
 	js.Global().Set("keyType", int(keyType))
 
 	js.Global().Set("gameStateType", int(gameStateType))
+	js.Global().Set("gameUpdateType", int(gameUpdateType))
 	js.Global().Set("playerInitType", int(playerInitType))
 	js.Global().Set("playerJoinType", int(playerJoinType))
 	js.Global().Set("levelInitType", int(levelInitType))
+
 	js.Global().Set("objectInitType", int(objectInitType))
 
 	js.Global().Set("playerSpace", int(playerSpace))
@@ -63,6 +65,7 @@ func setGlobals() {
 	js.Global().Set("rocketShotType", int(rocketShotType))
 
 	js.Global().Set("spacedIdProp", int(spacedIdProp))
+	js.Global().Set("deletedProp", int(deletedProp))
 	js.Global().Set("dimProp", int(dimProp))
 	js.Global().Set("keysProp", int(keysProp))
 	js.Global().Set("posProp", int(posProp))

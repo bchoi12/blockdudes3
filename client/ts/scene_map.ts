@@ -4,6 +4,7 @@ import { Lighting } from './lighting.js'
 import { particles } from './particles.js'
 import { RenderMesh } from './render_mesh.js'
 import { RenderObject } from './render_object.js'
+import { RenderPlayer } from './render_player.js'
 import { SceneComponent } from './scene_component.js'
 import { GameUtil, LogUtil, Util } from './util.js'
 import { Weather } from './weather.js'
@@ -13,6 +14,7 @@ export class SceneMap {
 	private _lighting : Lighting;
 	private _weather : Weather;
 	private _renders : Map<number, Map<number, RenderObject>>;
+	private _deleted : Map<number, Set<number>>;
 
 	private _components : Array<SceneComponent>;
 
@@ -25,6 +27,7 @@ export class SceneMap {
 	reset() : void {
 		this._scene = new THREE.Scene();
 		this._renders = new Map();
+		this._deleted = new Map();
 
 		this._components = new Array<SceneComponent>();
 		this.addComponent(new Lighting());
@@ -41,18 +44,6 @@ export class SceneMap {
 		this._components.forEach((component) => {
 			component.update(position);
 		});
-	}
-
-	// Add untracked mesh to the scene.
-	addMesh(mesh : RenderMesh) : void {
-		mesh.onMeshLoad(() => {
-			this._scene.add(mesh.mesh());
-		});
-	}
-
-	// Remove untracked mesh from the scene.
-	removeMesh(mesh : RenderMesh) : void {
-		this._scene.remove(mesh.mesh());
 	}
 
 	add(space : number, id : number, object : RenderObject) : void {
@@ -73,7 +64,14 @@ export class SceneMap {
 		return map.has(id) && Util.defined(map.get(id));	
 	}
 
-	get(space : number, id : number) : any {
+	deleted(space : number, id : number) : boolean {
+		if (!this._deleted.has(space)) {
+			return false;
+		}
+		return this._deleted.get(space).has(id);
+	}
+
+	get(space : number, id : number) : RenderObject {
 		const map = this.getMap(space);
 		return map.get(id);
 	}
@@ -82,13 +80,19 @@ export class SceneMap {
 		const map = this.getMap(space);
 		if (map.has(id)) {
 			this._scene.remove(map.get(id).mesh());
+			wasmDelete(space, id);
 			map.delete(id);
+
+			if (!this._deleted.has(space)) {
+				this._deleted.set(space, new Set());
+			}
+			this._deleted.get(space).add(id);
 		}
 	}
 
 	clear(space : number) : void {
 		const map = this.getMap(space);
-		map.forEach((id, object) => {
+		map.forEach((object, id) => {
 			this.delete(space, id);
 		});
 		map.clear();
@@ -102,7 +106,7 @@ export class SceneMap {
 		});
 	}
 
-	update(space : number, id : number, msg : any) : void {
+	update(space : number, id : number, msg : Map<number, any>, seqNum?: number) : void {
 		const map = this.getMap(space);
 		const object = map.get(id);
 
@@ -111,20 +115,35 @@ export class SceneMap {
 			return;
 		}
 
-		object.update(msg);
+		object.update(msg, seqNum);
+
+		if (!object.initialized() && object.ready()) {
+			object.initialize();
+			wasmAdd(space, id, object.data());
+		}
+
+		if (wasmHas(space, id)) {
+			wasmSetData(space, id, object.data());
+		}
+
+		if (object.deleted()) {
+			this.delete(space, id);
+		}
 	}
 
 	renderShots(shots : Array<any>) : void {
 		shots.forEach((shot) => {
 			const sid = shot[spacedIdProp];
-			const owner = this.get(sid.S, sid.Id);
+
+			// TODO: this kinda nasty
+			const owner : any = this.get(sid.S, sid.Id);
 			owner.shoot(shot);
 		})
 	}
 
-	private getMap(space : number) : Map<number, any> {
+	private getMap(space : number) : Map<number, RenderObject> {
 		if (!this._renders.has(space)) {
-			this._renders.set(space, new Map<number, any>());
+			this._renders.set(space, new Map<number, RenderObject>());
 		}
 		return this._renders.get(space);
 	}

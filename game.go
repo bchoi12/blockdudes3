@@ -13,7 +13,7 @@ type Game struct {
 	level LevelIdType
 
 	updateBuffer *UpdateBuffer
-	updates SeqNumType
+	seqNum SeqNumType
 }
 
 func newGame() *Game {
@@ -21,7 +21,8 @@ func newGame() *Game {
 		grid: NewGrid(4, 4),
 		level: unknownLevel,
 
-		updates: 0,
+		updateBuffer: NewUpdateBuffer(),
+		seqNum: 0,
 	}
 	return game
 }
@@ -87,7 +88,7 @@ func (g *Game) processKeyMsg(id IdType, keyMsg KeyMsg) {
 }
 
 func (g *Game) updateState() {
-	g.updateBuffer = NewUpdateBuffer()
+	g.updateBuffer.Reset()
 
 	now := time.Now()
 	for _, thing := range(g.grid.GetAllThings()) {
@@ -101,16 +102,20 @@ func (g *Game) updateState() {
 		g.updateThing(thing, now)
 	}
 
-	g.updateBuffer.process(g.grid)
-	g.updates++
+	g.updateBuffer.Process(g.grid)
+	g.seqNum++
 }
 
 func (g *Game) updateThing(thing Thing, now time.Time) {
 	updated := thing.UpdateState(g.grid, g.updateBuffer, now)
-	if updated && g.grid.Has(thing.GetSpacedId()) {
-		g.grid.Upsert(thing)
-		g.updateBuffer.rawThings[thing.GetSpacedId()] = thing
+	if updated {
 		thing.EndUpdate()
+
+		// Update thing's location in the grid.
+		if g.grid.Has(thing.GetSpacedId()) {
+			g.grid.Upsert(thing)
+		}
+		g.updateBuffer.Add(thing)
 	}
 
 }
@@ -119,7 +124,7 @@ func (g* Game) createPlayerInitMsg(id IdType) PlayerInitMsg {
 	players := make(PlayerPropMap)
 
 	for _, player := range(g.grid.GetThings(playerSpace)) {
-		players[player.GetId()] = player.GetData().Props()
+		players[player.GetId()] = player.GetInitData().Props()
 	}
 
 	return PlayerInitMsg{
@@ -132,7 +137,7 @@ func (g* Game) createPlayerInitMsg(id IdType) PlayerInitMsg {
 func (g* Game) createPlayerJoinMsg(id IdType) PlayerInitMsg {
 	players := make(PlayerPropMap)
 	player := g.grid.Get(Id(playerSpace, id))
-	players[id] = player.GetData().Props()
+	players[id] = player.GetInitData().Props()
 	return PlayerInitMsg{
 		T: playerJoinType,
 		Ps: players,
@@ -152,7 +157,7 @@ func (g *Game) createObjectInitMsg() ObjectInitMsg {
 	for space, things := range(g.grid.GetManyThings(platformSpace, wallSpace)) {
 		objs[space] = make(map[IdType]PropMap)
 		for id, thing := range(things) {
-			objs[space][id] = thing.GetData().Props()
+			objs[space][id] = thing.GetInitData().Props()
 		}
 	}
 
@@ -165,9 +170,23 @@ func (g *Game) createObjectInitMsg() ObjectInitMsg {
 func (g *Game) createGameStateMsg() GameStateMsg {
 	return GameStateMsg{
 		T: gameStateType,
-		S: g.updates,
+		S: g.seqNum,
 		Ps: g.updateBuffer.players,
 		Os: g.updateBuffer.objects,
 		Ss: g.updateBuffer.shots,
 	}
+}
+
+func (g *Game) createGameUpdateMsg() (GameStateMsg, bool) {
+	if !g.updateBuffer.HasUpdates() {
+		return GameStateMsg{}, false
+	}	
+
+	return GameStateMsg {
+		T: gameUpdateType,
+		S: g.seqNum,
+		Ps: g.updateBuffer.playerUpdates,
+		Os: g.updateBuffer.objectUpdates,
+		G: g.updateBuffer.gameUpdates,
+	}, true
 }

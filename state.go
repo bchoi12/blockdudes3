@@ -1,21 +1,32 @@
 package main
 
 const (
-	stateDefaultTTL int = 5
+	stateDefaultTTL int = 3
 )
 
 type State struct {
 	state interface{}
+	changed bool
 	ttl int
 
 	// If the state was ever set
 	set bool
 }
 
+func NewBlankState(state interface{}) *State {
+	return &State {
+		state: state,
+		changed: false,
+		ttl: 0,
+	}
+}
+
 func NewState(state interface{}) *State {
 	return &State {
 		state: state,
-		ttl: 0,
+		changed: true,
+		ttl: stateDefaultTTL,
+		set: true,
 	}
 }
 
@@ -38,7 +49,17 @@ func (st *State) Set(state interface{}) {
 	}
 
 	st.state = state
+	st.changed = true
 	st.ttl = stateDefaultTTL
+}
+
+func (st *State) GetOnce() (interface{}, bool) {
+	if !st.changed {
+		return nil, false
+	}
+
+	st.changed = false
+	return st.state, true
 }
 
 func (st *State) Pop() (interface{}, bool) {

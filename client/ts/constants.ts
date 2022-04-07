@@ -21,9 +21,11 @@ declare var chatType : number;
 declare var keyType : number;
 
 declare var gameStateType : number;
+declare var gameUpdateType : number;
 declare var playerInitType : number;
 declare var playerJoinType : number;
 declare var levelInitType : number;
+
 declare var objectInitType : number;
 
 declare var playerSpace : number;
@@ -37,6 +39,7 @@ declare var bombShotType : number;
 declare var rocketShotType : number;
 
 declare var spacedIdProp : number;
+declare var deletedProp : number;
 declare var dimProp : number;
 declare var keysProp : number;
 declare var posProp : number;

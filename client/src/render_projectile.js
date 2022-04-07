@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Model, loader } from './loader.js';
 import { particles } from './particles.js';
 import { RenderObject } from './render_object.js';
 import { RenderParticle } from './render_particle.js';
@@ -12,20 +13,26 @@ export class RenderProjectile extends RenderObject {
         this._positionZ = 0.5;
         this._lastSmoke = 0;
     }
+    initialize() {
+        super.initialize();
+        loader.load(Model.ROCKET, (mesh) => {
+            this.setMesh(mesh);
+        });
+    }
     setMesh(mesh) {
+        super.setMesh(mesh);
         mesh.rotation.y = Math.PI / 2;
         mesh.position.z = this._positionZ;
-        super.setMesh(mesh);
     }
-    update(msg) {
-        super.update(msg);
+    update(msg, seqNum) {
+        super.update(msg, seqNum);
         if (!this.hasMesh()) {
             return;
         }
         const pos = this.pos();
         const vel = this.vel();
         const dim = this.dim();
-        const dir = this.vel().clone().normalize();
+        const dir = vel.clone().normalize();
         const angle = vel.angle() * -1;
         const projectile = this.mesh().getObjectByName("mesh");
         projectile.rotation.x = angle;

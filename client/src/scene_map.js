@@ -11,6 +11,7 @@ export class SceneMap {
     reset() {
         this._scene = new THREE.Scene();
         this._renders = new Map();
+        this._deleted = new Map();
         this._components = new Array();
         this.addComponent(new Lighting());
         this.addComponent(new Weather());
@@ -24,14 +25,6 @@ export class SceneMap {
         this._components.forEach((component) => {
             component.update(position);
         });
-    }
-    addMesh(mesh) {
-        mesh.onMeshLoad(() => {
-            this._scene.add(mesh.mesh());
-        });
-    }
-    removeMesh(mesh) {
-        this._scene.remove(mesh.mesh());
     }
     add(space, id, object) {
         const map = this.getMap(space);
@@ -49,6 +42,12 @@ export class SceneMap {
         const map = this.getMap(space);
         return map.has(id) && Util.defined(map.get(id));
     }
+    deleted(space, id) {
+        if (!this._deleted.has(space)) {
+            return false;
+        }
+        return this._deleted.get(space).has(id);
+    }
     get(space, id) {
         const map = this.getMap(space);
         return map.get(id);
@@ -57,12 +56,17 @@ export class SceneMap {
         const map = this.getMap(space);
         if (map.has(id)) {
             this._scene.remove(map.get(id).mesh());
+            wasmDelete(space, id);
             map.delete(id);
+            if (!this._deleted.has(space)) {
+                this._deleted.set(space, new Set());
+            }
+            this._deleted.get(space).add(id);
         }
     }
     clear(space) {
         const map = this.getMap(space);
-        map.forEach((id, object) => {
+        map.forEach((object, id) => {
             this.delete(space, id);
         });
         map.clear();
@@ -74,14 +78,24 @@ export class SceneMap {
             }
         });
     }
-    update(space, id, msg) {
+    update(space, id, msg, seqNum) {
         const map = this.getMap(space);
         const object = map.get(id);
         if (!Util.defined(object)) {
             this.delete(space, id);
             return;
         }
-        object.update(msg);
+        object.update(msg, seqNum);
+        if (!object.initialized() && object.ready()) {
+            object.initialize();
+            wasmAdd(space, id, object.data());
+        }
+        if (wasmHas(space, id)) {
+            wasmSetData(space, id, object.data());
+        }
+        if (object.deleted()) {
+            this.delete(space, id);
+        }
     }
     renderShots(shots) {
         shots.forEach((shot) => {

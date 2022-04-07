@@ -4,14 +4,6 @@ import (
 	"time"
 )
 
-func NewRec2Object(init Init) Object {
-	profile := NewRec2(init, NewData())
-	profile.SetSolid(true)
-	return Object {
-		Profile: profile,
-	}
-}
-
 func NewCircleObject(init Init) Object {
 	profile := NewCircle(init, NewData())
 	return Object {
@@ -40,8 +32,10 @@ type Platform struct {
 }
 
 func NewPlatform(init Init) *Platform {
+	profile := NewRec2(init, NewData())
+	profile.SetSolid(true)
 	return &Platform {
-		Object: NewRec2Object(init),
+		Object: NewObject(profile, NewData()),
 		xBounded: false,
 		yBounded: false,
 	}
@@ -132,11 +126,10 @@ type Rocket struct {
 
 func NewRocket(init Init) *Rocket {
 	rocket := &Rocket {
-		Object: NewRec2Object(init),
+		Object: NewCircleObject(init),
 		jerk: NewVec2(0, 0),
 		maxSpeed: 80,
 	}
-	rocket.SetSolid(false)
 	rocket.SetTTL(1 * time.Second)
 
 	return rocket

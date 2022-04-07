@@ -33,9 +33,11 @@ const (
 	keyType
 
 	gameStateType
+	gameUpdateType
 	playerInitType
 	playerJoinType
 	levelInitType
+
 	objectInitType
 )
 
@@ -116,6 +118,7 @@ type GameStateMsg struct {
 	Ps PlayerPropMap
 	Ss ShotPropMaps
 	Os ObjectPropMap
+	G PropMap
 }
 
 type PlayerInitMsg struct {

@@ -11,9 +11,10 @@ export enum Model {
 
 	UZI = 10,
 	ROCKET = 11,
+	EXPLOSION = 12,
 }
 
-export class Loader {
+class Loader {
 	private readonly _modelPrefix = "./model/";
 
 	private _loader : GLTFLoader;
@@ -73,3 +74,5 @@ export class Loader {
 		}
 	}
 }
+
+export const loader = new Loader();

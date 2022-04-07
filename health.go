@@ -74,7 +74,10 @@ func (h *Health) SetData(data Data) {
 	if !h.enabled || data.Size() == 0 {
 		return
 	}
-	h.health = data.Get(healthProp).(int)
+
+	if data.Has(healthProp) {
+		h.health = data.Get(healthProp).(int)
+	}
 }
 
 func (h Health) GetData() Data {

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {Howl} from 'howler';
 
+import { Model, loader } from './loader.js'
 import { particles } from './particles.js'
 import { RenderObject } from './render_object.js'
 import { RenderParticle } from './render_particle.js'
@@ -20,14 +21,21 @@ export class RenderProjectile extends RenderObject {
 		this._lastSmoke = 0;
 	}
 
-	override setMesh(mesh : THREE.Mesh) : void {
-		mesh.rotation.y = Math.PI / 2;
-		mesh.position.z = this._positionZ;
-		super.setMesh(mesh);
+	override initialize() : void {
+		super.initialize();
+		loader.load(Model.ROCKET, (mesh : THREE.Mesh) => {
+			this.setMesh(mesh);
+		});
 	}
 
-	override update(msg : Map<number, any>) : void {
-		super.update(msg);
+	override setMesh(mesh : THREE.Mesh) : void {
+		super.setMesh(mesh);
+		mesh.rotation.y = Math.PI / 2;
+		mesh.position.z = this._positionZ;
+	}
+
+	override update(msg : Map<number, any>, seqNum? : number) : void {
+		super.update(msg, seqNum);
 
 		if (!this.hasMesh()) {
 			return;
@@ -36,7 +44,7 @@ export class RenderProjectile extends RenderObject {
 		const pos = this.pos();
 		const vel = this.vel();
 		const dim = this.dim();
-		const dir = this.vel().clone().normalize();
+		const dir = vel.clone().normalize();
 		const angle = vel.angle() * -1;
 
 		const projectile = this.mesh().getObjectByName("mesh");

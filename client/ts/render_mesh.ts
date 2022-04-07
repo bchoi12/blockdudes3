@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 
+import { Message } from './message.js'
 import { renderer } from './renderer.js'
 
 export class RenderMesh {
 	protected readonly _debugMaterial = new THREE.MeshStandardMaterial({color: 0xff0000, wireframe: true });
 
-	protected _msg : Map<number, any>;
+	protected _msg : Message;
 
 	protected _mesh : THREE.Mesh;
 	protected _hasMesh : boolean
@@ -13,9 +14,9 @@ export class RenderMesh {
 
 	protected _parent : RenderMesh;
 	protected _hasParent : boolean;
-	
+
 	constructor() {
-		this._msg = new Map<number, any>();
+		this._msg = new Message();
 
 		this._hasMesh = false;
 		this._onMeshLoad = new Array<() => void>();
@@ -23,94 +24,103 @@ export class RenderMesh {
 		this._hasParent = false;
 	}
 
-	update(msg : Map<number, any>) : void {
-		Object.assign(this._msg, msg);
-	}
-
-	msg() : Map<number, any> {
+	msg() : Message {
 		return this._msg;
 	}
 
+	data() : { [k: string]: any } {
+		return this._msg.data();
+	}
+
+	update(msg : Map<number, any>, seqNum? : number) : void {
+		this._msg.update(msg, seqNum);
+	}
+
+	deleted() : boolean {
+		return this._msg.has(deletedProp) && this._msg.get(deletedProp);
+	}
+
 	hasPos() : boolean {
-		return this._msg.hasOwnProperty(posProp);
+		return this._msg.has(posProp);
 	}
 	pos() : THREE.Vector2 {
 		if (this.hasPos()) {
-			return new THREE.Vector2(this._msg[posProp].X, this._msg[posProp].Y);
+			return new THREE.Vector2(this._msg.get(posProp).X, this._msg.get(posProp).Y);
 		}
 		return new THREE.Vector2(0, 0);
 	}
 
 	hasDim() : boolean {
-		return this._msg.hasOwnProperty(dimProp);
+		return this._msg.has(dimProp);
 	}
 	dim() : THREE.Vector2 {
 		if (this.hasDim()) {
-			return new THREE.Vector2(this._msg[dimProp].X, this._msg[dimProp].Y);
+			return new THREE.Vector2(this._msg.get(dimProp).X, this._msg.get(dimProp).Y);
 		}
 		return new THREE.Vector2(0, 0);
 	}
 
 
 	hasEndPos() : boolean {
-		return this._msg.hasOwnProperty(endPosProp);
+		return this._msg.has(endPosProp);
 	}
 	endPos() : THREE.Vector2 {
 		if (this.hasEndPos()) {
-			return new THREE.Vector2(this._msg[endPosProp].X, this._msg[endPosProp].Y);
+			return new THREE.Vector2(this._msg.get(endPosProp).X, this._msg.get(endPosProp).Y);
 		}
 		return new THREE.Vector2(0, 0);
 	}
 
 	hasVel() : boolean {
-		return this._msg.hasOwnProperty(velProp);
+		return this._msg.has(velProp);
 	}
 	vel() : THREE.Vector2 {
 		if (this.hasVel()) {
-			return new THREE.Vector2(this._msg[velProp].X, this._msg[velProp].Y);
+			return new THREE.Vector2(this._msg.get(velProp).X, this._msg.get(velProp).Y);
 		}
 		return new THREE.Vector2(0, 0);
 	}
 
 	hasAcc() : boolean {
-		return this._msg.hasOwnProperty(accProp);
+		return this._msg.has(accProp);
 	}
 	acc() : THREE.Vector2 {
 		if (this.hasAcc()) {
-			return new THREE.Vector2(this._msg[accProp].X, this._msg[accProp].Y);
+			return new THREE.Vector2(this._msg.get(accProp).X, this._msg.get(accProp).Y);
 		}
 		return new THREE.Vector2(0, 0);
 	}
 
 	hasDir() : boolean {
-		return this._msg.hasOwnProperty(dirProp);
+		return this._msg.has(dirProp);
 	}
 	dir() : THREE.Vector2 {
 		if (this.hasDir()) {
-			return new THREE.Vector2(this._msg[dirProp].X, this._msg[dirProp].Y);
+			return new THREE.Vector2(this._msg.get(dirProp).X, this._msg.get(dirProp).Y);
 		}
 		return new THREE.Vector2(1, 0);
 	}
 
 	hasWeaponDir() : boolean {
-		return this._msg.hasOwnProperty(weaponDirProp);
+		return this._msg.has(weaponDirProp);
 	}
 	weaponDir() : THREE.Vector2 {
 		if (this.hasWeaponDir()) {
-			return new THREE.Vector2(this._msg[weaponDirProp].X, this._msg[weaponDirProp].Y);
+			return new THREE.Vector2(this._msg.get(weaponDirProp).X, this._msg.get(weaponDirProp).Y);
 		}
 		return new THREE.Vector2(1, 0);
 	}
 
 	hasGrounded() : boolean {
-		return this._msg.hasOwnProperty(groundedProp);
+		return this._msg.has(groundedProp);
 	}
 	grounded() : boolean {
 		if (this.hasGrounded()) {
-			return this._msg[groundedProp];
+			return this._msg.get(groundedProp);
 		}
 		return true;
 	}
+
 
 	mesh() : THREE.Mesh {
 		return this._mesh;

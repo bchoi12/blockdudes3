@@ -8,8 +8,9 @@ export var Model;
     Model[Model["DUCK"] = 2] = "DUCK";
     Model[Model["UZI"] = 10] = "UZI";
     Model[Model["ROCKET"] = 11] = "ROCKET";
+    Model[Model["EXPLOSION"] = 12] = "EXPLOSION";
 })(Model || (Model = {}));
-export class Loader {
+class Loader {
     constructor() {
         this._modelPrefix = "./model/";
         this._loader = new GLTFLoader();
@@ -59,3 +60,4 @@ export class Loader {
         }
     }
 }
+export const loader = new Loader();

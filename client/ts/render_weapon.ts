@@ -51,8 +51,8 @@ export class RenderWeapon extends RenderMesh {
 		return this._shotOrigin.clone();
 	}
 
-	shoot(msg : Map<number, any>) {
-		super.update(msg);
+	shoot(msg : Map<number, any>, seqNum? : number) {
+		super.update(msg, seqNum);
 
 		const pos = this.pos();
 		if (msg[shotTypeProp] == rocketShotType) {
@@ -60,7 +60,7 @@ export class RenderWeapon extends RenderMesh {
 			return;
 		}
 
-		const localPos = this.endPos().sub(this.pos());
+		const localPos = this.endPos().sub(pos);
 		const angle = localPos.angle();
 		const range = localPos.length();
 

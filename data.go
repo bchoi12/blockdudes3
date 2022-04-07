@@ -5,21 +5,23 @@ const (
 	unknownProp Prop = iota
 
 	spacedIdProp
+	deletedProp
 	dimProp
 	keysProp
 	posProp
-	endPosProp
 
+	endPosProp
 	velProp
 	extVelProp
 	accProp
 	dirProp
-	healthProp
 
+	healthProp
 	solidProp
 	groundedProp
 	shotTypeProp
 	hitsProp
+
 	weaponDirProp
 
 	// debug props
@@ -65,16 +67,16 @@ func (d *Data) Set(prop Prop, data interface{}) {
 	d.props[prop] = data
 }
 
-func (d *Data) Append(otherData Data) {
-	for prop, data := range(otherData.Props()) {
+func (d *Data) Append(other Data) {
+	for prop, data := range(other.Props()) {
 		if !d.Has(prop) {
 			d.Set(prop, data)
 		}
 	}
 }
 
-func (d *Data) Merge(otherData Data) {
-	for prop, data := range(otherData.Props()) {
+func (d *Data) Merge(other Data) {
+	for prop, data := range(other.Props()) {
 		d.Set(prop, data)
 	}
 }

@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 
+import { loader, Model } from './loader.js'
 import { particles } from './particles.js'
 import { RenderObject } from './render_object.js'
 import { RenderParticle } from './render_particle.js'
@@ -39,11 +40,31 @@ export class RenderPlayer extends RenderObject {
 		this._actions = new Map<PlayerAction, any>();
 	}
 
-	override setMesh(mesh : THREE.Mesh) {	
+	override initialize() : void {
+		super.initialize();
+
+		loader.load(this._id % 2 == 0 ? Model.CHICKEN : Model.DUCK, (mesh : THREE.Mesh) => {
+			this.setMesh(mesh);
+			loader.load(Model.UZI, (weaponMesh : THREE.Mesh) => {
+				const weapon = new RenderWeapon();
+				weapon.setMesh(weaponMesh);
+				this.setWeapon(weapon);
+			});
+		});
+	}
+
+	override setMesh(mesh : THREE.Mesh) {
+		super.setMesh(mesh);
+
 		this._mixer = new THREE.AnimationMixer(mesh);
 
+		// Model origin is at feet.
+		const playerMesh = mesh.getObjectByName("mesh");
+		playerMesh.position.y -= this.dim().y / 2;
+
+
 		this._armOrigin = mesh.getObjectByName("armR").position.clone();
-		mesh.getObjectByName("mesh").rotation.y = Math.PI / 2 + this._rotationOffset;
+		playerMesh.rotation.y = Math.PI / 2 + this._rotationOffset;
 
 		for (let action in PlayerAction) {
 			const clip = this._mixer.clipAction(THREE.AnimationClip.findByName(mesh.animations, PlayerAction[action]));
@@ -68,23 +89,22 @@ export class RenderPlayer extends RenderObject {
 			this._profilePointsMesh = new THREE.Points(this._profilePoints, this._pointsMaterial);
 			mesh.add(this._profilePointsMesh);
 		}
-
-		super.setMesh(mesh);
 	}
 
-	override update(msg : Map<number, any>) : void {
-		super.update(msg);
+	override update(msg : Map<number, any>, seqNum? : number) : void {
+		super.update(msg, seqNum);
 
 		if (!this.hasMesh()) {
 			return;
 		}
 
 		const pos = this.pos();
+		const dim = this.dim();
 		const vel = this.vel();
 		const acc = this.acc();
-
 		const dir = this.dir();
 		const weaponDir = this.weaponDir();
+
 		this.setDir(dir, weaponDir);
 
 		const arm = this._mesh.getObjectByName("armR");
@@ -94,13 +114,14 @@ export class RenderPlayer extends RenderObject {
 			arm.position.add(armOffset);
 		}
 
-		if (this.grounded() != this._grounded) {
-			this._grounded = this.grounded();
+		const grounded = this.grounded();
+		if (grounded != this._grounded) {
+			this._grounded = grounded;
 
 			if (vel.y >= 0) {
 				const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(0.3, 6, 6), this._cloudMaterial);
 				cloudMesh.position.x = pos.x;
-				cloudMesh.position.y = pos.y - this.dim().y / 2;
+				cloudMesh.position.y = pos.y - dim.y / 2;
 				cloudMesh.position.z = 0.5;
 				const cloud = new RenderParticle();
 				cloud.setMesh(cloudMesh);
@@ -111,7 +132,7 @@ export class RenderPlayer extends RenderObject {
 			}
 		}
 
-		if (!this.grounded()) {
+		if (!grounded) {
 			this.fadeOut(PlayerAction.Idle, 0.1);
 			this.fadeOut(PlayerAction.Walk, 0.1);
 			this.fadeIn(PlayerAction.Jump, 0.1);
@@ -159,8 +180,9 @@ export class RenderPlayer extends RenderObject {
 		}
 
 		// Match rotation with server logic
-		if (Math.abs(dir.x) < 0.3 && MathUtil.signPos(dir.x) != MathUtil.signPos(this.dir().x)) {
-			dir.x = MathUtil.signPos(this.dir().x) * Math.abs(dir.x);
+		const currentDir = this.dir();
+		if (Math.abs(dir.x) < 0.3 && MathUtil.signPos(dir.x) != MathUtil.signPos(currentDir.x)) {
+			dir.x = MathUtil.signPos(currentDir.x) * Math.abs(dir.x);
 		}
 		if (Math.abs(dir.x) < this._sqrtHalf) {
 			dir.x = this._sqrtHalf * MathUtil.signPos(dir.x);
@@ -178,6 +200,8 @@ export class RenderPlayer extends RenderObject {
 
 		const arm = player.getObjectByName("armR");
 		arm.rotation.x = weaponDir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI / 2 : 3 * Math.PI / 2);
+
+		// TODO: set underlying dir here?
 	}
 
 	setWeapon(weapon : RenderWeapon) : void {
@@ -188,7 +212,7 @@ export class RenderPlayer extends RenderObject {
 		});
 	}
 
-	shoot(shot : any) : void {
+	shoot(shot : Map<number, any>, seqNum? : number) : void {
 		const arm = this._mesh.getObjectByName("armR");
 		const axis = new THREE.Vector3(1, 0, 0);
 		const recoil = new THREE.Vector3(0, 0, -0.1);
@@ -198,7 +222,7 @@ export class RenderPlayer extends RenderObject {
 		arm.position.z = this._armOrigin.z + recoil.y;
 
 		if (Util.defined(this._weapon)) {
-			this._weapon.shoot(shot);
+			this._weapon.shoot(shot, seqNum);
 		}
 	}
 }

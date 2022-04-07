@@ -14,6 +14,8 @@ type Profile interface {
 	InitMethods
 	ProfileMath
 
+	Pos() Vec2
+	SetPos(pos Vec2)
 	Vel() Vec2
 	SetVel(vel Vec2)
 	ExtVel() Vec2
@@ -24,6 +26,8 @@ type Profile interface {
 	Dir() Vec2
 	SetDir(dir Vec2)
 
+	Dim() Vec2
+	SetDim(dim Vec2)
 	Solid() bool
 	SetSolid(solid bool)
 	Guide() bool
@@ -32,6 +36,7 @@ type Profile interface {
 	SetGrounded(grounded bool)
 
 	GetData() Data
+	GetUpdates() Data
 	SetData(data Data)
 
 	AddSubProfile(key ProfileKey, subProfile SubProfile)
@@ -48,8 +53,8 @@ type Profile interface {
 
 type BaseProfile struct {
 	Init
-	vel, extVel, acc, dir Vec2
-	solid, guide, grounded *State
+	pos, vel, extVel, acc, dir Vec2
+	dim, solid, guide, grounded *State
 
 	subProfiles map[ProfileKey]SubProfile
 	ignoredColliders map[SpacedId]bool
@@ -58,13 +63,15 @@ type BaseProfile struct {
 func NewBaseProfile(init Init, data Data) BaseProfile {
 	bp := BaseProfile {
 		Init: init,
+		pos: init.InitPos(),
+		dim: NewBlankState(init.InitDim()),
 		vel: NewVec2(0, 0),
 		extVel: NewVec2(0, 0),
 		acc: NewVec2(0, 0),
 		dir: NewVec2(1, 0),
-		solid: NewState(false),
-		guide: NewState(false),
-		grounded: NewState(false),
+		solid: NewBlankState(false),
+		guide: NewBlankState(false),
+		grounded: NewBlankState(false),
 
 		subProfiles: make(map[ProfileKey]SubProfile),
 		ignoredColliders: make(map[SpacedId]bool),
@@ -74,8 +81,13 @@ func NewBaseProfile(init Init, data Data) BaseProfile {
 	return bp
 }
 
+func (bp BaseProfile) Dim() Vec2 { return bp.dim.Peek().(Vec2) }
+func (bp *BaseProfile) SetDim(dim Vec2) {
+	bp.dim.Set(dim)
+}
+func (bp BaseProfile) Pos() Vec2 { return bp.pos }
 func (bp *BaseProfile) SetPos(pos Vec2) {
-	bp.Init.SetPos(pos)
+	bp.pos = pos
 	for _, sp := range(bp.subProfiles) {
 		sp.SetPos(pos)
 	}
@@ -123,7 +135,9 @@ func (bp *BaseProfile) SetGrounded(grounded bool) { bp.grounded.Set(grounded) }
 
 func (bp BaseProfile) GetData() Data {
 	data := NewData()
-	data.Merge(bp.Init.GetData())
+
+	// TODO: need a static state
+	data.Set(posProp, bp.Pos())
 
 	if !bp.Vel().IsZero() {
 		data.Set(velProp, bp.Vel())
@@ -135,14 +149,30 @@ func (bp BaseProfile) GetData() Data {
 		data.Set(accProp, bp.Acc())
 	}
 
+	if dim, ok := bp.dim.Pop(); ok {
+		data.Set(dimProp, dim)
+	}
 	if solid, ok := bp.solid.Pop(); ok {
 		data.Set(solidProp, solid)
 	}
-
-	if bp.grounded.Has() {
-		data.Set(groundedProp, bp.grounded.Peek())
+	if grounded, ok := bp.grounded.Pop(); ok {
+		data.Set(groundedProp, grounded)
 	}
 
+	return data
+}
+
+func (bp BaseProfile) GetUpdates() Data {
+	data := NewData()
+	if dim, ok := bp.dim.GetOnce(); ok {
+		data.Set(dimProp, dim)
+	}
+	if solid, ok := bp.solid.GetOnce(); ok {
+		data.Set(solidProp, solid)
+	}
+	if grounded, ok := bp.grounded.GetOnce(); ok {
+		data.Set(groundedProp, grounded)
+	}
 	return data
 }
 
@@ -151,7 +181,9 @@ func (bp *BaseProfile) SetData(data Data) {
 		return
 	}
 
-	bp.Init.SetData(data)
+	if data.Has(posProp) {
+		bp.SetPos(data.Get(posProp).(Vec2))
+	}
 
 	if data.Has(velProp) {
 		bp.SetVel(data.Get(velProp).(Vec2))
@@ -169,6 +201,9 @@ func (bp *BaseProfile) SetData(data Data) {
 		bp.SetAcc(NewVec2(0, 0))
 	}
 
+	if data.Has(dimProp) {
+		bp.SetDim(data.Get(dimProp).(Vec2))
+	}
 	if data.Has(solidProp) {
 		bp.SetSolid(data.Get(solidProp).(bool))
 	}

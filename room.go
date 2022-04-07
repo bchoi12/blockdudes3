@@ -240,8 +240,12 @@ func (r *Room) createClientMsg(msgType MessageType, c *Client, voice bool) Clien
 }
 
 func (r *Room) sendState() {
-	msg := r.game.createGameStateMsg()
-	r.sendUDP(&msg)
+	state := r.game.createGameStateMsg()
+	r.sendUDP(&state)
+
+	if updates, ok := r.game.createGameUpdateMsg(); ok {
+		r.send(&updates)
+	}
 }
 
 func (r *Room) send(msg interface{}) {

@@ -12,6 +12,7 @@ type Thing interface {
 	GetProfile() Profile
 	SetData(data Data)
 	GetData() Data
+	GetUpdates() Data
 	SetParent(attach Attachment)
 	AddChild(attach Attachment)
 	GetParent() Attachment

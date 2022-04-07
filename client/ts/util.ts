@@ -2,7 +2,7 @@ const dev : boolean = location.hostname === "localhost" || location.hostname ===
 
 export namespace Util {
 	export function defined(object : any) : boolean {
-	    return typeof object != 'undefined';
+	    return typeof object != 'undefined' && object != null;
 	}
 
 	export function arrayToString(array : Array<any>) : string {

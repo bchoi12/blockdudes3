@@ -6,6 +6,8 @@ import { renderer } from './renderer.js'
 
 export class RenderExplosion extends RenderObject {
 
+	private readonly _material = new THREE.MeshStandardMaterial( {color: 0xbb4444 } );
+
 	private _sound : Howl;
 	private _exploded : boolean;
 
@@ -18,12 +20,19 @@ export class RenderExplosion extends RenderObject {
 		this._exploded = false;
 	}
 
-	override setMesh(mesh : THREE.Mesh) {
-		super.setMesh(mesh);
+	override initialize() : void {
+		super.initialize();
+		const mesh = new THREE.Mesh(new THREE.SphereGeometry(this.dim().x / 2, 12, 8), this._material);
+		this.setMesh(mesh);
 	}
 
-	override update(msg : Map<number, any>) : void {
-		super.update(msg);
+	override setMesh(mesh : THREE.Mesh) {
+		super.setMesh(mesh);
+		mesh.receiveShadow = true;
+	}
+
+	override update(msg : Map<number, any>, seqNum? : number) : void {
+		super.update(msg, seqNum);
 
 		if (!this.hasMesh()) {
 			return;

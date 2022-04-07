@@ -13,6 +13,8 @@ export class RenderObject extends RenderMesh {
 
 	protected _actions : Map<string, THREE.AnimationAction>;
 	protected _activeActions : Set<string>;
+
+	protected _initialized : boolean;
 	
 	constructor(space : number, id : number) {
 		super();
@@ -22,10 +24,12 @@ export class RenderObject extends RenderMesh {
 
 		this._activeActions = new Set();
 		this._lastMixerUpdate = Date.now();
+
+		this._initialized = false;
 	}
 
-	override update(msg : Map<number, any>) : void {
-		super.update(msg);
+	override update(msg : Map<number, any>, seqNum? : number) : void {
+		super.update(msg, seqNum);
 
 		if (!this.hasMesh()) {
 			return;
@@ -54,6 +58,18 @@ export class RenderObject extends RenderMesh {
 
 	id() : number {
 		return this._id;
+	}
+
+	ready() : boolean {
+		return this._msg.has(posProp) && this._msg.has(dimProp);
+	}
+
+	initialize() : void {
+		this._initialized = true;
+	}
+
+	initialized() : boolean {
+		return this._initialized;
 	}
 
 	protected updateMixer() {

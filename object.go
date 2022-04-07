@@ -90,3 +90,9 @@ func (o Object) GetData() Data {
 	data.Merge(o.Health.GetData())
 	return data
 }
+
+func (o Object) GetUpdates() Data {
+	updates := NewData()
+	updates.Merge(o.Profile.GetUpdates())
+	return updates
+}

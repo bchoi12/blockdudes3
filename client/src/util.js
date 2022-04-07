@@ -2,7 +2,7 @@ const dev = location.hostname === "localhost" || location.hostname === "127.0.0.
 export var Util;
 (function (Util) {
     function defined(object) {
-        return typeof object != 'undefined';
+        return typeof object != 'undefined' && object != null;
     }
     Util.defined = defined;
     function arrayToString(array) {

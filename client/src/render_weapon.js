@@ -30,14 +30,14 @@ export class RenderWeapon extends RenderMesh {
     shotOrigin() {
         return this._shotOrigin.clone();
     }
-    shoot(msg) {
-        super.update(msg);
+    shoot(msg, seqNum) {
+        super.update(msg, seqNum);
         const pos = this.pos();
         if (msg[shotTypeProp] == rocketShotType) {
             renderer.playSound(this._blastSound, new THREE.Vector3(pos.x, pos.y, 0));
             return;
         }
-        const localPos = this.endPos().sub(this.pos());
+        const localPos = this.endPos().sub(pos);
         const angle = localPos.angle();
         const range = localPos.length();
         const geometry = new THREE.BoxGeometry(range, 0.1, 0.1);

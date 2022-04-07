@@ -56,7 +56,7 @@ type Player struct {
 
 func NewPlayer(init Init) *Player {
 	profile := NewRec2(init, NewData())
-	profile.SetSolid(true)
+	profile.SetSolid(false)
 	profile.SetGuide(true)
 	points := make([]Vec2, 4)
 	points[0] = NewVec2(0.48, -0.53)
@@ -64,10 +64,7 @@ func NewPlayer(init Init) *Player {
 	points[2] = NewVec2(-0.48, 0.53)
 	points[3] = NewVec2(-0.48, -0.53)
 
-	rpInit := init
-	rpInit.SetDim(NewVec2(10, 10))
-
-	rotPoly := NewRotPoly(rpInit, NewData(), points)
+	rotPoly := NewRotPoly(init, NewData(), points)
 	subProfile := NewSubProfile(rotPoly)
 	subProfile.SetOffset(NewVec2(0, 0.22))
 	profile.AddSubProfile(bodySubProfile, subProfile)
@@ -92,7 +89,7 @@ func NewPlayer(init Init) *Player {
 	return player
 }
 
-func (p *Player) GetData() Data {
+func (p Player) GetData() Data {
 	data := NewData()
 	data.Merge(p.Object.GetData())
 
@@ -109,7 +106,17 @@ func (p *Player) GetData() Data {
 	return data
 }
 
+func (p Player) GetUpdates() Data {
+	updates := NewData()
+	updates.Merge(p.Profile.GetUpdates())
+	return updates
+}
+
 func (p *Player) SetData(data Data) {
+	if data.Size() == 0 {
+		return
+	}
+
 	p.Object.SetData(data)
 
 	if data.Has(keysProp) {

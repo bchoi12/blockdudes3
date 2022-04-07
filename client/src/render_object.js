@@ -7,9 +7,10 @@ export class RenderObject extends RenderMesh {
         this._id = id;
         this._activeActions = new Set();
         this._lastMixerUpdate = Date.now();
+        this._initialized = false;
     }
-    update(msg) {
-        super.update(msg);
+    update(msg, seqNum) {
+        super.update(msg, seqNum);
         if (!this.hasMesh()) {
             return;
         }
@@ -31,6 +32,15 @@ export class RenderObject extends RenderMesh {
     }
     id() {
         return this._id;
+    }
+    ready() {
+        return this._msg.has(posProp) && this._msg.has(dimProp);
+    }
+    initialize() {
+        this._initialized = true;
+    }
+    initialized() {
+        return this._initialized;
     }
     updateMixer() {
         const now = Date.now();
