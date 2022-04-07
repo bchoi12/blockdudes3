@@ -257,7 +257,7 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 }
 
 func (p *Player) checkCollisions(grid *Grid) {
-	colliders := grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId(), solidOnly: true})
+	colliders := grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId(), hitSolids: true})
 	p.Snap(colliders)
 
 	colliders = grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId()})

@@ -174,7 +174,8 @@ func (r *Rocket) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 
 	colliders := grid.GetColliders(r.GetProfile(), ColliderOptions {
 		self: r.GetSpacedId(),
-		solidOnly: true,
+		hitSpaces: map[SpaceType]bool { playerSpace: true },
+		hitSolids: true,
 	})
 
 	for len(colliders) > 0 {

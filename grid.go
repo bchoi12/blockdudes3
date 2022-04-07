@@ -148,8 +148,9 @@ func (g *Grid) GetManyThings(spaces ...SpaceType) map[SpaceType]map[IdType]Thing
 
 type ColliderOptions struct {
 	self SpacedId
-	solidOnly bool
-	ignore map[SpaceType]bool
+
+	hitSpaces map[SpaceType]bool
+	hitSolids bool
 }
 func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ThingHeap {
 	heap := make(ThingHeap, 0)
@@ -158,10 +159,18 @@ func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ThingHeap {
 		if options.self == sid {
 			continue
 		}
-		if options.solidOnly && !thing.GetProfile().Solid() {
-			continue
+
+		evaluate := false
+		if len(options.hitSpaces) > 0 {
+			if _, ok := options.hitSpaces[sid.GetSpace()]; ok {
+				evaluate = true
+			}
 		}
-		if options.ignore != nil && options.ignore[sid.GetSpace()] {
+		if options.hitSolids && thing.GetProfile().Solid() {
+			evaluate = true
+		}
+
+		if !evaluate {
 			continue
 		}
 
@@ -185,7 +194,7 @@ func (g *Grid) GetHits(line Line, options ColliderOptions) *Hit {
 	for {
 		closest := 1.0
 		for id, thing := range(g.grid[coord]) {
-			if id == options.self || options.ignore != nil && options.ignore[id.GetSpace()] {
+			if id == options.self {
 				continue
 			}
 

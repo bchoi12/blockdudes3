@@ -3,6 +3,7 @@ package main
 // TODO: rename this
 type UpdateBuffer struct {
 	// TODO: this can be slice
+	// TODO: this should store Things separate from the Grid
 	rawThings map[SpacedId]Thing
 	rawShots []*Shot
 
