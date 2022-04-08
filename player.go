@@ -130,7 +130,7 @@ func (p *Player) SetData(data Data) {
 	}
 }
 
-func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
+func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	ts := GetTimestep(now, p.lastUpdateTime)
 	if ts < 0 {
 		return false
@@ -237,7 +237,12 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	p.SetPos(pos)
 	p.checkCollisions(grid)
 
-	// Shooting & recoil
+	return true
+}
+
+func (p *Player) Postprocess(grid *Grid, now time.Time) {
+	p.Object.Postprocess(grid, now)
+
 	p.weapon.SetPos(p.GetSubProfile(bodySubProfile).Pos())
 	if p.keyDown(mouseClick) {
 		p.weapon.PressTrigger(primaryTrigger)
@@ -245,15 +250,10 @@ func (p *Player) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bo
 	if p.keyDown(altMouseClick) {
 		p.weapon.PressTrigger(secondaryTrigger)
 	}
-	shots := p.weapon.Shoot(now)
-	if len(shots) > 0 {
-		buffer.rawShots = append(buffer.rawShots, shots...)
-	}
+	p.weapon.Shoot(grid, now)
 
 	// Save state
 	p.lastKeys = p.keys
-
-	return true
 }
 
 func (p *Player) checkCollisions(grid *Grid) {
@@ -279,6 +279,7 @@ func (p *Player) checkCollisions(grid *Grid) {
 
 func (p *Player) respawn() {
 	p.SetHealth(100)
+	p.SetGrounded(false)
 	p.canDash = true
 
 	rand.Seed(time.Now().Unix())

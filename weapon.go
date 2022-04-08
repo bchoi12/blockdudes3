@@ -33,7 +33,7 @@ type Weapon interface {
 	SetTrigger(triggerType TriggerType, trigger *Trigger)
 	PressTrigger(trigger TriggerType)
 	UpdateState(trigger TriggerType, now time.Time) WeaponStateType
-	Shoot(now time.Time) []*Shot
+	Shoot(grid *Grid, now time.Time)
 }
 
 type BaseWeapon struct {
@@ -128,27 +128,30 @@ func (bw *BaseWeapon) UpdateState(triggerType TriggerType, now time.Time) Weapon
 	return readyWeaponState
 }
 
-func (bw *BaseWeapon) Shoot(now time.Time) []*Shot {
-	shots := make([]*Shot, 0)
+func (bw *BaseWeapon) Shoot(grid *Grid, now time.Time) {
 	for triggerType, trigger := range(bw.triggers) {
 		state := bw.UpdateState(triggerType, now)
 		if state != shootingWeaponState {
 			continue
 		}
 
-		dist := bw.dir
-		dist.Scale(15)
-		shotPos := bw.offset
-		shotPos.Rotate(bw.Dir().Angle())
-		shotPos.Add(bw.pos, 1.0)
-		shot := NewShot(bw, NewLine(shotPos, dist))
+		if trigger.shotType == rocketShotType {
+			rocket := NewRocket(NewInit(grid.NextSpacedId(rocketSpace), NewInitData(bw.Pos(), NewVec2(0.5, 0.5))))
+			rocket.SetOwner(bw.GetOwner())
+			acc := bw.dir
+			acc.Normalize()
+			acc.Scale(24)
 
-		shot.shotType = trigger.shotType
-		shot.pushForce = 5.0
-		shot.colliderOptions = ColliderOptions {
-			self: bw.GetOwner(),
+			vel := bw.dir
+			vel.Normalize()
+			ownerVel := grid.Get(bw.GetOwner()).TotalVel()
+			vel.Scale(Max(1, vel.Dot(ownerVel)))
+			rocket.SetVel(vel)
+			rocket.SetAcc(acc)
+
+			acc.Scale(2)
+			rocket.SetJerk(acc)
+			grid.Upsert(rocket)
 		}
-		shots = append(shots, shot)
 	}
-	return shots
 }

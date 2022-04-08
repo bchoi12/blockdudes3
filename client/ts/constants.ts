@@ -38,7 +38,6 @@ declare var burstShotType : number;
 declare var bombShotType : number;
 declare var rocketShotType : number;
 
-declare var spacedIdProp : number;
 declare var deletedProp : number;
 declare var dimProp : number;
 declare var keysProp : number;
@@ -51,9 +50,9 @@ declare var dirProp : number;
 declare var healthProp : number;
 declare var solidProp : number;
 declare var groundedProp : number;
-declare var shotTypeProp : number;
 declare var hitsProp : number;
 declare var weaponDirProp : number;
+
 declare var profileDimProp : number;
 declare var profilePosProp : number;
 declare var profilePointsProp : number;

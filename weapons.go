@@ -26,7 +26,6 @@ func NewWeaponRocket(owner SpacedId) *WeaponRocket {
 		BaseWeapon: NewBaseWeapon(owner),
 	}
 
-	r.triggers[primaryTrigger] = NewTrigger(burstShotType, 3, 100 * time.Millisecond, 300 * time.Millisecond)
-	r.triggers[secondaryTrigger] = NewTrigger(rocketShotType, 1, 50 * time.Millisecond, 1000 * time.Millisecond)
+	r.triggers[primaryTrigger] = NewTrigger(rocketShotType, 1, 50 * time.Millisecond, 1000 * time.Millisecond)
 	return r
 }

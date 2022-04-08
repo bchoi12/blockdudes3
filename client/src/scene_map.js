@@ -97,13 +97,6 @@ export class SceneMap {
             this.delete(space, id);
         }
     }
-    renderShots(shots) {
-        shots.forEach((shot) => {
-            const sid = shot[spacedIdProp];
-            const owner = this.get(sid.S, sid.Id);
-            owner.shoot(shot);
-        });
-    }
     getMap(space) {
         if (!this._renders.has(space)) {
             this._renders.set(space, new Map());

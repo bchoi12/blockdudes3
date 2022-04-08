@@ -39,16 +39,16 @@ func (o *Object) PrepareUpdate(now time.Time) float64 {
 	return Max(0, ts)
 }
 
-func (o *Object) EndUpdate() {
-	o.UpdateChildren()
-}
-
 func (o Object) GetProfile() Profile {
 	return o.Profile
 }
 
-func (o *Object) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
+func (o *Object) UpdateState(grid *Grid, now time.Time) bool {
 	return false
+}
+
+func (o *Object) Postprocess(grid *Grid, now time.Time) {
+	o.UpdateChildren(grid, now)
 }
 
 func (o *Object) AddChild(attach Attachment) {
@@ -65,13 +65,15 @@ func (o *Object) GetChildren() []Attachment {
 	return o.children
 }
 
-func (o *Object) UpdateChildren() {
+func (o *Object) UpdateChildren(grid *Grid, now time.Time) {
 	for _, attachment := range(o.children) {
 		childPos := o.Pos()
 		childPos.Add(attachment.offset, 1.0)
 		attachment.thing.SetPos(childPos)
 		attachment.thing.SetVel(o.TotalVel())
 		attachment.thing.SetAcc(o.Acc())
+
+		grid.Upsert(attachment.thing)
 	}
 }
 

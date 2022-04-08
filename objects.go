@@ -53,7 +53,7 @@ func (p *Platform) SetYBounds(ymin float64, ymax float64) {
 	p.ymax = ymax
 }
 
-func (p *Platform) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
+func (p *Platform) UpdateState(grid *Grid, now time.Time) bool {
 	if p.Vel().IsZero() {
 		return false
 	}
@@ -93,7 +93,7 @@ func NewBomb(init Init) *Bomb {
 	return bomb
 }
 
-func (b *Bomb) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
+func (b *Bomb) UpdateState(grid *Grid, now time.Time) bool {
 	b.PrepareUpdate(now)
 
 	if isWasm {
@@ -143,7 +143,7 @@ func (r *Rocket) SetJerk(jerk Vec2) {
 	r.jerk = jerk
 }
 
-func (r *Rocket) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
+func (r *Rocket) UpdateState(grid *Grid, now time.Time) bool {
 	ts := r.PrepareUpdate(now)
 
 	acc := r.Acc()
@@ -245,7 +245,7 @@ func (e *Explosion) Hit(p *Player) {
 	p.GetProfile().SetVel(dir)
 }
 
-func (e *Explosion) UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool {
+func (e *Explosion) UpdateState(grid *Grid, now time.Time) bool {
 	e.PrepareUpdate(now)
 
 	if isWasm {

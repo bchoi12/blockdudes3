@@ -91,7 +91,10 @@ class Game {
                     }
                     if (!this.sceneMap().has(space, id)) {
                         let renderObj;
-                        if (space === explosionSpace) {
+                        if (space === playerSpace) {
+                            renderObj = new RenderPlayer(space, id);
+                        }
+                        else if (space === explosionSpace) {
                             renderObj = new RenderExplosion(space, id);
                         }
                         else if (space === rocketSpace) {
@@ -105,23 +108,6 @@ class Game {
                     }
                     this.sceneMap().update(space, id, object, seqNum);
                 }
-            }
-        }
-        if (Util.defined(msg.Ps)) {
-            for (const [stringId, player] of Object.entries(msg.Ps)) {
-                const id = Number(stringId);
-                if (this.sceneMap().deleted(playerSpace, id)) {
-                    continue;
-                }
-                if (!this.sceneMap().has(playerSpace, id)) {
-                    this.sceneMap().add(playerSpace, id, new RenderPlayer(playerSpace, id));
-                }
-                this.sceneMap().update(playerSpace, id, player, seqNum);
-            }
-        }
-        if (Util.defined(msg.Ss)) {
-            if (msg.Ss.length > 0) {
-                this.sceneMap().renderShots(msg.Ss);
             }
         }
     }
@@ -140,12 +126,6 @@ class Game {
                     continue;
                 this.sceneMap().update(space, id, object);
             }
-        }
-        for (const [stringId, player] of Object.entries(state.Ps)) {
-            const id = Number(stringId);
-            if (!this.sceneMap().has(playerSpace, id))
-                continue;
-            this.sceneMap().update(playerSpace, id, player);
         }
     }
     extrapolatePlayerDir() {

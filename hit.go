@@ -1,5 +1,6 @@
 package main
 
+// TODO: delete
 type Hit struct {
 	spacedId SpacedId
 	pos Vec2
@@ -53,7 +54,6 @@ func (h *Hit) SetT(t float64) {
 func (h Hit) GetData() Data {
 	data := NewData()
 
-	data.Set(spacedIdProp, h.spacedId)
 	data.Set(posProp, h.pos)
 
 	return data

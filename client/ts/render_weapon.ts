@@ -18,7 +18,6 @@ export class RenderWeapon extends RenderMesh {
 	private _light : THREE.PointLight;
 
 	private _shootSound : Howl;
-	private _blastSound : Howl;
 
 	constructor() {
 		super();
@@ -28,9 +27,6 @@ export class RenderWeapon extends RenderMesh {
 		this._light = new THREE.PointLight(0x00ff00, 0, 3);
 		this._shootSound = new Howl({
 			src: ["./sound/test.wav"]
-		});
-		this._blastSound = new Howl({
-			src: ["./sound/test2.wav"]
 		});
 	}
 
@@ -49,42 +45,6 @@ export class RenderWeapon extends RenderMesh {
 
 	shotOrigin() : THREE.Vector3 {
 		return this._shotOrigin.clone();
-	}
-
-	shoot(msg : Map<number, any>, seqNum? : number) {
-		super.update(msg, seqNum);
-
-		const pos = this.pos();
-		if (msg[shotTypeProp] == rocketShotType) {
-			renderer.playSound(this._blastSound, new THREE.Vector3(pos.x, pos.y, 0));
-			return;
-		}
-
-		const localPos = this.endPos().sub(pos);
-		const angle = localPos.angle();
-		const range = localPos.length();
-
-		const geometry = new THREE.BoxGeometry(range, 0.1, 0.1);
-		const ray = new THREE.Mesh(geometry, this._rayMaterial);
-		ray.rotation.z = this.parent().dir().x > 0 ? Math.PI - angle : angle;
-		ray.position.x = Math.cos(ray.rotation.z) * range / 2;
-		ray.position.y = Math.sin(ray.rotation.z) * range / 2;
-		this._gyro.add(ray);
-
-		// TODO: make a singleton map for this
-		if (msg[shotTypeProp] == burstShotType) {
-			this._light.color.setHex(0x00ff00);
-		} else {
-			this._light.color.setHex(0x0000ff);
-		}
-		this._light.intensity = 3;
-
-		renderer.playSound(this._shootSound, new THREE.Vector3(pos.x, pos.y, 0));
-
-		setTimeout(() => {
-			this._gyro.remove(ray);
-			this._light.intensity = 0;
-		}, 60);
 	}
 }
 

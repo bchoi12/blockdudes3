@@ -31,6 +31,7 @@ export class RenderPlayer extends RenderObject {
 	private _profilePointsMesh : THREE.Points;
 
 	constructor(space : number, id : number) {
+		// TODO: consider just using playerSpace
 		super(space, id);
 
 		this._lastUpdate = Date.now();
@@ -179,6 +180,7 @@ export class RenderPlayer extends RenderObject {
 			return;
 		}
 
+		// TODO: use WASM to get extrapolated dir
 		// Match rotation with server logic
 		const currentDir = this.dir();
 		if (Math.abs(dir.x) < 0.3 && MathUtil.signPos(dir.x) != MathUtil.signPos(currentDir.x)) {
@@ -188,6 +190,8 @@ export class RenderPlayer extends RenderObject {
 			dir.x = this._sqrtHalf * MathUtil.signPos(dir.x);
 			dir.y = this._sqrtHalf * MathUtil.signPos(dir.y);
 		}
+		dir.normalize();
+		this.msg().set(dirProp, {X: dir.x, Y: dir.y})
 
 		const player = this._mesh.getObjectByName("mesh");
 		if (MathUtil.signPos(dir.x) != MathUtil.signPos(player.scale.z)) {
@@ -200,8 +204,6 @@ export class RenderPlayer extends RenderObject {
 
 		const arm = player.getObjectByName("armR");
 		arm.rotation.x = weaponDir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI / 2 : 3 * Math.PI / 2);
-
-		// TODO: set underlying dir here?
 	}
 
 	setWeapon(weapon : RenderWeapon) : void {
@@ -220,9 +222,5 @@ export class RenderPlayer extends RenderObject {
 
 		arm.position.y = this._armOrigin.y - recoil.z;
 		arm.position.z = this._armOrigin.z + recoil.y;
-
-		if (Util.defined(this._weapon)) {
-			this._weapon.shoot(shot, seqNum);
-		}
 	}
 }

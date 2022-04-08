@@ -131,16 +131,6 @@ export class SceneMap {
 		}
 	}
 
-	renderShots(shots : Array<any>) : void {
-		shots.forEach((shot) => {
-			const sid = shot[spacedIdProp];
-
-			// TODO: this kinda nasty
-			const owner : any = this.get(sid.S, sid.Id);
-			owner.shoot(shot);
-		})
-	}
-
 	private getMap(space : number) : Map<number, RenderObject> {
 		if (!this._renders.has(space)) {
 			this._renders.set(space, new Map<number, RenderObject>());

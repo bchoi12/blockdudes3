@@ -144,6 +144,8 @@ export class RenderPlayer extends RenderObject {
             dir.x = this._sqrtHalf * MathUtil.signPos(dir.x);
             dir.y = this._sqrtHalf * MathUtil.signPos(dir.y);
         }
+        dir.normalize();
+        this.msg().set(dirProp, { X: dir.x, Y: dir.y });
         const player = this._mesh.getObjectByName("mesh");
         if (MathUtil.signPos(dir.x) != MathUtil.signPos(player.scale.z)) {
             player.scale.z = MathUtil.signPos(dir.x);
@@ -168,8 +170,5 @@ export class RenderPlayer extends RenderObject {
         recoil.applyAxisAngle(axis, arm.rotation.x);
         arm.position.y = this._armOrigin.y - recoil.z;
         arm.position.z = this._armOrigin.z + recoil.y;
-        if (Util.defined(this._weapon)) {
-            this._weapon.shoot(shot, seqNum);
-        }
     }
 }

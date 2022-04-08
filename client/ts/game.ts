@@ -121,7 +121,9 @@ class Game {
 
 					if (!this.sceneMap().has(space, id)) {
 						let renderObj;
-						if (space === explosionSpace) {
+						if (space === playerSpace) {
+							renderObj = new RenderPlayer(space, id);
+						} else if (space === explosionSpace) {
 							renderObj = new RenderExplosion(space, id);
 						} else if (space === rocketSpace) {
 							renderObj = new RenderProjectile(space, id);
@@ -139,6 +141,7 @@ class Game {
 			}
 		}
 
+/*
 		if (Util.defined(msg.Ps)) {
 			for (const [stringId, player] of Object.entries(msg.Ps) as [string, any]) {
 				const id = Number(stringId);
@@ -154,12 +157,7 @@ class Game {
 				this.sceneMap().update(playerSpace, id, player, seqNum);
 			}
 		}
-
-		if (Util.defined(msg.Ss)) {
-			if (msg.Ss.length > 0) {
-				this.sceneMap().renderShots(msg.Ss);
-			}	
-		}
+*/
 	}
 
 	private extrapolateState() {
@@ -181,12 +179,14 @@ class Game {
 			}
 		}
 
+/*
 		for (const [stringId, player] of Object.entries(state.Ps) as [string, any]) {
 			const id = Number(stringId);
 			if (!this.sceneMap().has(playerSpace, id)) continue;
 
 			this.sceneMap().update(playerSpace, id, player);
 		}
+*/
 	}
 
 	private extrapolatePlayerDir() : void {

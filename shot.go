@@ -10,6 +10,7 @@ const (
 	rocketShotType
 )
 
+// TODO: delete
 type Shot struct {
 	weapon Weapon
 	line Line
@@ -92,9 +93,6 @@ func (s *Shot) Hit(hit *Hit, grid *Grid) {
 
 func (s *Shot) GetData() Data {
 	data := NewData()
-
-	data.Set(spacedIdProp, s.weapon.GetOwner())
-	data.Set(shotTypeProp, s.shotType)
 
 	if s.line.LenSquared() > 0 {
 		data.Set(posProp, s.line.Origin())

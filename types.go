@@ -115,7 +115,6 @@ type ChatMsg struct {
 type GameStateMsg struct {
 	T MessageType
 	S SeqNumType
-	Ps PlayerPropMap
 	Ss ShotPropMaps
 	Os ObjectPropMap
 	G PropMap

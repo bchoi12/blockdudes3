@@ -10,16 +10,45 @@ type Thing interface {
 	Profile
 
 	GetProfile() Profile
-	SetData(data Data)
+	GetInitData() Data
 	GetData() Data
 	GetUpdates() Data
-	SetParent(attach Attachment)
-	AddChild(attach Attachment)
+	SetData(data Data)
 	GetParent() Attachment
+	SetParent(attach Attachment)
 	GetChildren() []Attachment
+	AddChild(attach Attachment)
 
-	UpdateState(grid *Grid, buffer *UpdateBuffer, now time.Time) bool
-	EndUpdate()
+	UpdateState(grid *Grid, now time.Time) bool
+	Postprocess(grid *Grid, now time.Time)
+}
+
+type ThingState struct {
+	initialized bool
+	deleted bool
+}
+
+func NewThingState() *ThingState {
+	return &ThingState {
+		initialized: false,
+		deleted: false,
+	}
+}
+
+func (th ThingState) GetInitialized() bool {
+	return th.initialized
+}
+
+func (th *ThingState) SetInitialized(initialized bool) {
+	th.initialized = initialized
+}
+
+func (th ThingState) GetDeleted() bool {
+	return th.deleted
+}
+
+func (th *ThingState) SetDeleted(deleted bool) {
+	th.deleted = deleted
 }
 
 type ThingItem struct {

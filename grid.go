@@ -1,5 +1,9 @@
 package main
 
+import (
+	"time"
+)
+
 type GridCoord struct {
 	x int
 	y int
@@ -20,6 +24,7 @@ type Grid struct {
 
 	lastId map[SpaceType]IdType
 	things map[SpacedId]Thing
+	thingStates map[SpacedId]*ThingState
 	spacedThings map[SpaceType]map[IdType]Thing
 	grid map[GridCoord]map[SpacedId]Thing
 	reverseGrid map[SpacedId][]GridCoord
@@ -32,6 +37,7 @@ func NewGrid(unitLength int, unitHeight int) *Grid {
 
 		lastId: make(map[SpaceType]IdType, 0),
 		things: make(map[SpacedId]Thing, 0),
+		thingStates: make(map[SpacedId]*ThingState, 0),
 		spacedThings: make(map[SpaceType]map[IdType]Thing, 0),
 		grid: make(map[GridCoord]map[SpacedId]Thing, 0),
 		reverseGrid: make(map[SpacedId][]GridCoord, 0),
@@ -72,14 +78,7 @@ func (g *Grid) Upsert(thing Thing) {
 		}
 	} else {
 		// Insert since it's missing
-		g.things[sid] = thing
-		g.spacedThings[sid.GetSpace()][sid.GetId()] = thing
-
-		if lastId, ok := g.lastId[sid.GetSpace()]; !ok {
-			g.lastId[sid.GetSpace()] = sid.GetId()
-		} else if sid.GetId() > lastId {
-			g.lastId[sid.GetSpace()] = sid.GetId()
-		}
+		g.insert(sid, thing)
 	}
 
 	// Update coords
@@ -93,6 +92,18 @@ func (g *Grid) Upsert(thing Thing) {
 	g.reverseGrid[sid] = coords
 }
 
+func (g *Grid) insert(sid SpacedId, thing Thing) {
+	g.things[sid] = thing
+	g.thingStates[sid] = NewThingState()
+	g.spacedThings[sid.GetSpace()][sid.GetId()] = thing
+
+	if lastId, ok := g.lastId[sid.GetSpace()]; !ok {
+		g.lastId[sid.GetSpace()] = sid.GetId()
+	} else if sid.GetId() > lastId {
+		g.lastId[sid.GetSpace()] = sid.GetId()
+	}
+}
+
 func (g *Grid) deleteCoords(sid SpacedId) {
 	if coords, ok := g.reverseGrid[sid]; ok {
 		for _, coord := range(coords) {
@@ -102,10 +113,39 @@ func (g *Grid) deleteCoords(sid SpacedId) {
 	}
 }
 
+func (g *Grid) Update(now time.Time) {
+	for _, thing := range(g.GetAllThings()) {
+		if thing.GetSpace() == playerSpace {
+			continue
+		}
+		g.updateThing(thing, now)
+	}
+
+	// TODO: randomize order?
+	for _, thing := range(g.GetThings(playerSpace)) {
+		g.updateThing(thing, now)
+	}
+}
+
+func (g *Grid) updateThing(thing Thing, now time.Time) {
+	updated := thing.UpdateState(g, now)
+	if updated {
+		// Update location in the grid
+		// TODO: do this in Thing::UpdateState() instead
+		if g.Has(thing.GetSpacedId()) {
+			g.Upsert(thing)
+		}
+	}
+}
+
+func (g *Grid) Postprocess(now time.Time) {
+	for _, thing := range(g.GetAllThings()) {
+		thing.Postprocess(g, now)
+	}
+}
+
 func (g *Grid) Delete(sid SpacedId) {
-	g.deleteCoords(sid)
-	delete(g.things, sid)
-	delete(g.spacedThings[sid.GetSpace()], sid.GetId())
+	g.thingStates[sid].SetDeleted(true)
 }
 
 func (g *Grid) Has(sid SpacedId) bool {
@@ -115,6 +155,57 @@ func (g *Grid) Has(sid SpacedId) bool {
 
 func (g *Grid) Get(sid SpacedId) Thing {
 	return g.spacedThings[sid.GetSpace()][sid.GetId()]
+}
+
+func (g *Grid) GetData() ObjectPropMap {
+	objects := make(ObjectPropMap)
+
+	for _, thing := range(g.GetAllThings()) {
+		data := thing.GetData()
+		if data.Size() == 0 {
+			continue
+		}
+
+		if _, ok := objects[thing.GetSpace()]; !ok {
+			objects[thing.GetSpace()] = make(map[IdType]PropMap, 0)
+		}
+		objects[thing.GetSpace()][thing.GetId()] = data.Props()
+	}
+	return objects
+}
+
+func (g *Grid) GetUpdates() ObjectPropMap {
+	objects := make(ObjectPropMap)
+
+	for _, thing := range(g.GetAllThings()) {
+		updates := thing.GetUpdates()
+		state := g.thingStates[thing.GetSpacedId()]
+		if !state.GetInitialized() {
+			updates.Merge(thing.GetInitData())
+			state.SetInitialized(true)
+		}
+		if state.GetDeleted() {
+			updates.Set(deletedProp, true)
+		}
+
+		if updates.Size() == 0 {
+			continue
+		}
+
+		if _, ok := objects[thing.GetSpace()]; !ok {
+			objects[thing.GetSpace()] = make(map[IdType]PropMap, 0)
+		}
+		objects[thing.GetSpace()][thing.GetId()] = updates.Props()
+
+		if state.GetDeleted() {
+			sid := thing.GetSpacedId()
+			g.deleteCoords(sid)
+			delete(g.things, sid)
+			delete(g.thingStates, sid)
+			delete(g.spacedThings[thing.GetSpace()], thing.GetId())
+		}
+	}
+	return objects
 }
 
 func (g *Grid) NextId(space SpaceType) IdType {
