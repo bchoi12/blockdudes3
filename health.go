@@ -17,29 +17,28 @@ type DamageTick struct {
 type DeathFunc func(thing Thing, grid *Grid)
 type Health struct {
 	enabled bool
-	health int
-
+	health *State
 	ticks []DamageTick
 }
 
 func NewHealth() Health {
 	return Health {
 		enabled: false,
-		health: 0,
+		health: NewBlankState(0),
 	}
 }
 
 func (h *Health) SetHealth(health int) {
 	h.enabled = true
-	h.health = health
+	h.health.Set(health)
 }
 
 func (h Health) GetHealth() int {
-	return h.health
+	return h.health.Peek().(int)
 }
 
 func (h Health) Dead() bool {
-	return h.health <= 0
+	return h.health.Peek().(int) <= 0
 }
 
 func (h Health) GetLastTicks(duration time.Duration) []DamageTick {
@@ -53,10 +52,10 @@ func (h Health) GetLastTicks(duration time.Duration) []DamageTick {
 }
 
 func (h *Health) TakeDamage(sid SpacedId, damage int) {
-	if !h.enabled || h.health <= 0 || isWasm {
+	if !h.enabled || h.Dead() || isWasm {
 		return
 	}
-	h.health -= damage
+	h.health.Set(h.health.Peek().(int) - damage)
 
 	tick := DamageTick {
 		sid: sid,
@@ -76,14 +75,29 @@ func (h *Health) SetData(data Data) {
 	}
 
 	if data.Has(healthProp) {
-		h.health = data.Get(healthProp).(int)
+		h.health.Set(data.Get(healthProp).(int))
 	}
 }
 
 func (h Health) GetData() Data {
 	data := NewData()
-	if h.enabled {
-		data.Set(healthProp, h.health)
+	if !h.enabled {
+		return data
+	}
+	if health, ok := h.health.Pop(); ok {
+		data.Set(healthProp, health)
 	}
 	return data
+}
+
+func (h Health) GetUpdates() Data {
+	updates := NewData()
+	if !h.enabled {
+		return updates
+	}
+
+	if health, ok := h.health.GetOnce(); ok {
+		updates.Set(healthProp, health)
+	}
+	return updates
 }

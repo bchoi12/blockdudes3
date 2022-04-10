@@ -13,9 +13,10 @@ const (
 	velProp
 	extVelProp
 	accProp
+	jerkProp
 	dirProp
-	healthProp
 
+	healthProp
 	solidProp
 	groundedProp
 	hitsProp
@@ -73,6 +74,9 @@ func (d *Data) Append(other Data) {
 }
 
 func (d *Data) Merge(other Data) {
+	if other.Size() == 0 {
+		return
+	}
 	for prop, data := range(other.Props()) {
 		d.Set(prop, data)
 	}

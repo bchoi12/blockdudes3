@@ -40,6 +40,8 @@ type Room struct {
 
 	incoming chan IncomingMsg
 	ticker *time.Ticker
+	gameTicks int
+	statTicker *time.Ticker
 	register chan *Client
 	unregister chan *Client
 }
@@ -60,6 +62,8 @@ func createOrJoinRoom(room string, name string, ws *websocket.Conn) {
 
 			incoming: make(chan IncomingMsg),
 			ticker: time.NewTicker(frameTime),
+			gameTicks: 0,
+			statTicker: time.NewTicker(1 * time.Second),
 			register: make(chan *Client),
 			unregister: make(chan *Client),
 		}
@@ -105,6 +109,10 @@ func (r *Room) run() {
 			case _ = <-r.ticker.C:
 				r.game.updateState()
 				r.sendState()
+				r.gameTicks += 1
+			case _ = <-r.statTicker.C:
+				log.Printf("FPS: %d", r.gameTicks)
+				r.gameTicks = 0
 			default:
 				if len(r.msgQueue) == 0 {
 					continue

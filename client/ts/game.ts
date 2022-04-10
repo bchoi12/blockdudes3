@@ -22,11 +22,13 @@ class Game {
 
 	private _sceneMap : SceneMap;
 	private _keyUpdates : number;
+	private _lastSeqNum : number;
 	private _animateFrames : number;
 
 	constructor() {
 		this._sceneMap = new SceneMap();
 		this._keyUpdates = 0;
+		this._lastSeqNum = 0;
 		this._animateFrames = 0;
 	}
 
@@ -70,9 +72,9 @@ class Game {
 		this.updateCamera();
 		this.extrapolatePlayerDir();
 		renderer.render();
+		this._animateFrames++;
 
 		requestAnimationFrame(() => { this.animate(); });
-		this._animateFrames++;
 	}
 
 	private createKeyMsg() : { [k: string]: any } {
@@ -109,6 +111,14 @@ class Game {
 
 	private updateGameState(msg : { [k: string]: any }) : void {
 		const seqNum = msg.S;
+		if (msg.T === gameStateType) {
+			if (seqNum <= this._lastSeqNum) {
+				return;
+			}  else {
+				this._lastSeqNum = seqNum;
+			}
+		}
+
 		if (Util.defined(msg.Os)) {
 			for (const [stringSpace, objects] of Object.entries(msg.Os) as [string, any]) {
 				for (const [stringId, object] of Object.entries(objects) as [string, any]) {
@@ -140,24 +150,6 @@ class Game {
 				}
 			}
 		}
-
-/*
-		if (Util.defined(msg.Ps)) {
-			for (const [stringId, player] of Object.entries(msg.Ps) as [string, any]) {
-				const id = Number(stringId);
-
-				if (this.sceneMap().deleted(playerSpace, id)) {
-					continue;
-				}
-
-				if (!this.sceneMap().has(playerSpace, id)) {
-					this.sceneMap().add(playerSpace, id, new RenderPlayer(playerSpace, id));
-				}
-
-				this.sceneMap().update(playerSpace, id, player, seqNum);
-			}
-		}
-*/
 	}
 
 	private extrapolateState() {
@@ -178,15 +170,6 @@ class Game {
 				this.sceneMap().update(space, id, object);
 			}
 		}
-
-/*
-		for (const [stringId, player] of Object.entries(state.Ps) as [string, any]) {
-			const id = Number(stringId);
-			if (!this.sceneMap().has(playerSpace, id)) continue;
-
-			this.sceneMap().update(playerSpace, id, player);
-		}
-*/
 	}
 
 	private extrapolatePlayerDir() : void {

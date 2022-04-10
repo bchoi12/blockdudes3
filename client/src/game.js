@@ -15,6 +15,7 @@ class Game {
         this._bombMaterial = new THREE.MeshStandardMaterial({ color: 0x4444bb, transparent: true, opacity: 0.5 });
         this._sceneMap = new SceneMap();
         this._keyUpdates = 0;
+        this._lastSeqNum = 0;
         this._animateFrames = 0;
     }
     setup() {
@@ -51,8 +52,8 @@ class Game {
         this.updateCamera();
         this.extrapolatePlayerDir();
         renderer.render();
-        requestAnimationFrame(() => { this.animate(); });
         this._animateFrames++;
+        requestAnimationFrame(() => { this.animate(); });
     }
     createKeyMsg() {
         const msg = ui.createKeyMsg(this._keyUpdates);
@@ -81,6 +82,14 @@ class Game {
     }
     updateGameState(msg) {
         const seqNum = msg.S;
+        if (msg.T === gameStateType) {
+            if (seqNum <= this._lastSeqNum) {
+                return;
+            }
+            else {
+                this._lastSeqNum = seqNum;
+            }
+        }
         if (Util.defined(msg.Os)) {
             for (const [stringSpace, objects] of Object.entries(msg.Os)) {
                 for (const [stringId, object] of Object.entries(objects)) {

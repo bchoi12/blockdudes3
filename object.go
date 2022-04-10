@@ -48,7 +48,9 @@ func (o *Object) UpdateState(grid *Grid, now time.Time) bool {
 }
 
 func (o *Object) Postprocess(grid *Grid, now time.Time) {
-	o.UpdateChildren(grid, now)
+	if len(o.GetChildren()) > 0 {
+		o.UpdateChildren(grid, now)
+	}
 }
 
 func (o *Object) AddChild(attach Attachment) {
@@ -96,5 +98,6 @@ func (o Object) GetData() Data {
 func (o Object) GetUpdates() Data {
 	updates := NewData()
 	updates.Merge(o.Profile.GetUpdates())
+	updates.Merge(o.Health.GetUpdates())
 	return updates
 }

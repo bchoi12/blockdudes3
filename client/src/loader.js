@@ -8,7 +8,6 @@ export var Model;
     Model[Model["DUCK"] = 2] = "DUCK";
     Model[Model["UZI"] = 10] = "UZI";
     Model[Model["ROCKET"] = 11] = "ROCKET";
-    Model[Model["EXPLOSION"] = 12] = "EXPLOSION";
 })(Model || (Model = {}));
 class Loader {
     constructor() {

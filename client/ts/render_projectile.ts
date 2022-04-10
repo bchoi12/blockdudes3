@@ -27,12 +27,13 @@ export class RenderProjectile extends RenderObject {
 		super.initialize();
 
 		// TODO: should load this centrally
+/*
 		this._blastSound = new Howl({
 			src: ["./sound/test2.wav"]
 		});
-
 		const pos = this.pos();
 		renderer.playSound(this._blastSound, new THREE.Vector3(pos.x, pos.y, 0));
+*/
 		loader.load(Model.ROCKET, (mesh : THREE.Mesh) => {
 			this.setMesh(mesh);
 		});

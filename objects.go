@@ -14,6 +14,7 @@ func NewCircleObject(init Init) Object {
 func NewWall(init Init) *Object {
 	profile := NewRec2(init, NewData())
 	profile.SetSolid(true)
+	profile.SetStatic(true)
 	return &Object {
 		Profile: profile,
 	}
@@ -34,6 +35,7 @@ type Platform struct {
 func NewPlatform(init Init) *Platform {
 	profile := NewRec2(init, NewData())
 	profile.SetSolid(true)
+	profile.SetStatic(true)
 	return &Platform {
 		Object: NewObject(profile, NewData()),
 		xBounded: false,
@@ -115,97 +117,17 @@ func (b *Bomb) UpdateState(grid *Grid, now time.Time) bool {
 }
 
 type Rocket struct {
-	Object
-	owner SpacedId
-	maxSpeed float64
-	jerk Vec2
-
-	creationTime time.Time
-	ttlDuration time.Duration
+	Projectile
 }
 
 func NewRocket(init Init) *Rocket {
 	rocket := &Rocket {
-		Object: NewCircleObject(init),
-		jerk: NewVec2(0, 0),
-		maxSpeed: 80,
+		Projectile: NewProjectile(NewCircleObject(init)),
 	}
+	rocket.SetMaxSpeed(80)
 	rocket.SetTTL(1 * time.Second)
-
+	rocket.SetExplode(true)
 	return rocket
-}
-
-func (r *Rocket) SetOwner(owner SpacedId) {
-	r.owner = owner
-}
-
-func (r *Rocket) SetJerk(jerk Vec2) {
-	r.jerk = jerk
-}
-
-func (r *Rocket) UpdateState(grid *Grid, now time.Time) bool {
-	ts := r.PrepareUpdate(now)
-
-	acc := r.Acc()
-	acc.Add(r.jerk, ts)
-	r.SetAcc(acc)
-
-	vel := r.Vel()
-	vel.Add(acc, ts)
-
-	if vel.LenSquared() > r.maxSpeed * r.maxSpeed {
-		vel.Normalize()
-		vel.Scale(r.maxSpeed)
-	}
-	r.SetVel(vel)
-
-	pos := r.Pos()
-	pos.Add(r.TotalVel(), ts)
-	r.SetPos(pos)
-
-	if isWasm {
-		return true
-	}
-
-	if r.Expired() {
-		r.Explode(nil, grid)
-		return true
-	}
-
-	colliders := grid.GetColliders(r.GetProfile(), ColliderOptions {
-		self: r.GetSpacedId(),
-		hitSpaces: map[SpaceType]bool { playerSpace: true },
-		hitSolids: true,
-	})
-
-	for len(colliders) > 0 {
-		collider := PopThing(&colliders)
-
-		results := r.Overlap(collider.GetProfile())
-		if collider.GetSpacedId() == r.owner || !results.overlap {
-			continue
-		}
-
-		r.Explode(collider, grid)
-		return true
-	}
-	return true
-}
-
-func (r *Rocket) Explode(collider Thing, grid *Grid) {
-	if collider != nil {
-		r.Hit(collider)
-	}
-	init := NewInit(grid.NextSpacedId(explosionSpace), NewInitData(r.Pos(), NewVec2(4, 4)))	
-	grid.Upsert(NewExplosion(init))
-	grid.Delete(r.GetSpacedId())
-}
-
-func (r *Rocket) Hit(collider Thing) {
-	switch object := collider.(type) {
-	case *Player:
-		object.TakeDamage(r.owner, 50)
-	}
 }
 
 type Explosion struct {

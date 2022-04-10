@@ -23,6 +23,8 @@ type Profile interface {
 	TotalVel() Vec2
 	Acc() Vec2
 	SetAcc(acc Vec2)
+	Jerk() Vec2
+	SetJerk(jerk Vec2)
 	Dir() Vec2
 	SetDir(dir Vec2)
 
@@ -34,6 +36,8 @@ type Profile interface {
 	SetGuide(guide bool)
 	Grounded() bool
 	SetGrounded(grounded bool)
+	Static() bool
+	SetStatic(static bool)
 
 	GetData() Data
 	GetUpdates() Data
@@ -53,8 +57,10 @@ type Profile interface {
 
 type BaseProfile struct {
 	Init
-	pos, vel, extVel, acc, dir Vec2
+	pos, vel, extVel, acc, jerk, dir Vec2
 	dim, solid, guide, grounded *State
+	static bool
+	// TODO: static state
 
 	subProfiles map[ProfileKey]SubProfile
 	ignoredColliders map[SpacedId]bool
@@ -72,6 +78,7 @@ func NewBaseProfile(init Init, data Data) BaseProfile {
 		solid: NewBlankState(false),
 		guide: NewBlankState(false),
 		grounded: NewBlankState(false),
+		static: false,
 
 		subProfiles: make(map[ProfileKey]SubProfile),
 		ignoredColliders: make(map[SpacedId]bool),
@@ -94,6 +101,10 @@ func (bp *BaseProfile) SetPos(pos Vec2) {
 }
 func (bp BaseProfile) Vel() Vec2 { return bp.vel }
 func (bp *BaseProfile) SetVel(vel Vec2) {
+	if !vel.IsZero() {
+		bp.static = false
+	}
+
 	bp.vel = vel
 	for _, sp := range(bp.subProfiles) {
 		sp.SetVel(vel)
@@ -118,6 +129,13 @@ func (bp *BaseProfile) SetAcc(acc Vec2) {
 		sp.SetAcc(acc)
 	}
 }
+func (bp BaseProfile) Jerk() Vec2 { return bp.jerk }
+func (bp *BaseProfile) SetJerk(jerk Vec2) {
+	bp.jerk = jerk
+	for _, sp := range(bp.subProfiles) {
+		sp.SetJerk(jerk)
+	}
+}
 
 func (bp BaseProfile) Dir() Vec2 { return bp.dir }
 func (bp *BaseProfile) SetDir(dir Vec2) {
@@ -130,14 +148,17 @@ func (bp BaseProfile) Solid() bool { return bp.solid.Peek().(bool) }
 func (bp *BaseProfile) SetSolid(solid bool) { bp.solid.Set(solid) }
 func (bp BaseProfile) Guide() bool { return bp.guide.Peek().(bool) }
 func (bp *BaseProfile) SetGuide(guide bool) { bp.guide.Set(guide) }
-func (bp *BaseProfile) Grounded() bool { return bp.grounded.Peek().(bool) }
+func (bp BaseProfile) Grounded() bool { return bp.grounded.Peek().(bool) }
 func (bp *BaseProfile) SetGrounded(grounded bool) { bp.grounded.Set(grounded) }
+func (bp BaseProfile) Static() bool { return bp.static }
+func (bp *BaseProfile) SetStatic(static bool) { bp.static = static }
 
 func (bp BaseProfile) GetData() Data {
 	data := NewData()
 
-	// TODO: need a static state
-	data.Set(posProp, bp.Pos())
+	if !bp.static {
+		data.Set(posProp, bp.Pos())
+	}
 
 	if !bp.Vel().IsZero() {
 		data.Set(velProp, bp.Vel())
@@ -147,6 +168,9 @@ func (bp BaseProfile) GetData() Data {
 	}
 	if !bp.Acc().IsZero() {
 		data.Set(accProp, bp.Acc())
+	}
+	if !bp.Jerk().IsZero() {
+		data.Set(jerkProp, bp.Jerk())
 	}
 
 	if dim, ok := bp.dim.Pop(); ok {
@@ -199,6 +223,11 @@ func (bp *BaseProfile) SetData(data Data) {
 		bp.SetAcc(data.Get(accProp).(Vec2))
 	} else {
 		bp.SetAcc(NewVec2(0, 0))
+	}
+	if data.Has(jerkProp) {
+		bp.SetJerk(data.Get(jerkProp).(Vec2))
+	} else {
+		bp.SetJerk(NewVec2(0, 0))
 	}
 
 	if data.Has(dimProp) {

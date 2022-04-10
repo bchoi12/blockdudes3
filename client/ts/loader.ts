@@ -11,7 +11,6 @@ export enum Model {
 
 	UZI = 10,
 	ROCKET = 11,
-	EXPLOSION = 12,
 }
 
 class Loader {
