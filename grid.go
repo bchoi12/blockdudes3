@@ -238,6 +238,7 @@ func (g *Grid) GetManyThings(spaces ...SpaceType) map[SpaceType]map[IdType]Thing
 }
 
 type ColliderOptions struct {
+	// TODO: change to set of SpacedId to ignore
 	self SpacedId
 
 	hitSpaces map[SpaceType]bool
@@ -304,8 +305,6 @@ func (g *Grid) GetHits(line Line, options ColliderOptions) *Hit {
 				hit = NewHit()
 				hit.SetSpacedId(thing.GetSpacedId())
 				hit.SetPos(point)
-				hit.SetDir(line.R)
-				hit.SetT(results.t)
 
 				closest = results.t
 			}

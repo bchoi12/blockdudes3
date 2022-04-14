@@ -34,9 +34,9 @@ class Game {
 
 	setup() : void {
 		connection.addHandler(gameStateType, (msg : { [k: string]: any }) => { this.updateGameState(msg); });
-		connection.addHandler(gameUpdateType, (msg : { [k: string]: any }) => { this.updateGameState(msg); })
+		connection.addHandler(gameUpdateType, (msg : { [k: string]: any }) => { console.log(msg); this.updateGameState(msg); })
 		connection.addHandler(playerInitType, (msg : { [k: string]: any }) => { this.initPlayer(msg); });
-		connection.addHandler(levelInitType, (msg : any) => { this.initLevel(msg); });
+		connection.addHandler(levelInitType, (msg : { [k: string]: any }) => { this.initLevel(msg); });
 	}
 
 	start() : void {

@@ -4,6 +4,15 @@ import (
 	"time"
 )
 
+type ShotType uint8
+const (
+	unknownShotType ShotType = iota
+
+	burstShotType
+	bombShotType
+	rocketShotType
+)
+
 type WeaponBlaster struct {
 	BaseWeapon
 }

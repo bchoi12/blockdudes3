@@ -60,7 +60,7 @@ const (
 )
 
 // Can't get this to work with uint8 for some reason
-type KeyType int
+type KeyType uint16
 const (
 	unknownKey KeyType = iota
 	

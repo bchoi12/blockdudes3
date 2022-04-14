@@ -7,6 +7,7 @@ import (
 type Projectile struct {
 	Object
 	owner SpacedId
+	hits []*Hit
 	maxSpeed float64
 	explode bool
 }
@@ -15,7 +16,8 @@ func NewProjectile(object Object) Projectile {
 	return Projectile {
 		Object: object,
 		owner: Id(unknownSpace, 0),
-		maxSpeed: 0,
+		hits: make([]*Hit, 0),
+		maxSpeed: 100,
 		explode: false,
 	}
 }
@@ -38,6 +40,8 @@ func (p *Projectile) SetExplode(explode bool) {
 
 func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 	ts := p.PrepareUpdate(now)
+
+	p.hits = make([]*Hit, 0)
 
 	acc := p.Acc()
 	acc.Add(p.Jerk(), ts)
@@ -98,8 +102,33 @@ func (p *Projectile) Collide(collider Thing, grid *Grid) {
 }
 
 func (p *Projectile) Hit(collider Thing) {
+	hit := NewHit()
+	hit.SetSpacedId(collider.GetSpacedId())
+	hit.SetPos(p.Pos())
+	p.hits = append(p.hits, hit)
+
 	switch object := collider.(type) {
 	case *Player:
 		object.TakeDamage(p.owner, 50)
 	}
+}
+
+func (p *Projectile) GetData() Data {
+	data := NewData()
+	data.Merge(p.Object.GetData())
+	return data
+}
+
+func (p *Projectile) GetUpdates() Data {
+	updates := NewData()
+	updates.Merge(p.Object.GetUpdates())
+
+	if len(p.hits) > 0 {
+		hitPropMaps := make([]PropMap, 0)
+		for _, hit := range(p.hits) {
+			hitPropMaps = append(hitPropMaps, hit.GetData().Props())
+		}
+		updates.Set(hitsProp, hitPropMaps)
+	}
+	return updates
 }

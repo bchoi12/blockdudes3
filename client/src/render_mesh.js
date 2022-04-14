@@ -39,15 +39,6 @@ export class RenderMesh {
         }
         return new THREE.Vector2(0, 0);
     }
-    hasEndPos() {
-        return this._msg.has(endPosProp);
-    }
-    endPos() {
-        if (this.hasEndPos()) {
-            return new THREE.Vector2(this._msg.get(endPosProp).X, this._msg.get(endPosProp).Y);
-        }
-        return new THREE.Vector2(0, 0);
-    }
     hasVel() {
         return this._msg.has(velProp);
     }

@@ -1,8 +1,10 @@
 import * as THREE from 'three';
+import { Howl } from 'howler';
 import { Model, loader } from './loader.js';
 import { particles } from './particles.js';
 import { RenderObject } from './render_object.js';
 import { RenderParticle } from './render_particle.js';
+import { renderer } from './renderer.js';
 import { MathUtil } from './util.js';
 export class RenderProjectile extends RenderObject {
     constructor(space, id) {
@@ -15,6 +17,11 @@ export class RenderProjectile extends RenderObject {
     }
     initialize() {
         super.initialize();
+        this._blastSound = new Howl({
+            src: ["./sound/test2.wav"]
+        });
+        const pos = this.pos();
+        renderer.playSound(this._blastSound, new THREE.Vector3(pos.x, pos.y, 0));
         loader.load(Model.ROCKET, (mesh) => {
             this.setMesh(mesh);
         });

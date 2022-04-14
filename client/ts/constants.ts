@@ -25,7 +25,6 @@ declare var gameUpdateType : number;
 declare var playerInitType : number;
 declare var playerJoinType : number;
 declare var levelInitType : number;
-
 declare var objectInitType : number;
 
 declare var playerSpace : number;
@@ -42,7 +41,6 @@ declare var deletedProp : number;
 declare var dimProp : number;
 declare var keysProp : number;
 declare var posProp : number;
-declare var endPosProp : number;
 declare var velProp : number;
 declare var extVelProp : number;
 declare var accProp : number;

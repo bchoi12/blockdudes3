@@ -20,7 +20,7 @@ class Game {
     }
     setup() {
         connection.addHandler(gameStateType, (msg) => { this.updateGameState(msg); });
-        connection.addHandler(gameUpdateType, (msg) => { this.updateGameState(msg); });
+        connection.addHandler(gameUpdateType, (msg) => { console.log(msg); this.updateGameState(msg); });
         connection.addHandler(playerInitType, (msg) => { this.initPlayer(msg); });
         connection.addHandler(levelInitType, (msg) => { this.initLevel(msg); });
     }

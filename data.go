@@ -7,27 +7,26 @@ const (
 	deletedProp
 	dimProp
 	keysProp
-	posProp
-	endPosProp
 
+	posProp
 	velProp
 	extVelProp
 	accProp
 	jerkProp
 	dirProp
+	weaponDirProp
 
 	healthProp
 	solidProp
 	groundedProp
+
+	spacedIdProp
 	hitsProp
-	weaponDirProp
 
 	// debug props
 	profileDimProp
 	profilePosProp
 	profilePointsProp
-
-	// not exported
 )
 
 type PropMap map[Prop]interface{}
