@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Audio } from './audio.js';
 import { CameraController } from './camera_controller.js';
 import { game } from './game.js';
 import { HtmlUtil } from './util.js';
@@ -7,6 +8,7 @@ class Renderer {
     constructor() {
         this._elmRenderer = "canvas-game";
         this._canvas = HtmlUtil.elm(this._elmRenderer);
+        this._audio = new Audio();
         this._cameraController = new CameraController(this._canvas.offsetWidth / this._canvas.offsetHeight);
         this._renderer = new THREE.WebGLRenderer({ canvas: this._canvas, antialias: true });
         this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -35,16 +37,17 @@ class Renderer {
     setMouseFromPixels(mouse) {
         this._mousePixels = mouse.clone();
     }
+    playSystemSound(sound) {
+        this._audio.playSystemSound(sound);
+    }
     playSound(sound, pos) {
-        let dist = new THREE.Vector2(pos.x - this._cameraController.target().x, pos.y - this._cameraController.target().y);
-        if (dist.lengthSq() <= 50) {
-            sound.volume(1);
-        }
-        else {
-            sound.volume(50 / dist.lengthSq());
-        }
-        sound.stereo(Math.min(1, Math.max(-1, dist.x / 10)));
-        sound.play();
+        const dist = new THREE.Vector2(pos.x - this._cameraController.target().x, pos.y - this._cameraController.target().y);
+        this._audio.playSound(sound, dist);
+    }
+    playSound3D(sound, pos) {
+        const dist = pos.clone();
+        dist.sub(this._cameraController.target());
+        this._audio.playSound3D(sound, dist);
     }
     getMouseScreen() {
         const mouse = this._mousePixels.clone();

@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 
 import { Message } from './message.js'
+import { SpacedId } from './spaced_id.js'
+
 import { renderer } from './renderer.js'
 
 export class RenderMesh {
@@ -40,22 +42,22 @@ export class RenderMesh {
 		return this._msg.has(deletedProp) && this._msg.get(deletedProp);
 	}
 
-	hasPos() : boolean {
-		return this._msg.has(posProp);
-	}
-	pos() : THREE.Vector2 {
-		if (this.hasPos()) {
-			return new THREE.Vector2(this._msg.get(posProp).X, this._msg.get(posProp).Y);
-		}
-		return new THREE.Vector2(0, 0);
-	}
-
 	hasDim() : boolean {
 		return this._msg.has(dimProp);
 	}
 	dim() : THREE.Vector2 {
 		if (this.hasDim()) {
 			return new THREE.Vector2(this._msg.get(dimProp).X, this._msg.get(dimProp).Y);
+		}
+		return new THREE.Vector2(0, 0);
+	}
+
+	hasPos() : boolean {
+		return this._msg.has(posProp);
+	}
+	pos() : THREE.Vector2 {
+		if (this.hasPos()) {
+			return new THREE.Vector2(this._msg.get(posProp).X, this._msg.get(posProp).Y);
 		}
 		return new THREE.Vector2(0, 0);
 	}
@@ -110,6 +112,15 @@ export class RenderMesh {
 		return true;
 	}
 
+	hasOwner() : boolean {
+		return this._msg.has(ownerProp);
+	}
+	owner() : SpacedId {
+		if (this.hasOwner()) {
+			return new SpacedId(this._msg.get(ownerProp).S, this._msg.get(ownerProp).Id);
+		}
+		return new SpacedId(0, -1);
+	}
 
 	mesh() : THREE.Mesh {
 		return this._mesh;

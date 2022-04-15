@@ -1,5 +1,5 @@
 import { RenderMesh } from './render_mesh.js';
-import { GameUtil } from './util.js';
+import { SpacedId } from './spaced_id.js';
 export class RenderObject extends RenderMesh {
     constructor(space, id) {
         super();
@@ -25,7 +25,7 @@ export class RenderObject extends RenderMesh {
             mesh.position.x = this._msg[posProp].X;
             mesh.position.y = this._msg[posProp].Y;
         }
-        mesh.name = GameUtil.sid(this._space, this._id);
+        mesh.name = new SpacedId(this._space, this._id).toString();
     }
     space() {
         return this._space;

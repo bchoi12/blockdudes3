@@ -303,7 +303,7 @@ func (g *Grid) GetHits(line Line, options ColliderOptions) *Hit {
 
 			if results.t < closest {
 				hit = NewHit()
-				hit.SetSpacedId(thing.GetSpacedId())
+				hit.SetTarget(thing.GetSpacedId())
 				hit.SetPos(point)
 
 				closest = results.t

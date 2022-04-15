@@ -7,7 +7,7 @@ import { RenderPlayer } from './render_player.js'
 import { RenderProjectile } from './render_projectile.js'
 import { RenderWeapon } from './render_weapon.js'
 import { SceneMap } from './scene_map.js'
-import { GameUtil, Util } from './util.js'
+import { Util } from './util.js'
 
 import { connection } from './connection.js'
 import { renderer } from './renderer.js'

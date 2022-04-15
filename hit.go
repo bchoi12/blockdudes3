@@ -1,23 +1,23 @@
 package main
 
 type Hit struct {
-	spacedId SpacedId
+	target SpacedId
 	pos Vec2
 }
 
 func NewHit() *Hit {
 	return &Hit {
-		spacedId: Id(unknownSpace, 0),
+		target: Id(unknownSpace, 0),
 		pos: NewVec2(0, 0),
 	}
 }
 
-func (h Hit) GetSpacedId() SpacedId {
-	return h.spacedId
+func (h Hit) GetTarget() SpacedId {
+	return h.target
 }
 
-func (h *Hit) SetSpacedId(sid SpacedId) {
-	h.spacedId = sid
+func (h *Hit) SetTarget(sid SpacedId) {
+	h.target = sid
 }
 
 func (h Hit) Pos() Vec2 {
@@ -31,8 +31,8 @@ func (h *Hit) SetPos(pos Vec2) {
 func (h Hit) GetData() Data {
 	data := NewData()
 
-	if h.spacedId.GetSpace() != unknownSpace {
-		data.Set(spacedIdProp, h.spacedId)
+	if h.target.GetSpace() != unknownSpace {
+		data.Set(targetProp, h.target)
 	}
 	data.Set(posProp, h.pos)
 	return data

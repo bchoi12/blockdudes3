@@ -163,7 +163,7 @@ export class RenderPlayer extends RenderObject {
             this._mesh.getObjectByName("armR").add(weapon.mesh());
         });
     }
-    shoot(shot, seqNum) {
+    shoot() {
         const arm = this._mesh.getObjectByName("armR");
         const axis = new THREE.Vector3(1, 0, 0);
         const recoil = new THREE.Vector3(0, 0, -0.1);

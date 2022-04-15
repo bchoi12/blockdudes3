@@ -1,6 +1,6 @@
 import * as THREE from 'three'
-import {Howl} from 'howler';
 
+import { Audio, Sound } from './audio.js'
 import { CameraController } from './camera_controller.js'
 import { game } from './game.js'
 import { HtmlUtil } from './util.js'
@@ -12,15 +12,15 @@ class Renderer {
 	private readonly _elmRenderer = "canvas-game";
 
 	private _canvas : HTMLElement;
+	private _audio : Audio;
 	private _cameraController : CameraController;
 	private _renderer : THREE.WebGLRenderer;
 	private _mousePixels : THREE.Vector2;
 
 	constructor() {
 		this._canvas = HtmlUtil.elm(this._elmRenderer);
-
+		this._audio = new Audio();
 		this._cameraController = new CameraController(this._canvas.offsetWidth / this._canvas.offsetHeight);
-
 		this._renderer = new THREE.WebGLRenderer({canvas: this._canvas, antialias: true});
 		this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
 		this._renderer.toneMappingExposure = 1.0;
@@ -57,16 +57,17 @@ class Renderer {
 		this._mousePixels = mouse.clone();
 	}
 
-	// TODO: this should go under game.ts
-	playSound(sound : Howl, pos : THREE.Vector3) : void {
-		let dist = new THREE.Vector2(pos.x - this._cameraController.target().x, pos.y - this._cameraController.target().y);
-		if (dist.lengthSq() <= 50) {
-			sound.volume(1);
-		} else {
-			sound.volume(50 / dist.lengthSq());
-		}
-		sound.stereo(Math.min(1, Math.max(-1, dist.x / 10)));
-		sound.play();
+	playSystemSound(sound : Sound) : void {
+		this._audio.playSystemSound(sound);
+	}
+	playSound(sound : Sound, pos : THREE.Vector2) : void {
+		const dist = new THREE.Vector2(pos.x - this._cameraController.target().x, pos.y - this._cameraController.target().y);
+		this._audio.playSound(sound, dist);
+	}
+	playSound3D(sound : Sound, pos : THREE.Vector3) : void {
+		const dist = pos.clone();
+		dist.sub(this._cameraController.target());
+		this._audio.playSound3D(sound, dist);
 	}
 	
 	getMouseScreen() : THREE.Vector2 {

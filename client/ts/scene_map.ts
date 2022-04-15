@@ -6,7 +6,7 @@ import { RenderMesh } from './render_mesh.js'
 import { RenderObject } from './render_object.js'
 import { RenderPlayer } from './render_player.js'
 import { SceneComponent } from './scene_component.js'
-import { GameUtil, LogUtil, Util } from './util.js'
+import { LogUtil, Util } from './util.js'
 import { Weather } from './weather.js'
 
 export class SceneMap {

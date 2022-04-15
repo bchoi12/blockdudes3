@@ -85,21 +85,6 @@ export var HtmlUtil;
     }
     HtmlUtil.isVisible = isVisible;
 })(HtmlUtil || (HtmlUtil = {}));
-export var GameUtil;
-(function (GameUtil) {
-    function sid(space, id) {
-        return space + "," + id;
-    }
-    GameUtil.sid = sid;
-    function space(sid) {
-        return Number(sid.split(",")[0]);
-    }
-    GameUtil.space = space;
-    function id(sid) {
-        return Number(sid.split(",")[1]);
-    }
-    GameUtil.id = id;
-})(GameUtil || (GameUtil = {}));
 export var MathUtil;
 (function (MathUtil) {
     function normalize(radians) {

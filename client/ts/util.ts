@@ -77,18 +77,6 @@ export namespace HtmlUtil {
 	}
 }
 
-export namespace GameUtil {
-	export function sid(space : number, id : number) : string{
-		return space + "," + id;
-	}
-	export function space(sid : string) : number {
-		return Number(sid.split(",")[0]);
-	}
-	export function id(sid : string) : number {
-		return Number(sid.split(",")[1])
-	}	
-}
-
 export namespace MathUtil {
 	export function normalize(radians : number) : number {
 		if (radians >= 2 * Math.PI) {

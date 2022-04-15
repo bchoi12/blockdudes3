@@ -180,7 +180,7 @@ export class RenderPlayer extends RenderObject {
 			return;
 		}
 
-		// TODO: use WASM to get extrapolated dir
+		// TODO: use WASM to get extrapolated dir and delete this duplication
 		// Match rotation with server logic
 		const currentDir = this.dir();
 		if (Math.abs(dir.x) < 0.3 && MathUtil.signPos(dir.x) != MathUtil.signPos(currentDir.x)) {
@@ -214,7 +214,7 @@ export class RenderPlayer extends RenderObject {
 		});
 	}
 
-	shoot(shot : Map<number, any>, seqNum? : number) : void {
+	shoot() : void {
 		const arm = this._mesh.getObjectByName("armR");
 		const axis = new THREE.Vector3(1, 0, 0);
 		const recoil = new THREE.Vector3(0, 0, -0.1);

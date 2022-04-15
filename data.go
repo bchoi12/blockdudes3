@@ -5,9 +5,8 @@ const (
 	unknownProp Prop = iota
 
 	deletedProp
-	dimProp
-	keysProp
 
+	dimProp
 	posProp
 	velProp
 	extVelProp
@@ -16,11 +15,13 @@ const (
 	dirProp
 	weaponDirProp
 
+	keysProp
 	healthProp
 	solidProp
 	groundedProp
 
-	spacedIdProp
+	ownerProp
+	targetProp
 	hitsProp
 
 	// debug props

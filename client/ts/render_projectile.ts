@@ -1,12 +1,15 @@
 import * as THREE from 'three';
-import {Howl} from 'howler';
 
-import { Model, loader } from './loader.js'
-import { particles } from './particles.js'
+import { Sound } from './audio.js'
 import { RenderObject } from './render_object.js'
 import { RenderParticle } from './render_particle.js'
-import { renderer } from './renderer.js'
+import { RenderPlayer } from './render_player.js'
 import { MathUtil } from './util.js'
+
+import { Model, loader } from './loader.js'
+import { game } from './game.js'
+import { particles } from './particles.js'
+import { renderer } from './renderer.js'
 
 export class RenderProjectile extends RenderObject {
 	private readonly _smokeMaterial = new THREE.MeshStandardMaterial( {color: 0xbbbbbb , transparent: true, opacity: 0.5} );
@@ -16,22 +19,24 @@ export class RenderProjectile extends RenderObject {
 
 	private _lastSmoke : number;
 
-	private _blastSound : Howl;
-
 	constructor(space : number, id : number) {
 		super(space, id);
 		this._lastSmoke = 0;
 	}
 
+	override ready() : boolean {
+		return super.ready() && this.hasOwner();
+	}
+
 	override initialize() : void {
 		super.initialize();
 
-		// TODO: should load this centrally
-		this._blastSound = new Howl({
-			src: ["./sound/test2.wav"]
-		});
-		const pos = this.pos();
-		renderer.playSound(this._blastSound, new THREE.Vector3(pos.x, pos.y, 0));
+		const owner = this.owner();
+		if (owner.valid() && owner.space() === playerSpace) {
+			const player : any = game.sceneMap().get(owner.space(), owner.id());
+			player.shoot();
+		}
+		renderer.playSound(Sound.ROCKET, this.pos());
 		loader.load(Model.ROCKET, (mesh : THREE.Mesh) => {
 			this.setMesh(mesh);
 		});

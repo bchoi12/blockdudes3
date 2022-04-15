@@ -6,7 +6,7 @@ import (
 
 type Projectile struct {
 	Object
-	owner SpacedId
+	owner *State
 	hits []*Hit
 	maxSpeed float64
 	explode bool
@@ -15,7 +15,7 @@ type Projectile struct {
 func NewProjectile(object Object) Projectile {
 	return Projectile {
 		Object: object,
-		owner: Id(unknownSpace, 0),
+		owner: NewBlankState(Id(unknownSpace, 0)),
 		hits: make([]*Hit, 0),
 		maxSpeed: 100,
 		explode: false,
@@ -23,11 +23,11 @@ func NewProjectile(object Object) Projectile {
 }
 
 func (p Projectile) GetOwner() SpacedId {
-	return p.owner
+	return p.owner.Peek().(SpacedId)
 }
 
 func (p *Projectile) SetOwner(owner SpacedId) {
-	p.owner = owner
+	p.owner.Set(owner)
 }
 
 func (p *Projectile) SetMaxSpeed(maxSpeed float64) {
@@ -79,7 +79,7 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 		collider := PopThing(&colliders)
 
 		results := p.Overlap(collider.GetProfile())
-		if collider.GetSpacedId() == p.owner || !results.overlap {
+		if collider.GetSpacedId() == p.GetOwner() || !results.overlap {
 			continue
 		}
 
@@ -103,13 +103,13 @@ func (p *Projectile) Collide(collider Thing, grid *Grid) {
 
 func (p *Projectile) Hit(collider Thing) {
 	hit := NewHit()
-	hit.SetSpacedId(collider.GetSpacedId())
+	hit.SetTarget(collider.GetSpacedId())
 	hit.SetPos(p.Pos())
 	p.hits = append(p.hits, hit)
 
 	switch object := collider.(type) {
 	case *Player:
-		object.TakeDamage(p.owner, 50)
+		object.TakeDamage(p.GetOwner(), 50)
 	}
 }
 
@@ -122,6 +122,10 @@ func (p *Projectile) GetData() Data {
 func (p *Projectile) GetUpdates() Data {
 	updates := NewData()
 	updates.Merge(p.Object.GetUpdates())
+
+	if owner, ok := p.owner.GetOnce(); ok {
+		updates.Set(ownerProp, owner)
+	}
 
 	if len(p.hits) > 0 {
 		hitPropMaps := make([]PropMap, 0)

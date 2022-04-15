@@ -38,19 +38,24 @@ declare var bombShotType : number;
 declare var rocketShotType : number;
 
 declare var deletedProp : number;
+
 declare var dimProp : number;
-declare var keysProp : number;
 declare var posProp : number;
 declare var velProp : number;
 declare var extVelProp : number;
 declare var accProp : number;
 declare var jerkProp : number;
 declare var dirProp : number;
+declare var weaponDirProp : number;
+
+declare var keysProp : number;
 declare var healthProp : number;
 declare var solidProp : number;
 declare var groundedProp : number;
+
+declare var ownerProp : number;
+declare var targetProp : number;
 declare var hitsProp : number;
-declare var weaponDirProp : number;
 
 declare var profileDimProp : number;
 declare var profilePosProp : number;
