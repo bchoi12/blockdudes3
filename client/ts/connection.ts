@@ -138,10 +138,13 @@ class Connection {
 			this.initWebRTC(dcSuccess);
 		};
 		this._ws.onmessage = (event) => {	
-			this.handlePayload(event.data)
+			this.handlePayload(event.data);
 		};
-		this._ws.onclose = () => {
-			LogUtil.d("Websocket closed");
+		this._ws.onerror = (event) => {
+			console.error("Error when creating websocket: " + event);
+		};
+		this._ws.onclose = (event) => {
+			console.error("Websocket closed: " + event);
 		};
 	}
 

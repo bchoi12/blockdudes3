@@ -30,7 +30,6 @@ class Loader {
             LogUtil.d("Tried to cache unknown model " + model);
             return;
         }
-        LogUtil.d("Loading model " + model + " from " + this._paths.get(model));
         this._loader.load(this._paths.get(model), (data) => {
             this.process(model, data);
             cb(data.scene);
