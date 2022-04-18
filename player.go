@@ -28,9 +28,8 @@ const (
 	friction = 0.4
 	airResistance = 0.9
 
-	// TODO: base on time instead of number of frames
-	maxJumpFrames int = 20
-	maxCanJumpFrames int = 6
+	jumpDuration time.Duration = 300 * time.Millisecond
+	canJumpGracePeriod time.Duration = 100 * time.Millisecond
 
 	bodySubProfile ProfileKey = 1
 )
@@ -39,10 +38,10 @@ type Player struct {
 	Object
 	weapon Weapon
 
+	canJump bool
 	canDash bool
-
-	jumpFrames int
-	canJumpFrames int
+	lastJumpTime time.Time
+	lastGrounded time.Time
 
 	ignoredColliders map[SpacedId]bool
 
@@ -73,9 +72,10 @@ func NewPlayer(init Init) *Player {
 		Object: NewObject(profile, NewData()),
 		weapon: NewWeaponRocket(init.GetSpacedId()),
 
+		canJump: false,
 		canDash: true,
-		jumpFrames: 0,
-		canJumpFrames: 0,
+		lastJumpTime: time.Time{},
+		lastGrounded: time.Time{},
 
 		ignoredColliders: make(map[SpacedId]bool, 0),
 
@@ -151,7 +151,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	// Gravity & air resistance
 	acc.Y = gravityAcc
 	if !grounded {
-		if p.jumpFrames == 0 || vel.Y <= 0 {
+		if now.Sub(p.lastJumpTime) > jumpDuration || vel.Y <= 0 {
 			acc.Y += downAcc
 		}
 		if acc.X == 0 {
@@ -177,32 +177,28 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 
 	// Grounded actions
 	if grounded {
-		p.canJumpFrames = maxCanJumpFrames
+		p.lastGrounded = now
+		p.canJump = true
 		p.canDash = true
 
 		// Friction
 		if Sign(acc.X) != Sign(vel.X) {
 			vel.X *= friction
 		}
-	} else {
-		p.canJumpFrames -= 1
 	}
 
 	// Jump & double jump
-	if p.jumpFrames > 0 {
-		p.jumpFrames -= 1
-	}
 	if p.keyPressed(dashKey) {
-		if p.canJumpFrames > 0 {
-			p.canJumpFrames = 0
+		if p.canJump && now.Sub(p.lastGrounded) <= canJumpGracePeriod {
+			p.canJump = false
 			acc.Y = 0
 			vel.Y = Max(0, vel.Y) + jumpVel
-			p.jumpFrames = maxJumpFrames
+			p.lastJumpTime = now
 		} else if p.canDash {
 			acc.Y = 0
 			vel.Y = jumpVel
 			p.canDash = false
-			p.jumpFrames = maxJumpFrames
+			p.lastJumpTime = now
 		}
 	}
 

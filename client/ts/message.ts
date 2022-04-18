@@ -50,8 +50,12 @@ export class Message {
 		return this._data.get(prop);
 	}
 
-	set(prop : number, data : any) {
+	set(prop : number, data : any) : void {
 		this._data.set(prop, data);
+	}
+
+	lastUpdate() : number {
+		return this._lastUpdate;
 	}
 
 	private sanitizeData(data : Map<number, any>) : void {

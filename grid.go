@@ -121,7 +121,7 @@ func (g *Grid) Update(now time.Time) {
 		g.updateThing(thing, now)
 	}
 
-	// TODO: randomize order?
+	// Map iteration is random
 	for _, thing := range(g.GetThings(playerSpace)) {
 		g.updateThing(thing, now)
 	}

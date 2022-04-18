@@ -39,6 +39,9 @@ export class Message {
     set(prop, data) {
         this._data.set(prop, data);
     }
+    lastUpdate() {
+        return this._lastUpdate;
+    }
     sanitizeData(data) {
         if (data.hasOwnProperty(keysProp)) {
             const keys = Object.keys(data[keysProp]);

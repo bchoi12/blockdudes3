@@ -20,8 +20,7 @@ export class RenderParticle extends RenderMesh {
 		this._update = update;
 	}
 
-	// TODO: rename this update. The class should not extend from RenderMesh, or RenderMesh should not be tied to msg.
-	updateParticle(position : THREE.Vector3) : void {
+	update(position : THREE.Vector3) : void {
 		if (!this._hasUpdate) {
 			return;
 		}

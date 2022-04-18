@@ -141,10 +141,10 @@ class Connection {
 			this.handlePayload(event.data);
 		};
 		this._ws.onerror = (event) => {
-			console.error("Error when creating websocket: " + event);
+			console.error("Error when creating websocket!");
 		};
 		this._ws.onclose = (event) => {
-			console.error("Websocket closed: " + event);
+			console.error("Websocket closed: " + event.reason);
 		};
 	}
 

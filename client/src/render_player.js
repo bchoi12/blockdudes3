@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { loader, Model } from './loader.js';
 import { particles } from './particles.js';
-import { RenderObject } from './render_object.js';
+import { RenderAnimatedObject } from './render_animated_object.js';
 import { RenderParticle } from './render_particle.js';
 import { RenderWeapon } from './render_weapon.js';
 import { MathUtil, Util } from './util.js';
@@ -11,7 +11,7 @@ var PlayerAction;
     PlayerAction["Walk"] = "Walk";
     PlayerAction["Jump"] = "Jump";
 })(PlayerAction || (PlayerAction = {}));
-export class RenderPlayer extends RenderObject {
+export class RenderPlayer extends RenderAnimatedObject {
     constructor(space, id) {
         super(space, id);
         this._sqrtHalf = .70710678;
@@ -20,7 +20,6 @@ export class RenderPlayer extends RenderObject {
         this._pointsMaterial = new THREE.PointsMaterial({ color: 0x000000, size: 0.2 });
         this._lastUpdate = Date.now();
         this._grounded = false;
-        this._actions = new Map();
     }
     initialize() {
         super.initialize();
@@ -35,17 +34,12 @@ export class RenderPlayer extends RenderObject {
     }
     setMesh(mesh) {
         super.setMesh(mesh);
-        this._mixer = new THREE.AnimationMixer(mesh);
         const playerMesh = mesh.getObjectByName("mesh");
         playerMesh.position.y -= this.dim().y / 2;
         this._armOrigin = mesh.getObjectByName("armR").position.clone();
         playerMesh.rotation.y = Math.PI / 2 + this._rotationOffset;
-        for (let action in PlayerAction) {
-            const clip = this._mixer.clipAction(THREE.AnimationClip.findByName(mesh.animations, PlayerAction[action]));
-            this.setWeight(clip, 1.0);
-            clip.play();
-            this._activeActions.add(action);
-            this._actions.set(action, clip);
+        for (const action in PlayerAction) {
+            this.initializeClip(PlayerAction[action]);
         }
         this.fadeOut(PlayerAction.Walk, 0);
         this.fadeOut(PlayerAction.Jump, 0);
@@ -110,7 +104,6 @@ export class RenderPlayer extends RenderObject {
             this.fadeIn(PlayerAction.Idle, 0.1);
         }
         this._lastUpdate = Date.now();
-        this.updateMixer();
         if (debugMode) {
             const profilePos = msg[profilePosProp];
             const profileDim = msg[profileDimProp];

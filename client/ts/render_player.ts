@@ -2,7 +2,7 @@ import * as THREE from 'three'
 
 import { loader, Model } from './loader.js'
 import { particles } from './particles.js'
-import { RenderObject } from './render_object.js'
+import { RenderAnimatedObject } from './render_animated_object.js'
 import { RenderParticle } from './render_particle.js'
 import { RenderWeapon} from './render_weapon.js'
 import { MathUtil, Util } from './util.js'
@@ -14,7 +14,7 @@ enum PlayerAction {
 	Jump = "Jump",
 }
 
-export class RenderPlayer extends RenderObject {
+export class RenderPlayer extends RenderAnimatedObject {
 	private readonly _sqrtHalf = .70710678;
 	private readonly _rotationOffset = -0.1;
 	private readonly _cloudMaterial = new THREE.MeshStandardMaterial( {color: 0xdddddd , transparent: true, opacity: 0.7} );
@@ -36,9 +36,6 @@ export class RenderPlayer extends RenderObject {
 
 		this._lastUpdate = Date.now();
 		this._grounded = false;
-
-		// TODO: initializing actions here is weird
-		this._actions = new Map<PlayerAction, any>();
 	}
 
 	override initialize() : void {
@@ -57,23 +54,15 @@ export class RenderPlayer extends RenderObject {
 	override setMesh(mesh : THREE.Mesh) {
 		super.setMesh(mesh);
 
-		this._mixer = new THREE.AnimationMixer(mesh);
-
 		// Model origin is at feet.
 		const playerMesh = mesh.getObjectByName("mesh");
 		playerMesh.position.y -= this.dim().y / 2;
 
-
 		this._armOrigin = mesh.getObjectByName("armR").position.clone();
 		playerMesh.rotation.y = Math.PI / 2 + this._rotationOffset;
 
-		for (let action in PlayerAction) {
-			const clip = this._mixer.clipAction(THREE.AnimationClip.findByName(mesh.animations, PlayerAction[action]));
-			this.setWeight(clip, 1.0);
-			clip.play();
-
-			this._activeActions.add(action);
-			this._actions.set(action, clip);
+		for (const action in PlayerAction) {
+			this.initializeClip(PlayerAction[action]);
 		}
 		this.fadeOut(PlayerAction.Walk, 0);
 		this.fadeOut(PlayerAction.Jump, 0);
@@ -148,7 +137,6 @@ export class RenderPlayer extends RenderObject {
 		}
 
 		this._lastUpdate = Date.now();
-		this.updateMixer();
 
 		if (debugMode) {
 			const profilePos = msg[profilePosProp];

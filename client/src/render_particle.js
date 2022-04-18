@@ -8,7 +8,7 @@ export class RenderParticle extends RenderMesh {
         this._hasUpdate = true;
         this._update = update;
     }
-    updateParticle(position) {
+    update(position) {
         if (!this._hasUpdate) {
             return;
         }

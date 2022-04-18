@@ -18,7 +18,7 @@ class Particles extends SceneComponent {
     }
     update(position) {
         this._particles.forEach((particle, id) => {
-            particle.updateParticle(position);
+            particle.update(position);
         });
     }
     nextId() {

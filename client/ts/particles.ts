@@ -31,7 +31,7 @@ class Particles extends SceneComponent {
 
 	override update(position : THREE.Vector3) : void {
 		this._particles.forEach((particle, id) => {
-			particle.updateParticle(position);
+			particle.update(position);
 		});
 	}
 

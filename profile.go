@@ -60,7 +60,6 @@ type BaseProfile struct {
 	pos, vel, extVel, acc, jerk, dir Vec2
 	dim, solid, guide, grounded *State
 	static bool
-	// TODO: static state
 
 	subProfiles map[ProfileKey]SubProfile
 	ignoredColliders map[SpacedId]bool

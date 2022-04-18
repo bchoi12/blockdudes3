@@ -5,6 +5,7 @@ class Options {
         this.pointerLock = true;
         this.enableShadows = true;
         this.rendererScale = 0.66;
+        this.load();
     }
     load() {
     }
