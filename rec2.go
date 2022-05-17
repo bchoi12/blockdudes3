@@ -158,11 +158,19 @@ func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
 	adjSign := NewVec2(-FSign(relativeVel.X), -FSign(relativeVel.Y))
 
 	// Check if we somehow got past the midpoint of the object
-	if SignPos(relativePos.X) != SignPos(relativePos.X) {
+	if relativeVel.X != 0 && Sign(relativePos.X) == Sign(relativeVel.X) {
 		ox = oxLarge
 	}
-	if SignPos(relativePos.Y) != SignPos(relativePos.Y) {
+	if relativeVel.Y != 0 && Sign(relativePos.Y) == Sign(relativeVel.Y) {
 		oy = oyLarge
+	}
+
+	// Handle edge case where relative velocity is zero & the collision direction is unknown.
+	if adjSign.X == 0 {
+		adjSign.X = FSign(relativePos.X)
+	}
+	if adjSign.Y == 0 {
+		adjSign.Y = FSign(relativePos.Y)
 	}
 
 	// Check for tiny collisions that we can ignore
