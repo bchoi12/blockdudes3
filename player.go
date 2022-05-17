@@ -143,7 +143,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	acc := p.Acc()
 	grounded := p.Grounded()
 
-	if (p.Dead() || pos.Y < -5) {
+	if !isWasm && (p.Dead() || pos.Y < -5) {
 		p.respawn()
 		return true
 	}
@@ -279,7 +279,7 @@ func (p *Player) respawn() {
 	p.canDash = true
 
 	rand.Seed(time.Now().Unix())
-	p.SetPos(NewVec2(float64(1 + rand.Intn(19)), 20))
+	p.SetPos(NewVec2(float64(15 + rand.Intn(15)), 20))
 	p.SetVel(NewVec2(0, 0))
 	p.SetAcc(NewVec2(0, 0))
 }

@@ -28,6 +28,10 @@ func NewHealth() Health {
 	}
 }
 
+func (h *Health) Respawn() {
+	h.ticks = make([]DamageTick, 0)
+}
+
 func (h *Health) SetHealth(health int) {
 	h.enabled = true
 	h.health.Set(health)

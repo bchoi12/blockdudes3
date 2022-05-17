@@ -131,7 +131,6 @@ func (g *Grid) updateThing(thing Thing, now time.Time) {
 	updated := thing.UpdateState(g, now)
 	if updated {
 		// Update location in the grid
-		// TODO: do this in Thing::UpdateState() instead
 		if g.Has(thing.GetSpacedId()) {
 			g.Upsert(thing)
 		}
@@ -155,6 +154,14 @@ func (g *Grid) Has(sid SpacedId) bool {
 
 func (g *Grid) Get(sid SpacedId) Thing {
 	return g.spacedThings[sid.GetSpace()][sid.GetId()]
+}
+
+func (g *Grid) GetLast(space SpaceType) Thing {
+	if _, ok := g.lastId[space]; !ok {
+		return nil
+	}
+
+	return g.spacedThings[space][g.lastId[space]]
 }
 
 func (g *Grid) GetData() ObjectPropMap {
