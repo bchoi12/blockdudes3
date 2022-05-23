@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { renderer } from './renderer.js';
 import { SceneComponent } from './scene_component.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 export class Lighting extends SceneComponent {
@@ -17,9 +18,9 @@ export class Lighting extends SceneComponent {
         const sun = new THREE.Vector3();
         sun.setFromSphericalCoords(1, 1.45, -0.93 * Math.PI);
         uniforms['sunPosition'].value.copy(sun);
-        this._scene.add(sky);
+        this.addObject(sky);
         const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x232323, 1.2);
-        this._scene.add(hemisphereLight);
+        this.addObject(hemisphereLight);
         this._sunLight = new THREE.DirectionalLight(0xfdfbfd, 2.0);
         this._sunLightOffset = new THREE.Vector3(-50, 50, 50);
         this._sunLight.position.copy(this._sunLightOffset);
@@ -29,10 +30,12 @@ export class Lighting extends SceneComponent {
         this._sunLight.shadow.mapSize.width = this._shadowMapWidth;
         this._sunLight.shadow.mapSize.height = this._shadowMapHeight;
         this._sunLight.shadow.bias = this._shadowBias;
-        this._scene.add(this._sunLight);
-        this._scene.add(this._sunLight.target);
+        this.addObject(this._sunLight);
+        this.addObject(this._sunLight.target);
     }
-    update(position) {
-        this._sunLight.target.position.copy(position);
+    update() {
+        super.update();
+        const cameraTarget = renderer.cameraTarget();
+        this._sunLight.target.position.copy(cameraTarget);
     }
 }

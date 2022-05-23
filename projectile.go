@@ -7,6 +7,7 @@ import (
 type Projectile struct {
 	Object
 	owner *State
+	damage int
 	hits []*Hit
 	maxSpeed float64
 	explode bool
@@ -16,6 +17,7 @@ func NewProjectile(object Object) Projectile {
 	return Projectile {
 		Object: object,
 		owner: NewBlankState(Id(unknownSpace, 0)),
+		damage: 0,
 		hits: make([]*Hit, 0),
 		maxSpeed: 100,
 		explode: false,
@@ -28,6 +30,14 @@ func (p Projectile) GetOwner() SpacedId {
 
 func (p *Projectile) SetOwner(owner SpacedId) {
 	p.owner.Set(owner)
+}
+
+func (p *Projectile) SetDamage(damage int) {
+	p.damage = damage
+}
+
+func (p Projectile) GetDamage() int {
+	return p.damage
 }
 
 func (p *Projectile) SetMaxSpeed(maxSpeed float64) {
@@ -109,7 +119,7 @@ func (p *Projectile) Hit(collider Thing) {
 
 	switch object := collider.(type) {
 	case *Player:
-		object.TakeDamage(p.GetOwner(), 50)
+		object.TakeDamage(p.GetOwner(), p.GetDamage())
 	}
 }
 

@@ -1,6 +1,8 @@
 import * as THREE from 'three';
+import { Foreground } from './foreground.js';
 import { Lighting } from './lighting.js';
-import { particles } from './particles.js';
+import { Particles } from './particles.js';
+import { SceneComponentType } from './scene_component.js';
 import { LogUtil, Util } from './util.js';
 import { Weather } from './weather.js';
 export class SceneMap {
@@ -12,18 +14,25 @@ export class SceneMap {
         this._scene = new THREE.Scene();
         this._renders = new Map();
         this._deleted = new Map();
-        this._components = new Array();
-        this.addComponent(new Lighting());
-        this.addComponent(new Weather());
-        this.addComponent(particles);
+        this._components = new Map();
+        this.addComponent(SceneComponentType.LIGHTING, new Lighting());
+        this.addComponent(SceneComponentType.WEATHER, new Weather());
+        this.addComponent(SceneComponentType.PARTICLES, new Particles());
+        this.addComponent(SceneComponentType.FOREGROUND, new Foreground());
     }
-    addComponent(component) {
-        this._components.push(component);
+    addComponent(type, component) {
+        this._components.set(type, component);
         this._scene.add(component.scene());
     }
-    updateComponents(position) {
-        this._components.forEach((component) => {
-            component.update(position);
+    getComponent(type) {
+        if (!this._components.has(type)) {
+            console.error("Requested nonexistent component: " + type);
+        }
+        return this._components.get(type);
+    }
+    updateComponents() {
+        this._components.forEach((component, type) => {
+            component.update();
         });
     }
     add(space, id, object) {
@@ -88,7 +97,6 @@ export class SceneMap {
         object.update(msg, seqNum);
         if (!object.initialized() && object.ready()) {
             object.initialize();
-            wasmAdd(space, id, object.data());
         }
         if (wasmHas(space, id)) {
             wasmSetData(space, id, object.data());

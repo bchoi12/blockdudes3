@@ -23,7 +23,14 @@ export class RenderObject extends RenderMesh {
     data() { return this._msg.data(); }
     space() { return this._space; }
     id() { return this._id; }
-    initialize() { this._initialized = true; }
+    initialize() {
+        if (this.initialized()) {
+            console.error("Double initialization of object " + new SpacedId(this.space(), this.id()).toString());
+            return;
+        }
+        wasmAdd(this.space(), this.id(), this.data());
+        this._initialized = true;
+    }
     initialized() { return this._initialized; }
     ready() { return this._msg.has(posProp) && this._msg.has(dimProp); }
     update(msg, seqNum) {
@@ -73,6 +80,13 @@ export class RenderObject extends RenderMesh {
             return new THREE.Vector2(this._msg.get(dirProp).X, this._msg.get(dirProp).Y);
         }
         return new THREE.Vector2(1, 0);
+    }
+    hasWeaponType() { return this._msg.has(weaponTypeProp); }
+    weaponType() {
+        if (this.hasWeaponType()) {
+            return this._msg.get(weaponTypeProp);
+        }
+        return 0;
     }
     hasWeaponDir() { return this._msg.has(weaponDirProp); }
     weaponDir() {

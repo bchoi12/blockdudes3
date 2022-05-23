@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { Sound } from './audio.js';
+import { SceneComponentType } from './scene_component.js';
 import { RenderObject } from './render_object.js';
-import { RenderParticle } from './render_particle.js';
+import { RenderCustom } from './render_custom.js';
 import { MathUtil } from './util.js';
 import { Model, loader } from './loader.js';
 import { game } from './game.js';
-import { particles } from './particles.js';
 import { renderer } from './renderer.js';
 export class RenderProjectile extends RenderObject {
     constructor(space, id) {
@@ -54,12 +54,12 @@ export class RenderProjectile extends RenderObject {
             smokeMesh.position.x = pos.x - dim.x / 2 * dir.x + MathUtil.randomRange(-0.1, 0.1);
             smokeMesh.position.y = pos.y - dim.y / 2 * dir.y + MathUtil.randomRange(-0.1, 0.1);
             smokeMesh.position.z = this._positionZ + MathUtil.randomRange(-0.1, 0.1);
-            const smoke = new RenderParticle();
+            const smoke = new RenderCustom();
             smoke.setMesh(smokeMesh);
             smoke.setUpdate(() => {
                 smoke.mesh().scale.multiplyScalar(0.9);
             });
-            particles.add(smoke, 400);
+            game.sceneComponent(SceneComponentType.PARTICLES).addCustomTemp(smoke, 400);
             this._lastSmoke = Date.now();
         }
     }

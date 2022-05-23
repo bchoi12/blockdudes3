@@ -9,6 +9,19 @@ export var Util;
         return array.join(",");
     }
     Util.arrayToString = arrayToString;
+    function randomElement(array) {
+        return array[Math.floor(Math.random() * array.length)];
+    }
+    Util.randomElement = randomElement;
+    function shuffleArray(array) {
+        for (var i = array.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+    }
+    Util.shuffleArray = shuffleArray;
     function getOr(msg, prop, or) {
         if (msg.hasOwnProperty(prop)) {
             return msg[prop];

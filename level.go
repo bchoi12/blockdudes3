@@ -42,6 +42,8 @@ func (g *Game) loadTestLevel() {
 	g.add(g.createInitBL(wallSpace, NewVec2(14, 9), NewVec2(16, 0.5)))
 	g.add(g.createInitBL(wallSpace, NewVec2(14, 7), NewVec2(0.5, 2)))
 	g.add(g.createInitB(wallSpace, NewVec2(22, 4), NewVec2(2, 2)))
+	g.add(g.createInitB(pickupSpace, NewVec2(22, 6), NewVec2(1, 1)))
+	g.grid.GetLast(pickupSpace).(*Pickup).SetWeaponType(uziWeapon)
 	g.add(g.createInitBR(wallSpace, NewVec2(30, 7), NewVec2(0.5, 2)))
 
 	g.add(g.createInit(platformSpace, NewVec2(18, 11.5), NewVec2(3, 0.2)))

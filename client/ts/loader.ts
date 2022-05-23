@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import { LogUtil, Util } from './util.js'
@@ -10,7 +11,10 @@ export enum Model {
 	DUCK = 2,
 
 	UZI = 10,
-	ROCKET = 11,
+	BAZOOKA = 11,
+
+	BOLT = 20,
+	ROCKET = 21,
 }
 
 class Loader {
@@ -28,6 +32,8 @@ class Loader {
 		this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken.glb");
 		this._paths.set(Model.DUCK, this._modelPrefix + "duck.glb");
 		this._paths.set(Model.UZI, this._modelPrefix + "uzi.glb");
+		this._paths.set(Model.BAZOOKA, this._modelPrefix + "bazooka.glb");
+		this._paths.set(Model.BOLT, this._modelPrefix + "bolt.glb");
 		this._paths.set(Model.ROCKET, this._modelPrefix + "rocket.glb");
 	}
 
@@ -60,12 +66,17 @@ class Loader {
 				}
 				break;
 			case Model.UZI:
+			case Model.BAZOOKA:
 			case Model.ROCKET:
 				if (options.enableShadows) {
 					data.scene.getObjectByName("mesh").castShadow = true;
 					data.scene.getObjectByName("mesh").receiveShadow = true;
 				}
-				break;		
+				break;
+			case Model.BOLT:
+				data.scene.getObjectByName("mesh").castShadow = false;
+				data.scene.getObjectByName("mesh").receiveShadow = false;
+				break;
 			default:
 				LogUtil.d("Model " + model + " processing skipped.");
 				break;

@@ -49,8 +49,10 @@ const (
 	wallSpace
 	platformSpace
 	bombSpace
+	boltSpace
 	rocketSpace
 	explosionSpace
+	pickupSpace
 )
 
 type LevelIdType uint8
@@ -68,7 +70,9 @@ const (
 	downKey
 	leftKey
 	rightKey
+
 	dashKey
+	interactKey
 
 	mouseClick
 	altMouseClick

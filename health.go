@@ -28,6 +28,7 @@ func NewHealth() Health {
 	}
 }
 
+// TODO: this is not yet used or finished
 func (h *Health) Respawn() {
 	h.ticks = make([]DamageTick, 0)
 }

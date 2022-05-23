@@ -1,8 +1,9 @@
 import * as THREE from 'three';
+import { game } from './game.js';
 import { loader, Model } from './loader.js';
-import { particles } from './particles.js';
+import { SceneComponentType } from './scene_component.js';
 import { RenderAnimatedObject } from './render_animated_object.js';
-import { RenderParticle } from './render_particle.js';
+import { RenderCustom } from './render_custom.js';
 import { RenderWeapon } from './render_weapon.js';
 import { MathUtil, Util } from './util.js';
 var PlayerAction;
@@ -18,6 +19,9 @@ export class RenderPlayer extends RenderAnimatedObject {
         this._rotationOffset = -0.1;
         this._cloudMaterial = new THREE.MeshStandardMaterial({ color: 0xdddddd, transparent: true, opacity: 0.7 });
         this._pointsMaterial = new THREE.PointsMaterial({ color: 0x000000, size: 0.2 });
+        this._weaponType = 0;
+        this._weapon = new RenderWeapon();
+        this._weapon.setParent(this);
         this._lastUpdate = Date.now();
         this._grounded = false;
     }
@@ -25,11 +29,6 @@ export class RenderPlayer extends RenderAnimatedObject {
         super.initialize();
         loader.load(this._id % 2 == 0 ? Model.CHICKEN : Model.DUCK, (mesh) => {
             this.setMesh(mesh);
-            loader.load(Model.UZI, (weaponMesh) => {
-                const weapon = new RenderWeapon();
-                weapon.setMesh(weaponMesh);
-                this.setWeapon(weapon);
-            });
         });
     }
     setMesh(mesh) {
@@ -53,11 +52,30 @@ export class RenderPlayer extends RenderAnimatedObject {
             this._profilePointsMesh = new THREE.Points(this._profilePoints, this._pointsMaterial);
             mesh.add(this._profilePointsMesh);
         }
+        this._weapon.onMeshLoad(() => {
+            this._mesh.getObjectByName("armR").add(this._weapon.mesh());
+        });
     }
     update(msg, seqNum) {
         super.update(msg, seqNum);
         if (!this.hasMesh()) {
             return;
+        }
+        if (this.hasWeaponType()) {
+            const weaponType = this.weaponType();
+            if (this._weaponType != weaponType) {
+                let model = Model.UNKNOWN;
+                if (weaponType === uziWeapon) {
+                    model = Model.UZI;
+                }
+                else if (weaponType === bazookaWeapon) {
+                    model = Model.BAZOOKA;
+                }
+                if (model !== Model.UNKNOWN) {
+                    this._weaponType = weaponType;
+                    this.setWeapon(model);
+                }
+            }
         }
         const pos = this.pos();
         const dim = this.dim();
@@ -80,12 +98,12 @@ export class RenderPlayer extends RenderAnimatedObject {
                 cloudMesh.position.x = pos.x;
                 cloudMesh.position.y = pos.y - dim.y / 2;
                 cloudMesh.position.z = 0.5;
-                const cloud = new RenderParticle();
+                const cloud = new RenderCustom();
                 cloud.setMesh(cloudMesh);
                 cloud.setUpdate(() => {
                     cloud.mesh().scale.multiplyScalar(0.92);
                 });
-                particles.add(cloud, 800);
+                game.sceneComponent(SceneComponentType.PARTICLES).addCustomTemp(cloud, 800);
             }
         }
         if (!grounded) {
@@ -149,11 +167,12 @@ export class RenderPlayer extends RenderAnimatedObject {
         const arm = player.getObjectByName("armR");
         arm.rotation.x = weaponDir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI / 2 : 3 * Math.PI / 2);
     }
-    setWeapon(weapon) {
-        this._weapon = weapon;
-        this._weapon.setParent(this);
-        weapon.onMeshLoad(() => {
-            this._mesh.getObjectByName("armR").add(weapon.mesh());
+    setWeapon(model) {
+        loader.load(model, (weaponMesh) => {
+            if (this._weapon.hasMesh()) {
+                this._mesh.getObjectByName("armR").remove(this._weapon.mesh());
+            }
+            this._weapon.setMesh(weaponMesh);
         });
     }
     shoot() {

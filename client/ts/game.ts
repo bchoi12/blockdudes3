@@ -1,17 +1,20 @@
 import * as THREE from 'three';
 
+import { connection } from './connection.js'
 import { Model, loader } from './loader.js'
+import { options } from './options.js'
 import { RenderObject } from './render_object.js'
 import { RenderExplosion } from './render_explosion.js'
+import { RenderPickup } from './render_pickup.js'
 import { RenderPlayer } from './render_player.js'
+import { RenderBolt } from './render_bolt.js'
 import { RenderProjectile } from './render_projectile.js'
 import { RenderWeapon } from './render_weapon.js'
-import { SceneMap } from './scene_map.js'
-import { Util } from './util.js'
-
-import { connection } from './connection.js'
 import { renderer } from './renderer.js'
+import { SceneComponent, SceneComponentType } from './scene_component.js'
+import { SceneMap } from './scene_map.js'
 import { ui } from './ui.js'
+import { Util } from './util.js'
 
 class Game {
 	private readonly _statsInterval = 500;
@@ -66,10 +69,14 @@ class Game {
 		return this._sceneMap;
 	}
 
+	sceneComponent(type : SceneComponentType) : SceneComponent {
+		return this._sceneMap.getComponent(type);
+	}
+
 	private animate() : void {
 		this.extrapolateState();
-		this.sceneMap().updateComponents(renderer.cameraTarget())
 		this.updateCamera();
+		this.sceneMap().updateComponents()
 		this.extrapolatePlayerDir();
 		renderer.render();
 		this._animateFrames++;
@@ -135,8 +142,12 @@ class Game {
 							renderObj = new RenderPlayer(space, id);
 						} else if (space === explosionSpace) {
 							renderObj = new RenderExplosion(space, id);
+						} else if (space === boltSpace) {
+							renderObj = new RenderBolt(space, id);
 						} else if (space === rocketSpace) {
 							renderObj = new RenderProjectile(space, id);
+						} else if (space === pickupSpace) {
+							renderObj = new RenderPickup(space, id);
 						} else {
 							// TODO: add bomb
 							// TODO: add platforms & walls?
@@ -153,6 +164,10 @@ class Game {
 	}
 
 	private extrapolateState() {
+		if (!options.clientPrediction) {
+			return;
+		}
+
 		// Update key presses.
 		if (this.sceneMap().has(playerSpace, this._id)) {
 			const keyMsg = this.createKeyMsg();
@@ -165,7 +180,10 @@ class Game {
 			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
 				const space = Number(stringSpace);
 				const id = Number(stringId);
-				if (!this.sceneMap().has(space, id)) continue;
+				if (!this.sceneMap().has(space, id)) {
+					console.error("Extrapolated nonexistent object: " + space + " " + id);
+					continue;
+				}
 
 				this.sceneMap().update(space, id, object);
 			}

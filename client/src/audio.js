@@ -2,14 +2,16 @@ import { Howl } from 'howler';
 export var Sound;
 (function (Sound) {
     Sound[Sound["UNKNOWN"] = 0] = "UNKNOWN";
-    Sound[Sound["EXPLOSION"] = 1] = "EXPLOSION";
+    Sound[Sound["PEW"] = 1] = "PEW";
     Sound[Sound["ROCKET"] = 2] = "ROCKET";
+    Sound[Sound["EXPLOSION"] = 3] = "EXPLOSION";
 })(Sound || (Sound = {}));
 export class Audio {
     constructor() {
         this._sounds = new Map();
-        this._sounds.set(Sound.EXPLOSION, new Howl({ src: ["./sound/test3.wav"] }));
+        this._sounds.set(Sound.PEW, new Howl({ src: ["./sound/test.wav"] }));
         this._sounds.set(Sound.ROCKET, new Howl({ src: ["./sound/test2.wav"] }));
+        this._sounds.set(Sound.EXPLOSION, new Howl({ src: ["./sound/test3.wav"] }));
     }
     playSystemSound(sound) {
         const howl = this._sounds.get(sound);

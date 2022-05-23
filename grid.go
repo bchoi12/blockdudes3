@@ -113,6 +113,13 @@ func (g *Grid) deleteCoords(sid SpacedId) {
 	}
 }
 
+func (g *Grid) deleteThing(sid SpacedId) {
+	g.deleteCoords(sid)
+	delete(g.things, sid)
+	delete(g.thingStates, sid)
+	delete(g.spacedThings[sid.GetSpace()], sid.GetId())
+}
+
 func (g *Grid) Update(now time.Time) {
 	for _, thing := range(g.GetAllThings()) {
 		if thing.GetSpace() == playerSpace {
@@ -144,6 +151,10 @@ func (g *Grid) Postprocess(now time.Time) {
 }
 
 func (g *Grid) Delete(sid SpacedId) {
+	if isWasm {
+		g.deleteThing(sid)
+		return
+	}
 	g.thingStates[sid].SetDeleted(true)
 }
 
@@ -205,11 +216,7 @@ func (g *Grid) GetUpdates() ObjectPropMap {
 		objects[thing.GetSpace()][thing.GetId()] = updates.Props()
 
 		if state.GetDeleted() {
-			sid := thing.GetSpacedId()
-			g.deleteCoords(sid)
-			delete(g.things, sid)
-			delete(g.thingStates, sid)
-			delete(g.spacedThings[thing.GetSpace()], thing.GetId())
+			g.deleteThing(thing.GetSpacedId())
 		}
 	}
 	return objects

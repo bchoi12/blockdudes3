@@ -9,6 +9,19 @@ export namespace Util {
 		return array.join(",");
 	}
 
+	export function randomElement(array : Array<any>) : any {
+		return array[Math.floor(Math.random() * array.length)];	
+	}
+
+	export function shuffleArray(array : Array<any>) : void {
+	    for (var i = array.length - 1; i > 0; i--) {
+	        var j = Math.floor(Math.random() * (i + 1));
+	        var temp = array[i];
+	        array[i] = array[j];
+	        array[j] = temp;
+	    }
+	}
+
 	export function getOr(msg : any, prop : number, or : any) : any{
 		if (msg.hasOwnProperty(prop)) {
 			return msg[prop];

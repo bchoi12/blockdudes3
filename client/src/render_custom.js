@@ -1,5 +1,5 @@
 import { RenderMesh } from './render_mesh.js';
-export class RenderParticle extends RenderMesh {
+export class RenderCustom extends RenderMesh {
     constructor() {
         super();
         this._hasUpdate = false;
@@ -8,7 +8,7 @@ export class RenderParticle extends RenderMesh {
         this._hasUpdate = true;
         this._update = update;
     }
-    update(position) {
+    update() {
         if (!this._hasUpdate) {
             return;
         }

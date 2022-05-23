@@ -38,8 +38,16 @@ export class RenderObject extends RenderMesh {
 	space() : number { return this._space; }
 	id() : number { return this._id; }
 
+	initialize() : void {
+		if (this.initialized()) {
+			console.error("Double initialization of object " + new SpacedId(this.space(), this.id()).toString())
+			return;
+		}
 
-	initialize() : void { this._initialized = true; }
+		wasmAdd(this.space(), this.id(), this.data());
+		this._initialized = true;
+	}
+
 	initialized() : boolean { return this._initialized; }
 	ready() : boolean { return this._msg.has(posProp) && this._msg.has(dimProp); }
 
@@ -99,6 +107,14 @@ export class RenderObject extends RenderMesh {
 			return new THREE.Vector2(this._msg.get(dirProp).X, this._msg.get(dirProp).Y);
 		}
 		return new THREE.Vector2(1, 0);
+	}
+
+	hasWeaponType() : boolean { return this._msg.has(weaponTypeProp); }
+	weaponType() : number {
+		if (this.hasWeaponType()) {
+			return this._msg.get(weaponTypeProp);
+		}
+		return 0;
 	}
 
 	hasWeaponDir() : boolean { return this._msg.has(weaponDirProp); }

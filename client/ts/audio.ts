@@ -3,8 +3,9 @@ import {Howl} from 'howler';
 // TODO: put system sounds in separate enum
 export enum Sound {
 	UNKNOWN,
-	EXPLOSION,
+	PEW,
 	ROCKET,
+	EXPLOSION,
 }
 
 export class Audio {
@@ -13,8 +14,9 @@ export class Audio {
 
 	constructor() {
 		this._sounds = new Map<Sound, Howl>();
-		this._sounds.set(Sound.EXPLOSION, new Howl({ src: ["./sound/test3.wav"] }));
+		this._sounds.set(Sound.PEW, new Howl({ src: ["./sound/test.wav"]}));
 		this._sounds.set(Sound.ROCKET, new Howl({ src: ["./sound/test2.wav"] }));
+		this._sounds.set(Sound.EXPLOSION, new Howl({ src: ["./sound/test3.wav"] }));
 	}
 
 	playSystemSound(sound : Sound) : void {

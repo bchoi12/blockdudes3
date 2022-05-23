@@ -7,6 +7,7 @@ export class RenderExplosion extends RenderObject {
         super(space, id);
         this._material = new THREE.MeshStandardMaterial({ color: 0xbb4444 });
         this._exploded = false;
+        this._scale = 1;
     }
     initialize() {
         super.initialize();
@@ -16,16 +17,24 @@ export class RenderExplosion extends RenderObject {
     setMesh(mesh) {
         super.setMesh(mesh);
         mesh.receiveShadow = true;
+        this._scale = 0.1;
+        this.scale(this._scale);
     }
     update(msg, seqNum) {
         super.update(msg, seqNum);
         if (!this.hasMesh()) {
             return;
         }
-        if (this._exploded) {
-            return;
+        if (this._scale < 1) {
+            this._scale = Math.min(this._scale + 0.15, 1);
+            this.scale(this._scale);
         }
-        renderer.playSound(Sound.EXPLOSION, this.pos());
-        this._exploded = true;
+        if (!this._exploded) {
+            renderer.playSound(Sound.EXPLOSION, this.pos());
+            this._exploded = true;
+        }
+    }
+    scale(scale) {
+        this.mesh().scale.copy(new THREE.Vector3(scale, scale, scale));
     }
 }

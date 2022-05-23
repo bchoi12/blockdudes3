@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 
+import { Foreground } from './foreground.js'
 import { Lighting } from './lighting.js'
-import { particles } from './particles.js'
+import { Particles } from './particles.js'
 import { RenderMesh } from './render_mesh.js'
 import { RenderObject } from './render_object.js'
 import { RenderPlayer } from './render_player.js'
-import { SceneComponent } from './scene_component.js'
+import { SceneComponent, SceneComponentType } from './scene_component.js'
 import { LogUtil, Util } from './util.js'
 import { Weather } from './weather.js'
 
@@ -16,7 +17,7 @@ export class SceneMap {
 	private _renders : Map<number, Map<number, RenderObject>>;
 	private _deleted : Map<number, Set<number>>;
 
-	private _components : Array<SceneComponent>;
+	private _components : Map<SceneComponentType, SceneComponent>;
 
 	constructor() {
 		this.reset();
@@ -29,20 +30,28 @@ export class SceneMap {
 		this._renders = new Map();
 		this._deleted = new Map();
 
-		this._components = new Array<SceneComponent>();
-		this.addComponent(new Lighting());
-		this.addComponent(new Weather());
-		this.addComponent(particles);
+		this._components = new Map<SceneComponentType, SceneComponent>();
+		this.addComponent(SceneComponentType.LIGHTING, new Lighting());
+		this.addComponent(SceneComponentType.WEATHER, new Weather());
+		this.addComponent(SceneComponentType.PARTICLES, new Particles());
+		this.addComponent(SceneComponentType.FOREGROUND, new Foreground());
 	}
 
-	addComponent(component : SceneComponent) {
-		this._components.push(component);
+	addComponent(type : SceneComponentType, component : SceneComponent) : void {
+		this._components.set(type, component);
 		this._scene.add(component.scene());
 	}
 
-	updateComponents(position : THREE.Vector3) : void {
-		this._components.forEach((component) => {
-			component.update(position);
+	getComponent(type: SceneComponentType) : SceneComponent {
+		if (!this._components.has(type)) {
+			console.error("Requested nonexistent component: " + type);
+		}
+		return this._components.get(type);
+	}
+
+	updateComponents() : void {
+		this._components.forEach((component, type) => {
+			component.update();
 		});
 	}
 
@@ -119,7 +128,6 @@ export class SceneMap {
 
 		if (!object.initialized() && object.ready()) {
 			object.initialize();
-			wasmAdd(space, id, object.data());
 		}
 
 		if (wasmHas(space, id)) {

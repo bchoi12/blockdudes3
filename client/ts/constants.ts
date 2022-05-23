@@ -30,11 +30,15 @@ declare var objectInitType : number;
 declare var playerSpace : number;
 declare var wallSpace : number;
 declare var bombSpace : number;
+declare var boltSpace : number;
 declare var rocketSpace : number;
 declare var explosionSpace : number;
+declare var pickupSpace : number;
 
-declare var burstShotType : number;
-declare var bombShotType : number;
+declare var uziWeapon : number;
+declare var bazookaWeapon : number;
+
+declare var boltShotType : number;
 declare var rocketShotType : number;
 
 declare var deletedProp : number;
@@ -46,6 +50,8 @@ declare var extVelProp : number;
 declare var accProp : number;
 declare var jerkProp : number;
 declare var dirProp : number;
+
+declare var weaponTypeProp : number;
 declare var weaponDirProp : number;
 
 declare var keysProp : number;
@@ -66,6 +72,7 @@ declare var downKey : number;
 declare var leftKey : number;
 declare var rightKey : number;
 declare var dashKey : number;
+declare var interactKey : number;
 declare var mouseClick : number;
 declare var altMouseClick : number;
 

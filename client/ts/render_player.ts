@@ -1,9 +1,10 @@
 import * as THREE from 'three'
 
+import { game } from './game.js'
 import { loader, Model } from './loader.js'
-import { particles } from './particles.js'
+import { SceneComponentType } from './scene_component.js'
 import { RenderAnimatedObject } from './render_animated_object.js'
-import { RenderParticle } from './render_particle.js'
+import { RenderCustom } from './render_custom.js'
 import { RenderWeapon} from './render_weapon.js'
 import { MathUtil, Util } from './util.js'
 
@@ -20,6 +21,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private readonly _cloudMaterial = new THREE.MeshStandardMaterial( {color: 0xdddddd , transparent: true, opacity: 0.7} );
 	private readonly _pointsMaterial = new THREE.PointsMaterial( { color: 0x000000, size: 0.2} );
 
+	private _weaponType : number;
 	private _lastUpdate : number;
 	private _grounded : boolean;
 
@@ -34,6 +36,10 @@ export class RenderPlayer extends RenderAnimatedObject {
 		// TODO: consider just using playerSpace
 		super(space, id);
 
+		this._weaponType = 0;
+		this._weapon = new RenderWeapon();
+		this._weapon.setParent(this);
+
 		this._lastUpdate = Date.now();
 		this._grounded = false;
 	}
@@ -43,11 +49,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		loader.load(this._id % 2 == 0 ? Model.CHICKEN : Model.DUCK, (mesh : THREE.Mesh) => {
 			this.setMesh(mesh);
-			loader.load(Model.UZI, (weaponMesh : THREE.Mesh) => {
-				const weapon = new RenderWeapon();
-				weapon.setMesh(weaponMesh);
-				this.setWeapon(weapon);
-			});
 		});
 	}
 
@@ -79,6 +80,10 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this._profilePointsMesh = new THREE.Points(this._profilePoints, this._pointsMaterial);
 			mesh.add(this._profilePointsMesh);
 		}
+
+		this._weapon.onMeshLoad(() => {
+			this._mesh.getObjectByName("armR").add(this._weapon.mesh());
+		});
 	}
 
 	override update(msg : Map<number, any>, seqNum? : number) : void {
@@ -86,6 +91,23 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		if (!this.hasMesh()) {
 			return;
+		}
+
+		if (this.hasWeaponType()) {
+			const weaponType = this.weaponType();
+			if (this._weaponType != weaponType) {
+				let model = Model.UNKNOWN;
+				if (weaponType === uziWeapon) {
+					model = Model.UZI;
+				} else if (weaponType === bazookaWeapon) {
+					model = Model.BAZOOKA;
+				}
+
+				if (model !== Model.UNKNOWN) {
+					this._weaponType = weaponType;
+					this.setWeapon(model);
+				}
+			}
 		}
 
 		const pos = this.pos();
@@ -113,12 +135,12 @@ export class RenderPlayer extends RenderAnimatedObject {
 				cloudMesh.position.x = pos.x;
 				cloudMesh.position.y = pos.y - dim.y / 2;
 				cloudMesh.position.z = 0.5;
-				const cloud = new RenderParticle();
+				const cloud = new RenderCustom();
 				cloud.setMesh(cloudMesh);
 				cloud.setUpdate(() => {
 					cloud.mesh().scale.multiplyScalar(0.92);
 				});
-				particles.add(cloud, 800);
+				game.sceneComponent(SceneComponentType.PARTICLES).addCustomTemp(cloud, 800);
 			}
 		}
 
@@ -194,11 +216,13 @@ export class RenderPlayer extends RenderAnimatedObject {
 		arm.rotation.x = weaponDir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI / 2 : 3 * Math.PI / 2);
 	}
 
-	setWeapon(weapon : RenderWeapon) : void {
-		this._weapon = weapon;
-		this._weapon.setParent(this);
-		weapon.onMeshLoad(() => {
-			this._mesh.getObjectByName("armR").add(weapon.mesh());
+	setWeapon(model : Model) {
+		loader.load(model, (weaponMesh : THREE.Mesh) => {
+			if (this._weapon.hasMesh()) {
+				this._mesh.getObjectByName("armR").remove(this._weapon.mesh())
+			}
+
+			this._weapon.setMesh(weaponMesh);
 		});
 	}
 

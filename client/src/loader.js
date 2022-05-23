@@ -7,7 +7,9 @@ export var Model;
     Model[Model["CHICKEN"] = 1] = "CHICKEN";
     Model[Model["DUCK"] = 2] = "DUCK";
     Model[Model["UZI"] = 10] = "UZI";
-    Model[Model["ROCKET"] = 11] = "ROCKET";
+    Model[Model["BAZOOKA"] = 11] = "BAZOOKA";
+    Model[Model["BOLT"] = 20] = "BOLT";
+    Model[Model["ROCKET"] = 21] = "ROCKET";
 })(Model || (Model = {}));
 class Loader {
     constructor() {
@@ -18,6 +20,8 @@ class Loader {
         this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken.glb");
         this._paths.set(Model.DUCK, this._modelPrefix + "duck.glb");
         this._paths.set(Model.UZI, this._modelPrefix + "uzi.glb");
+        this._paths.set(Model.BAZOOKA, this._modelPrefix + "bazooka.glb");
+        this._paths.set(Model.BOLT, this._modelPrefix + "bolt.glb");
         this._paths.set(Model.ROCKET, this._modelPrefix + "rocket.glb");
     }
     preload(models) {
@@ -46,11 +50,16 @@ class Loader {
                 }
                 break;
             case Model.UZI:
+            case Model.BAZOOKA:
             case Model.ROCKET:
                 if (options.enableShadows) {
                     data.scene.getObjectByName("mesh").castShadow = true;
                     data.scene.getObjectByName("mesh").receiveShadow = true;
                 }
+                break;
+            case Model.BOLT:
+                data.scene.getObjectByName("mesh").castShadow = false;
+                data.scene.getObjectByName("mesh").receiveShadow = false;
                 break;
             default:
                 LogUtil.d("Model " + model + " processing skipped.");

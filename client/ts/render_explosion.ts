@@ -9,10 +9,13 @@ export class RenderExplosion extends RenderObject {
 	private readonly _material = new THREE.MeshStandardMaterial( {color: 0xbb4444 } );
 
 	private _exploded : boolean;
+	private _scale : number;
 
 	constructor(space : number, id : number) {
 		super(space, id);
+
 		this._exploded = false;
+		this._scale = 1;
 	}
 
 	override initialize() : void {
@@ -23,7 +26,10 @@ export class RenderExplosion extends RenderObject {
 
 	override setMesh(mesh : THREE.Mesh) {
 		super.setMesh(mesh);
+
 		mesh.receiveShadow = true;
+		this._scale = 0.1;
+		this.scale(this._scale);
 	}
 
 	override update(msg : Map<number, any>, seqNum? : number) : void {
@@ -33,12 +39,19 @@ export class RenderExplosion extends RenderObject {
 			return;
 		}
 
-		if (this._exploded) {
-			return;
+		if (this._scale < 1) {
+			this._scale = Math.min(this._scale + 0.15, 1);
+			this.scale(this._scale);
 		}
 
-		renderer.playSound(Sound.EXPLOSION, this.pos());
-		this._exploded = true;
+		if (!this._exploded) {
+			renderer.playSound(Sound.EXPLOSION, this.pos());
+			this._exploded = true;
+		}
+	}
+
+	private scale(scale : number) : void {
+		this.mesh().scale.copy(new THREE.Vector3(scale, scale, scale));
 	}
 }
 

@@ -2,10 +2,9 @@ import * as THREE from 'three';
 import { Gyroscope } from 'three/examples/jsm/misc/Gyroscope.js'
 import {Howl} from 'howler';
 
-import { particles } from './particles.js'
+import { game } from './game.js'
 import { RenderMesh } from './render_mesh.js'
 import { RenderObject } from './render_object.js'
-import { RenderParticle } from './render_particle.js'
 import { renderer } from './renderer.js'
 
 export class RenderWeapon extends RenderMesh {
@@ -34,11 +33,10 @@ export class RenderWeapon extends RenderMesh {
 		mesh.rotation.x = Math.PI / 2;
 		mesh.scale.z = -1;
 
-		mesh.add(this._gyro);
-
 		this._shotOrigin = mesh.getObjectByName(this._shotLocation).position.clone();
 		this._light.position.copy(this._shotOrigin);
 		mesh.add(this._light)
+
 
 		super.setMesh(mesh);
 	}
@@ -47,4 +45,3 @@ export class RenderWeapon extends RenderMesh {
 		return this._shotOrigin.clone();
 	}
 }
-

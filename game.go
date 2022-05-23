@@ -26,6 +26,7 @@ func newGame() *Game {
 func (g *Game) add(init Init) Thing {
 	var thing Thing
 
+	// TODO: move this logic to grid
 	switch init.GetSpace() {
 	case playerSpace:
 		thing = NewPlayer(init)
@@ -35,10 +36,14 @@ func (g *Game) add(init Init) Thing {
 		thing = NewPlatform(init)
 	case bombSpace:
 		thing = NewBomb(init)
+	case boltSpace:
+		thing = NewBolt(init)
 	case rocketSpace:
 		thing = NewRocket(init)
 	case explosionSpace:
 		thing = NewExplosion(init)
+	case pickupSpace:
+		thing = NewPickup(init)
 	default:
 		Debug("Unknown space! %+v", init)
 	}

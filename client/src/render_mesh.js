@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { renderer } from './renderer.js';
 export class RenderMesh {
     constructor() {
         this._debugMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000, wireframe: true });
@@ -15,7 +14,6 @@ export class RenderMesh {
     }
     setMesh(mesh) {
         this._mesh = mesh;
-        renderer.compile(this._mesh);
         this._onMeshLoad.forEach((cb) => {
             cb();
         });

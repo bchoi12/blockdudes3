@@ -1,16 +1,17 @@
 import * as THREE from 'three';
 
 import { Sound } from './audio.js'
+import { SceneComponentType } from './scene_component.js'
 import { RenderObject } from './render_object.js'
-import { RenderParticle } from './render_particle.js'
+import { RenderCustom } from './render_custom.js'
 import { RenderPlayer } from './render_player.js'
 import { MathUtil } from './util.js'
 
 import { Model, loader } from './loader.js'
 import { game } from './game.js'
-import { particles } from './particles.js'
 import { renderer } from './renderer.js'
 
+// TODO: this should be RenderRocket so other classes can inherit from RenderProjectile
 export class RenderProjectile extends RenderObject {
 	private readonly _smokeMaterial = new THREE.MeshStandardMaterial( {color: 0xbbbbbb , transparent: true, opacity: 0.5} );
 	private readonly _smokeInterval = 15;
@@ -24,6 +25,7 @@ export class RenderProjectile extends RenderObject {
 		this._lastSmoke = 0;
 	}
 
+	// TODO: need to send owner as part of initialization?
 	override ready() : boolean {
 		return super.ready() && this.hasOwner();
 	}
@@ -71,12 +73,12 @@ export class RenderProjectile extends RenderObject {
 			smokeMesh.position.y = pos.y - dim.y / 2 * dir.y + MathUtil.randomRange(-0.1, 0.1);
 			smokeMesh.position.z = this._positionZ + MathUtil.randomRange(-0.1, 0.1);
 
-			const smoke = new RenderParticle();
+			const smoke = new RenderCustom();
 			smoke.setMesh(smokeMesh);
 			smoke.setUpdate(() => {
 				smoke.mesh().scale.multiplyScalar(0.9);
 			});
-			particles.add(smoke, 400);
+			game.sceneComponent(SceneComponentType.PARTICLES).addCustomTemp(smoke, 400);
 
 			this._lastSmoke = Date.now();
 		}

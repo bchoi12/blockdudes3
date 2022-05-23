@@ -65,6 +65,7 @@ class UI {
         this._keyMap.set(39, rightKey);
         this._keyMap.set(68, rightKey);
         this._keyMap.set(32, dashKey);
+        this._keyMap.set(69, interactKey);
         connection.addHandler(chatType, (msg) => { this.chat(msg); });
         connection.addHandler(joinType, (msg) => { this.updateClients(msg); });
         connection.addHandler(leftType, (msg) => { this.updateClients(msg); });

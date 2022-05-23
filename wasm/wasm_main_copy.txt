@@ -57,11 +57,15 @@ func setGlobals() {
 	js.Global().Set("wallSpace", int(wallSpace))
 	js.Global().Set("platformSpace", int(platformSpace))
 	js.Global().Set("bombSpace", int(bombSpace))
+	js.Global().Set("boltSpace", int(boltSpace))
 	js.Global().Set("rocketSpace", int(rocketSpace))
 	js.Global().Set("explosionSpace", int(explosionSpace))
+	js.Global().Set("pickupSpace", int(pickupSpace))
 
-	js.Global().Set("burstShotType", int(burstShotType))
-	js.Global().Set("bombShotType", int(bombShotType))
+	js.Global().Set("uziWeapon", int(uziWeapon))
+	js.Global().Set("bazookaWeapon", int(bazookaWeapon))
+
+	js.Global().Set("boltShotType", int(boltShotType))
 	js.Global().Set("rocketShotType", int(rocketShotType))
 
 	js.Global().Set("deletedProp", int(deletedProp))
@@ -73,6 +77,7 @@ func setGlobals() {
 	js.Global().Set("accProp", int(accProp))
 	js.Global().Set("jerkProp", int(jerkProp))
 	js.Global().Set("dirProp", int(dirProp))
+	js.Global().Set("weaponTypeProp", int(weaponTypeProp))
 	js.Global().Set("weaponDirProp", int(weaponDirProp))
 
 	js.Global().Set("keysProp", int(keysProp))
@@ -93,6 +98,7 @@ func setGlobals() {
 	js.Global().Set("leftKey", int(leftKey))
 	js.Global().Set("rightKey", int(rightKey))
 	js.Global().Set("dashKey", int(dashKey))
+	js.Global().Set("interactKey", int(interactKey))
 	js.Global().Set("mouseClick", int(mouseClick))
 	js.Global().Set("altMouseClick", int(altMouseClick))
 }
@@ -298,6 +304,11 @@ func getData(data js.Value) Data {
 	prop, err = getPropData(data, dirProp)
 	if err == nil {
 		d.Set(dirProp, parseVec2(prop))
+	}
+
+	prop, err = getPropData(data, weaponTypeProp)
+	if err == nil {
+		d.Set(weaponTypeProp, prop.Int())
 	}
 
 	prop, err = getPropData(data, weaponDirProp)

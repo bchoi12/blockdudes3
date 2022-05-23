@@ -13,6 +13,8 @@ const (
 	accProp
 	jerkProp
 	dirProp
+
+	weaponTypeProp
 	weaponDirProp
 
 	keysProp

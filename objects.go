@@ -4,6 +4,13 @@ import (
 	"time"
 )
 
+func NewRec2Object(init Init) Object {
+	profile := NewRec2(init, NewData())
+	return Object {
+		Profile: profile,
+	}
+}
+
 func NewCircleObject(init Init) Object {
 	profile := NewCircle(init, NewData())
 	return Object {
@@ -116,6 +123,28 @@ func (b *Bomb) UpdateState(grid *Grid, now time.Time) bool {
 	return true
 }
 
+// TODO: move to projectiles.go
+type Bolt struct {
+	Projectile
+}
+
+func NewBolt(init Init) *Bolt {
+	points := make([]Vec2, 4)
+	width := init.InitDim().X
+	height := init.InitDim().Y
+	points[0] = NewVec2(-width/2, -height/2)
+	points[1] = NewVec2(-width/2, height/2)
+	points[2] = NewVec2(width/2, height/2)
+	points[3] = NewVec2(width/2, -height/2)
+	profile := NewRotPoly(init, NewData(), points)
+	bolt := &Bolt {
+		Projectile: NewProjectile(NewObject(profile, NewData())),
+	}
+	bolt.SetTTL(500 * time.Millisecond)
+	bolt.SetDamage(10)
+	return bolt
+}
+
 type Rocket struct {
 	Projectile
 }
@@ -127,6 +156,7 @@ func NewRocket(init Init) *Rocket {
 	rocket.SetMaxSpeed(80)
 	rocket.SetTTL(1 * time.Second)
 	rocket.SetExplode(true)
+	rocket.SetDamage(50)
 	return rocket
 }
 
@@ -186,4 +216,28 @@ func (e *Explosion) GetData() Data {
 	data.Set(posProp, e.GetProfile().Pos())
 	data.Set(dimProp, e.GetProfile().Dim())
 	return data
+}
+
+type Pickup struct {
+	Object
+
+	weaponType WeaponType
+}
+
+func NewPickup(init Init) *Pickup {
+	profile := NewRec2(init, NewData())
+	pickup := &Pickup {
+		Object: NewObject(profile, NewData()),
+		weaponType: unknownWeapon,
+	}
+
+	return pickup
+}
+
+func (p *Pickup) SetWeaponType(weaponType WeaponType) {
+	p.weaponType = weaponType
+}
+
+func (p Pickup) GetWeaponType() WeaponType {
+	return p.weaponType
 }

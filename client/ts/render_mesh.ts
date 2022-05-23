@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 
-import { SpacedId } from './spaced_id.js'
-
 import { renderer } from './renderer.js'
+import { SpacedId } from './spaced_id.js'
 
 export class RenderMesh {
 	protected readonly _debugMaterial = new THREE.MeshStandardMaterial({color: 0xff0000, wireframe: true });
@@ -31,8 +30,6 @@ export class RenderMesh {
 
 	setMesh(mesh : THREE.Mesh) : void {
 		this._mesh = mesh;
-		renderer.compile(this._mesh);
-
 		this._onMeshLoad.forEach((cb) => {
 			cb();
 		});

@@ -12,9 +12,10 @@ const (
 const (
 	gravityAcc = -18.0
 	downAcc = -18.0
-	rightAcc = 16.0
+
+	rightAcc = 18.0
 	leftAcc = -rightAcc
-	turnMultiplier = 2.0
+	turnMultiplier = 3.0
 
 	maxUpwardVel = 12.0
 	maxHorizontalVel = 12.0
@@ -68,9 +69,12 @@ func NewPlayer(init Init) *Player {
 	subProfile.SetOffset(NewVec2(0, 0.22))
 	profile.AddSubProfile(bodySubProfile, subProfile)
 
+	weapon := NewBaseWeapon(init.GetSpacedId())
+	weapon.SetWeaponType(bazookaWeapon)
+
 	player := &Player {
 		Object: NewObject(profile, NewData()),
-		weapon: NewWeaponRocket(init.GetSpacedId()),
+		weapon: weapon,
 
 		canJump: false,
 		canDash: true,
@@ -92,6 +96,7 @@ func NewPlayer(init Init) *Player {
 func (p Player) GetData() Data {
 	data := NewData()
 	data.Merge(p.Object.GetData())
+	data.Merge(p.weapon.GetData())
 
 	data.Set(dirProp, p.Dir())
 	data.Set(weaponDirProp, p.weapon.Dir())
@@ -108,7 +113,8 @@ func (p Player) GetData() Data {
 
 func (p Player) GetUpdates() Data {
 	updates := NewData()
-	updates.Merge(p.Profile.GetUpdates())
+	updates.Merge(p.Object.GetUpdates())
+	updates.Merge(p.weapon.GetUpdates())
 	return updates
 }
 
@@ -118,6 +124,7 @@ func (p *Player) SetData(data Data) {
 	}
 
 	p.Object.SetData(data)
+	p.weapon.SetData(data)
 
 	if data.Has(keysProp) {
 		p.keys = data.Get(keysProp).(map[KeyType]bool)
@@ -188,13 +195,13 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	}
 
 	// Jump & double jump
-	if p.keyPressed(dashKey) {
+	if p.keyDown(dashKey) {
 		if p.canJump && now.Sub(p.lastGrounded) <= canJumpGracePeriod {
 			p.canJump = false
 			acc.Y = 0
 			vel.Y = Max(0, vel.Y) + jumpVel
 			p.lastJumpTime = now
-		} else if p.canDash {
+		} else if p.keyPressed(dashKey) && p.canDash {
 			acc.Y = 0
 			vel.Y = jumpVel
 			p.canDash = false
@@ -269,6 +276,10 @@ func (p *Player) checkCollisions(grid *Grid) {
 		switch object := collider.(type) {
 		case *Explosion:
 			object.Hit(p)
+		case *Pickup:
+			if p.keyPressed(interactKey) {
+				p.weapon.SetWeaponType(object.GetWeaponType())
+			}
 		}
 	}
 }
