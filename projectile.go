@@ -7,8 +7,9 @@ import (
 type Projectile struct {
 	Object
 	owner *State
-	damage int
 	hits []*Hit
+
+	damage int
 	maxSpeed float64
 	explode bool
 }
@@ -17,8 +18,9 @@ func NewProjectile(object Object) Projectile {
 	return Projectile {
 		Object: object,
 		owner: NewBlankState(Id(unknownSpace, 0)),
-		damage: 0,
 		hits: make([]*Hit, 0),
+
+		damage: 0,
 		maxSpeed: 100,
 		explode: false,
 	}
@@ -126,6 +128,11 @@ func (p *Projectile) Hit(collider Thing) {
 func (p *Projectile) GetData() Data {
 	data := NewData()
 	data.Merge(p.Object.GetData())
+
+	if owner, ok := p.owner.Pop(); ok {
+		data.Set(ownerProp, owner)
+	}
+
 	return data
 }
 
