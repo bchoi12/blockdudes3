@@ -65,8 +65,9 @@ class Game {
         const msg = ui.createKeyMsg(this._keyUpdates);
         if (this.sceneMap().has(playerSpace, this._id)) {
             const mouse = renderer.getMouseWorld();
-            const player = this.sceneMap().get(playerSpace, this._id).pos();
-            const dir = new THREE.Vector2(mouse.x - player.x, mouse.y - player.y);
+            const player = this.sceneMap().get(playerSpace, this._id);
+            const weaponPos = player.weaponPos();
+            const dir = new THREE.Vector2(mouse.x - weaponPos.x, mouse.y - weaponPos.y);
             dir.normalize();
             msg.Key.D = {
                 X: dir.x,
@@ -157,10 +158,10 @@ class Game {
     extrapolatePlayerDir() {
         if (this.sceneMap().has(playerSpace, this._id)) {
             const mouse = renderer.getMouseWorld();
-            const playerPos = this.sceneMap().get(playerSpace, this._id).pos();
+            const player = this.sceneMap().get(playerSpace, this._id);
+            const playerPos = player.pos();
             const dir = new THREE.Vector2(mouse.x - playerPos.x, mouse.y - playerPos.y);
             dir.normalize();
-            const player = this.sceneMap().get(playerSpace, this._id);
             player.setDir(dir, dir.clone());
         }
     }

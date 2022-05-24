@@ -175,6 +175,23 @@ func (g *Grid) GetLast(space SpaceType) Thing {
 	return g.spacedThings[space][g.lastId[space]]
 }
 
+func (g *Grid) GetInitData() ObjectPropMap {
+	objects := make(ObjectPropMap)
+
+	for _, thing := range(g.GetAllThings()) {
+		data := thing.GetInitData()
+		if data.Size() == 0 {
+			continue
+		}
+
+		if _, ok := objects[thing.GetSpace()]; !ok {
+			objects[thing.GetSpace()] = make(map[IdType]PropMap, 0)
+		}
+		objects[thing.GetSpace()][thing.GetId()] = data.Props()
+	}
+	return objects
+}
+
 func (g *Grid) GetData() ObjectPropMap {
 	objects := make(ObjectPropMap)
 

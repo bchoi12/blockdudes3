@@ -42,7 +42,6 @@ type InitMethods interface {
 	SetInitPos(initPos Vec2)
 	InitDim() Vec2
 	SetInitDim(initDim Vec2)
-
 	GetInitData() Data
 }
 

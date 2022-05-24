@@ -90,9 +90,9 @@ class Game {
 		if (this.sceneMap().has(playerSpace, this._id)) {
 	   		const mouse = renderer.getMouseWorld();
 
-	   		// TODO: this is slightly off since we're using pos instead of weapon pos
-	   		const player = this.sceneMap().get(playerSpace, this._id).pos();
-	   		const dir = new THREE.Vector2(mouse.x - player.x, mouse.y - player.y);
+	   		const player : any = this.sceneMap().get(playerSpace, this._id);
+	   		const weaponPos = player.weaponPos();
+	   		const dir = new THREE.Vector2(mouse.x - weaponPos.x, mouse.y - weaponPos.y);
 
 	   		dir.normalize();
 			msg.Key.D = {
@@ -193,13 +193,18 @@ class Game {
 	private extrapolatePlayerDir() : void {
 		if (this.sceneMap().has(playerSpace, this._id)) {
 	   		const mouse = renderer.getMouseWorld();
-	   		const playerPos = this.sceneMap().get(playerSpace, this._id).pos();
+	   		const player : any = this.sceneMap().get(playerSpace, this._id);
 
+	   		const playerPos = player.pos();
 	   		const dir = new THREE.Vector2(mouse.x - playerPos.x, mouse.y - playerPos.y);
 	   		dir.normalize();
 
-	   		// TODO: fix weapon dir
-	   		const player : any = this.sceneMap().get(playerSpace, this._id)
+	   		/*
+	   		const weaponPos = player.weaponPos();
+	   		const weaponDir = new THREE.Vector2(mouse.x - weaponPos.x, mouse.y - weaponPos.y);
+	   		weaponDir.normalize();
+	   		*/
+
 	   		player.setDir(dir, dir.clone());
 		}
 	}

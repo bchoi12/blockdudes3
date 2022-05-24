@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { Gyroscope } from 'three/examples/jsm/misc/Gyroscope.js';
 import { Howl } from 'howler';
 import { RenderMesh } from './render_mesh.js';
 export class RenderWeapon extends RenderMesh {
@@ -7,7 +6,6 @@ export class RenderWeapon extends RenderMesh {
         super();
         this._shotLocation = "shoot";
         this._rayMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-        this._gyro = new Gyroscope();
         this._shotOrigin = new THREE.Vector3(0, 0, 0);
         this._light = new THREE.PointLight(0x00ff00, 0, 3);
         this._shootSound = new Howl({

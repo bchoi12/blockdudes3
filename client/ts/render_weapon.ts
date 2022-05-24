@@ -12,7 +12,6 @@ export class RenderWeapon extends RenderMesh {
 
 	private readonly _rayMaterial = new THREE.MeshStandardMaterial( {color: 0x00ff00} );
 
-	private _gyro : Gyroscope;
 	private _shotOrigin : THREE.Vector3;
 	private _light : THREE.PointLight;
 
@@ -21,7 +20,6 @@ export class RenderWeapon extends RenderMesh {
 	constructor() {
 		super();
 
-		this._gyro = new Gyroscope();
 		this._shotOrigin = new THREE.Vector3(0, 0, 0);
 		this._light = new THREE.PointLight(0x00ff00, 0, 3);
 		this._shootSound = new Howl({
@@ -36,7 +34,6 @@ export class RenderWeapon extends RenderMesh {
 		this._shotOrigin = mesh.getObjectByName(this._shotLocation).position.clone();
 		this._light.position.copy(this._shotOrigin);
 		mesh.add(this._light)
-
 
 		super.setMesh(mesh);
 	}

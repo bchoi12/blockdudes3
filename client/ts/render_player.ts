@@ -26,6 +26,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private _grounded : boolean;
 
 	private _weapon : RenderWeapon;
+	private _arm : THREE.Object3D;
 	private _armOrigin : THREE.Vector3;
 
 	private _profileMesh : THREE.Mesh;
@@ -59,7 +60,8 @@ export class RenderPlayer extends RenderAnimatedObject {
 		const playerMesh = mesh.getObjectByName("mesh");
 		playerMesh.position.y -= this.dim().y / 2;
 
-		this._armOrigin = mesh.getObjectByName("armR").position.clone();
+		this._arm = this.mesh().getObjectByName("armR");
+		this._armOrigin = this._arm.position.clone();
 		playerMesh.rotation.y = Math.PI / 2 + this._rotationOffset;
 
 		for (const action in PlayerAction) {
@@ -82,7 +84,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 		}
 
 		this._weapon.onMeshLoad(() => {
-			this._mesh.getObjectByName("armR").add(this._weapon.mesh());
+			this.mesh().getObjectByName("armR").add(this._weapon.mesh());
 		});
 	}
 
@@ -119,11 +121,10 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		this.setDir(dir, weaponDir);
 
-		const arm = this._mesh.getObjectByName("armR");
-		if (arm.position.lengthSq() > 0) {
-			let armOffset = this._armOrigin.clone().sub(arm.position);
+		if (this._arm.position.lengthSq() > 0) {
+			let armOffset = this._armOrigin.clone().sub(this._arm.position);
 			armOffset.setLength(Math.min(armOffset.length(), 0.4 * Math.max(0, (Date.now() - this._lastUpdate) / 1000)));
-			arm.position.add(armOffset);
+			this._arm.position.add(armOffset);
 		}
 
 		const grounded = this.grounded();
@@ -177,12 +178,13 @@ export class RenderPlayer extends RenderAnimatedObject {
 		}
 	}
 
-	shotOrigin() : THREE.Vector3 {
-		if (!Util.defined(this._weapon)) {
+	weaponPos() : THREE.Vector3 {
+		if (!Util.defined(this._arm)) {
 			const pos = this.pos();
 			return new THREE.Vector3(pos.x, pos.y, 0);
 		}
-		return this._weapon.mesh().localToWorld(this._weapon.shotOrigin());
+		// TODO: this assumes all weapon Y offsets are 0
+		return this._arm.localToWorld(this._arm.position.clone());
 	}
 
 	setDir(dir : THREE.Vector2, weaponDir : THREE.Vector2) {
@@ -203,36 +205,33 @@ export class RenderPlayer extends RenderAnimatedObject {
 		dir.normalize();
 		this.msg().set(dirProp, {X: dir.x, Y: dir.y})
 
-		const player = this._mesh.getObjectByName("mesh");
-		if (MathUtil.signPos(dir.x) != MathUtil.signPos(player.scale.z)) {
-			player.scale.z = MathUtil.signPos(dir.x);
-			player.rotation.y = Math.PI / 2 + Math.sign(player.scale.z) * this._rotationOffset;
+		const playerMesh = this.mesh().getObjectByName("mesh");
+		if (MathUtil.signPos(dir.x) != MathUtil.signPos(playerMesh.scale.z)) {
+			playerMesh.scale.z = MathUtil.signPos(dir.x);
+			playerMesh.rotation.y = Math.PI / 2 + Math.sign(playerMesh.scale.z) * this._rotationOffset;
 		}
 
-		const neck = player.getObjectByName("neck");
+		const neck = this.mesh().getObjectByName("neck");
 		neck.rotation.x = dir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI : 0);
 
-		const arm = player.getObjectByName("armR");
-		arm.rotation.x = weaponDir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI / 2 : 3 * Math.PI / 2);
+		this._arm.rotation.x = weaponDir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI / 2 : 3 * Math.PI / 2);
 	}
 
 	setWeapon(model : Model) {
 		loader.load(model, (weaponMesh : THREE.Mesh) => {
 			if (this._weapon.hasMesh()) {
-				this._mesh.getObjectByName("armR").remove(this._weapon.mesh())
+				this.mesh().getObjectByName("armR").remove(this._weapon.mesh())
 			}
-
 			this._weapon.setMesh(weaponMesh);
 		});
 	}
 
 	shoot() : void {
-		const arm = this._mesh.getObjectByName("armR");
 		const axis = new THREE.Vector3(1, 0, 0);
 		const recoil = new THREE.Vector3(0, 0, -0.1);
-		recoil.applyAxisAngle(axis, arm.rotation.x);
+		recoil.applyAxisAngle(axis, this._arm.rotation.x);
 
-		arm.position.y = this._armOrigin.y - recoil.z;
-		arm.position.z = this._armOrigin.z + recoil.y;
+		this._arm.position.y = this._armOrigin.y - recoil.z;
+		this._arm.position.z = this._armOrigin.z + recoil.y;
 	}
 }

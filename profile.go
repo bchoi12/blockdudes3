@@ -69,7 +69,7 @@ func NewBaseProfile(init Init, data Data) BaseProfile {
 	bp := BaseProfile {
 		Init: init,
 		pos: init.InitPos(),
-		dim: NewBlankState(init.InitDim()),
+		dim: NewState(init.InitDim()),
 		vel: NewVec2(0, 0),
 		extVel: NewVec2(0, 0),
 		acc: NewVec2(0, 0),
@@ -151,6 +151,15 @@ func (bp BaseProfile) Grounded() bool { return bp.grounded.Peek().(bool) }
 func (bp *BaseProfile) SetGrounded(grounded bool) { bp.grounded.Set(grounded) }
 func (bp BaseProfile) Static() bool { return bp.static }
 func (bp *BaseProfile) SetStatic(static bool) { bp.static = static }
+
+func (bp BaseProfile) GetInitData() Data {
+	data := NewData()
+	data.Set(posProp, bp.Pos())
+	data.Set(dimProp, bp.dim.Peek())
+	data.Set(solidProp, bp.solid.Peek())
+	data.Set(groundedProp, bp.grounded.Peek())
+	return data
+}
 
 func (bp BaseProfile) GetData() Data {
 	data := NewData()

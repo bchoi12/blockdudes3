@@ -44,6 +44,7 @@ type Weapon interface {
 	SetDir(dir Vec2)
 	
 	SetOffset(offset Vec2)
+	GetShotOrigin() Vec2
 
 	SetWeaponType(weaponType WeaponType)
 	SetTrigger(triggerType TriggerType, trigger *Trigger)
@@ -51,18 +52,17 @@ type Weapon interface {
 	UpdateState(trigger TriggerType, now time.Time) WeaponStateType
 	Shoot(grid *Grid, now time.Time)
 
+	GetInitData() Data
 	GetData() Data
 	GetUpdates() Data
 	SetData(data Data)
 }
 
-// TODO: rename to Weapon
 type BaseWeapon struct {
 	owner SpacedId
 	pos, dir, offset Vec2
 
 	weaponType *State
-
 	triggers map[TriggerType]*Trigger
 }
 
@@ -115,12 +115,21 @@ func (bw BaseWeapon) Dir() Vec2 { return bw.dir }
 func (bw *BaseWeapon) SetDir(dir Vec2) { bw.dir = dir } 
 
 func (bw *BaseWeapon) SetOffset(offset Vec2) { bw.offset = offset }
+func (bw BaseWeapon) GetShotOrigin() Vec2 {
+	origin := bw.Pos()
+	offset := bw.offset
+	offset.Rotate(bw.Dir().Angle())
+	origin.Add(offset, 1.0)
+	return origin
+}
 
 func (bw *BaseWeapon) SetWeaponType(weaponType WeaponType) {
 	if weaponType == uziWeapon {
 		bw.triggers[primaryTrigger] = NewTrigger(boltShotType, 3, 100 * time.Millisecond, 300 * time.Millisecond)
+		bw.SetOffset(NewVec2(0.3, 0))
 	} else if weaponType == bazookaWeapon {
 		bw.triggers[primaryTrigger] = NewTrigger(rocketShotType, 1, 50 * time.Millisecond, 1000 * time.Millisecond)
+		bw.SetOffset(NewVec2(0.3, 0))
 	} else {
 		Debug("Unknown weapon type! %d", weaponType)
 		return
@@ -178,7 +187,7 @@ func (bw *BaseWeapon) Shoot(grid *Grid, now time.Time) {
 		}
 
 		if trigger.shotType == rocketShotType {
-			rocket := NewRocket(NewInit(grid.NextSpacedId(rocketSpace), NewInitData(bw.Pos(), NewVec2(0.5, 0.5))))
+			rocket := NewRocket(NewInit(grid.NextSpacedId(rocketSpace), NewInitData(bw.GetShotOrigin(), NewVec2(0.5, 0.5))))
 			rocket.SetOwner(bw.GetOwner())
 			acc := bw.dir
 			acc.Normalize()
@@ -195,7 +204,7 @@ func (bw *BaseWeapon) Shoot(grid *Grid, now time.Time) {
 			rocket.SetJerk(acc)
 			grid.Upsert(rocket)
 		} else if trigger.shotType == boltShotType {
-			bolt := NewBolt(NewInit(grid.NextSpacedId(boltSpace), NewInitData(bw.Pos(), NewVec2(0.35, 0.15))))
+			bolt := NewBolt(NewInit(grid.NextSpacedId(boltSpace), NewInitData(bw.GetShotOrigin(), NewVec2(0.35, 0.15))))
 			bolt.SetOwner(bw.GetOwner())
 			vel := bw.dir
 			vel.Normalize()
@@ -205,6 +214,14 @@ func (bw *BaseWeapon) Shoot(grid *Grid, now time.Time) {
 			grid.Upsert(bolt)
 		}
 	}
+}
+
+func (bw BaseWeapon) GetInitData() Data {
+	data := NewData()
+	if bw.weaponType.Has() {
+		data.Set(weaponTypeProp, bw.weaponType.Peek())
+	}
+	return data
 }
 
 func (bw BaseWeapon) GetData() Data {

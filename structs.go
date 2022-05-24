@@ -164,7 +164,9 @@ func (v Vec2) Angle() float64 {
 	}
 
 	rad := math.Atan(v.Y / v.X)
-	if rad < 0 {
+	if v.X < 0 {
+		rad += math.Pi
+	} else if rad < 0 {
 		rad += 2.0 * math.Pi
 	}
 	return rad

@@ -142,6 +142,14 @@ func (g *Game) createObjectInitMsg() ObjectInitMsg {
 	}
 }
 
+func (g *Game) createGameInitMsg() GameStateMsg {
+	return GameStateMsg{
+		T: gameStateType,
+		S: g.seqNum,
+		Os: g.grid.GetInitData(),
+	}
+}
+
 func (g *Game) createGameStateMsg() GameStateMsg {
 	return GameStateMsg{
 		T: gameStateType,

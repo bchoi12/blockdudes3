@@ -57,6 +57,10 @@ export class RenderProjectile extends RenderObject {
 			return;
 		}
 
+		if (this.mesh().position.z > 0) {
+			this.mesh().position.z -= .02;
+		}
+
 		const pos = this.pos();
 		const vel = this.vel();
 		const dim = this.dim();

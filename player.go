@@ -93,6 +93,13 @@ func NewPlayer(init Init) *Player {
 	return player
 }
 
+func (p Player) GetInitData() Data {
+	data := NewData()
+	data.Merge(p.Object.GetInitData())
+	data.Merge(p.weapon.GetInitData())
+	return data
+}
+
 func (p Player) GetData() Data {
 	data := NewData()
 	data.Merge(p.Object.GetData())
