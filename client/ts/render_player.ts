@@ -117,6 +117,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 		const vel = this.vel();
 		const acc = this.acc();
 
+		this.setDir(this.dir());
+		this.setWeaponDir(this.weaponDir());
+
 		if (this._arm.position.lengthSq() > 0) {
 			let armOffset = this._armOrigin.clone().sub(this._arm.position);
 			armOffset.setLength(Math.min(armOffset.length(), 0.4 * Math.max(0, (Date.now() - this._lastUpdate) / 1000)));
@@ -194,7 +197,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		// TODO: use WASM to get extrapolated dir and delete this duplication
 		// Match rotation with server logic
-
 		const currentDir = this.dir();
 		if (Math.abs(dir.x) < 0.3 && MathUtil.signPos(dir.x) != MathUtil.signPos(currentDir.x)) {
 			dir.x = MathUtil.signPos(currentDir.x) * Math.abs(dir.x);

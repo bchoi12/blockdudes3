@@ -82,6 +82,8 @@ export class RenderPlayer extends RenderAnimatedObject {
         const dim = this.dim();
         const vel = this.vel();
         const acc = this.acc();
+        this.setDir(this.dir());
+        this.setWeaponDir(this.weaponDir());
         if (this._arm.position.lengthSq() > 0) {
             let armOffset = this._armOrigin.clone().sub(this._arm.position);
             armOffset.setLength(Math.min(armOffset.length(), 0.4 * Math.max(0, (Date.now() - this._lastUpdate) / 1000)));
