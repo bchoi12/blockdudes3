@@ -36,8 +36,8 @@ class Game {
 	}
 
 	setup() : void {
-		connection.addHandler(gameStateType, (msg : { [k: string]: any }) => { this.updateGameState(msg); });
-		connection.addHandler(gameUpdateType, (msg : { [k: string]: any }) => { this.updateGameState(msg); })
+		connection.addHandler(objectDataType, (msg : { [k: string]: any }) => { this.updateGameState(msg); });
+		connection.addHandler(objectUpdateType, (msg : { [k: string]: any }) => { this.updateGameState(msg); });
 		connection.addHandler(playerInitType, (msg : { [k: string]: any }) => { this.initPlayer(msg); });
 		connection.addHandler(levelInitType, (msg : { [k: string]: any }) => { this.initLevel(msg); });
 	}
@@ -118,7 +118,7 @@ class Game {
 
 	private updateGameState(msg : { [k: string]: any }) : void {
 		const seqNum = msg.S;
-		if (msg.T === gameStateType) {
+		if (msg.T === objectDataType) {
 			if (seqNum <= this._lastSeqNum) {
 				return;
 			}  else {
@@ -199,17 +199,16 @@ class Game {
 	   		const dir = new THREE.Vector2(mouse.x - playerPos.x, mouse.y - playerPos.y);
 	   		dir.normalize();
 
-	   		/*
 	   		const weaponPos = player.weaponPos();
 	   		const weaponDir = new THREE.Vector2(mouse.x - weaponPos.x, mouse.y - weaponPos.y);
 	   		weaponDir.normalize();
-	   		*/
 
-	   		player.setDir(dir, dir.clone());
+	   		player.setDir(dir);
+	   		player.setWeaponDir(weaponDir);
 		}
 	}
 
-	private initLevel(msg :any) : void {
+	private initLevel(msg : { [k: string]: any }) : void {
 		this.sceneMap().clearObjects();
 
 		const level = JSON.parse(wasmLoadLevel(msg.L));

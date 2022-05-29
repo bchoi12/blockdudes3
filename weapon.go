@@ -124,6 +124,10 @@ func (bw BaseWeapon) GetShotOrigin() Vec2 {
 }
 
 func (bw *BaseWeapon) SetWeaponType(weaponType WeaponType) {
+	if isWasm {
+		return
+	}
+
 	if weaponType == uziWeapon {
 		bw.triggers[primaryTrigger] = NewTrigger(boltShotType, 3, 100 * time.Millisecond, 300 * time.Millisecond)
 		bw.SetOffset(NewVec2(0.3, 0))

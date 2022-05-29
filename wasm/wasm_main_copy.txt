@@ -45,14 +45,12 @@ func setGlobals() {
 	js.Global().Set("chatType", int(chatType))
 	js.Global().Set("keyType", int(keyType))
 
-	js.Global().Set("gameStateType", int(gameStateType))
-	js.Global().Set("gameUpdateType", int(gameUpdateType))
+	js.Global().Set("objectDataType", int(objectDataType))
+	js.Global().Set("objectUpdateType", int(objectUpdateType))
 	js.Global().Set("playerInitType", int(playerInitType))
-	js.Global().Set("playerJoinType", int(playerJoinType))
 	js.Global().Set("levelInitType", int(levelInitType))
 
-	js.Global().Set("objectInitType", int(objectInitType))
-
+	js.Global().Set("systemSpace", int(systemSpace))
 	js.Global().Set("playerSpace", int(playerSpace))
 	js.Global().Set("wallSpace", int(wallSpace))
 	js.Global().Set("platformSpace", int(platformSpace))
@@ -88,6 +86,10 @@ func setGlobals() {
 	js.Global().Set("ownerProp", int(ownerProp))
 	js.Global().Set("targetProp", int(targetProp))
 	js.Global().Set("hitsProp", int(hitsProp))
+
+	js.Global().Set("scoreProp", int(scoreProp))
+	js.Global().Set("killProp", int(killProp))
+	js.Global().Set("deathProp", int(deathProp))
 
 	js.Global().Set("profileDimProp", int(profileDimProp))
 	js.Global().Set("profilePosProp", int(profilePosProp))
@@ -251,7 +253,7 @@ func LoadLevel(g *Game) js.Func {
 func UpdateState(g *Game) js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		g.updateState()
-		state := g.createGameStateMsg()
+		state := g.createObjectStateMsg()
 		b, err := json.Marshal(state)
 		if err != nil {
 			fmt.Println("wasmUpdateState: ", err)

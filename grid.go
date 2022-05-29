@@ -4,6 +4,10 @@ import (
 	"time"
 )
 
+const (
+	
+)
+
 type GridCoord struct {
 	x int
 	y int
@@ -22,6 +26,8 @@ type Grid struct {
 	unitLength int
 	unitHeight int
 
+	scoreBoard ScoreBoard
+
 	lastId map[SpaceType]IdType
 	things map[SpacedId]Thing
 	thingStates map[SpacedId]*ThingState
@@ -34,6 +40,8 @@ func NewGrid(unitLength int, unitHeight int) *Grid {
 	return &Grid {
 		unitLength: unitLength,
 		unitHeight: unitHeight,
+
+		scoreBoard: NewScoreBoard(),
 
 		lastId: make(map[SpaceType]IdType, 0),
 		things: make(map[SpacedId]Thing, 0),

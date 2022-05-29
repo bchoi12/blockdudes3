@@ -33,11 +33,14 @@ export class RenderPlayer extends RenderAnimatedObject {
     }
     setMesh(mesh) {
         super.setMesh(mesh);
-        const playerMesh = mesh.getObjectByName("mesh");
-        playerMesh.position.y -= this.dim().y / 2;
+        this._playerMesh = this.mesh().getObjectByName("mesh");
+        this._playerMesh.position.y -= this.dim().y / 2;
         this._arm = this.mesh().getObjectByName("armR");
         this._armOrigin = this._arm.position.clone();
-        playerMesh.rotation.y = Math.PI / 2 + this._rotationOffset;
+        this._playerMesh.rotation.y = Math.PI / 2 + this._rotationOffset;
+        this._weapon.onMeshLoad(() => {
+            this._arm.add(this._weapon.mesh());
+        });
         for (const action in PlayerAction) {
             this.initializeClip(PlayerAction[action]);
         }
@@ -53,9 +56,6 @@ export class RenderPlayer extends RenderAnimatedObject {
             this._profilePointsMesh = new THREE.Points(this._profilePoints, this._pointsMaterial);
             mesh.add(this._profilePointsMesh);
         }
-        this._weapon.onMeshLoad(() => {
-            this.mesh().getObjectByName("armR").add(this._weapon.mesh());
-        });
     }
     update(msg, seqNum) {
         super.update(msg, seqNum);
@@ -82,9 +82,6 @@ export class RenderPlayer extends RenderAnimatedObject {
         const dim = this.dim();
         const vel = this.vel();
         const acc = this.acc();
-        const dir = this.dir();
-        const weaponDir = this.weaponDir();
-        this.setDir(dir, weaponDir);
         if (this._arm.position.lengthSq() > 0) {
             let armOffset = this._armOrigin.clone().sub(this._arm.position);
             armOffset.setLength(Math.min(armOffset.length(), 0.4 * Math.max(0, (Date.now() - this._lastUpdate) / 1000)));
@@ -137,13 +134,17 @@ export class RenderPlayer extends RenderAnimatedObject {
         }
     }
     weaponPos() {
-        if (!Util.defined(this._arm)) {
+        if (!Util.defined(this._weapon) || !this._weapon.hasMesh()) {
             const pos = this.pos();
             return new THREE.Vector3(pos.x, pos.y, 0);
         }
-        return this._arm.localToWorld(this._arm.position.clone());
+        const pos = this.mesh().position.clone();
+        pos.y += this._arm.position.y;
+        pos.y += this._weapon.mesh().position.y;
+        pos.y -= this.dim().y / 2;
+        return pos;
     }
-    setDir(dir, weaponDir) {
+    setDir(dir) {
         if (!this.hasMesh()) {
             return;
         }
@@ -155,21 +156,23 @@ export class RenderPlayer extends RenderAnimatedObject {
             dir.x = this._sqrtHalf * MathUtil.signPos(dir.x);
             dir.y = this._sqrtHalf * MathUtil.signPos(dir.y);
         }
-        dir.normalize();
-        this.msg().set(dirProp, { X: dir.x, Y: dir.y });
-        const playerMesh = this.mesh().getObjectByName("mesh");
-        if (MathUtil.signPos(dir.x) != MathUtil.signPos(playerMesh.scale.z)) {
-            playerMesh.scale.z = MathUtil.signPos(dir.x);
-            playerMesh.rotation.y = Math.PI / 2 + Math.sign(playerMesh.scale.z) * this._rotationOffset;
+        if (MathUtil.signPos(dir.x) != MathUtil.signPos(this._playerMesh.scale.z)) {
+            this._playerMesh.scale.z = MathUtil.signPos(dir.x);
+            this._playerMesh.rotation.y = Math.PI / 2 + Math.sign(this._playerMesh.scale.z) * this._rotationOffset;
         }
         const neck = this.mesh().getObjectByName("neck");
         neck.rotation.x = dir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI : 0);
-        this._arm.rotation.x = weaponDir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI / 2 : 3 * Math.PI / 2);
+    }
+    setWeaponDir(weaponDir) {
+        if (!this.hasMesh()) {
+            return;
+        }
+        this._arm.rotation.x = weaponDir.angle() * Math.sign(-this._playerMesh.scale.z) + (this._playerMesh.scale.z < 0 ? Math.PI / 2 : 3 * Math.PI / 2);
     }
     setWeapon(model) {
         loader.load(model, (weaponMesh) => {
             if (this._weapon.hasMesh()) {
-                this.mesh().getObjectByName("armR").remove(this._weapon.mesh());
+                this._arm.remove(this._weapon.mesh());
             }
             this._weapon.setMesh(weaponMesh);
         });

@@ -26,6 +26,10 @@ const (
 	targetProp
 	hitsProp
 
+	scoreProp
+	killProp
+	deathProp
+
 	// debug props
 	profileDimProp
 	profilePosProp

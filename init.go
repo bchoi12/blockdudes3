@@ -18,6 +18,13 @@ func Id(space SpaceType, id IdType) SpacedId {
 	}
 }
 
+func InvalidId() SpacedId {
+	return SpacedId {
+		S: 0,
+		Id: 0,
+	}
+}
+
 func (sid SpacedId) GetId() IdType {
 	return sid.Id
 }
@@ -28,6 +35,10 @@ func (sid SpacedId) GetSpace() SpaceType {
 
 func (sid SpacedId) GetSpacedId() SpacedId {
 	return sid
+}
+
+func (sid SpacedId) Invalid() bool {
+	return sid.GetSpace() == 0
 }
 
 type Init struct {

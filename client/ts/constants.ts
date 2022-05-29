@@ -20,13 +20,12 @@ declare var leftVoiceType : number;
 declare var chatType : number;
 declare var keyType : number;
 
-declare var gameStateType : number;
-declare var gameUpdateType : number;
+declare var objectDataType : number;
+declare var objectUpdateType : number;
 declare var playerInitType : number;
-declare var playerJoinType : number;
 declare var levelInitType : number;
-declare var objectInitType : number;
 
+declare var systemSpace : number;
 declare var playerSpace : number;
 declare var wallSpace : number;
 declare var bombSpace : number;
@@ -62,6 +61,10 @@ declare var groundedProp : number;
 declare var ownerProp : number;
 declare var targetProp : number;
 declare var hitsProp : number;
+
+declare var scoreProp : number;
+declare var killProp : number;
+declare var deathProp : number;
 
 declare var profileDimProp : number;
 declare var profilePosProp : number;

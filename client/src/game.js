@@ -22,8 +22,8 @@ class Game {
         this._animateFrames = 0;
     }
     setup() {
-        connection.addHandler(gameStateType, (msg) => { this.updateGameState(msg); });
-        connection.addHandler(gameUpdateType, (msg) => { this.updateGameState(msg); });
+        connection.addHandler(objectDataType, (msg) => { this.updateGameState(msg); });
+        connection.addHandler(objectUpdateType, (msg) => { this.updateGameState(msg); });
         connection.addHandler(playerInitType, (msg) => { this.initPlayer(msg); });
         connection.addHandler(levelInitType, (msg) => { this.initLevel(msg); });
     }
@@ -89,7 +89,7 @@ class Game {
     }
     updateGameState(msg) {
         const seqNum = msg.S;
-        if (msg.T === gameStateType) {
+        if (msg.T === objectDataType) {
             if (seqNum <= this._lastSeqNum) {
                 return;
             }
@@ -162,7 +162,11 @@ class Game {
             const playerPos = player.pos();
             const dir = new THREE.Vector2(mouse.x - playerPos.x, mouse.y - playerPos.y);
             dir.normalize();
-            player.setDir(dir, dir.clone());
+            const weaponPos = player.weaponPos();
+            const weaponDir = new THREE.Vector2(mouse.x - weaponPos.x, mouse.y - weaponPos.y);
+            weaponDir.normalize();
+            player.setDir(dir);
+            player.setWeaponDir(weaponDir);
         }
     }
     initLevel(msg) {

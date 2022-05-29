@@ -89,7 +89,7 @@ func NewPlayer(init Init) *Player {
 
 		mouse: NewVec2(0, 0),
 	}
-	player.respawn()
+	player.Respawn()
 	return player
 }
 
@@ -144,6 +144,24 @@ func (p *Player) SetData(data Data) {
 	}
 }
 
+func (p Player) Dead() bool {
+	return p.Health.Dead() || p.Pos().Y < -5
+}
+
+func (p *Player) Respawn() {
+	p.Health.Respawn()
+
+	p.SetHealth(100)
+	p.SetGrounded(false)
+	p.canDash = true
+
+	rand.Seed(time.Now().Unix())
+	p.SetPos(NewVec2(float64(15 + rand.Intn(15)), 20))
+	p.SetVel(NewVec2(0, 0))
+	p.SetAcc(NewVec2(0, 0))
+}
+
+
 func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	ts := GetTimestep(now, p.lastUpdateTime)
 	if ts < 0 {
@@ -151,16 +169,15 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	}
 	p.lastUpdateTime = now
 
+	if p.Dead() {
+		p.Respawn()
+	}
+
 	pos := p.Pos()
 	vel := p.Vel()
 	evel := p.ExtVel()
 	acc := p.Acc()
 	grounded := p.Grounded()
-
-	if !isWasm && (p.Dead() || pos.Y < -5) {
-		p.respawn()
-		return true
-	}
 
 	// Gravity & air resistance
 	acc.Y = gravityAcc
@@ -291,17 +308,6 @@ func (p *Player) checkCollisions(grid *Grid) {
 	}
 }
 
-func (p *Player) respawn() {
-	p.SetHealth(100)
-	p.SetGrounded(false)
-	p.canDash = true
-
-	rand.Seed(time.Now().Unix())
-	p.SetPos(NewVec2(float64(15 + rand.Intn(15)), 20))
-	p.SetVel(NewVec2(0, 0))
-	p.SetAcc(NewVec2(0, 0))
-}
-
 func (p *Player) updateKeys(keyMsg KeyMsg) {
 	if keyMsg.S < p.lastKeyUpdate {
 		return
@@ -313,11 +319,20 @@ func (p *Player) updateKeys(keyMsg KeyMsg) {
 	}
 	p.keys = keys
 
-	dir := keyMsg.D
-	lastDir := p.Dir()
-	// Note: any changes here should also be done in the frontend
-	p.weapon.SetDir(dir)
+/*
+	weaponDir := keyMsg.M
+	weaponDir.Sub(p.weapon.Pos(), 1.0)
+	weaponDir.Normalize()
+*/
+	weaponDir := keyMsg.D
+	p.weapon.SetDir(weaponDir)
+
 	// Don't turn around right at dir.X = 0
+	// Note: any changes here should also be done in the frontend
+	dir := keyMsg.M
+	dir.Sub(p.GetSubProfile(bodySubProfile).Pos(), 1.0)
+	dir.Normalize()
+	lastDir := p.Dir()
 	if Abs(dir.X) < 0.3 && SignPos(dir.X) != SignPos(lastDir.X) {
 		dir.X = FSignPos(lastDir.X) * Abs(dir.X)
 	}

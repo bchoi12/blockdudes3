@@ -25,6 +25,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private _lastUpdate : number;
 	private _grounded : boolean;
 
+	private _playerMesh : THREE.Object3D;
 	private _weapon : RenderWeapon;
 	private _arm : THREE.Object3D;
 	private _armOrigin : THREE.Vector3;
@@ -56,13 +57,16 @@ export class RenderPlayer extends RenderAnimatedObject {
 	override setMesh(mesh : THREE.Mesh) {
 		super.setMesh(mesh);
 
+		this._playerMesh = this.mesh().getObjectByName("mesh");
 		// Model origin is at feet.
-		const playerMesh = mesh.getObjectByName("mesh");
-		playerMesh.position.y -= this.dim().y / 2;
+		this._playerMesh.position.y -= this.dim().y / 2;
 
 		this._arm = this.mesh().getObjectByName("armR");
 		this._armOrigin = this._arm.position.clone();
-		playerMesh.rotation.y = Math.PI / 2 + this._rotationOffset;
+		this._playerMesh.rotation.y = Math.PI / 2 + this._rotationOffset;
+		this._weapon.onMeshLoad(() => {
+			this._arm.add(this._weapon.mesh());
+		});
 
 		for (const action in PlayerAction) {
 			this.initializeClip(PlayerAction[action]);
@@ -82,10 +86,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this._profilePointsMesh = new THREE.Points(this._profilePoints, this._pointsMaterial);
 			mesh.add(this._profilePointsMesh);
 		}
-
-		this._weapon.onMeshLoad(() => {
-			this.mesh().getObjectByName("armR").add(this._weapon.mesh());
-		});
 	}
 
 	override update(msg : Map<number, any>, seqNum? : number) : void {
@@ -116,10 +116,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 		const dim = this.dim();
 		const vel = this.vel();
 		const acc = this.acc();
-		const dir = this.dir();
-		const weaponDir = this.weaponDir();
-
-		this.setDir(dir, weaponDir);
 
 		if (this._arm.position.lengthSq() > 0) {
 			let armOffset = this._armOrigin.clone().sub(this._arm.position);
@@ -179,21 +175,26 @@ export class RenderPlayer extends RenderAnimatedObject {
 	}
 
 	weaponPos() : THREE.Vector3 {
-		if (!Util.defined(this._arm)) {
+		if (!Util.defined(this._weapon) || !this._weapon.hasMesh()) {
 			const pos = this.pos();
 			return new THREE.Vector3(pos.x, pos.y, 0);
 		}
-		// TODO: this assumes all weapon Y offsets are 0
-		return this._arm.localToWorld(this._arm.position.clone());
+
+		const pos = this.mesh().position.clone();
+		pos.y += this._arm.position.y;
+		pos.y += this._weapon.mesh().position.y;
+		pos.y -= this.dim().y / 2;
+		return pos;
 	}
 
-	setDir(dir : THREE.Vector2, weaponDir : THREE.Vector2) {
+	setDir(dir : THREE.Vector2) {
 		if (!this.hasMesh()) {
 			return;
 		}
 
 		// TODO: use WASM to get extrapolated dir and delete this duplication
 		// Match rotation with server logic
+
 		const currentDir = this.dir();
 		if (Math.abs(dir.x) < 0.3 && MathUtil.signPos(dir.x) != MathUtil.signPos(currentDir.x)) {
 			dir.x = MathUtil.signPos(currentDir.x) * Math.abs(dir.x);
@@ -202,25 +203,27 @@ export class RenderPlayer extends RenderAnimatedObject {
 			dir.x = this._sqrtHalf * MathUtil.signPos(dir.x);
 			dir.y = this._sqrtHalf * MathUtil.signPos(dir.y);
 		}
-		dir.normalize();
-		this.msg().set(dirProp, {X: dir.x, Y: dir.y})
 
-		const playerMesh = this.mesh().getObjectByName("mesh");
-		if (MathUtil.signPos(dir.x) != MathUtil.signPos(playerMesh.scale.z)) {
-			playerMesh.scale.z = MathUtil.signPos(dir.x);
-			playerMesh.rotation.y = Math.PI / 2 + Math.sign(playerMesh.scale.z) * this._rotationOffset;
+		if (MathUtil.signPos(dir.x) != MathUtil.signPos(this._playerMesh.scale.z)) {
+			this._playerMesh.scale.z = MathUtil.signPos(dir.x);
+			this._playerMesh.rotation.y = Math.PI / 2 + Math.sign(this._playerMesh.scale.z) * this._rotationOffset;
 		}
 
 		const neck = this.mesh().getObjectByName("neck");
 		neck.rotation.x = dir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI : 0);
+	}
 
-		this._arm.rotation.x = weaponDir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI / 2 : 3 * Math.PI / 2);
+	setWeaponDir(weaponDir : THREE.Vector2) {
+		if (!this.hasMesh()) {
+			return;
+		}
+		this._arm.rotation.x = weaponDir.angle() * Math.sign(-this._playerMesh.scale.z) + (this._playerMesh.scale.z < 0 ? Math.PI / 2 : 3 * Math.PI / 2);	
 	}
 
 	setWeapon(model : Model) {
 		loader.load(model, (weaponMesh : THREE.Mesh) => {
 			if (this._weapon.hasMesh()) {
-				this.mesh().getObjectByName("armR").remove(this._weapon.mesh())
+				this._arm.remove(this._weapon.mesh())
 			}
 			this._weapon.setMesh(weaponMesh);
 		});

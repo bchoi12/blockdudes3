@@ -32,19 +32,22 @@ const (
 	chatType
 	keyType
 
-	gameStateType
-	gameUpdateType
+	objectDataType
+	objectUpdateType
 	playerInitType
-	playerJoinType
 	levelInitType
-
-	objectInitType
 )
 
 type IdType uint16
+const (
+	unknownSystemId IdType = iota
+	scoreBoardSystemId
+)
+
 type SpaceType uint8
 const (
 	unknownSpace SpaceType = iota
+	systemSpace
 	playerSpace
 	wallSpace
 	platformSpace
@@ -116,21 +119,22 @@ type ChatMsg struct {
 	Message string
 }
 
-type GameStateMsg struct {
+type ObjectStateMsg struct {
 	T MessageType
 	S SeqNumType
 	Os ObjectPropMap
+}
+
+type GameStateMsg struct {
+	T MessageType
+	S SeqNumType
+	G PropMap
 }
 
 type PlayerInitMsg struct {
 	T MessageType
 	Id IdType
 	Ps PlayerPropMap
-}
-
-type ObjectInitMsg struct {
-	T MessageType
-	Os ObjectPropMap
 }
 
 type LevelInitMsg struct {

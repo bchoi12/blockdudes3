@@ -28,7 +28,6 @@ func NewHealth() Health {
 	}
 }
 
-// TODO: this is not yet used or finished
 func (h *Health) Respawn() {
 	h.ticks = make([]DamageTick, 0)
 }
@@ -43,17 +42,29 @@ func (h Health) GetHealth() int {
 }
 
 func (h Health) Dead() bool {
+	if isWasm || !h.enabled {
+		return false
+	}
 	return h.health.Peek().(int) <= 0
 }
 
 func (h Health) GetLastTicks(duration time.Duration) []DamageTick {
 	currentTime := time.Now()
 	for i, tick := range(h.ticks) {
-		if currentTime.Sub(tick.time) < duration {
+		if currentTime.Sub(tick.time) <= duration {
 			return h.ticks[i:]
 		}
 	}
 	return make([]DamageTick, 0)
+}
+
+func (h Health) GetLastDamageId(duration time.Duration) SpacedId {
+	tick := h.ticks[len(h.ticks)-1]
+
+	if time.Now().Sub(tick.time) <= duration {
+		return tick.sid
+	}
+	return InvalidId()
 }
 
 func (h *Health) TakeDamage(sid SpacedId, damage int) {
