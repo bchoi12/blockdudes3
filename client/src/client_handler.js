@@ -110,14 +110,18 @@ export class ClientHandler {
         });
     }
     removeVoice(id) {
-        ui.print(ui.getClientName(id) + " left voice chat");
+        if (this.hasClient(id)) {
+            ui.print(ui.getClientName(id) + " left voice chat");
+        }
         if (id === connection.id()) {
             return;
         }
         if (this._peerConnections.has(id)) {
             this._peerConnections.get(id).close();
             this._peerConnections.delete(id);
-            this._clients.get(id).disableVoiceControls();
+            if (this._clients.has(id)) {
+                this._clients.get(id).disableVoiceControls();
+            }
         }
     }
     createPeerConnection(id, sendOffer) {

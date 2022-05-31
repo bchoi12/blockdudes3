@@ -18,6 +18,8 @@ export class Foreground extends SceneComponent {
 		this._wall.position.x = 22;
 		this._wall.position.y = 6.75;
 		this._wall.position.z = 2.25;
+		this._wall.castShadow = false;
+		this._wall.receiveShadow = true;
 		this._scene.add(this._wall);
 
 		this._shadowWall = new THREE.Mesh(new THREE.BoxGeometry(16, 5.5, 0.5), new THREE.ShadowMaterial());
@@ -25,7 +27,7 @@ export class Foreground extends SceneComponent {
 		this._shadowWall.position.y = 6.75;
 		this._shadowWall.position.z = 2.25;
 		this._shadowWall.castShadow = true;
-		this._shadowWall.receiveShadow = true;
+		this._shadowWall.receiveShadow = false;
 		this._scene.add(this._shadowWall);
 
 		let backWall = new THREE.Mesh(new THREE.BoxGeometry(16, 5.5, 0.5), this._backMaterial);

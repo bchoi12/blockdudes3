@@ -4,6 +4,8 @@ export class HtmlComponent {
         this._parents = new Array();
     }
     htmlElm() { return this._html; }
+    displayBlock() { this._html.style.display = "block"; }
+    displayNone() { this._html.style.display = "none"; }
     addClass(htmlClass) { this._html.classList.add(htmlClass); }
     text(text) { this._html.textContent = text; }
     textAlign(align) { this._html.style.textAlign = align; }

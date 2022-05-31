@@ -12,6 +12,8 @@ export class HtmlComponent {
 
 	htmlElm() : HTMLElement { return this._html; }
 
+	displayBlock() : void { this._html.style.display = "block"; }
+	displayNone() : void { this._html.style.display = "none"; }
 	addClass(htmlClass : string) : void { this._html.classList.add(htmlClass); }
 	text(text : string) : void { this._html.textContent = text; }
 	textAlign(align : string) : void { this._html.style.textAlign = align; }
