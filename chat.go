@@ -33,7 +33,7 @@ func newChat() *Chat {
 }
 
 func (c *Chat) processChatMsg(client *Client, msg ChatMsg) ChatMsg {
-	newMsg := c.replacer.Replace(msg.Message)
+	newMsg := c.replacer.Replace(msg.M)
 	if len(newMsg) > maxChatMsgLength {
 		newMsg = newMsg[:maxChatMsgLength]
 	}
@@ -41,7 +41,7 @@ func (c *Chat) processChatMsg(client *Client, msg ChatMsg) ChatMsg {
 	outMsg := ChatMsg {
 		T: chatType,
 		Client: client.getClientData(),
-		Message: newMsg,
+		M: newMsg,
 	}
 	c.addChatMsg(outMsg)
 	return outMsg

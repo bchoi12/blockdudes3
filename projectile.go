@@ -17,7 +17,7 @@ type Projectile struct {
 func NewProjectile(object Object) Projectile {
 	return Projectile {
 		Object: object,
-		owner: NewBlankState(Id(unknownSpace, 0)),
+		owner: NewBlankState(InvalidId()),
 		hits: make([]*Hit, 0),
 
 		damage: 0,

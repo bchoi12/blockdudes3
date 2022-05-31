@@ -53,10 +53,6 @@ class Renderer {
 		this._cameraController.setTarget(target);
 	}
 
-	setMouseFromPixels(mouse : any) : void {
-		this._mousePixels = mouse.clone();
-	}
-
 	playSystemSound(sound : Sound) : void {
 		this._audio.playSystemSound(sound);
 	}
@@ -68,6 +64,10 @@ class Renderer {
 		const dist = pos.clone();
 		dist.sub(this._cameraController.target());
 		this._audio.playSound3D(sound, dist);
+	}
+
+	setMouseFromPixels(mouse : any) : void {
+		this._mousePixels = mouse.clone();
 	}
 	
 	getMouseScreen() : THREE.Vector2 {

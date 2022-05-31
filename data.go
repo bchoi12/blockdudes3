@@ -4,6 +4,8 @@ type Prop uint8
 const (
 	unknownProp Prop = iota
 
+	objectStatesProp
+	initializedProp
 	deletedProp
 
 	dimProp
@@ -26,7 +28,6 @@ const (
 	targetProp
 	hitsProp
 
-	scoreProp
 	killProp
 	deathProp
 

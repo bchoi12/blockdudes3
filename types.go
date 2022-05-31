@@ -84,6 +84,7 @@ const (
 type PlayerPropMap map[IdType]PropMap
 type ShotPropMaps []PropMap
 type ObjectPropMap map[SpaceType]map[IdType]PropMap
+type SpacedPropMap map[IdType]PropMap
 
 type PingMsg struct {
 	T MessageType
@@ -115,19 +116,15 @@ type ClientMsg struct {
 
 type ChatMsg struct {
 	T MessageType
+	// TODO: this only needs to be ID
 	Client ClientData
-	Message string
-}
-
-type ObjectStateMsg struct {
-	T MessageType
-	S SeqNumType
-	Os ObjectPropMap
+	M string
 }
 
 type GameStateMsg struct {
 	T MessageType
 	S SeqNumType
+	Os ObjectPropMap
 	G PropMap
 }
 

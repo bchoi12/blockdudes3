@@ -85,8 +85,22 @@ class Game {
 	}
 
 	private createKeyMsg() : { [k: string]: any } {
-		const msg = ui.createKeyMsg(this._keyUpdates);
-
+   		const mouse = renderer.getMouseWorld();
+		const msg = {
+			T: keyType,
+			Key: {
+				S: this._keyUpdates,
+				K: ui.getKeys(),
+				M: {
+					X: mouse.x,
+					Y: mouse.y,
+				},
+				D: {
+					X: 1,
+					Y: 0,
+				},
+			},
+		};
 		if (this.sceneMap().has(playerSpace, this._id)) {
 	   		const mouse = renderer.getMouseWorld();
 
@@ -99,7 +113,7 @@ class Game {
 				X: dir.x,
 				Y: dir.y,
 			};
-		}
+		} 
 		return msg;
 	}
 
@@ -126,39 +140,49 @@ class Game {
 			}
 		}
 
-		if (Util.defined(msg.Os)) {
-			for (const [stringSpace, objects] of Object.entries(msg.Os) as [string, any]) {
-				for (const [stringId, object] of Object.entries(objects) as [string, any]) {
-					const space = Number(stringSpace);
-					const id = Number(stringId);
+		if (Util.defined(msg.G)) {
+			if (msg.G.hasOwnProperty(objectStatesProp)) {
+				this.parseObjectPropMap(msg.G[objectStatesProp], seqNum);
+			}
+		}
 
-					if (this.sceneMap().deleted(space, id)) {
+		if (Util.defined(msg.Os)) {
+			this.parseObjectPropMap(msg.Os, seqNum);
+		}
+	}
+
+	private parseObjectPropMap(objectPropMap : Map<number, any>, seqNum : number) {
+		for (const [stringSpace, objects] of Object.entries(objectPropMap) as [string, any]) {
+			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
+				const space = Number(stringSpace);
+				const id = Number(stringId);
+
+				if (this.sceneMap().deleted(space, id)) {
+					continue;
+				}
+
+				if (!this.sceneMap().has(space, id)) {
+					let renderObj;
+					if (space === playerSpace) {
+						renderObj = new RenderPlayer(space, id);
+					} else if (space === explosionSpace) {
+						renderObj = new RenderExplosion(space, id);
+					} else if (space === boltSpace) {
+						renderObj = new RenderBolt(space, id);
+					} else if (space === rocketSpace) {
+						renderObj = new RenderProjectile(space, id);
+					} else if (space === pickupSpace) {
+						renderObj = new RenderPickup(space, id);
+					} else {
+						// TODO: add bomb
+						// TODO: add platforms & walls?
+						console.error("Unable to construct object for type " + space);
 						continue;
 					}
-
-					if (!this.sceneMap().has(space, id)) {
-						let renderObj;
-						if (space === playerSpace) {
-							renderObj = new RenderPlayer(space, id);
-						} else if (space === explosionSpace) {
-							renderObj = new RenderExplosion(space, id);
-						} else if (space === boltSpace) {
-							renderObj = new RenderBolt(space, id);
-						} else if (space === rocketSpace) {
-							renderObj = new RenderProjectile(space, id);
-						} else if (space === pickupSpace) {
-							renderObj = new RenderPickup(space, id);
-						} else {
-							// TODO: add bomb
-							// TODO: add platforms & walls?
-							console.error("Unable to construct object for type " + space);
-							continue;
-						}
-						this.sceneMap().add(space, id, renderObj);
-					}
-
-					this.sceneMap().update(space, id, object, seqNum);
+					this.sceneMap().add(space, id, renderObj);
 				}
+
+				this.sceneMap().update(space, id, object, seqNum);
 			}
 		}
 	}

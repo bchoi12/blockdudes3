@@ -6,6 +6,7 @@ import (
 
 const (
 	maxDamageTicks int = 10
+	lastDamageTime time.Duration = 10 * time.Second
 )
 
 type DamageTick struct {
@@ -14,7 +15,6 @@ type DamageTick struct {
 	time time.Time
 }
 
-type DeathFunc func(thing Thing, grid *Grid)
 type Health struct {
 	enabled bool
 	health *State
@@ -59,6 +59,10 @@ func (h Health) GetLastTicks(duration time.Duration) []DamageTick {
 }
 
 func (h Health) GetLastDamageId(duration time.Duration) SpacedId {
+	if len(h.ticks) == 0 {
+		return InvalidId()
+	}
+
 	tick := h.ticks[len(h.ticks)-1]
 
 	if time.Now().Sub(tick.time) <= duration {

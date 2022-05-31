@@ -152,15 +152,6 @@ func (bp *BaseProfile) SetGrounded(grounded bool) { bp.grounded.Set(grounded) }
 func (bp BaseProfile) Static() bool { return bp.static }
 func (bp *BaseProfile) SetStatic(static bool) { bp.static = static }
 
-func (bp BaseProfile) GetInitData() Data {
-	data := NewData()
-	data.Set(posProp, bp.Pos())
-	data.Set(dimProp, bp.dim.Peek())
-	data.Set(solidProp, bp.solid.Peek())
-	data.Set(groundedProp, bp.grounded.Peek())
-	return data
-}
-
 func (bp BaseProfile) GetData() Data {
 	data := NewData()
 
@@ -191,6 +182,20 @@ func (bp BaseProfile) GetData() Data {
 		data.Set(groundedProp, grounded)
 	}
 
+	return data
+}
+
+func (bp BaseProfile) GetInitData() Data {
+	data := NewData()
+	data.Set(posProp, bp.Pos())
+	data.Set(dimProp, bp.dim.Peek())
+
+	if bp.solid.Has() {
+		data.Set(solidProp, bp.solid.Peek())
+	}
+	if bp.grounded.Has() {
+		data.Set(groundedProp, bp.grounded.Peek())
+	}
 	return data
 }
 

@@ -1,6 +1,6 @@
 import { LogUtil, HtmlUtil, Util } from './util.js';
 import { connection } from './connection.js';
-class Voice {
+export class Clients {
     constructor() {
         this._voiceOfferOptions = {
             offerToReceiveAudio: true,
@@ -71,7 +71,7 @@ class Voice {
     }
     removeVoice(msg) {
         const id = connection.id();
-        if (id == msg.Client.Id) {
+        if (id === msg.Client.Id) {
             return;
         }
         if (this._voice.has(msg.Client.Id)) {
@@ -154,4 +154,3 @@ class Voice {
         pc.addIceCandidate(candidate).then(() => { }, (e) => { LogUtil.d("Failed to add candidate: " + e); });
     }
 }
-export const voice = new Voice();

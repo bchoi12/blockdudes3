@@ -34,9 +34,6 @@ class Renderer {
     setCameraTarget(target) {
         this._cameraController.setTarget(target);
     }
-    setMouseFromPixels(mouse) {
-        this._mousePixels = mouse.clone();
-    }
     playSystemSound(sound) {
         this._audio.playSystemSound(sound);
     }
@@ -48,6 +45,9 @@ class Renderer {
         const dist = pos.clone();
         dist.sub(this._cameraController.target());
         this._audio.playSound3D(sound, dist);
+    }
+    setMouseFromPixels(mouse) {
+        this._mousePixels = mouse.clone();
     }
     getMouseScreen() {
         const mouse = this._mousePixels.clone();

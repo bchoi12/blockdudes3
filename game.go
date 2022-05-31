@@ -116,7 +116,7 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 	}
 }
 
-func (g *Game) createObjectInitMsg() ObjectStateMsg {
+func (g *Game) createObjectInitMsg() GameStateMsg {
 	objs := make(map[SpaceType]map[IdType]PropMap)
 
 	for space, things := range(g.grid.GetManyThings(platformSpace, wallSpace)) {
@@ -126,38 +126,46 @@ func (g *Game) createObjectInitMsg() ObjectStateMsg {
 		}
 	}
 
-	return ObjectStateMsg {
+	return GameStateMsg {
 		T: objectDataType,
 		S: g.seqNum,
 		Os: objs,
 	}
 }
 
-func (g *Game) createGameInitMsg() ObjectStateMsg {
-	return ObjectStateMsg{
+func (g *Game) createGameInitMsg() GameStateMsg {
+	return GameStateMsg{
 		T: objectDataType,
 		S: g.seqNum,
-		Os: g.grid.GetInitData(),
+		Os: g.grid.GetObjectInitData(),
 	}
 }
 
-func (g *Game) createObjectStateMsg() ObjectStateMsg {
-	return ObjectStateMsg{
+func (g *Game) createGameStateMsg() GameStateMsg {
+	return GameStateMsg{
 		T: objectDataType,
 		S: g.seqNum,
-		Os: g.grid.GetData(),
+		Os: g.grid.GetObjectData(),
 	}
 }
 
-func (g *Game) createGameUpdateMsg() (ObjectStateMsg, bool) {
-	updates := g.grid.GetUpdates()
-	if len(updates) == 0 {
-		return ObjectStateMsg{}, false
+func (g *Game) createGameUpdateMsg() (GameStateMsg, bool) {
+	updates := g.grid.GetObjectUpdates()
+	gameUpdates := g.grid.GetGameUpdates()
+	if len(updates) == 0 && len(gameUpdates) == 0 {
+		return GameStateMsg{}, false
 	}	
 
-	return ObjectStateMsg {
+	msg := GameStateMsg {
 		T: objectUpdateType,
 		S: g.seqNum,
-		Os: updates,
-	}, true
+	}
+
+	if len(updates) > 0 {
+		msg.Os = updates
+	}
+	if len(gameUpdates) > 0 {
+		msg.G = gameUpdates
+	}
+	return msg, true
 }

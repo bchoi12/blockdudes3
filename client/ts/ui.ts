@@ -1,19 +1,20 @@
 import * as THREE from 'three';
 
-import { Icon } from './icon.js'
-import { HtmlUtil, Util } from './util.js'
-
+import { ChatHandler } from './chat_handler.js'
+import { Client } from './client.js'
+import { ClientHandler } from './client_handler.js'
 import { connection } from './connection.js'
+import { HtmlComponent } from './html_component.js'
+import { Icon } from './icon.js'
 import { options } from './options.js'
 import { renderer } from './renderer.js'
-import { voice } from './voice.js'
+import { HtmlUtil, Util } from './util.js'
 
 enum InputMode {
 	UNKNOWN = 0,
 	PAUSE = 1,
 	GAME = 2,
-	GAME_PAUSE = 3,
-	CHAT = 4,
+	CHAT = 3,
 }
 
 class UI {
@@ -34,7 +35,6 @@ class UI {
 	private readonly _pauseKeyCode = 27;
 	private readonly _cursorWidth = 20;
 	private readonly _cursorHeight = 20;
-	private readonly _pointerLockInterval = 3000;
 
 	private _mouse : THREE.Vector3;
 	private _lastPointerLock : number;
@@ -42,7 +42,8 @@ class UI {
 	private _mode : InputMode;
 	private _keyMap : Map<number, number>;
 
-	private _clients : Map<number, HTMLElement>;
+	private _chatHandler : ChatHandler;
+	private _clientHandler : ClientHandler;
 
 	constructor() {
 		this._mouse = new THREE.Vector3();
@@ -50,55 +51,38 @@ class UI {
 		this._keys = new Set<number>();
 		this._mode = InputMode.PAUSE;
 		this._keyMap = new Map();
-		this._clients = new Map();
-	}
 
-	createKeyMsg(seqNum : number) : any {
-   		const mouse = renderer.getMouseWorld();
-		const msg = {
-			T: keyType,
-			Key: {
-				S: seqNum,
-				K: Array.from(this._keys),
-				M: {
-					X: mouse.x,
-					Y: mouse.y,
-				},
-				D: {
-					X: 1,
-					Y: 0,
-				},
-			},
-		};
-		return msg;
+		this._chatHandler = new ChatHandler(new HtmlComponent(HtmlUtil.elm(this._divMessages)));
+		this._clientHandler = new ClientHandler(new HtmlComponent(HtmlUtil.elm(this._fieldsetClients)));
 	}
 
 	setup() : void {
-		this._keyMap.set(38, upKey);
-		this._keyMap.set(87, upKey);
-		this._keyMap.set(40, downKey);
-		this._keyMap.set(83, downKey);
 		this._keyMap.set(37, leftKey);
 		this._keyMap.set(65, leftKey);
 		this._keyMap.set(39, rightKey);
 		this._keyMap.set(68, rightKey);
 		this._keyMap.set(32, dashKey);
+		this._keyMap.set(38, dashKey);
 		this._keyMap.set(69, interactKey);
 
-		connection.addHandler(chatType, (msg : any) => { this.chat(msg) })
- 		connection.addHandler(joinType, (msg : any) => { this.updateClients(msg) });
-		connection.addHandler(leftType, (msg : any) => { this.updateClients(msg) });
-		connection.addHandler(joinVoiceType, (msg : any) => { this.updateClients(msg) });
-		connection.addHandler(leftVoiceType, (msg : any) => { this.updateClients(msg) });
-
 		HtmlUtil.elm("button-voice").onclick = (e) => {
+			this._clientHandler.toggleVoice();
 			e.stopPropagation();
-			voice.toggleVoice();
 		};
-		voice.setup();
+
+		this._chatHandler.setup();
+		this._clientHandler.setup();
 	}
 
-	displayGame() : void {
+	getKeys() : Array<number> {
+		return Array.from(this._keys)
+	}
+
+	getClientName(id : number) : string {
+		return this._clientHandler.hasClient(id) ? this._clientHandler.getClient(id).displayName() : "Unknown";
+	}
+
+	startGame() : void {
 		HtmlUtil.displayNone(this._divLogin);
 		HtmlUtil.displayBlock(this._divGame);
 
@@ -150,71 +134,7 @@ class UI {
 		}
 	}
 
-	private clientName(client : any) : string {
-		return client.Name + " #" + client.Id;
-	}
-
-	private updateClients(msg : any) : void {
-		switch (msg.T) {		
-			case joinType:
-				this.print(this.clientName(msg.Client) + " just joined!");
-				break;
-			case leftType:
-				this.print(this.clientName(msg.Client) + " left");
-				break;
-			case joinVoiceType:
-				this.print(this.clientName(msg.Client) + " joined voice chat!");
-				break;
-			case leftVoiceType:
-				this.print(this.clientName(msg.Client) + " left voice chat");
-		}
-		if (this._clients.size == 0) {
-			for (let [stringId, client] of Object.entries(msg.Clients) as [string, any]) {
-				this.addClient(client);
-			}
-		} else if (msg.T == joinType) {
-			this.addClient(msg.Client)
-		} else if (msg.T == leftType) {
-			this.removeClient(msg.Client.Id);
-		}
-	}
-
-	private addClient(client : any) : void {
-		const id = client.Id;
-		const html = document.createElement("span");
-		html.id = "client-" + id;
-		html.textContent = this.clientName(client);
-
-		if (id === connection.id()) {
-			html.appendChild(Icon.person());
-		}
-		html.appendChild(document.createElement("br"));
-
-		HtmlUtil.elm(this._fieldsetClients).appendChild(html);
-		this._clients.set(id, html);
-	}
-
-	private removeClient(id : number) : void {
-		HtmlUtil.elm(this._fieldsetClients).removeChild(this._clients.get(id));
-		this._clients.delete(id);
-	}
-
-	private chat(msg : any) : void {
-		const name = this.clientName(msg.Client)
-		const message = msg.Message;
-
-		if (!Util.defined(name) || !Util.defined(message)) return;
-		if (name.length == 0 || message.length == 0) return;
-
-		const nameSpan = document.createElement("span");
-		nameSpan.classList.add("message-name");
-		nameSpan.textContent = name + ": ";
-
-		HtmlUtil.elm(this._divMessages).appendChild(nameSpan);
-		this.print(message);
-	}
-
-	private print(message : string) : void {
+	print(message : string) : void {
 		const messageSpan = document.createElement("span");
 		messageSpan.textContent = message;
 
@@ -375,7 +295,7 @@ class UI {
 		const message = {
 			T: chatType,
 			Chat: {
-				Message: HtmlUtil.trimmedValue(this._inputMessage),
+				M: HtmlUtil.trimmedValue(this._inputMessage),
 			}
 		};
 

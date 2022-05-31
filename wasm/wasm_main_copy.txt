@@ -66,6 +66,8 @@ func setGlobals() {
 	js.Global().Set("boltShotType", int(boltShotType))
 	js.Global().Set("rocketShotType", int(rocketShotType))
 
+	js.Global().Set("objectStatesProp", int(objectStatesProp))
+	js.Global().Set("initializedProp", int(initializedProp))
 	js.Global().Set("deletedProp", int(deletedProp))
 
 	js.Global().Set("dimProp", int(dimProp))
@@ -86,8 +88,6 @@ func setGlobals() {
 	js.Global().Set("ownerProp", int(ownerProp))
 	js.Global().Set("targetProp", int(targetProp))
 	js.Global().Set("hitsProp", int(hitsProp))
-
-	js.Global().Set("scoreProp", int(scoreProp))
 	js.Global().Set("killProp", int(killProp))
 	js.Global().Set("deathProp", int(deathProp))
 
@@ -253,7 +253,7 @@ func LoadLevel(g *Game) js.Func {
 func UpdateState(g *Game) js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		g.updateState()
-		state := g.createObjectStateMsg()
+		state := g.createGameStateMsg()
 		b, err := json.Marshal(state)
 		if err != nil {
 			fmt.Println("wasmUpdateState: ", err)

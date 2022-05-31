@@ -31,6 +31,6 @@ HtmlUtil.elm(formLogin).onsubmit = () => {
     const name = HtmlUtil.trimmedValue(inputName);
     connection.connect(room, name, () => { }, () => {
         game.start();
-        ui.displayGame();
+        ui.startGame();
     });
 };

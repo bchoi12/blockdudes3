@@ -6,6 +6,8 @@ class Options {
         this.pointerLock = true;
         this.enableShadows = true;
         this.rendererScale = 0.66;
+        this.extrapolateFrames = 6;
+        this.extrapolateWeight = 0.5;
         this.load();
     }
     load() {

@@ -89,6 +89,7 @@ fieldset legend {
 #fieldset-clients {
 	left: 0;
 	overflow-y: scroll;
+	text-align: left;
 }
 
 #cursor {
@@ -106,7 +107,8 @@ fieldset legend {
   top: 0;
   left: 0;
   background-color: rgba(0,0,0,0.4);
-  cursor: pointer;
+
+	font-size: 2em;
 }
 
 .ui {

@@ -1,17 +1,17 @@
 import * as THREE from 'three';
-import { Icon } from './icon.js';
-import { HtmlUtil, Util } from './util.js';
+import { ChatHandler } from './chat_handler.js';
+import { ClientHandler } from './client_handler.js';
 import { connection } from './connection.js';
+import { HtmlComponent } from './html_component.js';
 import { options } from './options.js';
 import { renderer } from './renderer.js';
-import { voice } from './voice.js';
+import { HtmlUtil } from './util.js';
 var InputMode;
 (function (InputMode) {
     InputMode[InputMode["UNKNOWN"] = 0] = "UNKNOWN";
     InputMode[InputMode["PAUSE"] = 1] = "PAUSE";
     InputMode[InputMode["GAME"] = 2] = "GAME";
-    InputMode[InputMode["GAME_PAUSE"] = 3] = "GAME_PAUSE";
-    InputMode[InputMode["CHAT"] = 4] = "CHAT";
+    InputMode[InputMode["CHAT"] = 3] = "CHAT";
 })(InputMode || (InputMode = {}));
 class UI {
     constructor() {
@@ -28,56 +28,36 @@ class UI {
         this._pauseKeyCode = 27;
         this._cursorWidth = 20;
         this._cursorHeight = 20;
-        this._pointerLockInterval = 3000;
         this._mouse = new THREE.Vector3();
         this._lastPointerLock = 0;
         this._keys = new Set();
         this._mode = InputMode.PAUSE;
         this._keyMap = new Map();
-        this._clients = new Map();
-    }
-    createKeyMsg(seqNum) {
-        const mouse = renderer.getMouseWorld();
-        const msg = {
-            T: keyType,
-            Key: {
-                S: seqNum,
-                K: Array.from(this._keys),
-                M: {
-                    X: mouse.x,
-                    Y: mouse.y,
-                },
-                D: {
-                    X: 1,
-                    Y: 0,
-                },
-            },
-        };
-        return msg;
+        this._chatHandler = new ChatHandler(new HtmlComponent(HtmlUtil.elm(this._divMessages)));
+        this._clientHandler = new ClientHandler(new HtmlComponent(HtmlUtil.elm(this._fieldsetClients)));
     }
     setup() {
-        this._keyMap.set(38, upKey);
-        this._keyMap.set(87, upKey);
-        this._keyMap.set(40, downKey);
-        this._keyMap.set(83, downKey);
         this._keyMap.set(37, leftKey);
         this._keyMap.set(65, leftKey);
         this._keyMap.set(39, rightKey);
         this._keyMap.set(68, rightKey);
         this._keyMap.set(32, dashKey);
+        this._keyMap.set(38, dashKey);
         this._keyMap.set(69, interactKey);
-        connection.addHandler(chatType, (msg) => { this.chat(msg); });
-        connection.addHandler(joinType, (msg) => { this.updateClients(msg); });
-        connection.addHandler(leftType, (msg) => { this.updateClients(msg); });
-        connection.addHandler(joinVoiceType, (msg) => { this.updateClients(msg); });
-        connection.addHandler(leftVoiceType, (msg) => { this.updateClients(msg); });
         HtmlUtil.elm("button-voice").onclick = (e) => {
+            this._clientHandler.toggleVoice();
             e.stopPropagation();
-            voice.toggleVoice();
         };
-        voice.setup();
+        this._chatHandler.setup();
+        this._clientHandler.setup();
     }
-    displayGame() {
+    getKeys() {
+        return Array.from(this._keys);
+    }
+    getClientName(id) {
+        return this._clientHandler.hasClient(id) ? this._clientHandler.getClient(id).displayName() : "Unknown";
+    }
+    startGame() {
         HtmlUtil.displayNone(this._divLogin);
         HtmlUtil.displayBlock(this._divGame);
         HtmlUtil.elm(this._inputMessage).style.width = HtmlUtil.elm(this._divMessages).offsetWidth + "px";
@@ -121,64 +101,6 @@ class UI {
                 this._keys.clear();
             }
         }
-    }
-    clientName(client) {
-        return client.Name + " #" + client.Id;
-    }
-    updateClients(msg) {
-        switch (msg.T) {
-            case joinType:
-                this.print(this.clientName(msg.Client) + " just joined!");
-                break;
-            case leftType:
-                this.print(this.clientName(msg.Client) + " left");
-                break;
-            case joinVoiceType:
-                this.print(this.clientName(msg.Client) + " joined voice chat!");
-                break;
-            case leftVoiceType:
-                this.print(this.clientName(msg.Client) + " left voice chat");
-        }
-        if (this._clients.size == 0) {
-            for (let [stringId, client] of Object.entries(msg.Clients)) {
-                this.addClient(client);
-            }
-        }
-        else if (msg.T == joinType) {
-            this.addClient(msg.Client);
-        }
-        else if (msg.T == leftType) {
-            this.removeClient(msg.Client.Id);
-        }
-    }
-    addClient(client) {
-        const id = client.Id;
-        const html = document.createElement("span");
-        html.id = "client-" + id;
-        html.textContent = this.clientName(client);
-        if (id === connection.id()) {
-            html.appendChild(Icon.person());
-        }
-        html.appendChild(document.createElement("br"));
-        HtmlUtil.elm(this._fieldsetClients).appendChild(html);
-        this._clients.set(id, html);
-    }
-    removeClient(id) {
-        HtmlUtil.elm(this._fieldsetClients).removeChild(this._clients.get(id));
-        this._clients.delete(id);
-    }
-    chat(msg) {
-        const name = this.clientName(msg.Client);
-        const message = msg.Message;
-        if (!Util.defined(name) || !Util.defined(message))
-            return;
-        if (name.length == 0 || message.length == 0)
-            return;
-        const nameSpan = document.createElement("span");
-        nameSpan.classList.add("message-name");
-        nameSpan.textContent = name + ": ";
-        HtmlUtil.elm(this._divMessages).appendChild(nameSpan);
-        this.print(message);
     }
     print(message) {
         const messageSpan = document.createElement("span");
@@ -327,7 +249,7 @@ class UI {
         const message = {
             T: chatType,
             Chat: {
-                Message: HtmlUtil.trimmedValue(this._inputMessage),
+                M: HtmlUtil.trimmedValue(this._inputMessage),
             }
         };
         if (connection.send(message)) {

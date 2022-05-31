@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 
+import { options } from './options.js'
 import { Util } from './util.js'
 
 export class Message {
-	private readonly _extrapolateProps : Set<number> = new Set<number>([posProp, velProp, accProp]);
-	private readonly _ignoreExtrapolateProps : Set<number> = new Set<number>([groundedProp, weaponTypeProp, weaponDirProp]);
+	private readonly _weightedExtrapolateProps : Set<number> = new Set<number>([posProp, velProp, accProp]);
+	private readonly _ignoreExtrapolateProps : Set<number> = new Set<number>([groundedProp, weaponTypeProp]);
 
 	private _data : Map<number, any>;
 	private _seqNum : Map<number, number>;
@@ -20,15 +21,19 @@ export class Message {
 		this.sanitizeData(msg);
 
 		const millisElapsed = Date.now() - this._lastUpdate;
-		const weight = Math.min(millisElapsed / (frameMillis * 3), 1) * 0.5;
+		const weight = Math.min(millisElapsed / (frameMillis * options.extrapolateFrames), 1) * options.extrapolateWeight;
 
 		for (const [stringProp, data] of Object.entries(msg) as [string, any]) {
 			const prop = Number(stringProp);
 
 			if (!Util.defined(seqNum)) {
-				if (this._extrapolateProps.has(prop) && this._data.has(prop)) {
+				if (this._ignoreExtrapolateProps.has(prop)) {
+					continue;
+				}
+
+				if (this._weightedExtrapolateProps.has(prop) && this._data.has(prop)) {
 					this._data.set(prop, this.extrapolateVec2(this.get(prop), data, weight));
-				} else if (!this._ignoreExtrapolateProps.has(prop)) {
+				} else {
 					this._data.set(prop, data);
 				}
 			} else if (!this.has(prop) || !this._seqNum.has(prop) || seqNum >= this._seqNum.get(prop)) {
@@ -65,21 +70,6 @@ export class Message {
 				data[keysProp] = Util.arrayToString(keys);
 			}
 		}
-	}
-
-	private extrapolateState(currentData : any, nextData : any) : any {
-		const millisElapsed = Date.now() - this._lastUpdate;
-		const weight = Math.min(millisElapsed / (frameMillis * 3), 1) * 0.5;
-
-		const data = nextData;
-		data[posProp] = this.extrapolateVec2(currentData[posProp], nextData[posProp], weight);
-		if (currentData.hasOwnProperty(velProp) && nextData.hasOwnProperty(velProp)) {
-			data[velProp] = this.extrapolateVec2(currentData[velProp], nextData[velProp], weight);
-		}
-		if (currentData.hasOwnProperty(accProp) && nextData.hasOwnProperty(accProp)) {
-			data[accProp] = this.extrapolateVec2(currentData[accProp], nextData[accProp], weight);
-		}
-		return data;
 	}
 
 	private extrapolateVec2(current : any, next : any, weight : number) : any {

@@ -148,6 +148,17 @@ func (p Player) Dead() bool {
 	return p.Health.Dead() || p.Pos().Y < -5
 }
 
+func (p Player) UpdateScore(g *Grid) {
+	sid := p.Health.GetLastDamageId(lastDamageTime)
+
+	g.IncrementScore(p.GetSpacedId(), deathProp, 1)
+
+	if sid.Invalid() {
+		return
+	}
+	g.IncrementScore(sid, killProp, 1)
+}
+
 func (p *Player) Respawn() {
 	p.Health.Respawn()
 
@@ -170,6 +181,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	p.lastUpdateTime = now
 
 	if p.Dead() {
+		p.UpdateScore(grid)
 		p.Respawn()
 	}
 
@@ -319,11 +331,6 @@ func (p *Player) updateKeys(keyMsg KeyMsg) {
 	}
 	p.keys = keys
 
-/*
-	weaponDir := keyMsg.M
-	weaponDir.Sub(p.weapon.Pos(), 1.0)
-	weaponDir.Normalize()
-*/
 	weaponDir := keyMsg.D
 	p.weapon.SetDir(weaponDir)
 

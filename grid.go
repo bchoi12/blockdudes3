@@ -26,12 +26,12 @@ type Grid struct {
 	unitLength int
 	unitHeight int
 
-	scoreBoard ScoreBoard
+	gameState GameState
 
 	lastId map[SpaceType]IdType
 	things map[SpacedId]Thing
-	thingStates map[SpacedId]*ThingState
 	spacedThings map[SpaceType]map[IdType]Thing
+
 	grid map[GridCoord]map[SpacedId]Thing
 	reverseGrid map[SpacedId][]GridCoord
 }
@@ -41,11 +41,10 @@ func NewGrid(unitLength int, unitHeight int) *Grid {
 		unitLength: unitLength,
 		unitHeight: unitHeight,
 
-		scoreBoard: NewScoreBoard(),
+		gameState: NewGameState(),
 
 		lastId: make(map[SpaceType]IdType, 0),
 		things: make(map[SpacedId]Thing, 0),
-		thingStates: make(map[SpacedId]*ThingState, 0),
 		spacedThings: make(map[SpaceType]map[IdType]Thing, 0),
 		grid: make(map[GridCoord]map[SpacedId]Thing, 0),
 		reverseGrid: make(map[SpacedId][]GridCoord, 0),
@@ -102,7 +101,7 @@ func (g *Grid) Upsert(thing Thing) {
 
 func (g *Grid) insert(sid SpacedId, thing Thing) {
 	g.things[sid] = thing
-	g.thingStates[sid] = NewThingState()
+	g.gameState.RegisterId(sid)
 	g.spacedThings[sid.GetSpace()][sid.GetId()] = thing
 
 	if lastId, ok := g.lastId[sid.GetSpace()]; !ok {
@@ -124,7 +123,6 @@ func (g *Grid) deleteCoords(sid SpacedId) {
 func (g *Grid) deleteThing(sid SpacedId) {
 	g.deleteCoords(sid)
 	delete(g.things, sid)
-	delete(g.thingStates, sid)
 	delete(g.spacedThings[sid.GetSpace()], sid.GetId())
 }
 
@@ -163,7 +161,7 @@ func (g *Grid) Delete(sid SpacedId) {
 		g.deleteThing(sid)
 		return
 	}
-	g.thingStates[sid].SetDeleted(true)
+	g.gameState.SetObjectState(sid, deletedProp, true)
 }
 
 func (g *Grid) Has(sid SpacedId) bool {
@@ -183,7 +181,7 @@ func (g *Grid) GetLast(space SpaceType) Thing {
 	return g.spacedThings[space][g.lastId[space]]
 }
 
-func (g *Grid) GetInitData() ObjectPropMap {
+func (g *Grid) GetObjectInitData() ObjectPropMap {
 	objects := make(ObjectPropMap)
 
 	for _, thing := range(g.GetAllThings()) {
@@ -200,7 +198,7 @@ func (g *Grid) GetInitData() ObjectPropMap {
 	return objects
 }
 
-func (g *Grid) GetData() ObjectPropMap {
+func (g *Grid) GetObjectData() ObjectPropMap {
 	objects := make(ObjectPropMap)
 
 	for _, thing := range(g.GetAllThings()) {
@@ -217,17 +215,17 @@ func (g *Grid) GetData() ObjectPropMap {
 	return objects
 }
 
-func (g *Grid) GetUpdates() ObjectPropMap {
+func (g *Grid) GetObjectUpdates() ObjectPropMap {
 	objects := make(ObjectPropMap)
 
-	for _, thing := range(g.GetAllThings()) {
+	for sid, thing := range(g.GetAllThings()) {
 		updates := thing.GetUpdates()
-		state := g.thingStates[thing.GetSpacedId()]
-		if !state.GetInitialized() {
+		if !g.gameState.GetObjectState(sid, initializedProp).Peek().(bool) {
 			updates.Merge(thing.GetInitData())
-			state.SetInitialized(true)
+			g.gameState.SetObjectState(sid, initializedProp, true)
 		}
-		if state.GetDeleted() {
+		deleted := g.gameState.GetObjectState(sid, deletedProp).Peek().(bool)
+		if deleted {
 			updates.Set(deletedProp, true)
 		}
 
@@ -236,15 +234,23 @@ func (g *Grid) GetUpdates() ObjectPropMap {
 		}
 
 		if _, ok := objects[thing.GetSpace()]; !ok {
-			objects[thing.GetSpace()] = make(map[IdType]PropMap, 0)
+			objects[thing.GetSpace()] = make(SpacedPropMap, 0)
 		}
 		objects[thing.GetSpace()][thing.GetId()] = updates.Props()
 
-		if state.GetDeleted() {
+		if deleted {
 			g.deleteThing(thing.GetSpacedId())
 		}
 	}
 	return objects
+}
+
+func (g *Grid) IncrementScore(sid SpacedId, prop Prop, delta int) {
+	g.gameState.IncrementScore(sid, prop, delta)
+}
+
+func (g *Grid) GetGameUpdates() PropMap {
+	return g.gameState.GetUpdates().Props()
 }
 
 func (g *Grid) NextId(space SpaceType) IdType {
