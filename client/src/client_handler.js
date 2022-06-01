@@ -33,7 +33,12 @@ export class ClientHandler {
         if (!this.voiceEnabled()) {
             this._voiceEnabled = true;
             navigator.mediaDevices.getUserMedia({
-                audio: true,
+                audio: {
+                    autoGainControl: true,
+                    channelCount: 2,
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                },
                 video: false,
             }).then((stream) => {
                 this._stream = stream;
@@ -41,7 +46,7 @@ export class ClientHandler {
                 connection.send({ T: joinVoiceType });
             }).catch((e) => {
                 this._voiceEnabled = false;
-                LogUtil.d("Failed to enable voice chat: " + e);
+                LogUtil.e("Failed to enable voice chat: " + e);
             });
         }
         else {
@@ -160,15 +165,15 @@ export class ClientHandler {
                     connection.send({ T: voiceAnswerType, JSONPeer: { To: msg.From, JSON: pc.localDescription.toJSON() } });
                 });
             }
-        }, (e) => LogUtil.d("Failed to set remote description from offer from " + msg.From + ": " + e));
+        }, (e) => LogUtil.e("Failed to set remote description from offer from " + msg.From + ": " + e));
     }
     processVoiceAnswer(msg) {
         const pc = this._peerConnections.get(msg.From);
         const answer = msg.JSON;
-        pc.setRemoteDescription(answer, () => { }, (e) => LogUtil.d("Failed to set remote description from answer from " + msg.Client.Id + ": " + e));
+        pc.setRemoteDescription(answer, () => { }, (e) => LogUtil.e("Failed to set remote description from answer from " + msg.Client.Id + ": " + e));
         if (pc.remoteDescription && this._iceCandidates.has(msg.From)) {
             this._iceCandidates.get(msg.From).forEach((candidate) => {
-                pc.addIceCandidate(candidate).then(() => { }, (e) => { LogUtil.d("Failed to add candidate: " + e); });
+                pc.addIceCandidate(candidate).then(() => { }, (e) => { LogUtil.e("Failed to add candidate: " + e); });
             });
             this._iceCandidates.delete(msg.From);
         }
@@ -183,6 +188,6 @@ export class ClientHandler {
             this._iceCandidates.get(msg.From).push(candidate);
             return;
         }
-        pc.addIceCandidate(candidate).then(() => { }, (e) => { LogUtil.d("Failed to add candidate: " + e); });
+        pc.addIceCandidate(candidate).then(() => { }, (e) => { LogUtil.e("Failed to add candidate: " + e); });
     }
 }

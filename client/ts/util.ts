@@ -40,6 +40,9 @@ export namespace LogUtil {
 			console.log(msg)
 		}
 	}
+	export function e(msg : any) : void {
+		console.error(msg);
+	}
 }
 
 export namespace HtmlUtil {

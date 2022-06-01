@@ -42,6 +42,10 @@ export var LogUtil;
         }
     }
     LogUtil.d = d;
+    function e(msg) {
+        console.error(msg);
+    }
+    LogUtil.e = e;
 })(LogUtil || (LogUtil = {}));
 export var HtmlUtil;
 (function (HtmlUtil) {
