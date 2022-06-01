@@ -17,10 +17,20 @@ export class Client extends HtmlComponent {
         this._icons.appendTo(this);
         this.appendElm(document.createElement("br"));
         this._hasVoiceControls = false;
+        this._kills = new HtmlComponent(document.createElement("span"));
+        this._deaths = new HtmlComponent(document.createElement("span"));
+        this._kills.appendTo(this);
+        this._deaths.appendTo(this);
     }
     id() { return this._id; }
     name() { return this._name; }
     displayName() { return this._name + " #" + this._id; }
+    setKills(k) {
+        this._kills.text("K: " + k);
+    }
+    setDeaths(d) {
+        this._deaths.text("D: " + d);
+    }
     enableVoiceControls(stream) {
         if (this._hasVoiceControls) {
             return;

@@ -8,9 +8,11 @@ export class Client extends HtmlComponent {
 	private _id : number;
 
 	private _icons : HtmlComponent;
-
 	private _hasVoiceControls : boolean;
 	private _voice : HtmlComponent;
+
+	private _kills : HtmlComponent;
+	private _deaths : HtmlComponent;
 
 	constructor(id : number, name : string) {
 		super(document.createElement("span"));
@@ -29,11 +31,24 @@ export class Client extends HtmlComponent {
 		this.appendElm(document.createElement("br"));
 
 		this._hasVoiceControls = false;
+
+		this._kills = new HtmlComponent(document.createElement("span"));
+		this._deaths = new HtmlComponent(document.createElement("span"));
+		this._kills.appendTo(this);
+		this._deaths.appendTo(this);
 	}
 
 	id() : number { return this._id; }
 	name() : string { return this._name; }
 	displayName() : string { return this._name + " #" + this._id; }
+
+	// TODO: do this better
+	setKills(k : number) : void {
+		this._kills.text("K: " + k);
+	}
+	setDeaths(d : number) : void {
+		this._deaths.text("D: " + d);
+	}
 
 	enableVoiceControls(stream : MediaStream) : void {
 		if (this._hasVoiceControls) {

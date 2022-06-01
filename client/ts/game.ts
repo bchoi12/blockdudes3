@@ -8,7 +8,7 @@ import { RenderExplosion } from './render_explosion.js'
 import { RenderPickup } from './render_pickup.js'
 import { RenderPlayer } from './render_player.js'
 import { RenderBolt } from './render_bolt.js'
-import { RenderProjectile } from './render_projectile.js'
+import { RenderRocket } from './render_rocket.js'
 import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
 import { SceneComponent, SceneComponentType } from './scene_component.js'
@@ -170,7 +170,7 @@ class Game {
 					} else if (space === boltSpace) {
 						renderObj = new RenderBolt(space, id);
 					} else if (space === rocketSpace) {
-						renderObj = new RenderProjectile(space, id);
+						renderObj = new RenderRocket(space, id);
 					} else if (space === pickupSpace) {
 						renderObj = new RenderPickup(space, id);
 					} else {

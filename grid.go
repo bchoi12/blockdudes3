@@ -249,6 +249,7 @@ func (g *Grid) IncrementScore(sid SpacedId, prop Prop, delta int) {
 	g.gameState.IncrementScore(sid, prop, delta)
 }
 
+// TODO: just combine this with updates
 func (g *Grid) GetGameUpdates() PropMap {
 	return g.gameState.GetUpdates().Props()
 }

@@ -6,7 +6,7 @@ import { RenderExplosion } from './render_explosion.js';
 import { RenderPickup } from './render_pickup.js';
 import { RenderPlayer } from './render_player.js';
 import { RenderBolt } from './render_bolt.js';
-import { RenderProjectile } from './render_projectile.js';
+import { RenderRocket } from './render_rocket.js';
 import { renderer } from './renderer.js';
 import { SceneMap } from './scene_map.js';
 import { ui } from './ui.js';
@@ -141,7 +141,7 @@ class Game {
                         renderObj = new RenderBolt(space, id);
                     }
                     else if (space === rocketSpace) {
-                        renderObj = new RenderProjectile(space, id);
+                        renderObj = new RenderRocket(space, id);
                     }
                     else if (space === pickupSpace) {
                         renderObj = new RenderPickup(space, id);

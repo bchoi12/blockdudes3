@@ -78,6 +78,10 @@ class UI {
 		return Array.from(this._keys)
 	}
 
+	// TODO: delete? this is temporary
+	hasClient(id : number) : boolean { return this._clientHandler.hasClient(id); }
+	getClient(id : number) : Client { return this._clientHandler.getClient(id); }
+
 	getClientName(id : number) : string {
 		return this._clientHandler.hasClient(id) ? this._clientHandler.getClient(id).displayName() : "Unknown";
 	}

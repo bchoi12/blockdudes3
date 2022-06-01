@@ -5,6 +5,7 @@ import { SceneComponentType } from './scene_component.js';
 import { RenderAnimatedObject } from './render_animated_object.js';
 import { RenderCustom } from './render_custom.js';
 import { RenderWeapon } from './render_weapon.js';
+import { ui } from './ui.js';
 import { MathUtil, Util } from './util.js';
 var PlayerAction;
 (function (PlayerAction) {
@@ -77,6 +78,12 @@ export class RenderPlayer extends RenderAnimatedObject {
                     this.setWeapon(model);
                 }
             }
+        }
+        if (msg.hasOwnProperty(killProp)) {
+            ui.getClient(this.id()).setKills(msg[killProp]);
+        }
+        if (msg.hasOwnProperty(deathProp)) {
+            ui.getClient(this.id()).setDeaths(msg[deathProp]);
         }
         const pos = this.pos();
         const dim = this.dim();

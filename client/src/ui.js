@@ -54,6 +54,8 @@ class UI {
     getKeys() {
         return Array.from(this._keys);
     }
+    hasClient(id) { return this._clientHandler.hasClient(id); }
+    getClient(id) { return this._clientHandler.getClient(id); }
     getClientName(id) {
         return this._clientHandler.hasClient(id) ? this._clientHandler.getClient(id).displayName() : "Unknown";
     }
