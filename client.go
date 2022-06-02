@@ -51,7 +51,7 @@ func (c *Client) initWebRTC() error {
 	config := webrtc.Configuration{
 		ICEServers: []webrtc.ICEServer{
 			{
-				URLs: []string{"stun:openrelay.metered.ca:80"},
+				URLs: []string{"stun:stun.l.google.com:19302", "stun:stun2.l.google.com:19302", "stun:openrelay.metered.ca:80"},
 			},
 		    {
 		      URLs: []string{"turn:openrelay.metered.ca:80"},

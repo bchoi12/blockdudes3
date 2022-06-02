@@ -124,7 +124,8 @@ class Connection {
 		this._ws.binaryType = "arraybuffer";
 
 		this._ws.onopen = () => {
-			LogUtil.d("successfully connected to " + endpoint);
+			console.log("Successfully created websocket");
+			LogUtil.d("Successfully connected to " + endpoint);
 
 			this.addHandler(initType, (msg : any) => {
 				this._id = msg.Client.Id;
@@ -170,7 +171,7 @@ class Connection {
 		}, () => {});
 
 		this._wrtc.ondatachannel = (event) => {
-			LogUtil.d("successfully created data channel");
+			console.log("Successfully created data channel");
 			this._dc = event.channel;
 			this._dc.onmessage = (event) => { this.handlePayload(event.data); }	
 			cb();
