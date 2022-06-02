@@ -33,12 +33,7 @@ export class ClientHandler {
         if (!this.voiceEnabled()) {
             this._voiceEnabled = true;
             navigator.mediaDevices.getUserMedia({
-                audio: {
-                    autoGainControl: true,
-                    channelCount: 2,
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                },
+                audio: true,
                 video: false,
             }).then((stream) => {
                 this._stream = stream;
@@ -92,13 +87,13 @@ export class ClientHandler {
     }
     updateVoice(msg) {
         if (msg.T === joinVoiceType) {
-            this.addVoice(msg.Client.Id);
+            this.addVoice(msg.Client.Id, msg.Clients);
         }
         else if (msg.T === leftVoiceType) {
             this.removeVoice(msg.Client.Id);
         }
     }
-    addVoice(id) {
+    addVoice(id, clients) {
         ui.print(ui.getClientName(id) + " joined voice chat!");
         if (!this.voiceEnabled()) {
             ui.print("Enable voice chat in the pause menu to chat with " + ui.getClientName(id));
@@ -108,11 +103,12 @@ export class ClientHandler {
             this.createPeerConnection(id, false);
             return;
         }
-        this._clients.forEach((client, clientId) => {
-            if (clientId !== connection.id()) {
-                this.createPeerConnection(clientId, true);
-            }
-        });
+        for (const [stringId, client] of Object.entries(clients)) {
+            const clientId = Number(stringId);
+            if (clientId == connection.id())
+                continue;
+            this.createPeerConnection(clientId, true);
+        }
     }
     removeVoice(id) {
         if (this.hasClient(id)) {

@@ -48,14 +48,7 @@ export class ClientHandler {
 		if (!this.voiceEnabled()) {
 			this._voiceEnabled = true;
 			navigator.mediaDevices.getUserMedia({
-				audio: {
-					// @ts-ignore
-					autoGainControl: true,
-				    channelCount: 2,
-				    echoCancellation: true,
-				    // @ts-ignore
-				    noiseSuppression: true,
-				},
+				audio: true,
 			    video: false,
 		    }).then((stream) => {
 		    	this._stream = stream;
@@ -114,13 +107,13 @@ export class ClientHandler {
 
 	private updateVoice(msg : { [k: string]: any }) : void {
 		if (msg.T === joinVoiceType) {
-			this.addVoice(msg.Client.Id);
+			this.addVoice(msg.Client.Id, msg.Clients);
 		} else if (msg.T === leftVoiceType) {
 			this.removeVoice(msg.Client.Id);
 		}
 	}
 
-	private addVoice(id : number) : void {
+	private addVoice(id : number, clients : { [k: string]: any }) : void {
 		ui.print(ui.getClientName(id) + " joined voice chat!");
 
 		if (!this.voiceEnabled()) {
@@ -134,12 +127,14 @@ export class ClientHandler {
 			return;
 		}
 
+		// TODO: this might need to be the list of clients from the message.
 		// Send an offer to all existing clients.
-		this._clients.forEach((client, clientId) => {
-			if (clientId !== connection.id()) {
-				this.createPeerConnection(clientId, /*sendOffer=*/true);
-			}
-		});
+		for (const [stringId, client] of Object.entries(clients) as [string, any]) {
+			const clientId = Number(stringId);
+			if (clientId == connection.id()) continue;
+
+			this.createPeerConnection(clientId, true);
+		}
 	}
 
 	private removeVoice(id : number) : void {
