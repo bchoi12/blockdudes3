@@ -7,9 +7,12 @@ type MessageSender = () => void;
 class Connection {
 	private readonly _iceConfig = {
     	"iceServers": [
-			{
-		      urls: "stun:openrelay.metered.ca:80",
-		    },
+	    	{
+	    		urls: [
+	                "stun:stun1.l.google.com:19302",
+	                "stun:stun2.l.google.com:19302",
+	    		]
+	    	},
 		    {
 		      urls: "turn:openrelay.metered.ca:80",
 		      username: "openrelayproject",
