@@ -18,16 +18,16 @@ func (r *Room) forwardVoiceMessage(msgType MessageType, c *Client, msg JSONPeerM
 	return client.send(&outMsg)
 }
 
-func (r *Room) joinVoice(c *Client) error {
-	c.voice = true
+func (c *Client) joinVoice(r *Room) error {
 	msg := r.createClientMsg(joinVoiceType, c, true)
 	r.send(&msg)
+	c.voice = true
 	return nil
 }
 
-func (r *Room) leaveVoice(c *Client) error {
-	c.voice = false
+func (c *Client) leaveVoice(r *Room) error {
 	msg := r.createClientMsg(leftVoiceType, c, true)
 	r.send(&msg)
+	c.voice = false
 	return nil
 }

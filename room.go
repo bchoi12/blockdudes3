@@ -146,9 +146,9 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 	case candidateType:
 		err = c.processWebRTCCandidate(msg.JSON)
 	case joinVoiceType:
-		err = r.joinVoice(c)
+		err = c.joinVoice(r)
 	case leftVoiceType:
-		err = r.leaveVoice(c)
+		err = c.leaveVoice(r)
 	case voiceCandidateType: fallthrough
 	case voiceOfferType: fallthrough
 	case voiceAnswerType:
