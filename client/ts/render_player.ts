@@ -24,7 +24,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 	private _weaponType : number;
 	private _lastUpdate : number;
-	private _grounded : boolean;
+	private _lastGrounded : boolean;
 
 	private _playerMesh : THREE.Object3D;
 	private _weapon : RenderWeapon;
@@ -44,7 +44,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._weapon.setParent(this);
 
 		this._lastUpdate = Date.now();
-		this._grounded = false;
+		this._lastGrounded = false;
 	}
 
 	override initialize() : void {
@@ -136,8 +136,8 @@ export class RenderPlayer extends RenderAnimatedObject {
 		}
 
 		const grounded = this.grounded();
-		if (grounded != this._grounded) {
-			this._grounded = grounded;
+		if (grounded != this._lastGrounded) {
+			this._lastGrounded = grounded;
 
 			if (vel.y >= 0) {
 				const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(0.3, 6, 6), this._cloudMaterial);

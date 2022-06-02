@@ -24,7 +24,7 @@ export class RenderPlayer extends RenderAnimatedObject {
         this._weapon = new RenderWeapon();
         this._weapon.setParent(this);
         this._lastUpdate = Date.now();
-        this._grounded = false;
+        this._lastGrounded = false;
     }
     initialize() {
         super.initialize();
@@ -97,8 +97,8 @@ export class RenderPlayer extends RenderAnimatedObject {
             this._arm.position.add(armOffset);
         }
         const grounded = this.grounded();
-        if (grounded != this._grounded) {
-            this._grounded = grounded;
+        if (grounded != this._lastGrounded) {
+            this._lastGrounded = grounded;
             if (vel.y >= 0) {
                 const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(0.3, 6, 6), this._cloudMaterial);
                 cloudMesh.position.x = pos.x;

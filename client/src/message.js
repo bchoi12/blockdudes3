@@ -25,9 +25,11 @@ export class Message {
                     this._data.set(prop, data);
                 }
             }
-            else if (!this.has(prop) || !this._seqNum.has(prop) || seqNum >= this._seqNum.get(prop)) {
-                this._data.set(prop, data);
-                this._seqNum.set(prop, seqNum);
+            else {
+                if (!this.has(prop) || !this._seqNum.has(prop) || seqNum >= this._seqNum.get(prop)) {
+                    this._data.set(prop, data);
+                    this._seqNum.set(prop, seqNum);
+                }
             }
         }
     }
