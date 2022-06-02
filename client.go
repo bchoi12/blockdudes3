@@ -53,21 +53,6 @@ func (c *Client) initWebRTC() error {
 			{
 				URLs: []string{"stun:stun.l.google.com:19302", "stun:stun2.l.google.com:19302"},
 			},
-		    {
-		      URLs: []string{"turn:openrelay.metered.ca:80"},
-		      Username: "openrelayproject",
-		      Credential: "openrelayproject",
-		    },
-		    {
-		      URLs: []string{"turn:openrelay.metered.ca:443"},
-		      Username: "openrelayproject",
-		      Credential: "openrelayproject",
-		    },
-		    {
-		      URLs: []string{"turn:openrelay.metered.ca:443?transport=tcp"},
-		      Username: "openrelayproject",
-		      Credential: "openrelayproject",
-		    },
 		},
 	}
 	c.wrtc, err = webrtc.NewPeerConnection(config)

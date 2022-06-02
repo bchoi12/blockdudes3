@@ -10,22 +10,7 @@ class Connection {
                         "stun:stun1.l.google.com:19302",
                         "stun:stun2.l.google.com:19302",
                     ]
-                },
-                {
-                    urls: "turn:openrelay.metered.ca:80",
-                    username: "openrelayproject",
-                    credential: "openrelayproject",
-                },
-                {
-                    urls: "turn:openrelay.metered.ca:443",
-                    username: "openrelayproject",
-                    credential: "openrelayproject",
-                },
-                {
-                    urls: "turn:openrelay.metered.ca:443?transport=tcp",
-                    username: "openrelayproject",
-                    credential: "openrelayproject",
-                },
+                }
             ]
         };
         this._handlers = new Map();
@@ -37,9 +22,6 @@ class Connection {
         const prefix = Util.isDev() ? "ws://" : "wss://";
         const endpoint = prefix + window.location.host + "/newclient/room=" + room + "&name=" + name;
         this.initWebSocket(endpoint, socketSuccess, dcSuccess);
-    }
-    newPeerConnection() {
-        return new RTCPeerConnection(this._iceConfig);
     }
     addHandler(type, handler) {
         if (this._handlers.has(type)) {

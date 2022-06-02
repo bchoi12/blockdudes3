@@ -5,6 +5,29 @@ import { ui } from './ui.js'
 import { LogUtil, HtmlUtil, Util } from './util.js'
 
 export class ClientHandler {
+	private readonly _iceConfig = {
+		iceServers: [
+			{
+				urls: "stun:openrelay.metered.ca:80",
+			},
+		    {
+		    	urls: "turn:openrelay.metered.ca:80",
+		    	username: "openrelayproject",
+		    	credential: "openrelayproject",
+		    },
+		    {
+		    	urls: "turn:openrelay.metered.ca:443",
+		     	username: "openrelayproject",
+		    	credential: "openrelayproject",
+		    },
+		    {
+		      	urls: "turn:openrelay.metered.ca:443?transport=tcp",
+		      	username: "openrelayproject",
+		      	credential: "openrelayproject",
+		    },
+	    ],
+    };
+
 	private readonly _voiceOfferOptions = {
 		offerToReceiveAudio: true,
 		offerToReceiveVideo: false,
@@ -156,7 +179,7 @@ export class ClientHandler {
 	}
 
 	private createPeerConnection(id : number, sendOffer : boolean) {
-		const pc = connection.newPeerConnection();
+		const pc = new RTCPeerConnection(this._iceConfig);
 		this._peerConnections.set(id, pc);
       	this._stream.getTracks().forEach(track => pc.addTrack(track, this._stream));
 		pc.onicecandidate = (event) => {
