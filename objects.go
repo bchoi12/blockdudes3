@@ -141,6 +141,10 @@ func NewExplosion(init Init) *Explosion {
 }
 
 func (e *Explosion) Hit(p *Player) {
+	if isWasm {
+		return
+	}
+
 	if e.activeFrames <= 0 {
 		return
 	}
@@ -156,6 +160,11 @@ func (e *Explosion) Hit(p *Player) {
 	}
 	dir.Normalize()
 	dir.Scale(60)
+
+	distSqr := e.DistSqr(p.GetProfile())
+	distScalar := Min(1.0, 2.0 / distSqr)
+	dir.Scale(distScalar)
+
 	dir.Add(p.GetProfile().Vel(), 1.0)
 	p.GetProfile().SetVel(dir)
 }

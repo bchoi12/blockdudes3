@@ -46,13 +46,14 @@ type Profile interface {
 	AddSubProfile(key ProfileKey, subProfile SubProfile)
 	GetSubProfile(key ProfileKey) SubProfile
 
+	DistSqr(other Profile) float64
+	Dist(other Profile) float64
+	DistX(other Profile) float64
+	DistY(other Profile) float64
+
 	dimOverlapX(other Profile) (float64, float64)
 	dimOverlapY(other Profile) (float64, float64)
 	dimOverlap(other Profile) float64
-	distX(other Profile) float64
-	distY(other Profile) float64
-	distSqr(other Profile) float64
-	dist(other Profile) float64
 }
 
 type BaseProfile struct {
@@ -158,7 +159,6 @@ func (bp BaseProfile) GetData() Data {
 	if !bp.static {
 		data.Set(posProp, bp.Pos())
 	}
-
 	if !bp.Vel().IsZero() {
 		data.Set(velProp, bp.Vel())
 	}
@@ -258,7 +258,7 @@ func (bp *BaseProfile) AddSubProfile(key ProfileKey, subProfile SubProfile) { bp
 func (bp BaseProfile) GetSubProfile(key ProfileKey) SubProfile { return bp.subProfiles[key] }
 
 func (bp BaseProfile) dimOverlapX(other Profile) (float64, float64) {
-	overlap := Max(0, bp.Dim().X/2 + other.Dim().X/2 - bp.distX(other))
+	overlap := Max(0, bp.Dim().X/2 + other.Dim().X/2 - bp.DistX(other))
 
 	if overlap <= 0 {
 		return 0, 0
@@ -266,7 +266,7 @@ func (bp BaseProfile) dimOverlapX(other Profile) (float64, float64) {
 	return overlap, bp.Dim().X + other.Dim().X - overlap
 }
 func (bp BaseProfile) dimOverlapY(other Profile) (float64, float64) {
-	overlap := Max(0, bp.Dim().Y/2 + other.Dim().Y/2 - bp.distY(other))
+	overlap := Max(0, bp.Dim().Y/2 + other.Dim().Y/2 - bp.DistY(other))
 
 	if overlap <= 0 {
 		return 0, 0
@@ -279,19 +279,19 @@ func (bp BaseProfile) dimOverlap(other Profile) float64 {
 	return ox * oy
 }
 
-func (bp BaseProfile) distX(other Profile) float64 {
+func (bp BaseProfile) DistX(other Profile) float64 {
 	return Abs(other.Pos().X - bp.Pos().X)
 }
-func (bp BaseProfile) distY(other Profile) float64 {
+func (bp BaseProfile) DistY(other Profile) float64 {
 	return Abs(other.Pos().Y - bp.Pos().Y)
 }
-func (bp BaseProfile) distSqr(other Profile) float64 {
-	x := bp.distX(other)
-	y := bp.distY(other)
+func (bp BaseProfile) DistSqr(other Profile) float64 {
+	x := bp.DistX(other)
+	y := bp.DistY(other)
 	return x * x + y * y
 }
-func (bp BaseProfile) dist(other Profile) float64 {
-	return math.Sqrt(bp.distSqr(other))
+func (bp BaseProfile) Dist(other Profile) float64 {
+	return math.Sqrt(bp.DistSqr(other))
 }
 func (bp BaseProfile) getIgnored() map[SpacedId]bool {
 	return bp.ignoredColliders

@@ -268,6 +268,11 @@ func getData(data js.Value) Data {
 	var err error
 	d := NewData()
 
+	prop, err = getPropData(data, initializedProp)
+	if err == nil {
+		d.Set(initializedProp, prop.Bool())
+	}
+
 	prop, err = getPropData(data, deletedProp)
 	if err == nil {
 		d.Set(deletedProp, prop.Bool())

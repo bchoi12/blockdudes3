@@ -117,10 +117,10 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 }
 
 func (g *Game) createObjectInitMsg() GameStateMsg {
-	objs := make(map[SpaceType]map[IdType]PropMap)
+	objs := make(ObjectPropMap)
 
 	for space, things := range(g.grid.GetManyThings(platformSpace, wallSpace)) {
-		objs[space] = make(map[IdType]PropMap)
+		objs[space] = make(SpacedPropMap)
 		for id, thing := range(things) {
 			objs[space][id] = thing.GetInitData().Props()
 		}

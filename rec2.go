@@ -72,7 +72,7 @@ func (r Rec2) Overlap(profile Profile) OverlapResults {
 
 		circResults := NewOverlapResults()
 		// Distance to outside of rectangle
-		dist := NewVec2(r.distX(other) - r.Dim().X / 2, r.distY(other) - r.Dim().Y / 2)
+		dist := NewVec2(r.DistX(other) - r.Dim().X / 2, r.DistY(other) - r.Dim().Y / 2)
 		dist.X = Max(dist.X, 0)
 		dist.Y = Max(dist.Y, 0)
 
@@ -186,8 +186,7 @@ func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
 	if adjSign.X != 0 && adjSign.Y != 0 {
 		if SignPos(relativePos.X) == SignPos(relativeVel.X) || Abs(relativeVel.X) < zeroVelEpsilon && Abs(relativeVel.Y) > zeroVelEpsilon {
 			adjSign.X = 0
-		}
-		if SignPos(relativePos.Y) == SignPos(relativeVel.Y) || Abs(relativeVel.Y) < zeroVelEpsilon && Abs(relativeVel.X) > zeroVelEpsilon {
+		} else if SignPos(relativePos.Y) == SignPos(relativeVel.Y) || Abs(relativeVel.Y) < zeroVelEpsilon && Abs(relativeVel.X) > zeroVelEpsilon {
 			adjSign.Y = 0
 		}
 	}
@@ -215,7 +214,9 @@ func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
 
 	// Have overlap, but no pos adjustment for some reason.
 	if adjSign.IsZero() {
-		r.addIgnored(other.GetSpacedId())
+		if other.GetSpace() == platformSpace {
+			r.addIgnored(other.GetSpacedId())
+		}
 		return results
 	}
 

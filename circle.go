@@ -52,7 +52,7 @@ func (c Circle) Overlap(profile Profile) OverlapResults {
 	case *Circle:
 		circResults := NewOverlapResults()
 		radius := c.Radius() + other.Radius()
-		if c.distSqr(other) <= radius * radius {
+		if c.DistSqr(other) <= radius * radius {
 			circResults.overlap = true
 			circResults.amount = c.dimOverlap(other)
 		}

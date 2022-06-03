@@ -146,6 +146,7 @@ class Connection {
 	}
 
 	private initWebRTC(cb : () => void) : void {
+		// TODO: add timeout error reporting & recovery (need to restart websocket too)
 		this._wrtc = new RTCPeerConnection(this._iceConfig);
 
 		const dataChannelConfig = {

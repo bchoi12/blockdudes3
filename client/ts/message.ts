@@ -36,11 +36,9 @@ export class Message {
 				} else {
 					this._data.set(prop, data);
 				}
-			} else {
-				if (!this.has(prop) || !this._seqNum.has(prop) || seqNum >= this._seqNum.get(prop)) {
-					this._data.set(prop, data);
-					this._seqNum.set(prop, seqNum);
-				}
+			} else if (!this.has(prop) || !this._seqNum.has(prop) || seqNum >= this._seqNum.get(prop)) {
+				this._data.set(prop, data);
+				this._seqNum.set(prop, seqNum);
 			}
 		}
 	}
@@ -75,9 +73,12 @@ export class Message {
 	}
 
 	private extrapolateVec2(current : any, next : any, weight : number) : any {
-		const vec = current;
-		vec.X = current.X * (1 - weight) + next.X * weight;
-		vec.Y = current.Y * (1 - weight) + next.Y * weight;
-		return vec;
+		if ((next.X - current.X) * (next.X - current.X) + (next.Y - current.Y) * (next.Y - current.Y) > 1) {
+			return current;
+		}
+		return {
+			X: current.X * (1 - weight) + next.X * weight,
+			Y: current.Y * (1 - weight) + next.Y * weight
+		};
 	}
 }
