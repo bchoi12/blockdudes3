@@ -13,6 +13,7 @@ type Object struct {
 	Profile
 	Health
 	Expiration
+	Class
 
 	parent Attachment
 	children []Attachment
@@ -25,6 +26,7 @@ func NewObject(profile Profile, data Data) Object {
 		Profile: profile,
 		Health: NewHealth(),
 		Expiration: NewExpiration(),
+		Class: NewClass(),
 		lastUpdateTime: time.Time{},
 	}
 	object.SetData(data)
@@ -85,13 +87,23 @@ func (o *Object) SetData(data Data) {
 	}
 	o.Profile.SetData(data)
 	o.Health.SetData(data)
+	o.Class.SetData(data)
 	o.lastUpdateTime = time.Now()
+}
+
+func (o Object) GetInitData() Data {
+	data := NewData()
+	data.Merge(o.Profile.GetInitData())
+	data.Merge(o.Health.GetInitData())
+	data.Merge(o.Class.GetInitData())
+	return data
 }
 
 func (o Object) GetData() Data {
 	data := NewData()
 	data.Merge(o.Profile.GetData())
 	data.Merge(o.Health.GetData())
+	data.Merge(o.Class.GetData())
 	return data
 }
 
@@ -99,5 +111,6 @@ func (o Object) GetUpdates() Data {
 	updates := NewData()
 	updates.Merge(o.Profile.GetUpdates())
 	updates.Merge(o.Health.GetUpdates())
+	updates.Merge(o.Class.GetUpdates())
 	return updates
 }

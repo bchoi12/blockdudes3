@@ -8,6 +8,7 @@ const (
 	initializedProp
 	deletedProp
 
+	classProp
 	dimProp
 	posProp
 	velProp

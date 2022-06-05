@@ -20,6 +20,7 @@ export class CameraController {
 		return this._target;
 	}
 
+	// TODO: add some smoothing
 	setTarget(targetPos: THREE.Vector3) : void {
 		this._target = targetPos.clone();
 

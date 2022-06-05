@@ -5,7 +5,8 @@ import { Util } from './util.js'
 
 export class Message {
 	private readonly _weightedExtrapolateProps : Set<number> = new Set<number>([posProp, velProp, accProp]);
-	private readonly _ignoreExtrapolateProps : Set<number> = new Set<number>([groundedProp, weaponTypeProp]);
+	private readonly _ignoreExtrapolateProps : Set<number> = new Set<number>([groundedProp]);
+	private readonly _arrayProps : Set<number> = new Set<number>([classProp, keysProp]);
 
 	private _data : Map<number, any>;
 	private _seqNum : Map<number, number>;
@@ -64,12 +65,14 @@ export class Message {
 	}
 
 	private sanitizeData(data : Map<number, any>) : void {
-		if (data.hasOwnProperty(keysProp)) {
-			const keys = Object.keys(data[keysProp]);
-			if (keys.length > 0) {
-				data[keysProp] = Util.arrayToString(keys);
+		this._arrayProps.forEach((prop) => {
+			if (data.hasOwnProperty(prop)) {
+				const keys = Object.keys(data[prop]);
+				if (keys.length > 0) {
+					data[prop] = Util.arrayToString(keys);
+				}
 			}
-		}
+		});
 	}
 
 	private extrapolateVec2(current : any, next : any, weight : number) : any {

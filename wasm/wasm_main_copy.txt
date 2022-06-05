@@ -70,6 +70,7 @@ func setGlobals() {
 	js.Global().Set("initializedProp", int(initializedProp))
 	js.Global().Set("deletedProp", int(deletedProp))
 
+	js.Global().Set("classProp", int(classProp))
 	js.Global().Set("dimProp", int(dimProp))
 	js.Global().Set("posProp", int(posProp))
 	js.Global().Set("velProp", int(velProp))
@@ -278,6 +279,11 @@ func getData(data js.Value) Data {
 		d.Set(deletedProp, prop.Bool())
 	}
 
+	prop, err = getPropData(data, classProp)
+	if err == nil {
+		d.Set(classProp, parseClassAsProp(prop.String()))
+	}
+
 	prop, err = getPropData(data, dimProp)
 	if err == nil {
 		d.Set(dimProp, parseVec2(prop))
@@ -397,4 +403,16 @@ func parseKeysAsProp(keyStr string) map[KeyType]bool {
 		keys[KeyType(int)] = true
 	}
 	return keys
+}
+
+func parseClassAsProp(classStr string) map[ClassType]bool {
+	class := make(map[ClassType]bool)
+	for _, key := range(strings.Split(classStr, ",")) {
+		int, err := strconv.Atoi(key)
+		if err != nil {
+			continue
+		}
+		class[ClassType(int)] = true
+	}
+	return class
 }

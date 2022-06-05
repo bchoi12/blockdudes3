@@ -5,9 +5,12 @@ import (
 	"time"
 )
 
+// TODO: delete thing, use Object
 type Thing interface {
 	InitMethods
 	Profile
+
+	HasClass(class ClassType) bool
 
 	GetProfile() Profile
 	GetInitData() Data
@@ -21,34 +24,6 @@ type Thing interface {
 
 	UpdateState(grid *Grid, now time.Time) bool
 	Postprocess(grid *Grid, now time.Time)
-}
-
-type ThingState struct {
-	initialized bool
-	deleted bool
-}
-
-func NewThingState() *ThingState {
-	return &ThingState {
-		initialized: false,
-		deleted: false,
-	}
-}
-
-func (th ThingState) GetInitialized() bool {
-	return th.initialized
-}
-
-func (th *ThingState) SetInitialized(initialized bool) {
-	th.initialized = initialized
-}
-
-func (th ThingState) GetDeleted() bool {
-	return th.deleted
-}
-
-func (th *ThingState) SetDeleted(deleted bool) {
-	th.deleted = deleted
 }
 
 type ThingItem struct {

@@ -173,6 +173,27 @@ func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
 		adjSign.Y = FSign(relativePos.Y)
 	}
 
+	// Special treatment for other object types
+	if other.HasClass(stairClass) {
+		adjSign.X = 0
+		adjSign.Y = 1
+
+		// TODO: this sucks
+		temp, overlapLarge := r.dimOverlapY(other)
+		if relativePos.Y < 0 {
+			oy = overlapLarge
+		} else {
+			oy = temp
+		}
+	}
+
+	if other.GetSpace() == platformSpace {
+		adjSign.X = 0
+		if adjSign.Y < 0 {
+			adjSign.Y = 0
+		}
+	}
+
 	// Check for tiny collisions that we can ignore
 	if adjSign.X != 0 && adjSign.Y != 0 {
 		if Sign(adjSign.X) != Sign(relativeVel.X) && oy < overlapEpsilon {
@@ -200,14 +221,6 @@ func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
 		if tx > ty {
 			adjSign.X = 0
 		} else if ty > tx {
-			adjSign.Y = 0
-		}
-	}
-
-	// Special treatment for platform.
-	if !adjSign.IsZero() && other.GetSpace() == platformSpace {
-		adjSign.X = 0
-		if adjSign.Y < 0 {
 			adjSign.Y = 0
 		}
 	}

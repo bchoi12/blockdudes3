@@ -6,24 +6,24 @@ import (
 
 func NewRec2Object(init Init) Object {
 	profile := NewRec2(init, NewData())
-	return Object {
-		Profile: profile,
-	}
+	return NewObject(profile, NewData())
 }
 
 func NewCircleObject(init Init) Object {
 	profile := NewCircle(init, NewData())
-	return Object {
-		Profile: profile,
-	}
+	return NewObject(profile, NewData())
 }
 
-func NewWall(init Init) *Object {
+type Wall struct {
+	Object
+}
+
+func NewWall(init Init) *Wall {
 	profile := NewRec2(init, NewData())
 	profile.SetSolid(true)
 	profile.SetStatic(true)
-	return &Object {
-		Profile: profile,
+	return &Wall {
+		Object: NewObject(profile, NewData()),
 	}
 }
 

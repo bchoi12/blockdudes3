@@ -44,6 +44,7 @@ declare var objectStatesProp : number;
 declare var initializedProp : number;
 declare var deletedProp : number;
 
+declare var classProp : number;
 declare var dimProp : number;
 declare var posProp : number;
 declare var velProp : number;

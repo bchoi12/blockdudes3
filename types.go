@@ -58,6 +58,20 @@ const (
 	pickupSpace
 )
 
+type ClassType uint8
+const (
+	unknownClass ClassType = iota
+
+	stairClass
+	platformClass
+
+	uziClass
+	bazookaClass
+
+	boltClass
+	rocketClass
+)
+
 type LevelIdType uint8
 const (
 	unknownLevel LevelIdType = iota

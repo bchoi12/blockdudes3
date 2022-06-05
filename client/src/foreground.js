@@ -6,13 +6,44 @@ export class Foreground extends SceneComponent {
         super();
         this._frontMaterial = new THREE.MeshStandardMaterial({ color: 0x444444, transparent: true });
         this._backMaterial = new THREE.MeshStandardMaterial({ color: 0x444444, shadowSide: THREE.FrontSide });
-        this._wall = new THREE.Mesh(new THREE.BoxGeometry(16, 5.5, 0.5), this._frontMaterial);
-        this._wall.position.x = 22;
-        this._wall.position.y = 6.75;
-        this._wall.position.z = 2.25;
-        this._wall.castShadow = false;
-        this._wall.receiveShadow = true;
-        this._scene.add(this._wall);
+        this._wallGroup = new THREE.Scene();
+        {
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(2, 5.5, 0.5), this._frontMaterial);
+            wall.position.x = 15;
+            wall.position.y = 6.75;
+            wall.position.z = 2.25;
+            wall.castShadow = false;
+            wall.receiveShadow = true;
+            this._wallGroup.add(wall);
+        }
+        {
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(2, 5.5, 0.5), this._frontMaterial);
+            wall.position.x = 29;
+            wall.position.y = 6.75;
+            wall.position.z = 2.25;
+            wall.castShadow = false;
+            wall.receiveShadow = true;
+            this._wallGroup.add(wall);
+        }
+        {
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(2, 5.5, 0.5), this._frontMaterial);
+            wall.position.x = 19;
+            wall.position.y = 6.75;
+            wall.position.z = 2.25;
+            wall.castShadow = false;
+            wall.receiveShadow = true;
+            this._wallGroup.add(wall);
+        }
+        {
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(2, 5.5, 0.5), this._frontMaterial);
+            wall.position.x = 25;
+            wall.position.y = 6.75;
+            wall.position.z = 2.25;
+            wall.castShadow = false;
+            wall.receiveShadow = true;
+            this._wallGroup.add(wall);
+        }
+        this._scene.add(this._wallGroup);
         this._shadowWall = new THREE.Mesh(new THREE.BoxGeometry(16, 5.5, 0.5), new THREE.ShadowMaterial());
         this._shadowWall.position.x = 22;
         this._shadowWall.position.y = 6.75;
@@ -33,20 +64,28 @@ export class Foreground extends SceneComponent {
         let light2 = new THREE.PointLight(0x6666ff, 4, 10);
         light2.position.set(26, 6.25, 1);
         this._scene.add(light2);
-        this._wallBox = new THREE.Box2(new THREE.Vector2(13.5, 3.5), new THREE.Vector2(30.5, 10));
+        this._wallBox = new THREE.Box2(new THREE.Vector2(14, 3.5), new THREE.Vector2(30, 10));
     }
     update() {
         super.update();
         const position = renderer.cameraTarget();
         if (this._wallBox.containsPoint(new THREE.Vector2(position.x, position.y))) {
-            if (this._wall.material.opacity > 0.3) {
-                this._wall.material.opacity -= 0.03;
-            }
+            this._wallGroup.traverse((node) => {
+                if (node instanceof THREE.Mesh) {
+                    if (node.material.opacity > 0.3) {
+                        node.material.opacity -= 0.03;
+                    }
+                }
+            });
         }
         else {
-            if (this._wall.material.opacity < 1.0) {
-                this._wall.material.opacity += 0.03;
-            }
+            this._wallGroup.traverse((node) => {
+                if (node instanceof THREE.Mesh) {
+                    if (node.material.opacity < 1.0) {
+                        node.material.opacity += 0.03;
+                    }
+                }
+            });
         }
     }
 }

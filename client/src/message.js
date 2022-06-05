@@ -3,7 +3,8 @@ import { Util } from './util.js';
 export class Message {
     constructor() {
         this._weightedExtrapolateProps = new Set([posProp, velProp, accProp]);
-        this._ignoreExtrapolateProps = new Set([groundedProp, weaponTypeProp]);
+        this._ignoreExtrapolateProps = new Set([groundedProp]);
+        this._arrayProps = new Set([classProp, keysProp]);
         this._data = new Map();
         this._seqNum = new Map();
         this._lastUpdate = Date.now();
@@ -47,12 +48,14 @@ export class Message {
         return this._lastUpdate;
     }
     sanitizeData(data) {
-        if (data.hasOwnProperty(keysProp)) {
-            const keys = Object.keys(data[keysProp]);
-            if (keys.length > 0) {
-                data[keysProp] = Util.arrayToString(keys);
+        this._arrayProps.forEach((prop) => {
+            if (data.hasOwnProperty(prop)) {
+                const keys = Object.keys(data[prop]);
+                if (keys.length > 0) {
+                    data[prop] = Util.arrayToString(keys);
+                }
             }
-        }
+        });
     }
     extrapolateVec2(current, next, weight) {
         if ((next.X - current.X) * (next.X - current.X) + (next.Y - current.Y) * (next.Y - current.Y) > 1) {

@@ -99,6 +99,10 @@ func (h *Health) SetData(data Data) {
 	}
 }
 
+func (h Health) GetInitData() Data {
+	return NewData()
+}
+
 func (h Health) GetData() Data {
 	data := NewData()
 	if !h.enabled {
