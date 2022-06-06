@@ -29,10 +29,10 @@ type Grid struct {
 	gameState GameState
 
 	lastId map[SpaceType]IdType
-	things map[SpacedId]Thing
-	spacedThings map[SpaceType]map[IdType]Thing
+	objects map[SpacedId]Object
+	spacedObjects map[SpaceType]map[IdType]Object
 
-	grid map[GridCoord]map[SpacedId]Thing
+	grid map[GridCoord]map[SpacedId]Object
 	reverseGrid map[SpacedId][]GridCoord
 }
 
@@ -44,9 +44,9 @@ func NewGrid(unitLength int, unitHeight int) *Grid {
 		gameState: NewGameState(),
 
 		lastId: make(map[SpaceType]IdType, 0),
-		things: make(map[SpacedId]Thing, 0),
-		spacedThings: make(map[SpaceType]map[IdType]Thing, 0),
-		grid: make(map[GridCoord]map[SpacedId]Thing, 0),
+		objects: make(map[SpacedId]Object, 0),
+		spacedObjects: make(map[SpaceType]map[IdType]Object, 0),
+		grid: make(map[GridCoord]map[SpacedId]Object, 0),
 		reverseGrid: make(map[SpacedId][]GridCoord, 0),
 	}
 }
@@ -59,12 +59,12 @@ func (g *Grid) GetUnitHeight() int {
 	return g.unitHeight
 }
 
-func (g *Grid) Upsert(thing Thing) {
-	coords := g.getCoords(thing.GetProfile())
-	sid := thing.GetSpacedId()
+func (g *Grid) Upsert(object Object) {
+	coords := g.getCoords(object.GetProfile())
+	sid := object.GetSpacedId()
 
-	if _, ok := g.spacedThings[sid.GetSpace()]; !ok {
-		g.spacedThings[sid.GetSpace()] = make(map[IdType]Thing, 0)
+	if _, ok := g.spacedObjects[sid.GetSpace()]; !ok {
+		g.spacedObjects[sid.GetSpace()] = make(map[IdType]Object, 0)
 	}
 
 	// Check for equality
@@ -85,24 +85,24 @@ func (g *Grid) Upsert(thing Thing) {
 		}
 	} else {
 		// Insert since it's missing
-		g.insert(sid, thing)
+		g.insert(sid, object)
 	}
 
 	// Update coords
 	g.deleteCoords(sid)
 	for _, coord := range(coords) {
 		if _, ok := g.grid[coord]; !ok {
-			g.grid[coord] = make(map[SpacedId]Thing)
+			g.grid[coord] = make(map[SpacedId]Object)
 		}
-		g.grid[coord][sid] = thing
+		g.grid[coord][sid] = object
 	}
 	g.reverseGrid[sid] = coords
 }
 
-func (g *Grid) insert(sid SpacedId, thing Thing) {
-	g.things[sid] = thing
+func (g *Grid) insert(sid SpacedId, object Object) {
+	g.objects[sid] = object
 	g.gameState.RegisterId(sid)
-	g.spacedThings[sid.GetSpace()][sid.GetId()] = thing
+	g.spacedObjects[sid.GetSpace()][sid.GetId()] = object
 
 	if lastId, ok := g.lastId[sid.GetSpace()]; !ok {
 		g.lastId[sid.GetSpace()] = sid.GetId()
@@ -120,80 +120,80 @@ func (g *Grid) deleteCoords(sid SpacedId) {
 	}
 }
 
-func (g *Grid) deleteThing(sid SpacedId) {
+func (g *Grid) deleteObject(sid SpacedId) {
 	g.deleteCoords(sid)
-	delete(g.things, sid)
-	delete(g.spacedThings[sid.GetSpace()], sid.GetId())
+	delete(g.objects, sid)
+	delete(g.spacedObjects[sid.GetSpace()], sid.GetId())
 }
 
 func (g *Grid) Update(now time.Time) {
-	for _, thing := range(g.GetAllThings()) {
-		if thing.GetSpace() == playerSpace {
+	for _, object := range(g.GetAllObjects()) {
+		if object.GetSpace() == playerSpace {
 			continue
 		}
-		g.updateThing(thing, now)
+		g.updateObject(object, now)
 	}
 
 	// Map iteration is random
-	for _, thing := range(g.GetThings(playerSpace)) {
-		g.updateThing(thing, now)
+	for _, object := range(g.GetObjects(playerSpace)) {
+		g.updateObject(object, now)
 	}
 }
 
-func (g *Grid) updateThing(thing Thing, now time.Time) {
-	updated := thing.UpdateState(g, now)
+func (g *Grid) updateObject(object Object, now time.Time) {
+	updated := object.UpdateState(g, now)
 	if updated {
 		// Update location in the grid
-		if g.Has(thing.GetSpacedId()) {
-			g.Upsert(thing)
+		if g.Has(object.GetSpacedId()) {
+			g.Upsert(object)
 		}
 	}
 }
 
 func (g *Grid) Postprocess(now time.Time) {
-	for _, thing := range(g.GetAllThings()) {
-		thing.Postprocess(g, now)
+	for _, object := range(g.GetAllObjects()) {
+		object.Postprocess(g, now)
 	}
 }
 
 func (g *Grid) Delete(sid SpacedId) {
 	if isWasm {
-		g.deleteThing(sid)
+		g.deleteObject(sid)
 		return
 	}
 	g.gameState.SetObjectState(sid, deletedProp, true)
 }
 
 func (g *Grid) Has(sid SpacedId) bool {
-	_, ok := g.things[sid]
+	_, ok := g.objects[sid]
 	return ok
 }
 
-func (g *Grid) Get(sid SpacedId) Thing {
-	return g.spacedThings[sid.GetSpace()][sid.GetId()]
+func (g *Grid) Get(sid SpacedId) Object {
+	return g.spacedObjects[sid.GetSpace()][sid.GetId()]
 }
 
-func (g *Grid) GetLast(space SpaceType) Thing {
+func (g *Grid) GetLast(space SpaceType) Object {
 	if _, ok := g.lastId[space]; !ok {
 		return nil
 	}
 
-	return g.spacedThings[space][g.lastId[space]]
+	return g.spacedObjects[space][g.lastId[space]]
 }
 
 func (g *Grid) GetObjectInitData() ObjectPropMap {
 	objects := make(ObjectPropMap)
 
-	for _, thing := range(g.GetAllThings()) {
-		data := thing.GetInitData()
+	for _, object := range(g.GetAllObjects()) {
+		data := object.GetInitData()
 		if data.Size() == 0 {
 			continue
 		}
 
-		if _, ok := objects[thing.GetSpace()]; !ok {
-			objects[thing.GetSpace()] = make(map[IdType]PropMap, 0)
+		if _, ok := objects[object.GetSpace()]; !ok {
+			objects[object.GetSpace()] = make(map[IdType]PropMap, 0)
 		}
-		objects[thing.GetSpace()][thing.GetId()] = data.Props()
+		objects[object.GetSpace()][object.GetId()] = data.Props()
 	}
 	return objects
 }
@@ -201,16 +201,16 @@ func (g *Grid) GetObjectInitData() ObjectPropMap {
 func (g *Grid) GetObjectData() ObjectPropMap {
 	objects := make(ObjectPropMap)
 
-	for _, thing := range(g.GetAllThings()) {
-		data := thing.GetData()
+	for _, object := range(g.GetAllObjects()) {
+		data := object.GetData()
 		if data.Size() == 0 {
 			continue
 		}
 
-		if _, ok := objects[thing.GetSpace()]; !ok {
-			objects[thing.GetSpace()] = make(map[IdType]PropMap, 0)
+		if _, ok := objects[object.GetSpace()]; !ok {
+			objects[object.GetSpace()] = make(map[IdType]PropMap, 0)
 		}
-		objects[thing.GetSpace()][thing.GetId()] = data.Props()
+		objects[object.GetSpace()][object.GetId()] = data.Props()
 	}
 	return objects
 }
@@ -218,10 +218,10 @@ func (g *Grid) GetObjectData() ObjectPropMap {
 func (g *Grid) GetObjectUpdates() ObjectPropMap {
 	objects := make(ObjectPropMap)
 
-	for sid, thing := range(g.GetAllThings()) {
-		updates := thing.GetUpdates()
+	for sid, object := range(g.GetAllObjects()) {
+		updates := object.GetUpdates()
 		if !g.gameState.GetObjectState(sid, initializedProp).Peek().(bool) {
-			updates.Merge(thing.GetInitData())
+			updates.Merge(object.GetInitData())
 			g.gameState.SetObjectState(sid, initializedProp, true)
 		}
 		deleted := g.gameState.GetObjectState(sid, deletedProp).Peek().(bool)
@@ -233,13 +233,13 @@ func (g *Grid) GetObjectUpdates() ObjectPropMap {
 			continue
 		}
 
-		if _, ok := objects[thing.GetSpace()]; !ok {
-			objects[thing.GetSpace()] = make(SpacedPropMap, 0)
+		if _, ok := objects[object.GetSpace()]; !ok {
+			objects[object.GetSpace()] = make(SpacedPropMap, 0)
 		}
-		objects[thing.GetSpace()][thing.GetId()] = updates.Props()
+		objects[object.GetSpace()][object.GetId()] = updates.Props()
 
 		if deleted {
-			g.deleteThing(thing.GetSpacedId())
+			g.deleteObject(object.GetSpacedId())
 		}
 	}
 	return objects
@@ -266,21 +266,21 @@ func (g *Grid) NextSpacedId(space SpaceType) SpacedId {
 	return Id(space, g.NextId(space))
 }
 
-func (g *Grid) GetAllThings() map[SpacedId]Thing {
-	return g.things
+func (g *Grid) GetAllObjects() map[SpacedId]Object {
+	return g.objects
 }
 
-func (g *Grid) GetThings(space SpaceType) map[IdType]Thing {
-	return g.spacedThings[space]
+func (g *Grid) GetObjects(space SpaceType) map[IdType]Object {
+	return g.spacedObjects[space]
 }
 
-func (g *Grid) GetManyThings(spaces ...SpaceType) map[SpaceType]map[IdType]Thing {
-	things := make(map[SpaceType]map[IdType]Thing)
+func (g *Grid) GetManyObjects(spaces ...SpaceType) map[SpaceType]map[IdType]Object {
+	objects := make(map[SpaceType]map[IdType]Object)
 
 	for _, space := range(spaces) {
-		things[space] = g.spacedThings[space]
+		objects[space] = g.spacedObjects[space]
 	}
-	return things
+	return objects
 }
 
 type ColliderOptions struct {
@@ -290,10 +290,10 @@ type ColliderOptions struct {
 	hitSpaces map[SpaceType]bool
 	hitSolids bool
 }
-func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ThingHeap {
-	heap := make(ThingHeap, 0)
+func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ObjectHeap {
+	heap := make(ObjectHeap, 0)
 
-	for sid, thing := range(g.getNearbyThings(prof)) {
+	for sid, object := range(g.getNearbyObjects(prof)) {
 		if options.self == sid {
 			continue
 		}
@@ -306,7 +306,7 @@ func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ThingHeap {
 		} else {
 			evaluate = true
 		}
-		if options.hitSolids && thing.GetProfile().Solid() {
+		if options.hitSolids && object.GetProfile().Solid() {
 			evaluate = true
 		}
 
@@ -314,11 +314,11 @@ func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ThingHeap {
 			continue
 		}
 
-		results := prof.Overlap(thing.GetProfile())
+		results := prof.Overlap(object.GetProfile())
 		if results.overlap {
-			item := &ThingItem {
+			item := &ObjectItem {
 				id: sid.GetId(),
-				thing: thing,
+				object: object,
 			}
 			heap.Push(item)
 			heap.priority(item, results.amount)
@@ -333,12 +333,12 @@ func (g *Grid) GetHits(line Line, options ColliderOptions) *Hit {
 	coord := g.getCoord(line.O)
 	for {
 		closest := 1.0
-		for id, thing := range(g.grid[coord]) {
+		for id, object := range(g.grid[coord]) {
 			if id == options.self {
 				continue
 			}
 
-			results := thing.GetProfile().Intersects(line)
+			results := object.GetProfile().Intersects(line)
 			if !results.hit {
 				continue
 			}
@@ -349,7 +349,7 @@ func (g *Grid) GetHits(line Line, options ColliderOptions) *Hit {
 
 			if results.t < closest {
 				hit = NewHit()
-				hit.SetTarget(thing.GetSpacedId())
+				hit.SetTarget(object.GetSpacedId())
 				hit.SetPos(point)
 
 				closest = results.t
@@ -428,13 +428,13 @@ func (g* Grid) getCoords(prof Profile) []GridCoord {
 	return coords
 }
 
-func (g *Grid) getNearbyThings(prof Profile) map[SpacedId]Thing {
-	nearbyThings := make(map[SpacedId]Thing)
+func (g *Grid) getNearbyObjects(prof Profile) map[SpacedId]Object {
+	nearbyObjects := make(map[SpacedId]Object)
 
 	for _, coord := range(g.getCoords(prof)) {
-		for id, thing := range(g.grid[coord]) {
-			nearbyThings[id] = thing
+		for id, object := range(g.grid[coord]) {
+			nearbyObjects[id] = object
 		}
 	}
-	return nearbyThings
+	return nearbyObjects
 }

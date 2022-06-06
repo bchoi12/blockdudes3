@@ -4,7 +4,7 @@ type ProfileMath interface {
 	Contains(point Vec2) ContainResults
 	Intersects(line Line) IntersectResults
 	Overlap(profile Profile) OverlapResults
-	Snap(colliders ThingHeap) SnapResults
+	Snap(colliders ObjectHeap) SnapResults
 
 	getIgnored() map[SpacedId]bool
 	resetIgnored()

@@ -18,7 +18,7 @@ func NewBolt(init Init) *Bolt {
 	points[3] = NewVec2(width/2, -height/2)
 	profile := NewRotPoly(init, NewData(), points)
 	bolt := &Bolt {
-		Projectile: NewProjectile(NewObject(profile, NewData())),
+		Projectile: NewProjectile(NewBaseObject(profile, NewData())),
 	}
 	bolt.SetTTL(800 * time.Millisecond)
 	bolt.SetDamage(10)

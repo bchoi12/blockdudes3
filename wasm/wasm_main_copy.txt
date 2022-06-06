@@ -70,7 +70,7 @@ func setGlobals() {
 	js.Global().Set("initializedProp", int(initializedProp))
 	js.Global().Set("deletedProp", int(deletedProp))
 
-	js.Global().Set("classProp", int(classProp))
+	js.Global().Set("attributeProp", int(attributeProp))
 	js.Global().Set("dimProp", int(dimProp))
 	js.Global().Set("posProp", int(posProp))
 	js.Global().Set("velProp", int(velProp))
@@ -279,9 +279,9 @@ func getData(data js.Value) Data {
 		d.Set(deletedProp, prop.Bool())
 	}
 
-	prop, err = getPropData(data, classProp)
+	prop, err = getPropData(data, attributeProp)
 	if err == nil {
-		d.Set(classProp, parseClassAsProp(prop.String()))
+		d.Set(attributeProp, parseAttributeAsProp(prop.String()))
 	}
 
 	prop, err = getPropData(data, dimProp)
@@ -405,14 +405,14 @@ func parseKeysAsProp(keyStr string) map[KeyType]bool {
 	return keys
 }
 
-func parseClassAsProp(classStr string) map[ClassType]bool {
-	class := make(map[ClassType]bool)
-	for _, key := range(strings.Split(classStr, ",")) {
+func parseAttributeAsProp(attributeStr string) map[AttributeType]bool {
+	attribute := make(map[AttributeType]bool)
+	for _, key := range(strings.Split(attributeStr, ",")) {
 		int, err := strconv.Atoi(key)
 		if err != nil {
 			continue
 		}
-		class[ClassType(int)] = true
+		attribute[AttributeType(int)] = true
 	}
-	return class
+	return attribute
 }

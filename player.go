@@ -36,7 +36,7 @@ const (
 )
 
 type Player struct {
-	Object
+	BaseObject
 	weapon Weapon
 
 	canJump bool
@@ -73,7 +73,7 @@ func NewPlayer(init Init) *Player {
 	weapon.SetWeaponType(bazookaWeapon)
 
 	player := &Player {
-		Object: NewObject(profile, NewData()),
+		BaseObject: NewBaseObject(profile, NewData()),
 		weapon: weapon,
 
 		canJump: false,
@@ -95,14 +95,14 @@ func NewPlayer(init Init) *Player {
 
 func (p Player) GetInitData() Data {
 	data := NewData()
-	data.Merge(p.Object.GetInitData())
+	data.Merge(p.BaseObject.GetInitData())
 	data.Merge(p.weapon.GetInitData())
 	return data
 }
 
 func (p Player) GetData() Data {
 	data := NewData()
-	data.Merge(p.Object.GetData())
+	data.Merge(p.BaseObject.GetData())
 	data.Merge(p.weapon.GetData())
 
 	data.Set(dirProp, p.Dir())
@@ -120,7 +120,7 @@ func (p Player) GetData() Data {
 
 func (p Player) GetUpdates() Data {
 	updates := NewData()
-	updates.Merge(p.Object.GetUpdates())
+	updates.Merge(p.BaseObject.GetUpdates())
 	updates.Merge(p.weapon.GetUpdates())
 	return updates
 }
@@ -130,7 +130,7 @@ func (p *Player) SetData(data Data) {
 		return
 	}
 
-	p.Object.SetData(data)
+	p.BaseObject.SetData(data)
 	p.weapon.SetData(data)
 
 	if data.Has(keysProp) {
@@ -280,7 +280,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 }
 
 func (p *Player) Postprocess(grid *Grid, now time.Time) {
-	p.Object.Postprocess(grid, now)
+	p.BaseObject.Postprocess(grid, now)
 
 	p.weapon.SetPos(p.GetSubProfile(bodySubProfile).Pos())
 	if p.keyDown(mouseClick) {
@@ -301,7 +301,7 @@ func (p *Player) checkCollisions(grid *Grid) {
 
 	colliders = grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId()})
 	for len(colliders) > 0 {
-		collider := PopThing(&colliders)
+		collider := PopObject(&colliders)
 		other := collider.GetProfile()
 
 		results := p.Overlap(other)

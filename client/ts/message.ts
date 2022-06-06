@@ -6,7 +6,7 @@ import { Util } from './util.js'
 export class Message {
 	private readonly _weightedExtrapolateProps : Set<number> = new Set<number>([posProp, velProp, accProp]);
 	private readonly _ignoreExtrapolateProps : Set<number> = new Set<number>([groundedProp]);
-	private readonly _arrayProps : Set<number> = new Set<number>([classProp, keysProp]);
+	private readonly _arrayProps : Set<number> = new Set<number>([attributeProp, keysProp]);
 
 	private _data : Map<number, any>;
 	private _seqNum : Map<number, number>;

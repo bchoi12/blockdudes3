@@ -23,35 +23,35 @@ func newGame() *Game {
 	return game
 }
 
-func (g *Game) add(init Init) Thing {
-	var thing Thing
+func (g *Game) add(init Init) Object {
+	var object Object
 
 	// TODO: move this logic to grid
 	switch init.GetSpace() {
 	case playerSpace:
-		thing = NewPlayer(init)
+		object = NewPlayer(init)
 	case wallSpace:
-		thing = NewWall(init)
+		object = NewWall(init)
 	case platformSpace:
-		thing = NewPlatform(init)
+		object = NewPlatform(init)
 	case bombSpace:
-		thing = NewBomb(init)
+		object = NewBomb(init)
 	case boltSpace:
-		thing = NewBolt(init)
+		object = NewBolt(init)
 	case rocketSpace:
-		thing = NewRocket(init)
+		object = NewRocket(init)
 	case explosionSpace:
-		thing = NewExplosion(init)
+		object = NewExplosion(init)
 	case pickupSpace:
-		thing = NewPickup(init)
+		object = NewPickup(init)
 	default:
 		Debug("Unknown space! %+v", init)
 	}
 
-	if thing != nil {
-		g.grid.Upsert(thing)
+	if object != nil {
+		g.grid.Upsert(object)
 	}
-	return thing
+	return object
 }
 
 func (g *Game) has(sid SpacedId) bool {
@@ -75,9 +75,9 @@ func (g *Game) setData(sid SpacedId, data Data) {
 		panic("setData called outside of WASM")
 	}
 
-	thing := g.grid.Get(sid)
-	thing.SetData(data)
-	g.grid.Upsert(thing)
+	object := g.grid.Get(sid)
+	object.SetData(data)
+	g.grid.Upsert(object)
 }
 
 func (g *Game) processKeyMsg(id IdType, keyMsg KeyMsg) {
@@ -98,7 +98,7 @@ func (g *Game) updateState() {
 func (g* Game) createPlayerInitMsg(id IdType) PlayerInitMsg {
 	players := make(PlayerPropMap)
 
-	for _, player := range(g.grid.GetThings(playerSpace)) {
+	for _, player := range(g.grid.GetObjects(playerSpace)) {
 		players[player.GetId()] = player.GetInitData().Props()
 	}
 
@@ -119,10 +119,10 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 func (g *Game) createObjectInitMsg() GameStateMsg {
 	objs := make(ObjectPropMap)
 
-	for space, things := range(g.grid.GetManyThings(platformSpace, wallSpace)) {
+	for space, objects := range(g.grid.GetManyObjects(platformSpace, wallSpace)) {
 		objs[space] = make(SpacedPropMap)
-		for id, thing := range(things) {
-			objs[space][id] = thing.GetInitData().Props()
+		for id, object := range(objects) {
+			objs[space][id] = object.GetInitData().Props()
 		}
 	}
 

@@ -85,7 +85,7 @@ func (r Rec2) Overlap(profile Profile) OverlapResults {
 	return results
 }
 
-func (r *Rec2) Snap(colliders ThingHeap) SnapResults {
+func (r *Rec2) Snap(colliders ObjectHeap) SnapResults {
 	ignored := r.getIgnored()
 	results := r.BaseProfile.Snap(colliders)
 
@@ -97,7 +97,7 @@ func (r *Rec2) Snap(colliders ThingHeap) SnapResults {
 
 	r.resetIgnored()
 	for len(colliders) > 0 {
-		thing := PopThing(&colliders)
+		thing := PopObject(&colliders)
 		curResults := r.snapThing(thing, ignored)
 
 		if curResults.snap {
@@ -134,7 +134,7 @@ func (r *Rec2) Snap(colliders ThingHeap) SnapResults {
 	return results
 }
 
-func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
+func (r *Rec2) snapThing(other Object, ignored map[SpacedId]bool) SnapResults {
 	results := NewSnapResults()
 	ox, oxLarge := r.dimOverlapX(other)
 	if ox <= 0 {
@@ -174,7 +174,7 @@ func (r *Rec2) snapThing(other Thing, ignored map[SpacedId]bool) SnapResults {
 	}
 
 	// Special treatment for other object types
-	if other.HasClass(stairClass) {
+	if other.HasAttribute(stairAttribute) {
 		adjSign.X = 0
 		adjSign.Y = 1
 

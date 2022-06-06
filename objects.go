@@ -4,18 +4,18 @@ import (
 	"time"
 )
 
-func NewRec2Object(init Init) Object {
+func NewRec2Object(init Init) BaseObject {
 	profile := NewRec2(init, NewData())
-	return NewObject(profile, NewData())
+	return NewBaseObject(profile, NewData())
 }
 
-func NewCircleObject(init Init) Object {
+func NewCircleObject(init Init) BaseObject {
 	profile := NewCircle(init, NewData())
-	return NewObject(profile, NewData())
+	return NewBaseObject(profile, NewData())
 }
 
 type Wall struct {
-	Object
+	BaseObject
 }
 
 func NewWall(init Init) *Wall {
@@ -23,12 +23,12 @@ func NewWall(init Init) *Wall {
 	profile.SetSolid(true)
 	profile.SetStatic(true)
 	return &Wall {
-		Object: NewObject(profile, NewData()),
+		BaseObject: NewBaseObject(profile, NewData()),
 	}
 }
 
 type Platform struct {
-	Object
+	BaseObject
 
 	xBounded bool
 	xmin float64
@@ -44,7 +44,7 @@ func NewPlatform(init Init) *Platform {
 	profile.SetSolid(true)
 	profile.SetStatic(true)
 	return &Platform {
-		Object: NewObject(profile, NewData()),
+		BaseObject: NewBaseObject(profile, NewData()),
 		xBounded: false,
 		yBounded: false,
 	}
@@ -91,12 +91,12 @@ func (p *Platform) UpdateState(grid *Grid, now time.Time) bool {
 }
 
 type Bomb struct {
-	Object
+	BaseObject
 }
 
 func NewBomb(init Init) *Bomb {
 	bomb := &Bomb {
-		Object: NewCircleObject(init),
+		BaseObject: NewCircleObject(init),
 	}
 	bomb.SetTTL(1200 * time.Millisecond)
 	return bomb
@@ -124,14 +124,14 @@ func (b *Bomb) UpdateState(grid *Grid, now time.Time) bool {
 }
 
 type Explosion struct {
-	Object
+	BaseObject
 	hits map[SpacedId]bool
 	activeFrames int
 }
 
 func NewExplosion(init Init) *Explosion {
 	explosion := &Explosion {
-		Object: NewCircleObject(init),
+		BaseObject: NewCircleObject(init),
 		hits: make(map[SpacedId]bool, 0),
 		activeFrames: 3,
 	}
@@ -191,7 +191,7 @@ func (e *Explosion) GetData() Data {
 }
 
 type Pickup struct {
-	Object
+	BaseObject
 
 	weaponType WeaponType
 }
@@ -199,7 +199,7 @@ type Pickup struct {
 func NewPickup(init Init) *Pickup {
 	profile := NewRec2(init, NewData())
 	pickup := &Pickup {
-		Object: NewObject(profile, NewData()),
+		BaseObject: NewBaseObject(profile, NewData()),
 		weaponType: unknownWeapon,
 	}
 

@@ -4,16 +4,41 @@ import (
 	"time"
 )
 
+// TODO: move to different Attachment class
 type Attachment struct {
-	thing Thing
+	object Object
 	offset Vec2
 }
 
-type Object struct {
+type Component interface {
+	GetInitData() Data
+	GetData() Data
+	GetUpdates() Data
+	SetData(data Data)
+}
+
+type Object interface {
+	InitMethods
+	Profile
+	Component
+
+	GetProfile() Profile
+	GetParent() Attachment
+	SetParent(attach Attachment)
+	GetChildren() []Attachment
+	AddChild(attach Attachment)
+
+	HasAttribute(attribute AttributeType) bool
+
+	UpdateState(grid *Grid, now time.Time) bool
+	Postprocess(grid *Grid, now time.Time)
+}
+
+type BaseObject struct {
 	Profile
 	Health
 	Expiration
-	Class
+	Attribute
 
 	parent Attachment
 	children []Attachment
@@ -21,19 +46,19 @@ type Object struct {
 	lastUpdateTime time.Time
 }
 
-func NewObject(profile Profile, data Data) Object {
-	object := Object {
+func NewBaseObject(profile Profile, data Data) BaseObject {
+	object := BaseObject {
 		Profile: profile,
 		Health: NewHealth(),
 		Expiration: NewExpiration(),
-		Class: NewClass(),
+		Attribute: NewAttribute(),
 		lastUpdateTime: time.Time{},
 	}
 	object.SetData(data)
 	return object
 }
 
-func (o *Object) PrepareUpdate(now time.Time) float64 {
+func (o *BaseObject) PrepareUpdate(now time.Time) float64 {
 	ts := GetTimestep(now, o.lastUpdateTime)
 	if ts >= 0 {
 		o.lastUpdateTime = now
@@ -41,76 +66,76 @@ func (o *Object) PrepareUpdate(now time.Time) float64 {
 	return Max(0, ts)
 }
 
-func (o Object) GetProfile() Profile {
+func (o BaseObject) GetProfile() Profile {
 	return o.Profile
 }
 
-func (o *Object) UpdateState(grid *Grid, now time.Time) bool {
+func (o *BaseObject) UpdateState(grid *Grid, now time.Time) bool {
 	return false
 }
 
-func (o *Object) Postprocess(grid *Grid, now time.Time) {
+func (o *BaseObject) Postprocess(grid *Grid, now time.Time) {
 	if len(o.GetChildren()) > 0 {
 		o.UpdateChildren(grid, now)
 	}
 }
 
-func (o *Object) AddChild(attach Attachment) {
+func (o *BaseObject) AddChild(attach Attachment) {
 	o.children = append(o.children, attach)
-	attach.thing.SetParent(Attachment {o, attach.offset})
+	attach.object.SetParent(Attachment {o, attach.offset})
 }
-func (o *Object) SetParent(attach Attachment) {
+func (o *BaseObject) SetParent(attach Attachment) {
 	o.parent = attach
 }
-func (o *Object) GetParent() Attachment {
+func (o *BaseObject) GetParent() Attachment {
 	return o.parent
 }
-func (o *Object) GetChildren() []Attachment {
+func (o *BaseObject) GetChildren() []Attachment {
 	return o.children
 }
 
-func (o *Object) UpdateChildren(grid *Grid, now time.Time) {
+func (o *BaseObject) UpdateChildren(grid *Grid, now time.Time) {
 	for _, attachment := range(o.children) {
 		childPos := o.Pos()
 		childPos.Add(attachment.offset, 1.0)
-		attachment.thing.SetPos(childPos)
-		attachment.thing.SetVel(o.TotalVel())
-		attachment.thing.SetAcc(o.Acc())
+		attachment.object.SetPos(childPos)
+		attachment.object.SetVel(o.TotalVel())
+		attachment.object.SetAcc(o.Acc())
 
-		grid.Upsert(attachment.thing)
+		grid.Upsert(attachment.object)
 	}
 }
 
-func (o *Object) SetData(data Data) {
+func (o *BaseObject) SetData(data Data) {
 	if data.Size() == 0 {
 		return
 	}
 	o.Profile.SetData(data)
 	o.Health.SetData(data)
-	o.Class.SetData(data)
+	o.Attribute.SetData(data)
 	o.lastUpdateTime = time.Now()
 }
 
-func (o Object) GetInitData() Data {
+func (o BaseObject) GetInitData() Data {
 	data := NewData()
 	data.Merge(o.Profile.GetInitData())
 	data.Merge(o.Health.GetInitData())
-	data.Merge(o.Class.GetInitData())
+	data.Merge(o.Attribute.GetInitData())
 	return data
 }
 
-func (o Object) GetData() Data {
+func (o BaseObject) GetData() Data {
 	data := NewData()
 	data.Merge(o.Profile.GetData())
 	data.Merge(o.Health.GetData())
-	data.Merge(o.Class.GetData())
+	data.Merge(o.Attribute.GetData())
 	return data
 }
 
-func (o Object) GetUpdates() Data {
+func (o BaseObject) GetUpdates() Data {
 	updates := NewData()
 	updates.Merge(o.Profile.GetUpdates())
 	updates.Merge(o.Health.GetUpdates())
-	updates.Merge(o.Class.GetUpdates())
+	updates.Merge(o.Attribute.GetUpdates())
 	return updates
 }

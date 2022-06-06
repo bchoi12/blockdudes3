@@ -327,7 +327,7 @@ func (bp BaseProfile) Overlap(profile Profile) OverlapResults {
 	return results
 }
 
-func (bp BaseProfile) Snap(colliders ThingHeap) SnapResults {
+func (bp BaseProfile) Snap(colliders ObjectHeap) SnapResults {
 	results := NewSnapResults()
 	for _, sp := range(bp.subProfiles) {
 		results.Merge(sp.Snap(colliders))

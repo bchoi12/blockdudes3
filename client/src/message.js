@@ -4,7 +4,7 @@ export class Message {
     constructor() {
         this._weightedExtrapolateProps = new Set([posProp, velProp, accProp]);
         this._ignoreExtrapolateProps = new Set([groundedProp]);
-        this._arrayProps = new Set([classProp, keysProp]);
+        this._arrayProps = new Set([attributeProp, keysProp]);
         this._data = new Map();
         this._seqNum = new Map();
         this._lastUpdate = Date.now();

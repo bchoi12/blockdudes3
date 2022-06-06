@@ -5,7 +5,7 @@ import (
 )
 
 type Projectile struct {
-	Object
+	BaseObject
 	owner *State
 	hits []*Hit
 
@@ -14,9 +14,9 @@ type Projectile struct {
 	explode bool
 }
 
-func NewProjectile(object Object) Projectile {
+func NewProjectile(object BaseObject) Projectile {
 	return Projectile {
-		Object: object,
+		BaseObject: object,
 		owner: NewBlankState(InvalidId()),
 		hits: make([]*Hit, 0),
 
@@ -88,7 +88,7 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 	})
 
 	for len(colliders) > 0 {
-		collider := PopThing(&colliders)
+		collider := PopObject(&colliders)
 
 		results := p.Overlap(collider.GetProfile())
 		if collider.GetSpacedId() == p.GetOwner() || !results.overlap {
@@ -101,7 +101,7 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 	return true
 }
 
-func (p *Projectile) Collide(collider Thing, grid *Grid) {
+func (p *Projectile) Collide(collider Object, grid *Grid) {
 	if collider != nil {
 		p.Hit(collider)
 	}
@@ -113,7 +113,7 @@ func (p *Projectile) Collide(collider Thing, grid *Grid) {
 	grid.Delete(p.GetSpacedId())
 }
 
-func (p *Projectile) Hit(collider Thing) {
+func (p *Projectile) Hit(collider Object) {
 	hit := NewHit()
 	hit.SetTarget(collider.GetSpacedId())
 	hit.SetPos(p.Pos())
@@ -127,7 +127,7 @@ func (p *Projectile) Hit(collider Thing) {
 
 func (p *Projectile) GetInitData() Data {
 	data := NewData()
-	data.Merge(p.Object.GetInitData())
+	data.Merge(p.BaseObject.GetInitData())
 
 	if p.owner.Has() {
 		data.Set(ownerProp, p.owner.Peek())
@@ -139,7 +139,7 @@ func (p *Projectile) GetInitData() Data {
 
 func (p *Projectile) GetData() Data {
 	data := NewData()
-	data.Merge(p.Object.GetData())
+	data.Merge(p.BaseObject.GetData())
 
 	if owner, ok := p.owner.Pop(); ok {
 		data.Set(ownerProp, owner)
@@ -150,7 +150,7 @@ func (p *Projectile) GetData() Data {
 
 func (p *Projectile) GetUpdates() Data {
 	updates := NewData()
-	updates.Merge(p.Object.GetUpdates())
+	updates.Merge(p.BaseObject.GetUpdates())
 
 	if owner, ok := p.owner.GetOnce(); ok {
 		updates.Set(ownerProp, owner)
