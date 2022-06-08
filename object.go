@@ -18,9 +18,7 @@ type Component interface {
 }
 
 type Object interface {
-	InitMethods
 	Profile
-	Component
 
 	GetProfile() Profile
 	GetParent() Attachment

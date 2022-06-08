@@ -25,7 +25,6 @@ declare var objectUpdateType : number;
 declare var playerInitType : number;
 declare var levelInitType : number;
 
-declare var systemSpace : number;
 declare var playerSpace : number;
 declare var wallSpace : number;
 declare var bombSpace : number;

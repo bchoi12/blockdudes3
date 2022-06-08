@@ -13,6 +13,7 @@ type ProfileKey uint8
 type Profile interface {
 	InitMethods
 	ProfileMath
+	Component
 
 	Pos() Vec2
 	SetPos(pos Vec2)
@@ -38,10 +39,6 @@ type Profile interface {
 	SetGrounded(grounded bool)
 	Static() bool
 	SetStatic(static bool)
-
-	GetData() Data
-	GetUpdates() Data
-	SetData(data Data)
 
 	AddSubProfile(key ProfileKey, subProfile SubProfile)
 	GetSubProfile(key ProfileKey) SubProfile

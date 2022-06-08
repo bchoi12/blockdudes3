@@ -98,7 +98,7 @@ func (r *Rec2) Snap(colliders ObjectHeap) SnapResults {
 	r.resetIgnored()
 	for len(colliders) > 0 {
 		thing := PopObject(&colliders)
-		curResults := r.snapThing(thing, ignored)
+		curResults := r.snapObject(thing, ignored)
 
 		if curResults.snap {
 			pos := r.Pos()
@@ -134,14 +134,14 @@ func (r *Rec2) Snap(colliders ObjectHeap) SnapResults {
 	return results
 }
 
-func (r *Rec2) snapThing(other Object, ignored map[SpacedId]bool) SnapResults {
+func (r *Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 	results := NewSnapResults()
-	ox, oxLarge := r.dimOverlapX(other)
-	if ox <= 0 {
+	oxSmall, oxLarge := r.dimOverlapX(other)
+	if oxSmall <= 0 {
 		return results
 	}
-	oy, oyLarge := r.dimOverlapY(other)
-	if oy <= 0 {
+	oySmall, oyLarge := r.dimOverlapY(other)
+	if oySmall <= 0 {
 		return results
 	}
 	if _, ok := ignored[other.GetSpacedId()]; ok {
@@ -158,6 +158,8 @@ func (r *Rec2) snapThing(other Object, ignored map[SpacedId]bool) SnapResults {
 	adjSign := NewVec2(-FSign(relativeVel.X), -FSign(relativeVel.Y))
 
 	// Check if we somehow got past the midpoint of the object
+	ox := oxSmall
+	oy := oySmall
 	if relativeVel.X != 0 && Sign(relativePos.X) == Sign(relativeVel.X) {
 		ox = oxLarge
 	}
@@ -178,19 +180,10 @@ func (r *Rec2) snapThing(other Object, ignored map[SpacedId]bool) SnapResults {
 		adjSign.X = 0
 		adjSign.Y = 1
 
-		// TODO: this sucks
-		temp, overlapLarge := r.dimOverlapY(other)
 		if relativePos.Y < 0 {
-			oy = overlapLarge
+			oy = oyLarge
 		} else {
-			oy = temp
-		}
-	}
-
-	if other.GetSpace() == platformSpace {
-		adjSign.X = 0
-		if adjSign.Y < 0 {
-			adjSign.Y = 0
+			oy = oySmall
 		}
 	}
 
@@ -221,6 +214,14 @@ func (r *Rec2) snapThing(other Object, ignored map[SpacedId]bool) SnapResults {
 		if tx > ty {
 			adjSign.X = 0
 		} else if ty > tx {
+			adjSign.Y = 0
+		}
+	}
+
+	// Adjust platform collision at the end after we've determined collision direction.
+	if other.GetSpace() == platformSpace {
+		adjSign.X = 0
+		if adjSign.Y < 0 {
 			adjSign.Y = 0
 		}
 	}

@@ -50,7 +50,6 @@ func setGlobals() {
 	js.Global().Set("playerInitType", int(playerInitType))
 	js.Global().Set("levelInitType", int(levelInitType))
 
-	js.Global().Set("systemSpace", int(systemSpace))
 	js.Global().Set("playerSpace", int(playerSpace))
 	js.Global().Set("wallSpace", int(wallSpace))
 	js.Global().Set("platformSpace", int(platformSpace))

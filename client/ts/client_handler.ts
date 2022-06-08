@@ -150,8 +150,7 @@ export class ClientHandler {
 			return;
 		}
 
-		// TODO: this might need to be the list of clients from the message.
-		// Send an offer to all existing clients.
+		// Send an offer to all clients as directed by the server.
 		for (const [stringId, client] of Object.entries(clients) as [string, any]) {
 			const clientId = Number(stringId);
 			if (clientId == connection.id()) continue;

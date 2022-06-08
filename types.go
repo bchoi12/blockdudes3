@@ -39,15 +39,9 @@ const (
 )
 
 type IdType uint16
-const (
-	unknownSystemId IdType = iota
-	scoreBoardSystemId
-)
-
 type SpaceType uint8
 const (
 	unknownSpace SpaceType = iota
-	systemSpace
 	playerSpace
 	wallSpace
 	platformSpace
