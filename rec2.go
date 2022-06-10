@@ -175,18 +175,6 @@ func (r *Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 		adjSign.Y = FSign(relativePos.Y)
 	}
 
-	// Special treatment for other object types
-	if other.HasAttribute(stairAttribute) {
-		adjSign.X = 0
-		adjSign.Y = 1
-
-		if relativePos.Y < 0 {
-			oy = oyLarge
-		} else {
-			oy = oySmall
-		}
-	}
-
 	// Check for tiny collisions that we can ignore
 	if adjSign.X != 0 && adjSign.Y != 0 {
 		if Sign(adjSign.X) != Sign(relativeVel.X) && oy < overlapEpsilon {
@@ -216,6 +204,21 @@ func (r *Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 		} else if ty > tx {
 			adjSign.Y = 0
 		}
+	}
+
+	// Special treatment for other object types
+	if other.HasAttribute(stairAttribute) && adjSign.X != 0 {
+		adjSign.X = 0
+		adjSign.Y = 1
+
+		if relativePos.Y < 0 {
+			oy = oyLarge
+		} else {
+			oy = oySmall
+		}
+
+		// Smooth ascent
+		oy = Min(oy, 0.2)
 	}
 
 	// Adjust platform collision at the end after we've determined collision direction.
