@@ -5,7 +5,7 @@ export var SceneComponentType;
     SceneComponentType[SceneComponentType["LIGHTING"] = 1] = "LIGHTING";
     SceneComponentType[SceneComponentType["WEATHER"] = 2] = "WEATHER";
     SceneComponentType[SceneComponentType["PARTICLES"] = 3] = "PARTICLES";
-    SceneComponentType[SceneComponentType["FOREGROUND"] = 4] = "FOREGROUND";
+    SceneComponentType[SceneComponentType["DECORATION"] = 4] = "DECORATION";
 })(SceneComponentType || (SceneComponentType = {}));
 export class SceneComponent {
     constructor() {

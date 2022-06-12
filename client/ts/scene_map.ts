@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { Foreground } from './foreground.js'
+import { Decoration } from './decoration.js'
 import { Lighting } from './lighting.js'
 import { Particles } from './particles.js'
 import { RenderMesh } from './render_mesh.js'
@@ -34,7 +34,7 @@ export class SceneMap {
 		this.addComponent(SceneComponentType.LIGHTING, new Lighting());
 		this.addComponent(SceneComponentType.WEATHER, new Weather());
 		this.addComponent(SceneComponentType.PARTICLES, new Particles());
-		this.addComponent(SceneComponentType.FOREGROUND, new Foreground());
+		this.addComponent(SceneComponentType.DECORATION, new Decoration());
 	}
 
 	addComponent(type : SceneComponentType, component : SceneComponent) : void {

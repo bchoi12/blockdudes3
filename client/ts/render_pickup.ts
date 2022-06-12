@@ -12,7 +12,7 @@ export class RenderPickup extends RenderObject {
 	override initialize() : void {
 		super.initialize();
 
-		loader.load(Model.UZI, (mesh) => {
+		loader.load(Model.BAZOOKA, (mesh) => {
 			this.setMesh(mesh);
 		});
 	}

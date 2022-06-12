@@ -7,7 +7,7 @@ export enum SceneComponentType {
 	LIGHTING = 1,
 	WEATHER = 2,
 	PARTICLES = 3,
-	FOREGROUND = 4,
+	DECORATION = 4,
 }
 
 export abstract class SceneComponent {
