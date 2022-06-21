@@ -6,7 +6,7 @@ export class RenderPickup extends RenderObject {
     }
     initialize() {
         super.initialize();
-        loader.load(Model.BAZOOKA, (mesh) => {
+        loader.load(Model.UZI, (mesh) => {
             this.setMesh(mesh);
         });
     }

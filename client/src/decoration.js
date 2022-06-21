@@ -59,7 +59,6 @@ export class Decoration extends SceneComponent {
         let center = new THREE.Vector2();
         box.getSize(size);
         box.getCenter(center);
-        console.log(size + " " + center);
         const backWall = new THREE.Mesh(new THREE.BoxGeometry(size.x, size.y, 0.5), this._backMaterial);
         backWall.position.x = center.x;
         backWall.position.y = center.y;
