@@ -68,7 +68,7 @@ func setGlobals() {
 	js.Global().Set("initializedProp", int(initializedProp))
 	js.Global().Set("deletedProp", int(deletedProp))
 
-	js.Global().Set("attributeProp", int(attributeProp))
+	js.Global().Set("attributesProp", int(attributesProp))
 	js.Global().Set("dimProp", int(dimProp))
 	js.Global().Set("posProp", int(posProp))
 	js.Global().Set("velProp", int(velProp))
@@ -81,8 +81,6 @@ func setGlobals() {
 
 	js.Global().Set("keysProp", int(keysProp))
 	js.Global().Set("healthProp", int(healthProp))
-	js.Global().Set("solidProp", int(solidProp))
-	js.Global().Set("groundedProp", int(groundedProp))
 
 	js.Global().Set("ownerProp", int(ownerProp))
 	js.Global().Set("targetProp", int(targetProp))
@@ -93,6 +91,11 @@ func setGlobals() {
 	js.Global().Set("profileDimProp", int(profileDimProp))
 	js.Global().Set("profilePosProp", int(profilePosProp))
 	js.Global().Set("profilePointsProp", int(profilePointsProp))
+
+	js.Global().Set("stairAttribute", int(stairAttribute))
+	js.Global().Set("platformAttribute", int(platformAttribute))
+	js.Global().Set("groundedAttribute", int(groundedAttribute))
+	js.Global().Set("solidAttribute", int(solidAttribute))
 
 	js.Global().Set("upKey", int(upKey))
 	js.Global().Set("downKey", int(downKey))
@@ -282,9 +285,9 @@ func getData(data js.Value) Data {
 		d.Set(deletedProp, prop.Bool())
 	}
 
-	prop, err = getPropData(data, attributeProp)
+	prop, err = getPropData(data, attributesProp)
 	if err == nil {
-		d.Set(attributeProp, parseAttributeAsProp(prop.String()))
+		d.Set(attributesProp, parseAttributeAsProp(prop.String()))
 	}
 
 	prop, err = getPropData(data, dimProp)
@@ -340,16 +343,6 @@ func getData(data js.Value) Data {
 	prop, err = getPropData(data, healthProp)
 	if err == nil {
 		d.Set(healthProp, prop.Int())
-	}
-
-	prop, err = getPropData(data, solidProp)
-	if err == nil {
-		d.Set(solidProp, prop.Bool())
-	}
-
-	prop, err = getPropData(data, groundedProp)
-	if err == nil {
-		d.Set(groundedProp, prop.Bool())
 	}
 
 	prop, err = getPropData(data, ownerProp)

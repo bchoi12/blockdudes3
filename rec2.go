@@ -129,8 +129,6 @@ func (r *Rec2) Snap(colliders ObjectHeap) SnapResults {
 		}	
 	}
 
-	// Only set this once
-	r.SetGrounded(results.posAdj.Y > 0)
 	return results
 }
 
@@ -148,7 +146,7 @@ func (r *Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 		r.addIgnored(other.GetSpacedId())
 		return results
 	}
-	if !other.Solid() {
+	if !other.HasAttribute(solidAttribute) {
 		return results
 	}
 

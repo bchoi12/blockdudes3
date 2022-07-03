@@ -5,15 +5,16 @@ import { Util } from './util.js'
 
 export class Message {
 	private readonly _weightedExtrapolateProps : Set<number> = new Set<number>([posProp, velProp, accProp]);
-	private readonly _ignoreExtrapolateProps : Set<number> = new Set<number>([groundedProp]);
-	private readonly _arrayProps : Set<number> = new Set<number>([attributeProp, keysProp]);
+	private readonly _setProps : Set<number> = new Set<number>([attributesProp /* merge */, keysProp /* overwrite */]);
 
 	private _data : Map<number, any>;
+	private _sets : Map<number, Map<number, boolean>>;
 	private _seqNum : Map<number, number>;
 	private _lastUpdate : number;
 
 	constructor() {
 		this._data = new Map<number, any>();
+		this._sets = new Map<number, Map<number, boolean>>();
 		this._seqNum = new Map<number, number>();
 		this._lastUpdate = Date.now();
 	}
@@ -28,10 +29,6 @@ export class Message {
 			const prop = Number(stringProp);
 
 			if (!Util.defined(seqNum)) {
-				if (this._ignoreExtrapolateProps.has(prop)) {
-					continue;
-				}
-
 				if (this._weightedExtrapolateProps.has(prop) && this._data.has(prop)) {
 					this._data.set(prop, this.extrapolateVec2(this.get(prop), data, weight));
 				} else {
@@ -53,11 +50,11 @@ export class Message {
 	}
 
 	get(prop : number) : any {
-		return this._data.get(prop);
-	}
+		if (prop === attributesProp) {
+			return this._sets.get(attributesProp);
+		}
 
-	set(prop : number, data : any) : void {
-		this._data.set(prop, data);
+		return this._data.get(prop);
 	}
 
 	lastUpdate() : number {
@@ -65,7 +62,19 @@ export class Message {
 	}
 
 	private sanitizeData(data : Map<number, any>) : void {
-		this._arrayProps.forEach((prop) => {
+		if (data.hasOwnProperty(attributesProp)) {
+			if (!this._sets.has(attributesProp)) {
+				this._sets.set(attributesProp, new Map<number, boolean>());
+			}
+
+			let attributes = this._sets.get(attributesProp);
+			for (const [stringAttribute, value] of Object.entries(data[attributesProp]) as [string, any]) {
+				const attribute = Number(stringAttribute);
+				attributes.set(attribute, value);
+			}
+		}
+
+		this._setProps.forEach((prop) => {
 			if (data.hasOwnProperty(prop)) {
 				const keys = Object.keys(data[prop]);
 				if (keys.length > 0) {

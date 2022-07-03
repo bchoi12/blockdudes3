@@ -57,6 +57,9 @@ const (
 
 	stairAttribute
 	platformAttribute
+
+	solidAttribute
+	groundedAttribute
 )
 
 type LevelIdType uint8

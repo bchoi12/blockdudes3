@@ -69,6 +69,21 @@ export class RenderObject extends RenderMesh {
 		return this._msg.has(deletedProp) && this._msg.get(deletedProp);
 	}
 
+	hasAttributes() : boolean { return this._msg.get(attributesProp); }
+	attributes() : Map<number, boolean> {
+		if (this.hasAttributes()) {
+			return this._msg.get(attributesProp);
+		}
+		return new Map<number, boolean>();
+	}
+	hasAttribute(attribute : number) : boolean { return this.hasAttributes() && this.attributes().has(attribute); }
+	attribute(attribute : number) : boolean {
+		if (this.hasAttribute(attribute)) {
+			return this.attributes().get(attribute);
+		}
+		return false;
+	}
+
 	hasDim() : boolean { return this._msg.has(dimProp); }
 	dim() : THREE.Vector2 {
 		if (this.hasDim()) {
@@ -123,14 +138,6 @@ export class RenderObject extends RenderMesh {
 			return new THREE.Vector2(this._msg.get(equipDirProp).X, this._msg.get(equipDirProp).Y);
 		}
 		return new THREE.Vector2(1, 0);
-	}
-
-	hasGrounded() : boolean { return this._msg.has(groundedProp); }
-	grounded() : boolean {
-		if (this.hasGrounded()) {
-			return this._msg.get(groundedProp);
-		}
-		return true;
 	}
 
 	hasOwner() : boolean { return this._msg.has(ownerProp); }

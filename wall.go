@@ -18,13 +18,13 @@ type Wall struct {
 
 func NewWall(init Init) *Wall {
 	profile := NewRec2(init)
-	profile.SetSolid(true)
-	profile.SetStatic(true)
-	return &Wall {
+	wall := &Wall {
 		BaseObject: NewBaseObject(profile),
 		xBounded: false,
 		yBounded: false,
 	}
+	wall.AddAttribute(solidAttribute)
+	return wall
 }
 
 func (w *Wall) SetXBounds(xmin float64, xmax float64) {
@@ -65,4 +65,13 @@ func (w *Wall) UpdateState(grid *Grid, now time.Time) bool {
 	w.GetProfile().SetVel(vel)
 	w.GetProfile().SetPos(pos)
 	return true
+}
+
+func (w *Wall) GetData() Data {
+	data := NewData()
+	if (w.Vel().IsZero()) {
+		return data
+	}
+
+	return w.BaseObject.GetData()
 }

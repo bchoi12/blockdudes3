@@ -56,8 +56,6 @@ type Player struct {
 
 func NewPlayer(init Init) *Player {
 	profile := NewRec2(init)
-	profile.SetSolid(false)
-	profile.SetGuide(true)
 	points := make([]Vec2, 4)
 	points[0] = NewVec2(0.48, -0.53)
 	points[1] = NewVec2(0.48, 0.53)
@@ -163,7 +161,7 @@ func (p *Player) Respawn() {
 	p.Health.Respawn()
 
 	p.SetHealth(100)
-	p.SetGrounded(false)
+	p.RemoveAttribute(groundedAttribute)
 	p.canDash = true
 
 	rand.Seed(time.Now().Unix())
@@ -171,7 +169,6 @@ func (p *Player) Respawn() {
 	p.SetVel(NewVec2(0, 0))
 	p.SetAcc(NewVec2(0, 0))
 }
-
 
 func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	ts := GetTimestep(now, p.lastUpdateTime)
@@ -189,7 +186,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	vel := p.Vel()
 	evel := p.ExtVel()
 	acc := p.Acc()
-	grounded := p.Grounded()
+	grounded := p.HasAttribute(groundedAttribute)
 
 	// Gravity & air resistance
 	acc.Y = gravityAcc
@@ -297,7 +294,13 @@ func (p *Player) Postprocess(grid *Grid, now time.Time) {
 
 func (p *Player) checkCollisions(grid *Grid) {
 	colliders := grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId(), hitSolids: true})
-	p.Snap(colliders)
+	snapResults := p.Snap(colliders)
+	if snapResults.posAdj.Y > 0 {
+		p.AddAttribute(groundedAttribute)
+	} else {
+		p.RemoveAttribute(groundedAttribute)
+	}
+
 
 	colliders = grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId()})
 	for len(colliders) > 0 {

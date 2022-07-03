@@ -309,7 +309,7 @@ func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ObjectHeap {
 		} else {
 			evaluate = true
 		}
-		if options.hitSolids && object.GetProfile().Solid() {
+		if options.hitSolids && object.HasAttribute(solidAttribute) {
 			evaluate = true
 		}
 

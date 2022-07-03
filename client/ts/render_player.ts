@@ -135,7 +135,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this._arm.position.add(armOffset);
 		}
 
-		const grounded = this.grounded();
+		const grounded = this.attribute(groundedAttribute);
 		if (grounded != this._lastGrounded) {
 			this._lastGrounded = grounded;
 

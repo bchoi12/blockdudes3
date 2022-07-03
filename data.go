@@ -8,7 +8,7 @@ const (
 	initializedProp
 	deletedProp
 
-	attributeProp
+	attributesProp
 	dimProp
 	posProp
 	velProp
@@ -22,9 +22,6 @@ const (
 
 	keysProp
 	healthProp
-	solidProp
-	groundedProp
-
 	ownerProp
 	targetProp
 	hitsProp

@@ -43,7 +43,7 @@ declare var objectStatesProp : number;
 declare var initializedProp : number;
 declare var deletedProp : number;
 
-declare var attributeProp : number;
+declare var attributesProp : number;
 declare var dimProp : number;
 declare var posProp : number;
 declare var velProp : number;
@@ -57,8 +57,6 @@ declare var equipDirProp : number;
 
 declare var keysProp : number;
 declare var healthProp : number;
-declare var solidProp : number;
-declare var groundedProp : number;
 
 declare var ownerProp : number;
 declare var targetProp : number;
@@ -71,6 +69,11 @@ declare var deathProp : number;
 declare var profileDimProp : number;
 declare var profilePosProp : number;
 declare var profilePointsProp : number;
+
+declare var stairAttribute : number;
+declare var platformAttribute : number;
+declare var groundedAttribute : number;
+declare var solidAttribute : number;
 
 declare var upKey : number;
 declare var downKey : number;
