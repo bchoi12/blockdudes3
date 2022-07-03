@@ -222,7 +222,7 @@ func (r *Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 	}
 
 	// Adjust platform collision at the end after we've determined collision direction.
-	if other.GetSpace() == platformSpace {
+	if other.HasAttribute(platformAttribute) {
 		adjSign.X = 0
 		if adjSign.Y < 0 {
 			adjSign.Y = 0
@@ -231,7 +231,7 @@ func (r *Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 
 	// Have overlap, but no pos adjustment for some reason.
 	if adjSign.IsZero() {
-		if other.GetSpace() == platformSpace {
+		if other.HasAttribute(platformAttribute) {
 			r.addIgnored(other.GetSpacedId())
 		}
 		return results

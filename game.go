@@ -32,8 +32,6 @@ func (g *Game) add(init Init) Object {
 		object = NewPlayer(init)
 	case wallSpace:
 		object = NewWall(init)
-	case platformSpace:
-		object = NewPlatform(init)
 	case bombSpace:
 		object = NewBomb(init)
 	case boltSpace:
@@ -119,7 +117,7 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 func (g *Game) createObjectInitMsg() GameStateMsg {
 	objs := make(ObjectPropMap)
 
-	for space, objects := range(g.grid.GetManyObjects(platformSpace, wallSpace)) {
+	for space, objects := range(g.grid.GetManyObjects(wallSpace)) {
 		objs[space] = make(SpacedPropMap)
 		for id, object := range(objects) {
 			objs[space][id] = object.GetInitData().Props()

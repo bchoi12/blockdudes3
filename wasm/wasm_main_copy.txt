@@ -52,7 +52,6 @@ func setGlobals() {
 
 	js.Global().Set("playerSpace", int(playerSpace))
 	js.Global().Set("wallSpace", int(wallSpace))
-	js.Global().Set("platformSpace", int(platformSpace))
 	js.Global().Set("bombSpace", int(bombSpace))
 	js.Global().Set("boltSpace", int(boltSpace))
 	js.Global().Set("rocketSpace", int(rocketSpace))

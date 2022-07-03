@@ -44,7 +44,6 @@ const (
 	unknownSpace SpaceType = iota
 	playerSpace
 	wallSpace
-	platformSpace
 	bombSpace
 	boltSpace
 	rocketSpace

@@ -32,11 +32,13 @@ func (g *Game) createInitBR(space SpaceType, pos Vec2, dim Vec2) Init {
 // TODO: currently loading is done twice in WASM and over network
 func (g *Game) loadTestLevel() {
 	g.add(g.createInitBL(wallSpace, NewVec2(0, -6), NewVec2(8, 12)))
-	g.add(g.createInit(platformSpace, NewVec2(4, 8), NewVec2(3, 0.2)))
+	g.add(g.createInit(wallSpace, NewVec2(4, 8), NewVec2(3, 0.2)))
+	g.grid.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
 
-	g.add(g.createInit(platformSpace, NewVec2(11, 2), NewVec2(3, 0.2)))
-	g.grid.GetLast(platformSpace).(*Platform).SetVel(NewVec2(0, 2))
-	g.grid.GetLast(platformSpace).(*Platform).SetYBounds(2, 5)
+	g.add(g.createInit(wallSpace, NewVec2(11, 2), NewVec2(3, 0.2)))
+	g.grid.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
+	g.grid.GetLast(wallSpace).(*Wall).SetVel(NewVec2(0, 2))
+	g.grid.GetLast(wallSpace).(*Wall).SetYBounds(2, 5)
 
 	g.add(g.createInitBL(wallSpace, NewVec2(14, -6), NewVec2(16, 10)))
 	g.add(g.createInitBL(wallSpace, NewVec2(14, 9), NewVec2(16, 0.5)))
@@ -55,14 +57,19 @@ func (g *Game) loadTestLevel() {
 	g.grid.GetLast(pickupSpace).(*Pickup).SetWeaponType(uziWeapon)
 	g.add(g.createInitBR(wallSpace, NewVec2(30, 7), NewVec2(0.5, 2)))
 
-	g.add(g.createInit(platformSpace, NewVec2(18, 11.5), NewVec2(3, 0.2)))
-	g.add(g.createInit(platformSpace, NewVec2(22, 13.5), NewVec2(3, 0.2)))
-	g.add(g.createInit(platformSpace, NewVec2(26, 11.5), NewVec2(3, 0.2)))
+	g.add(g.createInit(wallSpace, NewVec2(18, 11.5), NewVec2(3, 0.2)))
+	g.grid.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
+	g.add(g.createInit(wallSpace, NewVec2(22, 13.5), NewVec2(3, 0.2)))
+	g.grid.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
+	g.add(g.createInit(wallSpace, NewVec2(26, 11.5), NewVec2(3, 0.2)))
+	g.grid.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
 
-	g.add(g.createInit(platformSpace, NewVec2(33, 2), NewVec2(3, 0.2)))
-	g.grid.GetLast(platformSpace).(*Platform).SetVel(NewVec2(0, 2))
-	g.grid.GetLast(platformSpace).(*Platform).SetYBounds(2, 5)
+	g.add(g.createInit(wallSpace, NewVec2(33, 2), NewVec2(3, 0.2)))
+	g.grid.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
+	g.grid.GetLast(wallSpace).(*Wall).SetVel(NewVec2(0, 2))
+	g.grid.GetLast(wallSpace).(*Wall).SetYBounds(2, 5)
 
 	g.add(g.createInitBL(wallSpace, NewVec2(36, -6), NewVec2(8, 12)))
-	g.add(g.createInit(platformSpace, NewVec2(40, 8), NewVec2(3, 0.2)))
+	g.add(g.createInit(wallSpace, NewVec2(40, 8), NewVec2(3, 0.2)))
+	g.grid.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
 }
