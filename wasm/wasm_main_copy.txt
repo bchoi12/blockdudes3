@@ -76,8 +76,8 @@ func setGlobals() {
 	js.Global().Set("accProp", int(accProp))
 	js.Global().Set("jerkProp", int(jerkProp))
 	js.Global().Set("dirProp", int(dirProp))
-	js.Global().Set("weaponTypeProp", int(weaponTypeProp))
-	js.Global().Set("weaponDirProp", int(weaponDirProp))
+	js.Global().Set("equipTypeProp", int(equipTypeProp))
+	js.Global().Set("equipDirProp", int(equipDirProp))
 
 	js.Global().Set("keysProp", int(keysProp))
 	js.Global().Set("healthProp", int(healthProp))
@@ -127,14 +127,12 @@ func Add(g *Game) js.Func {
 		id := IdType(args[1].Int())
 		init := NewInit(Id(space, id))
 		data := getData(args[2])
-		if data.Has(posProp) {
-			init.SetPos(data.Get(posProp).(Vec2))
-		}
-		if data.Has(dimProp) {
-			init.SetDim(data.Get(dimProp).(Vec2))
-		}
 
-		g.add(init)
+		object := g.add(init)
+
+		if object != nil {
+			object.SetData(data)
+		}
 		return nil
     })
 }
@@ -324,14 +322,14 @@ func getData(data js.Value) Data {
 		d.Set(dirProp, parseVec2(prop))
 	}
 
-	prop, err = getPropData(data, weaponTypeProp)
+	prop, err = getPropData(data, equipTypeProp)
 	if err == nil {
-		d.Set(weaponTypeProp, prop.Int())
+		d.Set(equipTypeProp, prop.Int())
 	}
 
-	prop, err = getPropData(data, weaponDirProp)
+	prop, err = getPropData(data, equipDirProp)
 	if err == nil {
-		d.Set(weaponDirProp, parseVec2(prop))
+		d.Set(equipDirProp, parseVec2(prop))
 	}
 
 	prop, err = getPropData(data, keysProp)

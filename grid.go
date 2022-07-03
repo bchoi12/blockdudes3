@@ -170,6 +170,9 @@ func (g *Grid) Has(sid SpacedId) bool {
 }
 
 func (g *Grid) Get(sid SpacedId) Object {
+	if _, ok := g.spacedObjects[sid.GetSpace()]; !ok {
+		return nil
+	}
 	return g.spacedObjects[sid.GetSpace()][sid.GetId()]
 }
 

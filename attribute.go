@@ -13,11 +13,19 @@ func NewAttribute() Attribute {
 }
 
 func (a *Attribute) AddAttribute(class AttributeType) {
+	if has, ok := a.class[class]; ok && has {
+		return
+	}
+
 	a.changed.Set(true)
 	a.class[class] = true
 }
 
 func (a *Attribute) RemoveAttribute(class AttributeType) {
+	if has, ok := a.class[class]; ok && !has {
+		return
+	}
+
 	a.changed.Set(true)
 	a.class[class] = false
 }

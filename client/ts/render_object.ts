@@ -109,18 +109,18 @@ export class RenderObject extends RenderMesh {
 		return new THREE.Vector2(1, 0);
 	}
 
-	hasWeaponType() : boolean { return this._msg.has(weaponTypeProp); }
+	hasWeaponType() : boolean { return this._msg.has(equipTypeProp); }
 	weaponType() : number {
 		if (this.hasWeaponType()) {
-			return this._msg.get(weaponTypeProp);
+			return this._msg.get(equipTypeProp);
 		}
 		return 0;
 	}
 
-	hasWeaponDir() : boolean { return this._msg.has(weaponDirProp); }
+	hasWeaponDir() : boolean { return this._msg.has(equipDirProp); }
 	weaponDir() : THREE.Vector2 {
 		if (this.hasWeaponDir()) {
-			return new THREE.Vector2(this._msg.get(weaponDirProp).X, this._msg.get(weaponDirProp).Y);
+			return new THREE.Vector2(this._msg.get(equipDirProp).X, this._msg.get(equipDirProp).Y);
 		}
 		return new THREE.Vector2(1, 0);
 	}

@@ -52,8 +52,8 @@ declare var accProp : number;
 declare var jerkProp : number;
 declare var dirProp : number;
 
-declare var weaponTypeProp : number;
-declare var weaponDirProp : number;
+declare var equipTypeProp : number;
+declare var equipDirProp : number;
 
 declare var keysProp : number;
 declare var healthProp : number;

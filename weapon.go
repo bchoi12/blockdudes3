@@ -223,7 +223,7 @@ func (bw *BaseWeapon) Shoot(grid *Grid, now time.Time) {
 func (bw BaseWeapon) GetInitData() Data {
 	data := NewData()
 	if bw.weaponType.Has() {
-		data.Set(weaponTypeProp, bw.weaponType.Peek())
+		data.Set(equipTypeProp, bw.weaponType.Peek())
 	}
 	return data
 }
@@ -231,7 +231,7 @@ func (bw BaseWeapon) GetInitData() Data {
 func (bw BaseWeapon) GetData() Data {
 	data := NewData()
 	if weaponType, ok := bw.weaponType.Pop(); ok {
-		data.Set(weaponTypeProp, weaponType)
+		data.Set(equipTypeProp, weaponType)
 	}
 	return data
 }
@@ -240,7 +240,7 @@ func (bw BaseWeapon) GetUpdates() Data {
 	updates := NewData()
 
 	if weaponType, ok := bw.weaponType.GetOnce(); ok {
-		updates.Set(weaponTypeProp, weaponType)
+		updates.Set(equipTypeProp, weaponType)
 	}
 
 	return updates
@@ -251,7 +251,7 @@ func (bw *BaseWeapon) SetData(data Data) {
 		return
 	}
 
-	if data.Has(weaponTypeProp) {
-		bw.SetWeaponType(WeaponType(data.Get(weaponTypeProp).(int)))
+	if data.Has(equipTypeProp) {
+		bw.SetWeaponType(WeaponType(data.Get(equipTypeProp).(int)))
 	}
 }

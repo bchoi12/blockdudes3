@@ -17,8 +17,8 @@ const (
 	jerkProp
 	dirProp
 
-	weaponTypeProp
-	weaponDirProp
+	equipTypeProp
+	equipDirProp
 
 	keysProp
 	healthProp

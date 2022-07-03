@@ -106,7 +106,7 @@ func (p Player) GetData() Data {
 	data.Merge(p.weapon.GetData())
 
 	data.Set(dirProp, p.Dir())
-	data.Set(weaponDirProp, p.weapon.Dir())
+	data.Set(equipDirProp, p.weapon.Dir())
 	data.Set(keysProp, p.keys)
 
 	if (debugMode) {
@@ -139,8 +139,8 @@ func (p *Player) SetData(data Data) {
 	if data.Has(dirProp) {
 		p.SetDir(data.Get(dirProp).(Vec2))
 	}
-	if data.Has(weaponDirProp) {
-		p.weapon.SetDir(data.Get(weaponDirProp).(Vec2))
+	if data.Has(equipDirProp) {
+		p.weapon.SetDir(data.Get(equipDirProp).(Vec2))
 	}
 }
 
@@ -313,7 +313,7 @@ func (p *Player) checkCollisions(grid *Grid) {
 		case *Explosion:
 			object.Hit(p)
 		case *Pickup:
-			if p.keyPressed(interactKey) {
+			if p.keyDown(interactKey) {
 				p.weapon.SetWeaponType(object.GetWeaponType())
 			}
 		}
