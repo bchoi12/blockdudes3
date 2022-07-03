@@ -55,7 +55,7 @@ type Player struct {
 }
 
 func NewPlayer(init Init) *Player {
-	profile := NewRec2(init, NewData())
+	profile := NewRec2(init)
 	profile.SetSolid(false)
 	profile.SetGuide(true)
 	points := make([]Vec2, 4)
@@ -64,7 +64,7 @@ func NewPlayer(init Init) *Player {
 	points[2] = NewVec2(-0.48, 0.53)
 	points[3] = NewVec2(-0.48, -0.53)
 
-	rotPoly := NewRotPoly(init, NewData(), points)
+	rotPoly := NewRotPoly(init, points)
 	subProfile := NewSubProfile(rotPoly)
 	subProfile.SetOffset(NewVec2(0, 0.22))
 	profile.AddSubProfile(bodySubProfile, subProfile)
@@ -73,7 +73,7 @@ func NewPlayer(init Init) *Player {
 	weapon.SetWeaponType(bazookaWeapon)
 
 	player := &Player {
-		BaseObject: NewBaseObject(profile, NewData()),
+		BaseObject: NewBaseObject(profile),
 		weapon: weapon,
 
 		canJump: false,

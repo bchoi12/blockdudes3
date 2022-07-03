@@ -8,9 +8,9 @@ type RotPoly struct {
 	sides []Line
 }
 
-func NewRotPoly(init Init, data Data, verts []Vec2) *RotPoly {
+func NewRotPoly(init Init, verts []Vec2) *RotPoly {
 	rotPoly := &RotPoly {
-		BaseProfile: NewBaseProfile(init, data),
+		BaseProfile: NewBaseProfile(init),
 		verts: verts,
 
 		points: make([]Vec2, len(verts)),

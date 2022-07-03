@@ -191,7 +191,7 @@ func (bw *BaseWeapon) Shoot(grid *Grid, now time.Time) {
 		}
 
 		if trigger.shotType == rocketShotType {
-			rocket := NewRocket(NewInit(grid.NextSpacedId(rocketSpace), NewInitData(bw.GetShotOrigin(), NewVec2(0.5, 0.5))))
+			rocket := NewRocket(NewObjectInit(grid.NextSpacedId(rocketSpace), bw.GetShotOrigin(), NewVec2(0.5, 0.5)))
 			rocket.SetOwner(bw.GetOwner())
 			acc := bw.dir
 			acc.Normalize()
@@ -208,7 +208,7 @@ func (bw *BaseWeapon) Shoot(grid *Grid, now time.Time) {
 			rocket.SetJerk(acc)
 			grid.Upsert(rocket)
 		} else if trigger.shotType == boltShotType {
-			bolt := NewBolt(NewInit(grid.NextSpacedId(boltSpace), NewInitData(bw.GetShotOrigin(), NewVec2(0.35, 0.15))))
+			bolt := NewBolt(NewObjectInit(grid.NextSpacedId(boltSpace), bw.GetShotOrigin(), NewVec2(0.35, 0.15)))
 			bolt.SetOwner(bw.GetOwner())
 			vel := bw.dir
 			vel.Normalize()

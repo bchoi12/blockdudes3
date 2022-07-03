@@ -4,9 +4,9 @@ type Rec2 struct {
 	BaseProfile
 }
 
-func NewRec2(init Init, data Data) *Rec2 {
+func NewRec2(init Init) *Rec2 {
 	rec2 := &Rec2 {
-		BaseProfile: NewBaseProfile(init, data),
+		BaseProfile: NewBaseProfile(init),
 	}
 	return rec2
 }

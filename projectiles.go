@@ -10,15 +10,15 @@ type Bolt struct {
 
 func NewBolt(init Init) *Bolt {
 	points := make([]Vec2, 4)
-	width := init.InitDim().X
-	height := init.InitDim().Y
+	width := init.Dim().X
+	height := init.Dim().Y
 	points[0] = NewVec2(-width/2, -height/2)
 	points[1] = NewVec2(-width/2, height/2)
 	points[2] = NewVec2(width/2, height/2)
 	points[3] = NewVec2(width/2, -height/2)
-	profile := NewRotPoly(init, NewData(), points)
+	profile := NewRotPoly(init, points)
 	bolt := &Bolt {
-		Projectile: NewProjectile(NewBaseObject(profile, NewData())),
+		Projectile: NewProjectile(NewBaseObject(profile)),
 	}
 	bolt.SetTTL(800 * time.Millisecond)
 	bolt.SetDamage(10)

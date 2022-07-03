@@ -11,7 +11,7 @@ func (g *Game) loadLevel(index LevelIdType) {
 }
 
 func (g *Game) createInit(space SpaceType, pos Vec2, dim Vec2) Init {
-	return NewInit(g.grid.NextSpacedId(space), NewInitData(pos, dim))
+	return NewObjectInit(g.grid.NextSpacedId(space), pos, dim)
 }
 
 func (g *Game) createInitBL(space SpaceType, pos Vec2, dim Vec2) Init {

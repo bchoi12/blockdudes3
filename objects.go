@@ -5,13 +5,13 @@ import (
 )
 
 func NewRec2Object(init Init) BaseObject {
-	profile := NewRec2(init, NewData())
-	return NewBaseObject(profile, NewData())
+	profile := NewRec2(init)
+	return NewBaseObject(profile)
 }
 
 func NewCircleObject(init Init) BaseObject {
-	profile := NewCircle(init, NewData())
-	return NewBaseObject(profile, NewData())
+	profile := NewCircle(init)
+	return NewBaseObject(profile)
 }
 
 type Wall struct {
@@ -19,11 +19,11 @@ type Wall struct {
 }
 
 func NewWall(init Init) *Wall {
-	profile := NewRec2(init, NewData())
+	profile := NewRec2(init)
 	profile.SetSolid(true)
 	profile.SetStatic(true)
 	return &Wall {
-		BaseObject: NewBaseObject(profile, NewData()),
+		BaseObject: NewBaseObject(profile),
 	}
 }
 
@@ -40,11 +40,11 @@ type Platform struct {
 }
 
 func NewPlatform(init Init) *Platform {
-	profile := NewRec2(init, NewData())
+	profile := NewRec2(init)
 	profile.SetSolid(true)
 	profile.SetStatic(true)
 	return &Platform {
-		BaseObject: NewBaseObject(profile, NewData()),
+		BaseObject: NewBaseObject(profile),
 		xBounded: false,
 		yBounded: false,
 	}
@@ -114,7 +114,7 @@ func (b *Bomb) UpdateState(grid *Grid, now time.Time) bool {
 		dim := b.Dim()
 		dim.Scale(3.6)
 
-		init := NewInit(grid.NextSpacedId(explosionSpace), NewInitData(pos, dim))
+		init := NewObjectInit(grid.NextSpacedId(explosionSpace), pos, dim)
 		explosion := NewExplosion(init)
 		
 		grid.Upsert(explosion)
@@ -197,9 +197,9 @@ type Pickup struct {
 }
 
 func NewPickup(init Init) *Pickup {
-	profile := NewRec2(init, NewData())
+	profile := NewRec2(init)
 	pickup := &Pickup {
-		BaseObject: NewBaseObject(profile, NewData()),
+		BaseObject: NewBaseObject(profile),
 		weaponType: unknownWeapon,
 	}
 

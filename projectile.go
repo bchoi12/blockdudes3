@@ -107,7 +107,7 @@ func (p *Projectile) Collide(collider Object, grid *Grid) {
 	}
 
 	if p.explode {
-		init := NewInit(grid.NextSpacedId(explosionSpace), NewInitData(p.Pos(), NewVec2(4, 4)))	
+		init := NewObjectInit(grid.NextSpacedId(explosionSpace), p.Pos(), NewVec2(4, 4))	
 		grid.Upsert(NewExplosion(init))
 	}
 	grid.Delete(p.GetSpacedId())

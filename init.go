@@ -43,53 +43,62 @@ func (sid SpacedId) Invalid() bool {
 
 type Init struct {
 	SpacedId
-	initPos Vec2
-	initDim Vec2
+
+	hasPos bool
+	pos Vec2
+	hasDim bool
+	dim Vec2
 }
 
 type InitMethods interface {
 	SpacedIdMethods
-	InitPos() Vec2
-	SetInitPos(initPos Vec2)
-	InitDim() Vec2
-	SetInitDim(initDim Vec2)
+	Pos() Vec2
+	SetPos(pos Vec2)
+	Dim() Vec2
+	SetDim(dim Vec2)
 	GetInitData() Data
 }
 
-func NewInit(sid SpacedId, data Data) Init {
+func NewInit(sid SpacedId) Init {
 	return Init {
 		SpacedId: sid,
-		initPos: data.Get(posProp).(Vec2),
-		initDim: data.Get(dimProp).(Vec2),
+		hasPos: false,
+		hasDim: false,
 	}
 }
 
-func NewInitData(pos Vec2, dim Vec2) Data {
-	data := NewData()
-	data.Set(posProp, pos)
-	data.Set(dimProp, dim)
-	return data
+func NewObjectInit(sid SpacedId, pos Vec2, dim Vec2) Init {
+	init := NewInit(sid)
+	init.SetPos(pos)
+	init.SetDim(dim)
+	return init
 }
 
-func (i Init) InitPos() Vec2 {
-	return i.initPos
+func (i Init) Pos() Vec2 {
+	return i.pos
 } 
 
-func (i *Init) SetInitPos(initPos Vec2) {
-	i.initPos = initPos
+func (i *Init) SetPos(pos Vec2) {
+	i.pos = pos
+	i.hasPos = true
 }
 
-func (i Init) InitDim() Vec2 {
-	return i.initDim
+func (i Init) Dim() Vec2 {
+	return i.dim
 }
 
-func (i *Init) SetInitDim(initDim Vec2) {
-	i.initDim = initDim
+func (i *Init) SetDim(dim Vec2) {
+	i.dim = dim
+	i.hasDim = true
 }
 
 func (i Init) GetInitData() Data {
 	data := NewData()
-	data.Set(posProp, i.initPos)
-	data.Set(dimProp, i.initDim)
+	if i.hasPos {
+		data.Set(posProp, i.pos)
+	}
+	if i.hasDim {
+		data.Set(dimProp, i.dim)
+	}
 	return data
 }

@@ -15,8 +15,6 @@ type Profile interface {
 	ProfileMath
 	Component
 
-	Pos() Vec2
-	SetPos(pos Vec2)
 	Vel() Vec2
 	SetVel(vel Vec2)
 	ExtVel() Vec2
@@ -29,8 +27,6 @@ type Profile interface {
 	Dir() Vec2
 	SetDir(dir Vec2)
 
-	Dim() Vec2
-	SetDim(dim Vec2)
 	Solid() bool
 	SetSolid(solid bool)
 	Guide() bool
@@ -63,11 +59,11 @@ type BaseProfile struct {
 	ignoredColliders map[SpacedId]bool
 }
 
-func NewBaseProfile(init Init, data Data) BaseProfile {
+func NewBaseProfile(init Init) BaseProfile {
 	bp := BaseProfile {
 		Init: init,
-		pos: init.InitPos(),
-		dim: NewState(init.InitDim()),
+		pos: init.Pos(),
+		dim: NewState(init.Dim()),
 		vel: NewVec2(0, 0),
 		extVel: NewVec2(0, 0),
 		acc: NewVec2(0, 0),
@@ -80,8 +76,6 @@ func NewBaseProfile(init Init, data Data) BaseProfile {
 		subProfiles: make(map[ProfileKey]SubProfile),
 		ignoredColliders: make(map[SpacedId]bool),
 	}
-	bp.SetData(data)
-
 	return bp
 }
 

@@ -4,9 +4,9 @@ type Circle struct {
 	BaseProfile
 }
 
-func NewCircle(init Init, data Data) *Circle {
+func NewCircle(init Init) *Circle {
 	return &Circle {
-		BaseProfile: NewBaseProfile(init, data),
+		BaseProfile: NewBaseProfile(init),
 	}
 }
 

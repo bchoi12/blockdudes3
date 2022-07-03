@@ -126,7 +126,14 @@ func Add(g *Game) js.Func {
 
 		space := SpaceType(args[0].Int())
 		id := IdType(args[1].Int())
-		init := NewInit(Id(space, id), getData(args[2]))
+		init := NewInit(Id(space, id))
+		data := getData(args[2])
+		if data.Has(posProp) {
+			init.SetPos(data.Get(posProp).(Vec2))
+		}
+		if data.Has(dimProp) {
+			init.SetDim(data.Get(dimProp).(Vec2))
+		}
 
 		g.add(init)
 		return nil

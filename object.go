@@ -44,7 +44,7 @@ type BaseObject struct {
 	lastUpdateTime time.Time
 }
 
-func NewBaseObject(profile Profile, data Data) BaseObject {
+func NewBaseObject(profile Profile) BaseObject {
 	object := BaseObject {
 		Profile: profile,
 		Health: NewHealth(),
@@ -52,7 +52,6 @@ func NewBaseObject(profile Profile, data Data) BaseObject {
 		Attribute: NewAttribute(),
 		lastUpdateTime: time.Time{},
 	}
-	object.SetData(data)
 	return object
 }
 

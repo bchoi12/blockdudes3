@@ -202,7 +202,7 @@ func (r *Room) addClient(c *Client) error {
 		return err
 	}
 
-	r.game.add(NewInit(Id(playerSpace, c.id), NewInitData(NewVec2(5, 5), NewVec2(0.8, 1.44))))
+	r.game.add(NewObjectInit(Id(playerSpace, c.id), NewVec2(5, 5), NewVec2(0.8, 1.44)))
 	gameInitMsg := r.game.createGameInitMsg()
 	c.send(&gameInitMsg)
 	return nil
