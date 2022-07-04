@@ -6,16 +6,17 @@ import (
 	"github.com/pion/webrtc/v3"
 	"log"
 	"strconv"
+	"sync"
 )
 
 type Client struct {
 	room *Room
 	ws *websocket.Conn
-	wrtc *webrtc.PeerConnection 
+	wrtc *webrtc.PeerConnection
 	dc *webrtc.DataChannel
+	mu sync.Mutex
 
 	id IdType
-	gameId IdType
 	name string
 	voice bool
 }
@@ -85,6 +86,20 @@ func (c *Client) initWebRTC() error {
 		}
 		c.room.incoming <- imsg
 	})
+
+	c.wrtc.OnICECandidate(func(ice *webrtc.ICECandidate) {
+		if ice == nil {
+			return
+		}
+
+		candidateMsg := JSONMsg {
+			T: candidateType,
+			JSON: ice.ToJSON(),
+		}
+
+		c.send(&candidateMsg)
+	})
+
 	return nil
 }
 
@@ -115,18 +130,6 @@ func (c *Client) processWebRTCOffer(json interface{}) error {
 		JSON: answer,
 	}
 	c.send(&answerMsg)
-
-	c.wrtc.OnICECandidate(func(ice *webrtc.ICECandidate) {
-		if ice == nil {
-			return
-		}
-
-		candidateMsg := JSONMsg {
-			T: candidateType,
-			JSON: ice.ToJSON(),
-		}
-		c.send(&candidateMsg)	
-	})
 	return nil
 }
 
@@ -157,7 +160,9 @@ func (c *Client) send(msg interface{}) error {
 }
 
 func (c *Client) sendBytes(b []byte) error {
+	c.mu.Lock()
 	err := c.ws.WriteMessage(websocket.BinaryMessage, b)
+	c.mu.Unlock()
 
 	if err != nil {
 		log.Printf("error writing out message: %v", err)

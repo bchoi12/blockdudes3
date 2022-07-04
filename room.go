@@ -80,11 +80,6 @@ func createOrJoinRoom(room string, name string, ws *websocket.Conn) {
 }
 
 func (r *Room) run() {
-	defer func() {
-		log.Printf("Deleting room %v", r.id)
-		delete(rooms, r.id)
-	}()
-
 	for {
 		select {
 			case client := <-r.register:
@@ -102,6 +97,8 @@ func (r *Room) run() {
 				if err != nil {
 					log.Printf("Failed to delete client %s from %s: %v", client.getDisplayName(), r.id, err)
 				} else if len(r.clients) == 0 {
+					log.Printf("Deleting room %v", r.id)
+					delete(rooms, r.id)
 					return
 				}
 			case imsg := <-r.incoming:

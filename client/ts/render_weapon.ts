@@ -13,18 +13,14 @@ export class RenderWeapon extends RenderMesh {
 	private readonly _rayMaterial = new THREE.MeshStandardMaterial( {color: 0x00ff00} );
 
 	private _shotOrigin : THREE.Vector3;
-	private _light : THREE.PointLight;
-
-	private _shootSound : Howl;
+	private _light : THREE.SpotLight;
 
 	constructor() {
 		super();
 
 		this._shotOrigin = new THREE.Vector3(0, 0, 0);
-		this._light = new THREE.PointLight(0x00ff00, 0, 3);
-		this._shootSound = new Howl({
-			src: ["./sound/test.wav"]
-		});
+		this._light = new THREE.SpotLight(0x00ff00, 3, 8, Math.PI / 5);
+		this._light.castShadow = true;
 	}
 
 	override setMesh(mesh : THREE.Mesh) : void {
@@ -33,7 +29,10 @@ export class RenderWeapon extends RenderMesh {
 
 		this._shotOrigin = mesh.getObjectByName(this._shotLocation).position.clone();
 		this._light.position.copy(this._shotOrigin);
-		mesh.add(this._light)
+		this._light.position.y += 0.1;
+		this._light.target.position.z = 1;
+		mesh.add(this._light);
+		mesh.add(this._light.target);
 
 		super.setMesh(mesh);
 	}
