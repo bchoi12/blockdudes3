@@ -90,7 +90,7 @@ class Game {
 			T: keyType,
 			Key: {
 				S: this._keyUpdates,
-				K: ui.getKeys(),
+				K: ui.getKeysAsArray(),
 				M: {
 					X: mouse.x,
 					Y: mouse.y,
@@ -260,6 +260,16 @@ class Game {
 
 		const playerPos = this.sceneMap().get(playerSpace, this._id).pos();
 		renderer.setCameraTarget(new THREE.Vector3(playerPos.x, playerPos.y, 0));
+
+		if (ui.getKeys().has(altMouseClick) && !renderer.cameraController().panEnabled()) {
+			const mouseScreen = renderer.getMouseScreen();
+			let pan = new THREE.Vector3(mouseScreen.x, mouseScreen.y, 0);
+			pan.normalize();
+			pan.multiplyScalar(8);
+			renderer.cameraController().enablePan(pan);
+		} else if (!ui.getKeys().has(altMouseClick) && renderer.cameraController().panEnabled()) {
+			renderer.cameraController().disablePan();
+		}
 	}
 }
 

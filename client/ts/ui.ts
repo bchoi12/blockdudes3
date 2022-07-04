@@ -74,9 +74,9 @@ class UI {
 		this._clientHandler.setup();
 	}
 
-	getKeys() : Array<number> {
-		return Array.from(this._keys)
-	}
+	getKeys() : Set<number> { return this._keys; }
+
+	getKeysAsArray() : Array<number> { return Array.from(this._keys) }
 
 	// TODO: delete? this is temporary
 	hasClient(id : number) : boolean { return this._clientHandler.hasClient(id); }

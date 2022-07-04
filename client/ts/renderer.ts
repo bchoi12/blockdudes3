@@ -46,6 +46,10 @@ class Renderer {
 		this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
 	}
 	
+	cameraController() : CameraController {
+		return this._cameraController;
+	}
+
 	cameraTarget() : THREE.Vector3 {
 		return this._cameraController.target();
 	}
