@@ -131,7 +131,7 @@ export class SceneMap {
 		}
 
 		if (wasmHas(space, id)) {
-			wasmSetData(space, id, object.data());
+			wasmSetData(space, id, object.newData());
 		}
 
 		if (object.deleted()) {

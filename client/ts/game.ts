@@ -9,6 +9,7 @@ import { RenderPickup } from './render_pickup.js'
 import { RenderPlayer } from './render_player.js'
 import { RenderBolt } from './render_bolt.js'
 import { RenderRocket } from './render_rocket.js'
+import { RenderWall } from './render_wall.js'
 import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
 import { SceneComponent, SceneComponentType } from './scene_component.js'
@@ -19,17 +20,20 @@ import { Util } from './util.js'
 class Game {
 	private readonly _statsInterval = 500;
 	private readonly _objectMaterial = new THREE.MeshStandardMaterial( {color: 0x444444, shadowSide: THREE.FrontSide } );
-	private readonly _bombMaterial = new THREE.MeshStandardMaterial( {color: 0x4444bb, transparent: true, opacity: 0.5} );
 
 	private _id : number;
 
 	private _sceneMap : SceneMap;
+	private _lastKeys : Set<number>;
+	private _keys : Set<number>;
 	private _keyUpdates : number;
 	private _lastSeqNum : number;
 	private _animateFrames : number;
 
 	constructor() {
 		this._sceneMap = new SceneMap();
+		this._lastKeys = new Set();
+		this._keys = new Set();
 		this._keyUpdates = 0;
 		this._lastSeqNum = 0;
 		this._animateFrames = 0;
@@ -47,7 +51,7 @@ class Game {
 			if (!Util.defined(this._id)) return;
 
 			this._keyUpdates++;
-			const msg = this.createKeyMsg();
+			const msg = this.snapshotKeys();
 			connection.sendData(msg);
 		}, frameMillis);
 
@@ -84,13 +88,15 @@ class Game {
 		requestAnimationFrame(() => { this.animate(); });
 	}
 
-	private createKeyMsg() : { [k: string]: any } {
+	private snapshotKeys() : { [k: string]: any } {
+		this._lastKeys = new Set(this._keys);
+		this._keys = ui.getKeys();
    		const mouse = renderer.getMouseWorld();
 		const msg = {
 			T: keyType,
 			Key: {
 				S: this._keyUpdates,
-				K: ui.getKeysAsArray(),
+				K: Array.from(this._keys),
 				M: {
 					X: mouse.x,
 					Y: mouse.y,
@@ -101,6 +107,7 @@ class Game {
 				},
 			},
 		};
+
 		if (this.sceneMap().has(playerSpace, this._id)) {
 	   		const mouse = renderer.getMouseWorld();
 
@@ -116,6 +123,10 @@ class Game {
 		} 
 		return msg;
 	}
+
+	private keyPressed(key : number) : boolean { return this._keys.has(key) && !this._lastKeys.has(key); }
+	private keyDown(key : number) : boolean { return this._keys.has(key); }
+	private keyReleased(key : number) : boolean { return !this._keys.has(key) && this._lastKeys.has(key); }
 
 	private initPlayer(msg : { [k: string]: any }) : void {
 		this._id = msg.Id;
@@ -175,7 +186,6 @@ class Game {
 						renderObj = new RenderPickup(space, id);
 					} else {
 						// TODO: add bomb
-						// TODO: add platforms & walls?
 						console.error("Unable to construct object for type " + space);
 						continue;
 					}
@@ -194,7 +204,7 @@ class Game {
 
 		// Update key presses.
 		if (this.sceneMap().has(playerSpace, this._id)) {
-			const keyMsg = this.createKeyMsg();
+			const keyMsg = this.snapshotKeys();
 			keyMsg.Key.K = Util.arrayToString(keyMsg.Key.K);
 			wasmUpdateKeys(this._id, keyMsg.Key);
 		}
@@ -241,15 +251,10 @@ class Game {
 			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
 				const space = Number(stringSpace);
 				const id = Number(stringId);
-				const mesh = new THREE.Mesh(new THREE.BoxGeometry(object[dimProp].X, object[dimProp].Y, 5.0), this._objectMaterial);	
-				mesh.castShadow = true;
-				mesh.receiveShadow = true;
 
-				// TODO: need an object for this
-				const renderObj = new RenderObject(space, id);
-				renderObj.setMesh(mesh);
-				this.sceneMap().add(space, id, renderObj);
-				this.sceneMap().update(space, id, object);
+				const wall = new RenderWall(space, id);
+				this.sceneMap().add(space, id, wall);
+				this.sceneMap().update(space, id, object, 0);
 			}
 		}
 	}
@@ -261,13 +266,14 @@ class Game {
 		const playerPos = this.sceneMap().get(playerSpace, this._id).pos();
 		renderer.setCameraTarget(new THREE.Vector3(playerPos.x, playerPos.y, 0));
 
-		if (ui.getKeys().has(altMouseClick) && !renderer.cameraController().panEnabled()) {
+		const panEnabled = renderer.cameraController().panEnabled();
+		if (!panEnabled && this.keyDown(altMouseClick)) {
 			const mouseScreen = renderer.getMouseScreen();
 			let pan = new THREE.Vector3(mouseScreen.x, mouseScreen.y, 0);
 			pan.normalize();
 			pan.multiplyScalar(8);
 			renderer.cameraController().enablePan(pan);
-		} else if (!ui.getKeys().has(altMouseClick) && renderer.cameraController().panEnabled()) {
+		} else if (panEnabled && !this.keyDown(altMouseClick)) {
 			renderer.cameraController().disablePan();
 		}
 	}

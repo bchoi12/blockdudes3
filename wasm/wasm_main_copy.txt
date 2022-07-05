@@ -228,7 +228,6 @@ func SetData(g *Game) js.Func {
 
 		data := getData(args[2])
 		if (data.Size() == 0) {
-			fmt.Println("SetData: called with empty property list")
 			return nil
 		}
 

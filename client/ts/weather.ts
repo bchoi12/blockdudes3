@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { options } from './options.js'
 import { RenderCustom } from './render_custom.js'
 import { renderer } from './renderer.js'
 import { SceneComponent, SceneComponentType } from './scene_component.js'
@@ -25,7 +26,7 @@ export class Weather extends SceneComponent {
 		this._cloudMaterials.push(this.newCloudMaterial(0xe0e0e0, MathUtil.randomRange(0.6, 0.7)));
 		this._cloudMaterials.push(this.newCloudMaterial(0xd2d2d2, MathUtil.randomRange(0.7, 0.8)));
 
-		for (let x = -5; x < 25; x += MathUtil.randomRange(4, 7)) {
+		for (let x = -5; x < 25; x += MathUtil.randomRange(6, 9)) {
 			let cloud = new RenderCustom();
 			cloud.setMesh(this.newCloudMesh(x));
 
@@ -65,7 +66,10 @@ export class Weather extends SceneComponent {
 		cloud.position.x = x;
 		cloud.position.y = Util.randomElement(this._cloudYs);
 		cloud.position.z = Util.randomElement(this._cloudZs);
-		cloud.castShadow = true;
+		
+		if (options.enableShadows) {
+			cloud.castShadow = true;
+		}
 		return cloud;
 	}
 }

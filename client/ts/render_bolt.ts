@@ -1,10 +1,7 @@
 import * as THREE from 'three';
 
 import { Sound } from './audio.js'
-import { game } from './game.js'
-import { Model, loader } from './loader.js'
 import { RenderProjectile } from './render_projectile.js'
-import { renderer } from './renderer.js'
 
 export class RenderBolt extends RenderProjectile {
 	private readonly _material = new THREE.MeshStandardMaterial( {color: 0xa3fa98 });

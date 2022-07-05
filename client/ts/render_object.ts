@@ -34,6 +34,7 @@ export class RenderObject extends RenderMesh {
 
 	msg() : Message { return this._msg; }
 	data() : { [k: string]: any } { return this._msg.data(); }
+	newData() : { [k: string]: any } { return this._msg.newData(); }
 
 	space() : number { return this._space; }
 	id() : number { return this._id; }
@@ -44,6 +45,7 @@ export class RenderObject extends RenderMesh {
 			return;
 		}
 
+		this.maybeUpdateMeshPosition();
 		wasmAdd(this.space(), this.id(), this.data());
 		this._initialized = true;
 	}
@@ -53,16 +55,7 @@ export class RenderObject extends RenderMesh {
 
 	update(msg : Map<number, any>, seqNum? : number) : void {
 		this._msg.update(msg, seqNum);
-
-		if (!this.hasMesh() || !this.hasPos()) {
-			return;
-		}
-
-		// TODO: delete after making classes for walls/platforms
-		const mesh = this.mesh();
-		const pos = this.pos();
-		mesh.position.x = pos.x;
-		mesh.position.y = pos.y;
+		this.maybeUpdateMeshPosition();
 	}
 
 	deleted() : boolean {
@@ -146,5 +139,16 @@ export class RenderObject extends RenderMesh {
 			return new SpacedId(this._msg.get(ownerProp).S, this._msg.get(ownerProp).Id);
 		}
 		return new SpacedId(0, -1);
+	}
+
+	private maybeUpdateMeshPosition() {
+		if (!this.hasMesh() || !this.hasPos()) {
+			return;
+		}
+
+		let mesh = this.mesh();
+		const pos = this.pos();
+		mesh.position.x = pos.x;
+		mesh.position.y = pos.y;
 	}
 }
