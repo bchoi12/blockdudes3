@@ -62,6 +62,8 @@ export class CameraController {
 
 	enablePan(pan : THREE.Vector3) : void {
 		this._pan = pan.clone();
+		this._pan.y = Math.min(4, this._pan.y);
+		this._pan.y = Math.max(-4, this._pan.y);
 		this._panTimer.start();
 	}
 

@@ -3,18 +3,31 @@ import * as THREE from 'three';
 import { options } from './options.js'
 import { Util } from './util.js'
 
+enum OverwriteMethod {
+	UNKNOWN = 0,
+	// Clear then replace all data.
+	REPLACE_ALL = 1,
+	// Merge new data, replace existing data.
+	MERGE_AND_REPLACE = 2,
+	// Merge new data, skip existing data.
+	MERGE_AND_SKIP = 3,
+}
+
 export class Message {
 	private readonly _weightedExtrapolateProps : Set<number> = new Set<number>([posProp, velProp, accProp]);
-	private readonly _setProps : Set<number> = new Set<number>([attributesProp /* merge */, keysProp /* overwrite */]);
+	private readonly _mapProps : Map<number, OverwriteMethod> = new Map<number, OverwriteMethod>([
+		[attributesProp, OverwriteMethod.MERGE_AND_REPLACE],
+		[keysProp, OverwriteMethod.REPLACE_ALL],
+	]);
 
 	private _data : Map<number, any>;
-	private _sets : Map<number, Map<number, boolean>>;
+	private _maps : Map<number, Map<number, boolean>>;
 	private _seqNum : Map<number, number>;
 	private _lastUpdate : number;
 
 	constructor() {
 		this._data = new Map<number, any>();
-		this._sets = new Map<number, Map<number, boolean>>();
+		this._maps = new Map<number, Map<number, boolean>>();
 		this._seqNum = new Map<number, number>();
 		this._lastUpdate = Date.now();
 	}
@@ -51,7 +64,7 @@ export class Message {
 
 	get(prop : number) : any {
 		if (prop === attributesProp) {
-			return this._sets.get(attributesProp);
+			return this._maps.get(attributesProp);
 		}
 
 		return this._data.get(prop);
@@ -62,25 +75,51 @@ export class Message {
 	}
 
 	private sanitizeData(data : Map<number, any>) : void {
-		if (data.hasOwnProperty(attributesProp)) {
-			if (!this._sets.has(attributesProp)) {
-				this._sets.set(attributesProp, new Map<number, boolean>());
+		// Maps aren't supported well in WASM so store them separately then convert them to strings for WASM.
+		this._mapProps.forEach((overwriteMethod, prop) => {
+			if (!data.hasOwnProperty(prop)) {
+				return;
+			}
+			if (overwriteMethod === OverwriteMethod.UNKNOWN) {
+				return;
 			}
 
-			let attributes = this._sets.get(attributesProp);
-			for (const [stringAttribute, value] of Object.entries(data[attributesProp]) as [string, any]) {
-				const attribute = Number(stringAttribute);
-				attributes.set(attribute, value);
+			if (!this._maps.has(prop)) {
+				this._maps.set(prop, new Map<number, boolean>());
 			}
-		}
 
-		this._setProps.forEach((prop) => {
-			if (data.hasOwnProperty(prop)) {
-				const keys = Object.keys(data[prop]);
-				if (keys.length > 0) {
-					data[prop] = Util.arrayToString(keys);
+			let map = this._maps.get(prop);
+			let edited = false;
+			if (overwriteMethod === OverwriteMethod.REPLACE_ALL && map.size > 0) {
+				edited = true;
+				map.clear();
+			}
+
+			for (const [stringKey, value] of Object.entries(data[prop]) as [string, any]) {
+				const key = Number(stringKey);
+				if (overwriteMethod === OverwriteMethod.MERGE_AND_SKIP && map.has(key)) {
+					continue;
 				}
+				if (map.get(key) === value) {
+					continue;
+				}
+
+				edited = true;
+				map.set(key, value);
 			}
+
+			if (!edited) {
+				return;
+			}
+
+			let string = "";
+			for (const [key, value] of map) {
+				string += key + ":" + (value ? "1" : "0") + ",";
+			}
+			if (string.length > 0) {
+				string = string.slice(0, -1);
+			}
+			data[prop] = string;
 		});
 	}
 

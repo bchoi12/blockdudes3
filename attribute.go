@@ -1,9 +1,5 @@
 package main
 
-var wasmIgnoreAttributes = map[AttributeType]bool {
-	groundedAttribute: true,
-}
-
 type Attribute struct {
 	changed map[AttributeType]bool
 	attributes map[AttributeType]bool
@@ -72,9 +68,6 @@ func (a *Attribute) SetData(data Data) {
 		attributes := data.Get(attributesProp).(map[AttributeType]bool)
 
 		for k, v := range(attributes) {
-			if isWasm && wasmIgnoreAttributes[k] {
-				continue
-			}
 			a.attributes[k] = v
 		}
 	}
