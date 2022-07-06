@@ -74,8 +74,8 @@ export class Message {
 	}
 
 	get(prop : number) : any {
-		if (prop === attributesProp) {
-			return this._maps.get(attributesProp);
+		if (this._mapProps.has(prop)) {
+			return this._maps.get(prop);
 		}
 
 		return this._data.get(prop);

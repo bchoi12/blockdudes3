@@ -47,6 +47,7 @@ const (
 	bombSpace
 	boltSpace
 	rocketSpace
+	paperStarSpace
 	explosionSpace
 	pickupSpace
 )
@@ -60,6 +61,7 @@ const (
 
 	solidAttribute
 	groundedAttribute
+	attachedAttribute
 )
 
 type LevelIdType uint8

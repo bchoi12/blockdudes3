@@ -54,7 +54,7 @@ func (c Circle) Overlap(profile Profile) OverlapResults {
 		radius := c.Radius() + other.Radius()
 		if c.DistSqr(other) <= radius * radius {
 			circResults.overlap = true
-			circResults.amount = c.dimOverlap(other)
+			circResults.amount = c.DimOverlap(other)
 		}
 		results.Merge(circResults)
 	}

@@ -6,7 +6,7 @@ import { SpacedId } from './spaced_id.js'
 export class RenderMesh {
 	protected readonly _debugMaterial = new THREE.MeshStandardMaterial({color: 0xff0000, wireframe: true });
 
-	protected _mesh : THREE.Mesh;
+	protected _mesh : THREE.Object3D;
 	protected _hasMesh : boolean
 	protected _onMeshLoad : Array<() => void>;
 
@@ -20,7 +20,7 @@ export class RenderMesh {
 		this._hasParent = false;
 	}
 
-	mesh() : THREE.Mesh {
+	mesh() : THREE.Object3D {
 		return this._mesh;
 	}
 
@@ -28,7 +28,7 @@ export class RenderMesh {
 		return this._hasMesh;
 	}
 
-	setMesh(mesh : THREE.Mesh) : void {
+	setMesh(mesh : THREE.Object3D) : void {
 		this._mesh = mesh;
 		this._onMeshLoad.forEach((cb) => {
 			cb();

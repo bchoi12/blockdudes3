@@ -23,7 +23,7 @@ export class RenderProjectile extends RenderObject {
 		return super.ready() && this.hasOwner();
 	}
 
-	override setMesh(mesh : THREE.Mesh) : void {
+	override setMesh(mesh : THREE.Object3D) : void {
 		super.setMesh(mesh);
 		mesh.position.z = this._positionZ;
 	}

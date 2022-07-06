@@ -21,7 +21,7 @@ export class RenderObject extends RenderMesh {
 		this._initialized = false;
 	}
 
-	override setMesh(mesh : THREE.Mesh) : void {
+	override setMesh(mesh : THREE.Object3D) : void {
 		super.setMesh(mesh);
 
 		if (this.hasPos()) {
@@ -62,7 +62,7 @@ export class RenderObject extends RenderMesh {
 		return this._msg.has(deletedProp) && this._msg.get(deletedProp);
 	}
 
-	hasAttributes() : boolean { return this._msg.get(attributesProp); }
+	hasAttributes() : boolean { return this._msg.has(attributesProp); }
 	attributes() : Map<number, boolean> {
 		if (this.hasAttributes()) {
 			return this._msg.get(attributesProp);

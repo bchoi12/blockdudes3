@@ -38,6 +38,8 @@ func (g *Game) add(init Init) Object {
 		object = NewBolt(init)
 	case rocketSpace:
 		object = NewRocket(init)
+	case paperStarSpace:
+		object = NewPaperStar(init)
 	case explosionSpace:
 		object = NewExplosion(init)
 	case pickupSpace:

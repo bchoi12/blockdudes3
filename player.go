@@ -68,7 +68,7 @@ func NewPlayer(init Init) *Player {
 	profile.AddSubProfile(bodySubProfile, subProfile)
 
 	weapon := NewBaseWeapon(init.GetSpacedId())
-	weapon.SetWeaponType(bazookaWeapon)
+	weapon.SetWeaponType(uziWeapon)
 
 	player := &Player {
 		BaseObject: NewBaseObject(profile),
@@ -300,7 +300,6 @@ func (p *Player) checkCollisions(grid *Grid) {
 	} else {
 		p.RemoveAttribute(groundedAttribute)
 	}
-
 
 	colliders = grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId()})
 	for len(colliders) > 0 {

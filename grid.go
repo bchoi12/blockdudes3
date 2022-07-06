@@ -324,7 +324,7 @@ func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ObjectHeap {
 				object: object,
 			}
 			heap.Push(item)
-			heap.priority(item, results.amount)
+			heap.priority(item, results.amount.Area())
 		}
 	}
 	return heap

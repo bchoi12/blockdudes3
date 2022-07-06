@@ -3,6 +3,7 @@ package main
 type ProfileMath interface {
 	Contains(point Vec2) ContainResults
 	Intersects(line Line) IntersectResults
+	// TODO: this should take object
 	Overlap(profile Profile) OverlapResults
 	Snap(colliders ObjectHeap) SnapResults
 
@@ -29,20 +30,23 @@ func (cr *ContainResults) Merge(other ContainResults) {
 
 type OverlapResults struct {
 	overlap bool
-	ignored bool
-	amount float64
+
+	// TODO: use a map?
+	amount Vec2
 }
 
 func NewOverlapResults() OverlapResults {
 	return OverlapResults {
 		overlap: false,
-		ignored: false,
-		amount: 0,
+		amount: NewVec2(0, 0),
 	}
 }
 
 func (or *OverlapResults) Merge(other OverlapResults) {
 	or.overlap = or.overlap || other.overlap
+	if (other.amount.Area() > or.amount.Area()) {
+		or.amount = other.amount
+	}
 }
 
 type IntersectResults struct {
@@ -69,6 +73,8 @@ type SnapResults struct {
 	ignored bool
 	posAdj Vec2
 	extVel Vec2
+
+	// TODO: need IDs
 }
 
 func NewSnapResults() SnapResults {

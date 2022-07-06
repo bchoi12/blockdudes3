@@ -39,3 +39,19 @@ func NewRocket(init Init) *Rocket {
 	rocket.SetDamage(50)
 	return rocket
 }
+
+type PaperStar struct {
+	Projectile
+}
+
+func NewPaperStar(init Init) *PaperStar {
+	star := &PaperStar {
+		Projectile: NewProjectile(NewCircleObject(init)),
+	}
+	star.SetTTL(1 * time.Second)
+	star.SetExplode(true)
+	star.SetDamage(10)
+	star.SetSticky(true)
+	star.SetExplosionSize(NewVec2(1, 1))
+	return star
+}

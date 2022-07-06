@@ -15,7 +15,10 @@ type Object interface {
 	Profile
 
 	GetProfile() Profile
+	GetAttachment() Attachment
+	AddAttribute(attribute AttributeType)
 	HasAttribute(attribute AttributeType) bool
+	AddChild(object Object, connection Connection)
 	UpdateState(grid *Grid, now time.Time) bool
 	Postprocess(grid *Grid, now time.Time)
 }
@@ -54,6 +57,10 @@ func (o BaseObject) GetProfile() Profile {
 	return o.Profile
 }
 
+func (o BaseObject) GetAttachment() Attachment {
+	return o.Attachment
+}
+
 func (o *BaseObject) UpdateState(grid *Grid, now time.Time) bool {
 	return false
 }
@@ -61,6 +68,11 @@ func (o *BaseObject) UpdateState(grid *Grid, now time.Time) bool {
 func (o *BaseObject) Postprocess(grid *Grid, now time.Time) {
 	for sid, connection := range(o.GetChildren()) {
 		object := grid.Get(sid)
+
+		if object == nil {
+			o.RemoveChild(sid)
+			continue
+		}
 
 		childPos := o.Pos()
 		childPos.Add(connection.offset, 1.0)

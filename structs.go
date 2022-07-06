@@ -154,6 +154,10 @@ func (v *Vec2) ClampY(min float64, max float64) bool {
 	return false
 }
 
+func (v Vec2) Area() float64 {
+	return Abs(v.X * v.Y)
+}
+
 func (v Vec2) Angle() float64 {
 	if v.IsZero() {
 		return 0

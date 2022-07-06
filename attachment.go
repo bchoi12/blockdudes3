@@ -24,8 +24,13 @@ func NewAttachment() Attachment {
 	}
 }
 
-func (a *Attachment) AddChild(sid SpacedId, connection Connection) {
-	a.children[sid] = connection
+func (a *Attachment) AddChild(object Object, connection Connection) {
+	object.AddAttribute(attachedAttribute)
+	a.children[object.GetSpacedId()] = connection
+}
+
+func (a *Attachment) RemoveChild(sid SpacedId) {
+	delete(a.children, sid)
 }
 
 func (a Attachment) HasChild(sid SpacedId) bool {

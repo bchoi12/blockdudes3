@@ -1,13 +1,13 @@
 package main
 
 type Attribute struct {
-	changed map[AttributeType]bool
+	changed map[AttributeType]*State
 	attributes map[AttributeType]bool
 }
 
 func NewAttribute() Attribute {
 	return Attribute {
-		changed: make(map[AttributeType]bool),
+		changed: make(map[AttributeType]*State),
 		attributes: make(map[AttributeType]bool),
 	}
 }
@@ -17,7 +17,11 @@ func (a *Attribute) AddAttribute(attribute AttributeType) {
 		return
 	}
 
-	a.changed[attribute] = true
+	if _, ok := a.changed[attribute]; !ok {
+		a.changed[attribute] = NewState(true)
+	} else {
+		a.changed[attribute].Set(true)
+	}
 	a.attributes[attribute] = true
 }
 
@@ -26,7 +30,11 @@ func (a *Attribute) RemoveAttribute(attribute AttributeType) {
 		return
 	}
 
-	a.changed[attribute] = true
+	if _, ok := a.changed[attribute]; !ok {
+		a.changed[attribute] = NewState(false)
+	} else {
+		a.changed[attribute].Set(false)
+	}
 	a.attributes[attribute] = false
 }
 
@@ -45,21 +53,28 @@ func (a Attribute) GetInitData() Data {
 }
 
 func (a Attribute) GetData() Data {
-	return NewData()
+	data := NewData()
+	newAttributes := make(map[AttributeType]bool)
+	for attribute, state := range(a.changed) {
+		if _, ok := state.Pop(); ok {
+			newAttributes[attribute] = a.attributes[attribute]
+		}
+	}
+	data.Set(attributesProp, newAttributes)
+
+	return data
 }
 
 func (a Attribute) GetUpdates() Data {
 	updates := NewData()
 
-	if len(a.changed) > 0 {
-		newAttributes := make(map[AttributeType]bool)
-		for attribute, _ := range(a.changed) {
+	newAttributes := make(map[AttributeType]bool)
+	for attribute, state := range(a.changed) {
+		if _, ok := state.GetOnce(); ok {
 			newAttributes[attribute] = a.attributes[attribute]
 		}
-		updates.Set(attributesProp, newAttributes)
-
-		a.changed = make(map[AttributeType]bool)
 	}
+	updates.Set(attributesProp, newAttributes)
 	return updates
 }
 

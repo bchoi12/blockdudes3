@@ -111,7 +111,7 @@ func (rp RotPoly) Overlap(profile Profile) OverlapResults {
 	selfResults := NewOverlapResults()
 	if profile.Contains(rp.Pos()).contains || rp.Contains(profile.Pos()).contains {
 		selfResults.overlap = true
-		selfResults.amount = rp.dimOverlap(profile)
+		selfResults.amount = rp.DimOverlap(profile)
 	}
 
 	if selfResults.overlap {
@@ -122,7 +122,7 @@ func (rp RotPoly) Overlap(profile Profile) OverlapResults {
 	for _, side := range(rp.getSides()) {
 		if testResults := profile.Intersects(side); testResults.hit {
 			selfResults.overlap = true
-			selfResults.amount = rp.dimOverlap(profile)
+			selfResults.amount = rp.DimOverlap(profile)
 			break
 		}
 	}

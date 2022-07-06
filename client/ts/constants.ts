@@ -30,6 +30,7 @@ declare var wallSpace : number;
 declare var bombSpace : number;
 declare var boltSpace : number;
 declare var rocketSpace : number;
+declare var paperStarSpace : number;
 declare var explosionSpace : number;
 declare var pickupSpace : number;
 
@@ -74,6 +75,7 @@ declare var stairAttribute : number;
 declare var platformAttribute : number;
 declare var groundedAttribute : number;
 declare var solidAttribute : number;
+declare var attachedAttribute : number;
 
 declare var upKey : number;
 declare var downKey : number;

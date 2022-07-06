@@ -11,10 +11,6 @@ export class RenderBolt extends RenderProjectile {
 		this.setSound(Sound.PEW);
 	}
 
-	override ready() : boolean {
-		return super.ready() && this.hasOwner();
-	}
-
 	override initialize() : void {
 		super.initialize();
 

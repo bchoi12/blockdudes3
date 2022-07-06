@@ -55,7 +55,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 		});
 	}
 
-	override setMesh(mesh : THREE.Mesh) {
+	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
 
 		this._playerMesh = this.mesh().getObjectByName("mesh");
@@ -232,12 +232,10 @@ export class RenderPlayer extends RenderAnimatedObject {
 	}
 
 	setWeapon(model : Model) {
-		loader.load(model, (weaponMesh : THREE.Mesh) => {
-			if (this._weapon.hasMesh()) {
-				this._arm.remove(this._weapon.mesh())
-			}
-			this._weapon.setMesh(weaponMesh);
-		});
+		if (this._weapon.hasMesh()) {
+			this._arm.remove(this._weapon.mesh())
+		}
+		this._weapon.setModel(model);
 	}
 
 	shoot() : void {

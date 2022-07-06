@@ -24,7 +24,7 @@ export class RenderExplosion extends RenderObject {
 		this.setMesh(mesh);
 	}
 
-	override setMesh(mesh : THREE.Mesh) {
+	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
 
 		mesh.receiveShadow = true;

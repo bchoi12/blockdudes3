@@ -27,7 +27,7 @@ export class RenderAnimatedObject extends RenderObject {
 		this._activeActions = new Set<string>();
 	}
 
-	override setMesh(mesh : THREE.Mesh) : void {
+	override setMesh(mesh : THREE.Object3D) : void {
 		super.setMesh(mesh);
 		this._mixer = new THREE.AnimationMixer(mesh);
 	}

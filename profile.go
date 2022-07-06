@@ -27,17 +27,21 @@ type Profile interface {
 	Dir() Vec2
 	SetDir(dir Vec2)
 
+	Stop()
+
 	AddSubProfile(key ProfileKey, subProfile SubProfile)
 	GetSubProfile(key ProfileKey) SubProfile
 
+	// TODO: change params to objects?
+	Offset(other Profile) Vec2
 	DistSqr(other Profile) float64
 	Dist(other Profile) float64
 	DistX(other Profile) float64
 	DistY(other Profile) float64
 
+	DimOverlap(other Profile) Vec2
 	dimOverlapX(other Profile) (float64, float64)
 	dimOverlapY(other Profile) (float64, float64)
-	dimOverlap(other Profile) float64
 }
 
 type BaseProfile struct {
@@ -123,12 +127,26 @@ func (bp *BaseProfile) SetDir(dir Vec2) {
 	}
 }
 
+func (bp *BaseProfile) Stop() {
+	bp.SetVel(NewVec2(0, 0))
+	bp.SetAcc(NewVec2(0, 0))
+	bp.SetJerk(NewVec2(0, 0))
+}
+
 func (bp BaseProfile) GetData() Data {
 	data := NewData()
 
-	if !bp.static {
-		data.Set(posProp, bp.Pos())
+	if dim, ok := bp.dim.Pop(); ok {
+		data.Set(dimProp, dim)
 	}
+
+	if bp.static {
+		return data
+	}
+
+	// TODO: track change and only publish when changed
+	data.Set(posProp, bp.Pos())
+
 	if !bp.Vel().IsZero() {
 		data.Set(velProp, bp.Vel())
 	}
@@ -140,10 +158,6 @@ func (bp BaseProfile) GetData() Data {
 	}
 	if !bp.Jerk().IsZero() {
 		data.Set(jerkProp, bp.Jerk())
-	}
-
-	if dim, ok := bp.dim.Pop(); ok {
-		data.Set(dimProp, dim)
 	}
 
 	return data
@@ -202,6 +216,26 @@ func (bp *BaseProfile) SetData(data Data) {
 func (bp *BaseProfile) AddSubProfile(key ProfileKey, subProfile SubProfile) { bp.subProfiles[key] = subProfile }
 func (bp BaseProfile) GetSubProfile(key ProfileKey) SubProfile { return bp.subProfiles[key] }
 
+func (bp BaseProfile) DimOverlap(other Profile) Vec2 {
+	oxSmall, oxLarge := bp.dimOverlapX(other)
+	oySmall, oyLarge := bp.dimOverlapY(other)
+
+	relativePos := NewVec2(bp.Pos().X - other.Pos().X, bp.Pos().Y - other.Pos().Y)
+	relativeVel := NewVec2(bp.TotalVel().X - other.TotalVel().X, bp.TotalVel().Y - other.TotalVel().Y)
+
+	// Check if we somehow got past the midpoint of the object
+	ox := oxSmall
+	oy := oySmall
+	if relativeVel.X != 0 && Sign(relativePos.X) == Sign(relativeVel.X) {
+		ox = oxLarge
+	}
+	if relativeVel.Y != 0 && Sign(relativePos.Y) == Sign(relativeVel.Y) {
+		oy = oyLarge
+	}
+
+	return NewVec2(ox, oy)
+}
+
 func (bp BaseProfile) dimOverlapX(other Profile) (float64, float64) {
 	overlap := Max(0, bp.Dim().X/2 + other.Dim().X/2 - bp.DistX(other))
 
@@ -218,18 +252,13 @@ func (bp BaseProfile) dimOverlapY(other Profile) (float64, float64) {
 	}
 	return overlap, bp.Dim().Y + other.Dim().Y - overlap
 }
-func (bp BaseProfile) dimOverlap(other Profile) float64 {
-	ox, _ := bp.dimOverlapX(other)
-	oy, _ := bp.dimOverlapY(other)
-	return ox * oy
+
+func (bp BaseProfile) Offset(other Profile) Vec2 {
+	offset := other.Pos()
+	offset.Sub(bp.Pos(), 1.0)
+	return offset
 }
 
-func (bp BaseProfile) DistX(other Profile) float64 {
-	return Abs(other.Pos().X - bp.Pos().X)
-}
-func (bp BaseProfile) DistY(other Profile) float64 {
-	return Abs(other.Pos().Y - bp.Pos().Y)
-}
 func (bp BaseProfile) DistSqr(other Profile) float64 {
 	x := bp.DistX(other)
 	y := bp.DistY(other)
@@ -238,6 +267,13 @@ func (bp BaseProfile) DistSqr(other Profile) float64 {
 func (bp BaseProfile) Dist(other Profile) float64 {
 	return math.Sqrt(bp.DistSqr(other))
 }
+func (bp BaseProfile) DistX(other Profile) float64 {
+	return Abs(other.Pos().X - bp.Pos().X)
+}
+func (bp BaseProfile) DistY(other Profile) float64 {
+	return Abs(other.Pos().Y - bp.Pos().Y)
+}
+
 func (bp BaseProfile) getIgnored() map[SpacedId]bool {
 	return bp.ignoredColliders
 }
@@ -272,7 +308,7 @@ func (bp BaseProfile) Overlap(profile Profile) OverlapResults {
 	return results
 }
 
-func (bp BaseProfile) Snap(colliders ObjectHeap) SnapResults {
+func (bp *BaseProfile) Snap(colliders ObjectHeap) SnapResults {
 	results := NewSnapResults()
 	for _, sp := range(bp.subProfiles) {
 		results.Merge(sp.Snap(colliders))

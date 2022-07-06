@@ -30,7 +30,7 @@ export class RenderRocket extends RenderProjectile {
 		});
 	}
 
-	override setMesh(mesh : THREE.Mesh) : void {
+	override setMesh(mesh : THREE.Object3D) : void {
 		super.setMesh(mesh);
 		mesh.rotation.y = Math.PI / 2;
 	}

@@ -12,6 +12,9 @@ type Projectile struct {
 	damage int
 	maxSpeed float64
 	explode bool
+	explosionSize Vec2
+	sticky bool
+	collided bool
 }
 
 func NewProjectile(object BaseObject) Projectile {
@@ -23,6 +26,9 @@ func NewProjectile(object BaseObject) Projectile {
 		damage: 0,
 		maxSpeed: 100,
 		explode: false,
+		explosionSize: NewVec2(4, 4),
+		sticky: false,
+		collided: false,
 	}
 }
 
@@ -48,6 +54,14 @@ func (p *Projectile) SetMaxSpeed(maxSpeed float64) {
 
 func (p *Projectile) SetExplode(explode bool) {
 	p.explode = explode
+}
+
+func (p *Projectile) SetExplosionSize(size Vec2) {
+	p.explosionSize = size
+}
+
+func (p *Projectile) SetSticky(sticky bool) {
+	p.sticky = sticky
 }
 
 func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
@@ -77,7 +91,11 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 	}
 
 	if p.Expired() {
-		p.Collide(nil, grid)
+		p.SelfDestruct(grid)
+		return true
+	}
+
+	if p.collided {
 		return true
 	}
 
@@ -95,6 +113,30 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 			continue
 		}
 
+		// TODO: move this to profile
+		if Abs(vel.X) < zeroVelEpsilon {
+			pos.Y -= FSign(vel.Y) * results.amount.Y
+		} else if Abs(vel.Y) < zeroVelEpsilon {
+			pos.X -= FSign(vel.X) * results.amount.X
+		} else {
+			collisionTime := results.amount
+			collisionTime.X /= Abs(vel.X)
+			collisionTime.Y /= Abs(vel.Y)
+
+			var fx, fy float64
+			if collisionTime.X < collisionTime.Y {
+				fx = FSign(vel.X) * results.amount.X
+				fy = FSign(vel.Y) * Abs(vel.Y / vel.X) * results.amount.X			
+			} else {
+				fx = FSign(vel.X) * Abs(vel.X / vel.Y) * results.amount.Y
+				fy = FSign(vel.Y) * results.amount.Y			
+			}
+
+			pos.X -= fx
+			pos.Y -= fy
+		}
+		p.SetPos(pos)
+
 		p.Collide(collider, grid)
 		return true
 	}
@@ -102,15 +144,28 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 }
 
 func (p *Projectile) Collide(collider Object, grid *Grid) {
-	if collider != nil {
-		p.Hit(collider)
+	if p.collided || collider == nil {
+		return
 	}
 
+	p.Hit(collider)
+	p.collided = true
+
+	if p.sticky {
+		p.Stop()
+		collider.AddChild(p, NewConnection(collider.Offset(p)))
+		return
+	}
+
+	p.SelfDestruct(grid)
+}
+
+func (p *Projectile) SelfDestruct(grid *Grid) {
 	if p.explode {
-		init := NewObjectInit(grid.NextSpacedId(explosionSpace), p.Pos(), NewVec2(4, 4))	
+		init := NewObjectInit(grid.NextSpacedId(explosionSpace), p.Pos(), p.explosionSize)	
 		grid.Upsert(NewExplosion(init))
 	}
-	grid.Delete(p.GetSpacedId())
+	grid.Delete(p.GetSpacedId())	
 }
 
 func (p *Projectile) Hit(collider Object) {

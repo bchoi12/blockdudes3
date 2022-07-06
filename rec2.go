@@ -59,14 +59,14 @@ func (r Rec2) Overlap(profile Profile) OverlapResults {
 		results.Merge(other.Overlap(&r))
 	case *Rec2:
 		recResults := NewOverlapResults()
-		if do := r.dimOverlap(other); do > 0 {
+		if do := r.DimOverlap(other); do.Area() > 0 {
 			recResults.overlap = true
 			recResults.amount = do
 		}
 		results.Merge(recResults)
 	case *Circle:
-		do := r.dimOverlap(other)
-		if do <= 0 {
+		do := r.DimOverlap(other)
+		if do.Area() <= 0 {
 			break
 		}
 
@@ -86,8 +86,8 @@ func (r Rec2) Overlap(profile Profile) OverlapResults {
 }
 
 func (r *Rec2) Snap(colliders ObjectHeap) SnapResults {
-	ignored := r.getIgnored()
 	results := r.BaseProfile.Snap(colliders)
+	ignored := r.getIgnored()
 
 	if results.snap {
 		pos := r.Pos()
@@ -128,20 +128,17 @@ func (r *Rec2) Snap(colliders ObjectHeap) SnapResults {
 			r.SetExtVel(results.extVel)
 		}	
 	}
-
 	return results
 }
 
-func (r *Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
+func (r Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 	results := NewSnapResults()
-	oxSmall, oxLarge := r.dimOverlapX(other)
-	if oxSmall <= 0 {
+	overlap := r.DimOverlap(other)
+
+	if overlap.Area() <= 0 {
 		return results
 	}
-	oySmall, oyLarge := r.dimOverlapY(other)
-	if oySmall <= 0 {
-		return results
-	}
+
 	if _, ok := ignored[other.GetSpacedId()]; ok {
 		r.addIgnored(other.GetSpacedId())
 		return results
@@ -155,16 +152,6 @@ func (r *Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 	relativeVel := NewVec2(r.TotalVel().X - other.TotalVel().X, r.TotalVel().Y - other.TotalVel().Y)
 	adjSign := NewVec2(-FSign(relativeVel.X), -FSign(relativeVel.Y))
 
-	// Check if we somehow got past the midpoint of the object
-	ox := oxSmall
-	oy := oySmall
-	if relativeVel.X != 0 && Sign(relativePos.X) == Sign(relativeVel.X) {
-		ox = oxLarge
-	}
-	if relativeVel.Y != 0 && Sign(relativePos.Y) == Sign(relativeVel.Y) {
-		oy = oyLarge
-	}
-
 	// Handle edge case where relative velocity is zero & the collision direction is unknown.
 	if adjSign.X == 0 {
 		adjSign.X = FSign(relativePos.X)
@@ -175,9 +162,9 @@ func (r *Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 
 	// Check for tiny collisions that we can ignore
 	if adjSign.X != 0 && adjSign.Y != 0 {
-		if Sign(adjSign.X) != Sign(relativeVel.X) && oy < overlapEpsilon {
+		if Sign(adjSign.X) != Sign(relativeVel.X) && overlap.Y < overlapEpsilon {
 			adjSign.X = 0
-		} else if Sign(adjSign.Y) != Sign(relativeVel.Y) && ox < overlapEpsilon {
+		} else if Sign(adjSign.Y) != Sign(relativeVel.Y) && overlap.X < overlapEpsilon {
 			adjSign.Y = 0
 		}
 	}
@@ -194,8 +181,8 @@ func (r *Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 
 	// If collision happens in both X, Y compute which overlap is greater based on velocity.
 	if adjSign.X != 0 && adjSign.Y != 0 {
-		tx := Abs(ox / relativeVel.X)
-		ty := Abs(oy / relativeVel.Y)
+		tx := Abs(overlap.X / relativeVel.X)
+		ty := Abs(overlap.Y / relativeVel.Y)
 
 		if tx > ty {
 			adjSign.X = 0
@@ -209,14 +196,15 @@ func (r *Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 		adjSign.X = 0
 		adjSign.Y = 1
 
+		oySmall, oyLarge := r.dimOverlapY(other)
 		if relativePos.Y < 0 {
-			oy = oyLarge
+			overlap.Y = oyLarge
 		} else {
-			oy = oySmall
+			overlap.Y = oySmall
 		}
 
 		// Smooth ascent
-		oy = Min(oy, 0.2)
+		overlap.Y = Min(overlap.Y, 0.2)
 	}
 
 	// Adjust platform collision at the end after we've determined collision direction.
@@ -236,7 +224,7 @@ func (r *Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 	}
 
 	// Collision
-	posAdj := NewVec2(ox * adjSign.X, oy * adjSign.Y)
+	posAdj := NewVec2(overlap.X * adjSign.X, overlap.Y * adjSign.Y)
 	if !posAdj.IsZero() {
 		results.snap = true
 	}
