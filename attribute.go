@@ -1,5 +1,9 @@
 package main
 
+var wasmIgnoreAttributes = map[AttributeType]bool {
+	groundedAttribute: true,
+}
+
 type Attribute struct {
 	changed map[AttributeType]*State
 	attributes map[AttributeType]bool
@@ -56,6 +60,10 @@ func (a Attribute) GetData() Data {
 	data := NewData()
 	newAttributes := make(map[AttributeType]bool)
 	for attribute, state := range(a.changed) {
+		if isWasm && wasmIgnoreAttributes[attribute] {
+			continue
+		}
+
 		if _, ok := state.Pop(); ok {
 			newAttributes[attribute] = a.attributes[attribute]
 		}
@@ -70,6 +78,10 @@ func (a Attribute) GetUpdates() Data {
 
 	newAttributes := make(map[AttributeType]bool)
 	for attribute, state := range(a.changed) {
+		if isWasm && wasmIgnoreAttributes[attribute] {
+			continue
+		}
+
 		if _, ok := state.GetOnce(); ok {
 			newAttributes[attribute] = a.attributes[attribute]
 		}
@@ -83,6 +95,9 @@ func (a *Attribute) SetData(data Data) {
 		attributes := data.Get(attributesProp).(map[AttributeType]bool)
 
 		for k, v := range(attributes) {
+			if isWasm && wasmIgnoreAttributes[k] {
+				continue
+			}
 			a.attributes[k] = v
 		}
 	}
