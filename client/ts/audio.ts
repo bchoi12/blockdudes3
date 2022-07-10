@@ -14,9 +14,9 @@ export class Audio {
 
 	constructor() {
 		this._sounds = new Map<Sound, Howl>();
-		this._sounds.set(Sound.PEW, new Howl({ src: ["./sound/test.wav"]}));
-		this._sounds.set(Sound.ROCKET, new Howl({ src: ["./sound/test2.wav"] }));
-		this._sounds.set(Sound.EXPLOSION, new Howl({ src: ["./sound/test3.wav"] }));
+		this.registerSound(Sound.PEW, "./sound/test.wav");
+		this.registerSound(Sound.ROCKET, "./sound/test2.wav");
+		this.registerSound(Sound.EXPLOSION, "./sound/test3.wav");
 	}
 
 	playSystemSound(sound : Sound) : void {
@@ -27,13 +27,14 @@ export class Audio {
 
 	playSound(sound : Sound, dist : THREE.Vector2) : void {
 		const howl = this._sounds.get(sound);
+
+		const id = howl.play();
 		if (dist.lengthSq() <= 50) {
-			howl.volume(1);
+			howl.volume(1, id);
 		} else {
-			howl.volume(50 / dist.lengthSq());
+			howl.volume(50 / dist.lengthSq(), id);
 		}
-		howl.stereo(Math.min(1, Math.max(-1, dist.x / 10)));
-		howl.play();
+		howl.stereo(Math.min(1, Math.max(-1, dist.x / 10)), id);
 	}
 
 	playSound3D(sound : Sound, dist : THREE.Vector3) : void {
@@ -45,5 +46,9 @@ export class Audio {
 		}
 		howl.stereo(Math.min(1, Math.max(-1, dist.x / 10)));
 		howl.play();	
+	}
+
+	private registerSound(sound : Sound, srcFile : string) : void {
+		this._sounds.set(sound, new Howl({ src: [srcFile]}));
 	}
 }
