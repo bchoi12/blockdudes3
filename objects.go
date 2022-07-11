@@ -72,7 +72,7 @@ func (p Pickup) GetWeaponType() WeaponType {
 }
 
 func (p Pickup) GetInitData() Data {
-	data := NewData()
+	data := p.BaseObject.GetInitData()
 	data.Set(equipTypeProp, p.weaponType)
 	return data
 }

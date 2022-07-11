@@ -29,6 +29,10 @@ func (a *Attachment) AddChild(object Object, connection Connection) {
 	a.children[object.GetSpacedId()] = connection
 }
 
+func (a *Attachment) ClearChildren() {
+	a.children = make(map[SpacedId]Connection)
+}
+
 func (a *Attachment) RemoveChild(sid SpacedId) {
 	delete(a.children, sid)
 }

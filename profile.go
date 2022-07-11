@@ -32,7 +32,6 @@ type Profile interface {
 	AddSubProfile(key ProfileKey, subProfile SubProfile)
 	GetSubProfile(key ProfileKey) SubProfile
 
-	// TODO: change params to objects?
 	Offset(other Profile) Vec2
 	DistSqr(other Profile) float64
 	Dist(other Profile) float64
@@ -59,11 +58,12 @@ func NewBaseProfile(init Init) BaseProfile {
 	bp := BaseProfile {
 		Init: init,
 		pos: init.Pos(),
-		dim: NewState(init.Dim()),
 		vel: NewVec2(0, 0),
 		extVel: NewVec2(0, 0),
 		acc: NewVec2(0, 0),
 		dir: NewVec2(1, 0),
+		dim: NewState(init.Dim()),
+		static: true,
 
 		subProfiles: make(map[ProfileKey]SubProfile),
 		ignoredColliders: make(map[SpacedId]bool),
@@ -147,9 +147,7 @@ func (bp BaseProfile) GetData() Data {
 		return data
 	}
 
-	// TODO: track change and only publish when changed
 	data.Set(posProp, bp.Pos())
-
 	if !bp.Vel().IsZero() {
 		data.Set(velProp, bp.Vel())
 	}

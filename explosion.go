@@ -16,12 +16,14 @@ func NewExplosion(init Init) *Explosion {
 		hits: make(map[SpacedId]bool, 0),
 		activeFrames: 3,
 	}
-
+	overlapOptions := NewColliderOptions()
+	overlapOptions.SetSpaces(true, playerSpace)
+	explosion.SetOverlapOptions(overlapOptions)
 	explosion.SetTTL(300 * time.Millisecond)
 	return explosion
 }
 
-func (e *Explosion) Hit(p *Player) {
+func (e *Explosion) Hit(object Object) {
 	if isWasm {
 		return
 	}
@@ -29,25 +31,25 @@ func (e *Explosion) Hit(p *Player) {
 	if e.activeFrames <= 0 {
 		return
 	}
-	if e.hits[p.GetSpacedId()] {
+	if e.hits[object.GetSpacedId()] {
 		return
 	}
-	e.hits[p.GetSpacedId()] = true
+	e.hits[object.GetSpacedId()] = true
 
-	dir := p.GetProfile().Pos()
-	dir.Sub(e.GetProfile().Pos(), 1.0)
+	dir := object.Pos()
+	dir.Sub(e.Pos(), 1.0)
 	if (dir.IsZero()) {
 		dir.X = 1
 	}
 	dir.Normalize()
 	dir.Scale(15 * e.Dim().X)
 
-	distSqr := e.DistSqr(p.GetProfile())
+	distSqr := e.DistSqr(object.GetProfile())
 	distScalar := Min(1.0, 2.0 / distSqr)
 	dir.Scale(distScalar)
 
-	dir.Add(p.GetProfile().Vel(), 1.0)
-	p.GetProfile().SetVel(dir)
+	dir.Add(object.Vel(), 1.0)
+	object.SetVel(dir)
 }
 
 func (e *Explosion) UpdateState(grid *Grid, now time.Time) bool {
@@ -57,16 +59,19 @@ func (e *Explosion) UpdateState(grid *Grid, now time.Time) bool {
 		return true
 	}
 
-	e.activeFrames -= 1
 	if e.Expired() {
 		grid.Delete(e.GetSpacedId())
 	}
-	return true
-}
 
-func (e *Explosion) GetData() Data {
-	data := NewData()
-	data.Set(posProp, e.GetProfile().Pos())
-	data.Set(dimProp, e.GetProfile().Dim())
-	return data
+	if e.activeFrames <= 0 {
+		return true
+	}
+	
+	e.activeFrames -= 1
+	colliders := grid.GetColliders(e)
+	for len(colliders) > 0 {
+		object := PopObject(&colliders)
+		e.Hit(object)
+	}
+	return true
 }

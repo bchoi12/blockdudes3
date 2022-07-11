@@ -68,7 +68,7 @@ func NewPlayer(init Init) *Player {
 	profile.AddSubProfile(bodySubProfile, subProfile)
 
 	overlapOptions := NewColliderOptions()
-	overlapOptions.SetSpaces(true, explosionSpace, wallSpace, pickupSpace)
+	overlapOptions.SetSpaces(true, wallSpace, pickupSpace)
 	profile.SetOverlapOptions(overlapOptions)
 
 	snapOptions := NewColliderOptions()
@@ -313,9 +313,6 @@ func (p *Player) checkCollisions(grid *Grid) {
 	for len(colliders) > 0 {
 		collider := PopObject(&colliders)
 		switch object := collider.(type) {
-		// TODO: move this to explosion class
-		case *Explosion:
-			object.Hit(p)
 		case *Pickup:
 			if p.keyDown(interactKey) {
 				p.weapon.SetWeaponType(object.GetWeaponType())

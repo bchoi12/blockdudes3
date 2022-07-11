@@ -15,10 +15,13 @@ type Object interface {
 	Profile
 
 	GetProfile() Profile
+
 	GetAttachment() Attachment
 	AddAttribute(attribute AttributeType)
 	HasAttribute(attribute AttributeType) bool
 	AddChild(object Object, connection Connection)
+	ClearChildren()
+
 	UpdateState(grid *Grid, now time.Time) bool
 	Postprocess(grid *Grid, now time.Time)
 }
