@@ -67,6 +67,14 @@ func NewPlayer(init Init) *Player {
 	subProfile.SetOffset(NewVec2(0, 0.22))
 	profile.AddSubProfile(bodySubProfile, subProfile)
 
+	overlapOptions := NewColliderOptions()
+	overlapOptions.SetSpaces(true, explosionSpace, wallSpace, pickupSpace)
+	profile.SetOverlapOptions(overlapOptions)
+
+	snapOptions := NewColliderOptions()
+	snapOptions.SetSpaces(true, wallSpace, playerSpace)
+	profile.SetSnapOptions(snapOptions)
+
 	weapon := NewBaseWeapon(init.GetSpacedId())
 	weapon.SetWeaponType(uziWeapon)
 
@@ -293,25 +301,19 @@ func (p *Player) Postprocess(grid *Grid, now time.Time) {
 }
 
 func (p *Player) checkCollisions(grid *Grid) {
-	colliders := grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId(), hitSolids: true})
+	colliders := grid.GetColliders(p)
 	snapResults := p.Snap(colliders)
-	if snapResults.posAdj.Y > 0 {
+	if snapResults.posAdjustment.Y > 0 {
 		p.AddAttribute(groundedAttribute)
 	} else {
 		p.RemoveAttribute(groundedAttribute)
 	}
 
-	colliders = grid.GetColliders(p.GetProfile(), ColliderOptions {self: p.GetSpacedId()})
+	colliders = grid.GetColliders(p)
 	for len(colliders) > 0 {
 		collider := PopObject(&colliders)
-		other := collider.GetProfile()
-
-		results := p.Overlap(other)
-		if !results.overlap {
-			continue
-		}
-
 		switch object := collider.(type) {
+		// TODO: move this to explosion class
 		case *Explosion:
 			object.Hit(p)
 		case *Pickup:

@@ -3,13 +3,17 @@ package main
 type ProfileMath interface {
 	Contains(point Vec2) ContainResults
 	Intersects(line Line) IntersectResults
-	// TODO: this should take object
-	Overlap(profile Profile) OverlapResults
-	Snap(colliders ObjectHeap) SnapResults
+
+	GetOverlapOptions() ColliderOptions
+	SetOverlapOptions(options ColliderOptions)
+	OverlapProfile(profile Profile) CollideResult
+
+	GetSnapOptions() ColliderOptions
+	SetSnapOptions(options ColliderOptions)
+	Snap(nearbyObjects ObjectHeap) SnapResults
 
 	getIgnored() map[SpacedId]bool
-	resetIgnored()
-	addIgnored(sid SpacedId) 
+	updateIgnored(ignored map[SpacedId]bool) 
 }
 
 type ContainResults struct {
@@ -26,27 +30,7 @@ func NewContainResults() ContainResults {
 
 func (cr *ContainResults) Merge(other ContainResults) {
 	cr.contains = cr.contains || other.contains
-}
-
-type OverlapResults struct {
-	overlap bool
-
-	// TODO: use a map?
-	amount Vec2
-}
-
-func NewOverlapResults() OverlapResults {
-	return OverlapResults {
-		overlap: false,
-		amount: NewVec2(0, 0),
-	}
-}
-
-func (or *OverlapResults) Merge(other OverlapResults) {
-	or.overlap = or.overlap || other.overlap
-	if (other.amount.Area() > or.amount.Area()) {
-		or.amount = other.amount
-	}
+	cr.ignored = cr.ignored && other.ignored
 }
 
 type IntersectResults struct {
@@ -68,33 +52,108 @@ func (ir *IntersectResults) Merge(other IntersectResults) {
 	ir.t = Min(ir.t, other.t)
 }
 
+type CollideResult struct {
+	hit bool
+	ignored bool
+
+	// TODO: this is always positive, should fix
+	posAdjustment Vec2
+	velModifier Vec2
+}
+
+func NewCollideResult() CollideResult {
+	return CollideResult {
+		hit: false,
+		ignored: false,
+		posAdjustment: NewVec2(0, 0),
+		velModifier: NewVec2(0, 0),
+	}
+}
+
+func (cr CollideResult) GetHit() bool { return cr.hit }
+func (cr CollideResult) GetIgnored() bool { return cr.ignored }
+func (cr CollideResult) GetPosAdjustment() Vec2 { return cr.posAdjustment }
+func (cr CollideResult) GetVelModifier() Vec2 { return cr.velModifier }
+func (cr *CollideResult) SetHit(hit bool) { cr.hit = hit }
+func (cr *CollideResult) SetIgnored(ignored bool) { cr.ignored = ignored }
+func (cr *CollideResult) SetPosAdjustment(posAdj Vec2) { cr.posAdjustment = posAdj }
+func (cr *CollideResult) SetVelModifier(vel Vec2) { cr.velModifier = vel }
+
+func (cr *CollideResult) Merge(other CollideResult) {
+	cr.hit = cr.hit || other.hit
+	cr.ignored = cr.ignored && other.ignored
+
+	posAdj := &cr.posAdjustment
+	velMod := &cr.velModifier
+	posAdj.AbsMax(other.GetPosAdjustment())
+	velMod.AbsMax(other.GetVelModifier())
+}
+
+type OverlapResults struct {
+	overlap bool
+	posAdjustment Vec2
+	collideResults map[SpacedId]CollideResult
+}
+
+func NewOverlapResults() OverlapResults {
+	return OverlapResults {
+		overlap: false,
+		posAdjustment: NewVec2(0, 0),
+		collideResults: make(map[SpacedId]CollideResult),
+	}
+}
+
+func (or *OverlapResults) AddCollideResult(sid SpacedId, result CollideResult) {
+	if _, ok := or.collideResults[sid]; ok {
+		return
+	}
+
+	or.collideResults[sid] = result
+	or.overlap = or.overlap || result.hit
+
+	posAdj := &or.posAdjustment
+	posAdj.AbsMax(result.GetPosAdjustment())
+}
+
+func (or *OverlapResults) Merge(other OverlapResults) {
+	for sid, result := range(other.collideResults) {
+		or.AddCollideResult(sid, result)	
+	}
+}
+
 type SnapResults struct {
 	snap bool
-	ignored bool
-	posAdj Vec2
-	extVel Vec2
 
-	// TODO: need IDs
+	posAdjustment Vec2
+	velModifier Vec2
+	collideResults map[SpacedId]CollideResult
 }
 
 func NewSnapResults() SnapResults {
 	return SnapResults {
 		snap: false,
-		ignored: false,
-		posAdj: NewVec2(0, 0),
-		extVel: NewVec2(0, 0),
+		posAdjustment: NewVec2(0, 0),
+		velModifier: NewVec2(0, 0),
+		collideResults: make(map[SpacedId]CollideResult),
 	}
 }
 
+func (sr *SnapResults) AddCollideResult(sid SpacedId, result CollideResult) {
+	if _, ok := sr.collideResults[sid]; ok {
+		return
+	}
+
+	sr.collideResults[sid] = result
+	sr.snap = sr.snap || result.hit
+
+	posAdj := &sr.posAdjustment
+	velMod := &sr.velModifier
+	posAdj.AbsMax(result.GetPosAdjustment())
+	velMod.AbsMax(result.GetVelModifier())
+}
+
 func (sr *SnapResults) Merge(other SnapResults) {
-	sr.snap = sr.snap || other.snap
-
-	pos := &sr.posAdj
-	otherPos := other.posAdj
-	pos.X = AbsMax(pos.X, otherPos.X)
-	pos.Y = AbsMax(pos.Y, otherPos.Y)
-
-	extVel := &sr.extVel
-	extVel.X = AbsMax(extVel.X, other.extVel.X)
-	extVel.Y = AbsMax(extVel.Y, other.extVel.Y)
+	for sid, result := range(other.collideResults) {
+		sr.AddCollideResult(sid, result)	
+	}
 }

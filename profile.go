@@ -52,6 +52,7 @@ type BaseProfile struct {
 
 	subProfiles map[ProfileKey]SubProfile
 	ignoredColliders map[SpacedId]bool
+	overlapOptions, snapOptions ColliderOptions
 }
 
 func NewBaseProfile(init Init) BaseProfile {
@@ -66,6 +67,8 @@ func NewBaseProfile(init Init) BaseProfile {
 
 		subProfiles: make(map[ProfileKey]SubProfile),
 		ignoredColliders: make(map[SpacedId]bool),
+		overlapOptions: NewColliderOptions(),
+		snapOptions: NewColliderOptions(),
 	}
 	return bp
 }
@@ -232,7 +235,6 @@ func (bp BaseProfile) DimOverlap(other Profile) Vec2 {
 	if relativeVel.Y != 0 && Sign(relativePos.Y) == Sign(relativeVel.Y) {
 		oy = oyLarge
 	}
-
 	return NewVec2(ox, oy)
 }
 
@@ -277,11 +279,8 @@ func (bp BaseProfile) DistY(other Profile) float64 {
 func (bp BaseProfile) getIgnored() map[SpacedId]bool {
 	return bp.ignoredColliders
 }
-func (bp *BaseProfile) resetIgnored() {
-	bp.ignoredColliders = make(map[SpacedId]bool, 0)
-}
-func (bp *BaseProfile) addIgnored(sid SpacedId) {
-	bp.ignoredColliders[sid] = true
+func (bp *BaseProfile) updateIgnored(ignored map[SpacedId]bool) {
+	bp.ignoredColliders = ignored
 }
 
 func (bp BaseProfile) Contains(point Vec2) ContainResults {
@@ -300,18 +299,34 @@ func (bp BaseProfile) Intersects(line Line) IntersectResults {
 	return results
 }
 
-func (bp BaseProfile) Overlap(profile Profile) OverlapResults {
-	results := NewOverlapResults()
+func (bp BaseProfile) GetOverlapOptions() ColliderOptions { return bp.overlapOptions }
+func (bp *BaseProfile) SetOverlapOptions(options ColliderOptions) {
 	for _, sp := range(bp.subProfiles) {
-		results.Merge(sp.Overlap(profile))
+		sp.SetOverlapOptions(options)
 	}
-	return results
+	bp.overlapOptions = options
 }
 
-func (bp *BaseProfile) Snap(colliders ObjectHeap) SnapResults {
+func (bp BaseProfile) OverlapProfile(profile Profile) CollideResult {
+	result := NewCollideResult()
+	for _, sp := range(bp.subProfiles) {
+		result.Merge(sp.OverlapProfile(profile))
+	}
+	return result
+}
+
+func (bp BaseProfile) GetSnapOptions() ColliderOptions { return bp.snapOptions }
+func (bp *BaseProfile) SetSnapOptions(options ColliderOptions) {
+	for _, sp := range(bp.subProfiles) {
+		sp.SetSnapOptions(options)
+	}
+	bp.snapOptions = options
+}
+
+func (bp *BaseProfile) Snap(nearbyObjects ObjectHeap) SnapResults {
 	results := NewSnapResults()
 	for _, sp := range(bp.subProfiles) {
-		results.Merge(sp.Snap(colliders))
+		results.Merge(sp.Snap(nearbyObjects))
 	}
 	return results
 }

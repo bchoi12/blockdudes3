@@ -41,22 +41,20 @@ func (c Circle) Intersects(line Line) IntersectResults {
 	return results
 }
 
-func (c Circle) Overlap(profile Profile) OverlapResults {
-	results := c.BaseProfile.Overlap(profile)
-
+func (c Circle) OverlapProfile(profile Profile) CollideResult {
 	switch other := profile.(type) {
 	case *RotPoly:
-		results.Merge(other.Overlap(&c))
+		return other.OverlapProfile(&c)
 	case *Rec2:
-		results.Merge(other.Overlap(&c))
+		return other.OverlapProfile(&c)
 	case *Circle:
-		circResults := NewOverlapResults()
+		result := NewCollideResult()
 		radius := c.Radius() + other.Radius()
 		if c.DistSqr(other) <= radius * radius {
-			circResults.overlap = true
-			circResults.amount = c.DimOverlap(other)
+			result.SetHit(true)
+			result.SetPosAdjustment(c.DimOverlap(other))
 		}
-		results.Merge(circResults)
+		return result
 	}
-	return results
+	return NewCollideResult()
 }

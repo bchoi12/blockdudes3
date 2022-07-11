@@ -154,6 +154,11 @@ func (v *Vec2) ClampY(min float64, max float64) bool {
 	return false
 }
 
+func (v *Vec2) AbsMax(other Vec2) {
+	v.X = AbsMax(v.X, other.X)
+	v.Y = AbsMax(v.Y, other.Y)
+}
+
 func (v Vec2) Area() float64 {
 	return Abs(v.X * v.Y)
 }

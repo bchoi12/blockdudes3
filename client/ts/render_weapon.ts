@@ -40,6 +40,7 @@ export class RenderWeapon extends RenderMesh {
 		loader.load(model, (mesh : THREE.Mesh) => {
 			this.setMesh(mesh);
 
+/*
 			if (model === Model.UZI) {
 				this._light.intensity = 2;
 				this._light.position.copy(this._shotOrigin);
@@ -50,6 +51,7 @@ export class RenderWeapon extends RenderMesh {
 			} else {
 				this._light.intensity = 0;
 			}
+*/
 		});
 	}
 

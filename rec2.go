@@ -51,100 +51,93 @@ func (r Rec2) Intersects(line Line) IntersectResults {
 	return results
 }
 
-func (r Rec2) Overlap(profile Profile) OverlapResults {
-	results := r.BaseProfile.Overlap(profile)
-
+func (r Rec2) OverlapProfile(profile Profile) CollideResult {
 	switch other := profile.(type) {
 	case *RotPoly:
-		results.Merge(other.Overlap(&r))
+		return other.OverlapProfile(&r)
 	case *Rec2:
-		recResults := NewOverlapResults()
+		result := NewCollideResult()
 		if do := r.DimOverlap(other); do.Area() > 0 {
-			recResults.overlap = true
-			recResults.amount = do
+			result.SetHit(true)
+			result.SetPosAdjustment(do)
 		}
-		results.Merge(recResults)
+		return result
 	case *Circle:
+		result := NewCollideResult()
 		do := r.DimOverlap(other)
 		if do.Area() <= 0 {
-			break
+			return result
 		}
 
-		circResults := NewOverlapResults()
 		// Distance to outside of rectangle
 		dist := NewVec2(r.DistX(other) - r.Dim().X / 2, r.DistY(other) - r.Dim().Y / 2)
 		dist.X = Max(dist.X, 0)
 		dist.Y = Max(dist.Y, 0)
 
 		if dist.X * dist.X + dist.Y * dist.Y <= other.RadiusSqr() {
-			circResults.overlap = true
-			circResults.amount = do
+			result.SetHit(true)
+			result.SetPosAdjustment(do)
 		}
-		results.Merge(circResults)
+		return result
 	}
-	return results
+	return NewCollideResult()
 }
 
-func (r *Rec2) Snap(colliders ObjectHeap) SnapResults {
-	results := r.BaseProfile.Snap(colliders)
-	ignored := r.getIgnored()
+func (r *Rec2) Snap(nearbyObjects ObjectHeap) SnapResults {
+	results := r.BaseProfile.Snap(nearbyObjects)
+	ignored := make(map[SpacedId]bool)
 
-	if results.snap {
-		pos := r.Pos()
-		pos.Add(results.posAdj, 1.0)
-		r.SetPos(pos)
-	}
+	for len(nearbyObjects) > 0 {
+		object := PopObject(&nearbyObjects)
+		collideResult := r.snapObject(object)
 
-	r.resetIgnored()
-	for len(colliders) > 0 {
-		thing := PopObject(&colliders)
-		curResults := r.snapObject(thing, ignored)
-
-		if curResults.snap {
+		if collideResult.GetIgnored() {
+			ignored[object.GetSpacedId()] = true
+		} else if collideResult.GetHit() {
 			pos := r.Pos()
-			pos.Add(curResults.posAdj, 1.0)
+			pos.Add(collideResult.GetPosAdjustment(), 1.0)
 			r.SetPos(pos)
 		}
 
-		results.Merge(curResults)
+		results.AddCollideResult(object.GetSpacedId(), collideResult)
 	}
 
 	if results.snap {
 		vel := r.Vel()
 
-		if results.posAdj.X > 0 {
+		if results.posAdjustment.X > 0 {
 			vel.X = Max(0, vel.X)
-		} else if results.posAdj.X < 0 {
+		} else if results.posAdjustment.X < 0 {
 			vel.X = Min(0, vel.X)
 		}
-		if results.posAdj.Y > 0 {
+		if results.posAdjustment.Y > 0 {
 			vel.Y = Max(0, vel.Y)
-		} else if results.posAdj.Y < 0 {
+		} else if results.posAdjustment.Y < 0 {
 			vel.Y = Min(0, vel.Y)
 		}
 		r.SetVel(vel)
 
-		if results.posAdj.Y > 0 {
-			r.SetExtVel(results.extVel)
-		}	
+		if results.posAdjustment.Y > 0 {
+			r.SetExtVel(results.velModifier)
+		}
 	}
+
+	r.updateIgnored(ignored)
 	return results
 }
 
-func (r Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
-	results := NewSnapResults()
+func (r Rec2) snapObject(other Object) CollideResult {
+	result := NewCollideResult()
 	overlap := r.DimOverlap(other)
+	ignored := r.getIgnored()
 
-	if overlap.Area() <= 0 {
-		return results
+	if !r.GetSnapOptions().Evaluate(other) || overlap.Area() <= 0 {
+		return result
 	}
 
 	if _, ok := ignored[other.GetSpacedId()]; ok {
-		r.addIgnored(other.GetSpacedId())
-		return results
-	}
-	if !other.HasAttribute(solidAttribute) {
-		return results
+		result.SetIgnored(true)
+		return result
 	}
 
 	// Figure out collision direction
@@ -162,9 +155,9 @@ func (r Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 
 	// Check for tiny collisions that we can ignore
 	if adjSign.X != 0 && adjSign.Y != 0 {
-		if Sign(adjSign.X) != Sign(relativeVel.X) && overlap.Y < overlapEpsilon {
+		if Sign(adjSign.X) != Sign(relativeVel.X) && Abs(overlap.Y) < overlapEpsilon {
 			adjSign.X = 0
-		} else if Sign(adjSign.Y) != Sign(relativeVel.Y) && overlap.X < overlapEpsilon {
+		} else if Sign(adjSign.Y) != Sign(relativeVel.Y) && Abs(overlap.X) < overlapEpsilon {
 			adjSign.Y = 0
 		}
 	}
@@ -218,20 +211,21 @@ func (r Rec2) snapObject(other Object, ignored map[SpacedId]bool) SnapResults {
 	// Have overlap, but no pos adjustment for some reason.
 	if adjSign.IsZero() {
 		if other.HasAttribute(platformAttribute) {
-			r.addIgnored(other.GetSpacedId())
+			result.SetIgnored(true)
 		}
-		return results
+		return result
 	}
 
 	// Collision
 	posAdj := NewVec2(overlap.X * adjSign.X, overlap.Y * adjSign.Y)
-	if !posAdj.IsZero() {
-		results.snap = true
+	if posAdj.IsZero() {
+		return result
 	}
 
-	results.posAdj = posAdj
-	if results.posAdj.Y > 0 {
-		results.extVel = other.TotalVel()
+	result.SetHit(true)
+	result.SetPosAdjustment(posAdj)
+	if posAdj.Y > 0 {
+		result.SetVelModifier(other.TotalVel())
 	}
-	return results
+	return result
 }

@@ -18,7 +18,7 @@ type Projectile struct {
 }
 
 func NewProjectile(object BaseObject) Projectile {
-	return Projectile {
+	p := Projectile {
 		BaseObject: object,
 		owner: NewBlankState(InvalidId()),
 		hits: make([]*Hit, 0),
@@ -30,6 +30,13 @@ func NewProjectile(object BaseObject) Projectile {
 		sticky: false,
 		collided: false,
 	}
+
+	overlapOptions := NewColliderOptions()
+	overlapOptions.SetSpaces(true, playerSpace, wallSpace)
+	overlapOptions.SetAttributes(true, solidAttribute)
+	p.SetOverlapOptions(overlapOptions)
+
+	return p
 }
 
 func (p Projectile) GetOwner() SpacedId {
@@ -38,6 +45,10 @@ func (p Projectile) GetOwner() SpacedId {
 
 func (p *Projectile) SetOwner(owner SpacedId) {
 	p.owner.Set(owner)
+
+	overlapOptions := p.GetOverlapOptions()
+	overlapOptions.SetIds(false, owner)
+	p.SetOverlapOptions(overlapOptions)
 }
 
 func (p *Projectile) SetDamage(damage int) {
@@ -99,37 +110,29 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 		return true
 	}
 
-	colliders := grid.GetColliders(p.GetProfile(), ColliderOptions {
-		self: p.GetSpacedId(),
-		hitSpaces: map[SpaceType]bool { playerSpace: true },
-		hitSolids: true,
-	})
+	colliders := grid.GetColliders(p)
 
 	for len(colliders) > 0 {
 		collider := PopObject(&colliders)
-
-		results := p.Overlap(collider.GetProfile())
-		if collider.GetSpacedId() == p.GetOwner() || !results.overlap {
-			continue
-		}
-
+		result := p.OverlapProfile(collider.GetProfile())
+		posAdj := result.GetPosAdjustment()
 		// TODO: move this to profile
 		if Abs(vel.X) < zeroVelEpsilon {
-			pos.Y -= FSign(vel.Y) * results.amount.Y
+			pos.Y -= FSign(vel.Y) * posAdj.Y
 		} else if Abs(vel.Y) < zeroVelEpsilon {
-			pos.X -= FSign(vel.X) * results.amount.X
+			pos.X -= FSign(vel.X) * posAdj.X
 		} else {
-			collisionTime := results.amount
+			collisionTime := posAdj
 			collisionTime.X /= Abs(vel.X)
 			collisionTime.Y /= Abs(vel.Y)
 
 			var fx, fy float64
 			if collisionTime.X < collisionTime.Y {
-				fx = FSign(vel.X) * results.amount.X
-				fy = FSign(vel.Y) * Abs(vel.Y / vel.X) * results.amount.X			
+				fx = FSign(vel.X) * posAdj.X
+				fy = FSign(vel.Y) * Abs(vel.Y / vel.X) * posAdj.X			
 			} else {
-				fx = FSign(vel.X) * Abs(vel.X / vel.Y) * results.amount.Y
-				fy = FSign(vel.Y) * results.amount.Y			
+				fx = FSign(vel.X) * Abs(vel.X / vel.Y) * posAdj.Y
+				fy = FSign(vel.Y) * posAdj.Y			
 			}
 
 			pos.X -= fx

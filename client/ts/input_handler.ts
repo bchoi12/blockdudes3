@@ -40,6 +40,29 @@ export class InputHandler {
 
 		this._keyDownCallbacks = new Map();
 		this._keyUpCallbacks = new Map();
+	}
+
+	setup() : void {
+		this.mapKey(37, leftKey);
+		this.mapKey(65, leftKey);
+		this.mapKey(39, rightKey);
+		this.mapKey(68, rightKey);
+		this.mapKey(32, dashKey);
+		this.mapKey(38, dashKey);
+		this.mapKey(69, interactKey);
+
+		this.addKeyDownListener(this._chatKeyCode, (e : any) => {
+			ui.handleChat();
+		});
+		this.addKeyUpListener(this._pauseKeyCode, (e : any) => {
+			if (e.keyCode === this._pauseKeyCode) {
+				if (this._mode != InputMode.PAUSE) {
+					ui.changeInputMode(InputMode.PAUSE);
+				} else {
+					ui.changeInputMode(InputMode.GAME);
+				}
+			}
+		});
 
 		document.addEventListener("keydown", (e : any) => {
 			if (this._keyDownCallbacks.has(e.keyCode)) {
@@ -77,29 +100,6 @@ export class InputHandler {
 		});
 	}
 
-	setup() : void {
-		this.mapKey(37, leftKey);
-		this.mapKey(65, leftKey);
-		this.mapKey(39, rightKey);
-		this.mapKey(68, rightKey);
-		this.mapKey(32, dashKey);
-		this.mapKey(38, dashKey);
-		this.mapKey(69, interactKey);
-
-		this.addKeyDownListener(this._chatKeyCode, (e : any) => {
-			ui.handleChat();
-		});
-		this.addKeyUpListener(this._pauseKeyCode, (e : any) => {
-			if (e.keyCode === this._pauseKeyCode) {
-				if (this._mode != InputMode.PAUSE) {
-					ui.changeInputMode(InputMode.PAUSE);
-				} else {
-					ui.changeInputMode(InputMode.GAME);
-				}
-			}
-		});
-	}
-
 	mode() : InputMode { return this._mode; }
 	keys() : Set<number> { return this._keys; }
 
@@ -117,9 +117,7 @@ export class InputHandler {
 		if (this._mode === InputMode.GAME) {
 			this.pointerLock();
 		} else {
-			if (this._keys.size > 0) {
-				this._keys.clear();
-			}
+			this._keys.clear();
 		}
 	}
 

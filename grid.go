@@ -60,7 +60,7 @@ func (g *Grid) GetUnitHeight() int {
 }
 
 func (g *Grid) Upsert(object Object) {
-	coords := g.getCoords(object.GetProfile())
+	coords := g.getCoords(object)
 	sid := object.GetSpacedId()
 
 	if _, ok := g.spacedObjects[sid.GetSpace()]; !ok {
@@ -286,115 +286,21 @@ func (g *Grid) GetManyObjects(spaces ...SpaceType) map[SpaceType]map[IdType]Obje
 	return objects
 }
 
-type ColliderOptions struct {
-	// TODO: change to set of SpacedId to ignore
-	self SpacedId
-
-	hitSpaces map[SpaceType]bool
-	hitSolids bool
-}
-func (g *Grid) GetColliders(prof Profile, options ColliderOptions) ObjectHeap {
+func (g *Grid) GetColliders(object Object) ObjectHeap {
 	heap := make(ObjectHeap, 0)
 
-	for sid, object := range(g.getNearbyObjects(prof)) {
-		if options.self == sid {
-			continue
-		}
-
-		evaluate := false
-		if len(options.hitSpaces) > 0 {
-			if _, ok := options.hitSpaces[sid.GetSpace()]; ok {
-				evaluate = true
-			}
-		} else {
-			evaluate = true
-		}
-		if options.hitSolids && object.HasAttribute(solidAttribute) {
-			evaluate = true
-		}
-
-		if !evaluate {
-			continue
-		}
-
-		results := prof.Overlap(object.GetProfile())
-		if results.overlap {
+	for sid, other := range(g.getNearbyObjects(object)) {
+		results := object.OverlapProfile(other.GetProfile())
+		if results.hit {
 			item := &ObjectItem {
 				id: sid.GetId(),
-				object: object,
+				object: other,
 			}
 			heap.Push(item)
-			heap.priority(item, results.amount.Area())
+			heap.priority(item, results.posAdjustment.Area())
 		}
 	}
 	return heap
-}
-
-func (g *Grid) GetHits(line Line, options ColliderOptions) *Hit {
-	var hit *Hit
-
-	coord := g.getCoord(line.O)
-	for {
-		closest := 1.0
-		for id, object := range(g.grid[coord]) {
-			if id == options.self {
-				continue
-			}
-
-			results := object.GetProfile().Intersects(line)
-			if !results.hit {
-				continue
-			}
-			point := line.Point(results.t)
-			if !coord.contains(g, point) {
-				continue
-			}
-
-			if results.t < closest {
-				hit = NewHit()
-				hit.SetTarget(object.GetSpacedId())
-				hit.SetPos(point)
-
-				closest = results.t
-			}
-		}
-		if hit != nil {
-			return hit
-		}
-
-		xstart := NewVec2(float64(coord.x), float64(coord.y))
-		if Sign(line.R.X) > 0 {
-			xstart.X += float64(g.unitLength)
-		}
-		xline := NewLine(xstart, NewVec2(0, float64(g.unitHeight)))
-
-		ystart := NewVec2(float64(coord.x), float64(coord.y))
-		if Sign(line.R.Y) > 0 {
-			ystart.Y += float64(g.unitHeight)
-		}
-		yline := NewLine(ystart, NewVec2(float64(g.unitLength), 0))
-
-		xresults := line.Intersects(xline)
-		yresults := line.Intersects(yline)
-
-		if !xresults.hit && !yresults.hit {
-			break
-		}
-		if xresults.hit && (xresults.t <= yresults.t || !yresults.hit) {
-			coord.advance(g, int(Sign(line.R.X)), 0)
-			if closest < xresults.t {
-				break
-			}
-		}
-		if yresults.hit && (yresults.t <= xresults.t || !xresults.hit) {
-			coord.advance(g, 0, int(Sign(line.R.Y)))
-			if closest < yresults.t {
-				break
-			}
-		}
-	}
-
-	return hit
 }
 
 func (g* Grid) getCoord(point Vec2) GridCoord {
@@ -407,9 +313,9 @@ func (g* Grid) getCoord(point Vec2) GridCoord {
 	}
 }
 
-func (g* Grid) getCoords(prof Profile) []GridCoord {
-	pos := prof.Pos()
-	dim := prof.Dim()
+func (g* Grid) getCoords(object Object) []GridCoord {
+	pos := object.Pos()
+	dim := object.Dim()
 
 	coords := make([]GridCoord, 0)
 
@@ -431,12 +337,18 @@ func (g* Grid) getCoords(prof Profile) []GridCoord {
 	return coords
 }
 
-func (g *Grid) getNearbyObjects(prof Profile) map[SpacedId]Object {
+func (g *Grid) getNearbyObjects(object Object) map[SpacedId]Object {
 	nearbyObjects := make(map[SpacedId]Object)
 
-	for _, coord := range(g.getCoords(prof)) {
-		for id, object := range(g.grid[coord]) {
-			nearbyObjects[id] = object
+	for _, coord := range(g.getCoords(object)) {
+		for sid, other := range(g.grid[coord]) {
+			if sid == object.GetSpacedId() {
+				continue
+			}
+			if !object.GetOverlapOptions().Evaluate(other) && !object.GetSnapOptions().Evaluate(other) {
+				continue
+			}
+			nearbyObjects[sid] = other
 		}
 	}
 	return nearbyObjects
