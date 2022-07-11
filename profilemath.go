@@ -6,11 +6,13 @@ type ProfileMath interface {
 
 	GetOverlapOptions() ColliderOptions
 	SetOverlapOptions(options ColliderOptions)
-	OverlapProfile(profile Profile) CollideResult
-
 	GetSnapOptions() ColliderOptions
 	SetSnapOptions(options ColliderOptions)
+
+	OverlapProfile(profile Profile) CollideResult
 	Snap(nearbyObjects ObjectHeap) SnapResults
+
+	Stick(result CollideResult)
 
 	getIgnored() map[SpacedId]bool
 	updateIgnored(ignored map[SpacedId]bool) 
@@ -89,38 +91,7 @@ func (cr *CollideResult) Merge(other CollideResult) {
 	velMod.AbsMax(other.GetVelModifier())
 }
 
-type OverlapResults struct {
-	overlap bool
-	posAdjustment Vec2
-	collideResults map[SpacedId]CollideResult
-}
-
-func NewOverlapResults() OverlapResults {
-	return OverlapResults {
-		overlap: false,
-		posAdjustment: NewVec2(0, 0),
-		collideResults: make(map[SpacedId]CollideResult),
-	}
-}
-
-func (or *OverlapResults) AddCollideResult(sid SpacedId, result CollideResult) {
-	if _, ok := or.collideResults[sid]; ok {
-		return
-	}
-
-	or.collideResults[sid] = result
-	or.overlap = or.overlap || result.hit
-
-	posAdj := &or.posAdjustment
-	posAdj.AbsMax(result.GetPosAdjustment())
-}
-
-func (or *OverlapResults) Merge(other OverlapResults) {
-	for sid, result := range(other.collideResults) {
-		or.AddCollideResult(sid, result)	
-	}
-}
-
+// TODO: rename CollisionResults
 type SnapResults struct {
 	snap bool
 
@@ -144,7 +115,7 @@ func (sr *SnapResults) AddCollideResult(sid SpacedId, result CollideResult) {
 	}
 
 	sr.collideResults[sid] = result
-	sr.snap = sr.snap || result.hit
+	sr.snap = sr.snap || (result.hit && !result.ignored)
 
 	posAdj := &sr.posAdjustment
 	velMod := &sr.velModifier

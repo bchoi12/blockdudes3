@@ -5,7 +5,7 @@ type ColliderOptions struct {
 	spaces map[SpaceType]bool
 	attributes map[AttributeType]bool
 
-	empty bool
+	snapSlide bool
 }
 
 func NewColliderOptions() ColliderOptions {
@@ -14,36 +14,29 @@ func NewColliderOptions() ColliderOptions {
 		spaces: make(map[SpaceType]bool),
 		attributes: make(map[AttributeType]bool),
 
-		empty: true,
+		snapSlide: false,
 	}
 }
 
 func (co *ColliderOptions) SetIds(include bool, ids ...SpacedId) {
-	co.empty = false
 	for _, id := range(ids) {
 		co.ids[id] = include
 	}
 }
 
 func (co *ColliderOptions) SetSpaces(include bool, spaces ...SpaceType) {
-	co.empty = false
 	for _, space := range(spaces) {
 		co.spaces[space] = include
 	}
 }
 
 func (co *ColliderOptions) SetAttributes(include bool, attributes ...AttributeType) {
-	co.empty = false
 	for _, attribute := range(attributes) {
 		co.attributes[attribute] = true
 	}
 }
 
 func (co ColliderOptions) Evaluate(object Object) bool {
-	if co.empty {
-		return false
-	}
-
 	if val, ok := co.ids[object.GetSpacedId()]; ok {
 		return val
 	}

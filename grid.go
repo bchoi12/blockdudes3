@@ -289,15 +289,14 @@ func (g *Grid) GetManyObjects(spaces ...SpaceType) map[SpaceType]map[IdType]Obje
 func (g *Grid) GetColliders(object Object) ObjectHeap {
 	heap := make(ObjectHeap, 0)
 
-	for sid, other := range(g.getNearbyObjects(object)) {
+	for _, other := range(g.getNearbyObjects(object)) {
 		results := object.OverlapProfile(other.GetProfile())
 		if results.hit {
 			item := &ObjectItem {
-				id: sid.GetId(),
 				object: other,
 			}
 			heap.Push(item)
-			heap.priority(item, results.posAdjustment.Area())
+			heap.priority(item, results.GetPosAdjustment().Area())
 		}
 	}
 	return heap

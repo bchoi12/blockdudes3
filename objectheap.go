@@ -5,7 +5,6 @@ import (
 )
 
 type ObjectItem struct {
-	id IdType
 	object Object
 
 	priority float64

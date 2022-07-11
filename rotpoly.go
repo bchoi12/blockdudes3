@@ -106,18 +106,18 @@ func (rp RotPoly) Intersects(line Line) IntersectResults {
 }
 
 func (rp RotPoly) OverlapProfile(profile Profile) CollideResult {
-	result := NewCollideResult()
+	result := rp.BaseProfile.OverlapProfile(profile)
 
 	if profile.Contains(rp.Pos()).contains || rp.Contains(profile.Pos()).contains {
 		result.SetHit(true)
-		result.SetPosAdjustment(rp.DimOverlap(profile))
+		result.SetPosAdjustment(rp.PosAdjustment(profile))
 		return result
 	}
 
 	for _, side := range(rp.getSides()) {
 		if testResults := profile.Intersects(side); testResults.hit {
 			result.SetHit(true)
-			result.SetPosAdjustment(rp.DimOverlap(profile))
+			result.SetPosAdjustment(rp.PosAdjustment(profile))
 			break
 		}
 	}

@@ -111,37 +111,11 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 	}
 
 	colliders := grid.GetColliders(p)
-
-	for len(colliders) > 0 {
-		collider := PopObject(&colliders)
-		result := p.OverlapProfile(collider.GetProfile())
-		posAdj := result.GetPosAdjustment()
-		// TODO: move this to profile
-		if Abs(vel.X) < zeroVelEpsilon {
-			pos.Y -= FSign(vel.Y) * posAdj.Y
-		} else if Abs(vel.Y) < zeroVelEpsilon {
-			pos.X -= FSign(vel.X) * posAdj.X
-		} else {
-			collisionTime := posAdj
-			collisionTime.X /= Abs(vel.X)
-			collisionTime.Y /= Abs(vel.Y)
-
-			var fx, fy float64
-			if collisionTime.X < collisionTime.Y {
-				fx = FSign(vel.X) * posAdj.X
-				fy = FSign(vel.Y) * Abs(vel.Y / vel.X) * posAdj.X			
-			} else {
-				fx = FSign(vel.X) * Abs(vel.X / vel.Y) * posAdj.Y
-				fy = FSign(vel.Y) * posAdj.Y			
-			}
-
-			pos.X -= fx
-			pos.Y -= fy
-		}
-		p.SetPos(pos)
-
-		p.Collide(collider, grid)
-		return true
+	if len(colliders) > 0 {
+		object := PopObject(&colliders)
+		result := p.OverlapProfile(object.GetProfile())
+		p.Stick(result)
+		p.Collide(object, grid)
 	}
 	return true
 }
