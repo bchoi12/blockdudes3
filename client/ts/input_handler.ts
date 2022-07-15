@@ -21,7 +21,7 @@ export class InputHandler {
 	private readonly _cursorHeight = 20;
 
 	private _mode : InputMode;
-	private _mouse : THREE.Vector3;
+	private _mouse : THREE.Vector2;
 	private _lastPointerLock : number;
 	private _keys : Set<number>;
 	private _keyMap : Map<number, number>;
@@ -32,7 +32,7 @@ export class InputHandler {
 
 	constructor() {
 		this._mode = InputMode.PAUSE;
-		this._mouse = new THREE.Vector3();
+		this._mouse = new THREE.Vector2();
 		this._lastPointerLock = 0;
 		this._keys = new Set<number>();
 		this._keyMap = new Map();

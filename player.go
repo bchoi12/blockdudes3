@@ -27,9 +27,11 @@ const (
 	jumpVel = 10.0
 
 	friction = 0.4
+	knockbackFriction = 0.9
 	airResistance = 0.9
 
 	jumpDuration time.Duration = 300 * time.Millisecond
+	knockbackDuration time.Duration = 150 * time.Millisecond
 	canJumpGracePeriod time.Duration = 100 * time.Millisecond
 
 	bodySubProfile ProfileKey = 1
@@ -42,7 +44,8 @@ type Player struct {
 	canJump bool
 	canDash bool
 	lastJumpTime time.Time
-	lastGrounded time.Time
+	lastGroundedTime time.Time
+	lastKnockbackTime time.Time
 
 	ignoredColliders map[SpacedId]bool
 
@@ -72,7 +75,7 @@ func NewPlayer(init Init) *Player {
 	profile.SetOverlapOptions(overlapOptions)
 
 	snapOptions := NewColliderOptions()
-	snapOptions.SetSpaces(true, wallSpace, playerSpace)
+	snapOptions.SetSpaces(true, wallSpace)
 	profile.SetSnapOptions(snapOptions)
 
 	weapon := NewBaseWeapon(init.GetSpacedId())
@@ -85,7 +88,8 @@ func NewPlayer(init Init) *Player {
 		canJump: false,
 		canDash: true,
 		lastJumpTime: time.Time{},
-		lastGrounded: time.Time{},
+		lastGroundedTime: time.Time{},
+		lastKnockbackTime: time.Time{},
 
 		ignoredColliders: make(map[SpacedId]bool, 0),
 
@@ -165,6 +169,11 @@ func (p Player) UpdateScore(g *Grid) {
 	g.IncrementScore(sid, killProp, 1)
 }
 
+func (p *Player) Knockback(dir Vec2, now time.Time) {
+	p.BaseObject.Knockback(dir, now)
+	p.lastKnockbackTime = now
+}
+
 func (p *Player) Respawn() {
 	p.Health.Respawn()
 
@@ -225,19 +234,23 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 
 	// Grounded actions
 	if grounded {
-		p.lastGrounded = now
+		p.lastGroundedTime = now
 		p.canJump = true
 		p.canDash = true
 
 		// Friction
 		if Sign(acc.X) != Sign(vel.X) {
-			vel.X *= friction
+			if now.Sub(p.lastKnockbackTime) <= knockbackDuration {
+				vel.X *= knockbackFriction
+			} else {
+				vel.X *= friction
+			}
 		}
 	}
 
 	// Jump & double jump
 	if p.keyDown(dashKey) {
-		if p.canJump && now.Sub(p.lastGrounded) <= canJumpGracePeriod {
+		if p.canJump && now.Sub(p.lastGroundedTime) <= canJumpGracePeriod {
 			p.canJump = false
 			acc.Y = 0
 			vel.Y = Max(0, vel.Y) + jumpVel

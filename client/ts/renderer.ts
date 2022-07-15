@@ -70,7 +70,7 @@ class Renderer {
 		this._audio.playSound3D(sound, dist);
 	}
 
-	setMouseFromPixels(mouse : any) : void {
+	setMouseFromPixels(mouse : THREE.Vector2) : void {
 		this._mousePixels = mouse.clone();
 	}
 	

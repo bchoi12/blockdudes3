@@ -19,7 +19,7 @@ class UI {
 	private readonly _divMessages = "div-messages";
 	private readonly _divStats = "div-stats";
 	private readonly _fieldsetClients = "fieldset-clients";
-	private readonly _formSendMessage = "form-send-message";
+	private readonly _formSendMessage = "div-send-message";
 	private readonly _inputMessage = "input-message"
 
 	private _chatHandler : ChatHandler;

@@ -57,6 +57,8 @@ func (g *Game) loadTestLevel() {
 	g.grid.GetLast(pickupSpace).(*Pickup).SetWeaponType(bazookaWeapon)
 	g.add(g.createInitBR(wallSpace, NewVec2(30, 7), NewVec2(0.5, 2)))
 
+	g.add(g.createInitB(pickupSpace, NewVec2(22, 9.5), NewVec2(1, 1)))
+	g.grid.GetLast(pickupSpace).(*Pickup).SetWeaponType(uziWeapon)
 	g.add(g.createInit(wallSpace, NewVec2(18, 11.5), NewVec2(3, 0.2)))
 	g.grid.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
 	g.add(g.createInit(wallSpace, NewVec2(22, 13.5), NewVec2(3, 0.2)))

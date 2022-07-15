@@ -4,8 +4,6 @@ type ColliderOptions struct {
 	ids map[SpacedId]bool
 	spaces map[SpaceType]bool
 	attributes map[AttributeType]bool
-
-	snapSlide bool
 }
 
 func NewColliderOptions() ColliderOptions {
@@ -13,8 +11,6 @@ func NewColliderOptions() ColliderOptions {
 		ids: make(map[SpacedId]bool),
 		spaces: make(map[SpaceType]bool),
 		attributes: make(map[AttributeType]bool),
-
-		snapSlide: false,
 	}
 }
 

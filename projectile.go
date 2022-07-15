@@ -14,7 +14,7 @@ type Projectile struct {
 	explode bool
 	explosionSize Vec2
 	sticky bool
-	collided bool
+	collider Object
 }
 
 func NewProjectile(object BaseObject) Projectile {
@@ -28,7 +28,7 @@ func NewProjectile(object BaseObject) Projectile {
 		explode: false,
 		explosionSize: NewVec2(4, 4),
 		sticky: false,
-		collided: false,
+		collider: nil,
 	}
 
 	overlapOptions := NewColliderOptions()
@@ -106,7 +106,7 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 		return true
 	}
 
-	if p.collided {
+	if p.collider != nil {
 		return true
 	}
 
@@ -121,16 +121,14 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 }
 
 func (p *Projectile) Collide(collider Object, grid *Grid) {
-	if p.collided || collider == nil {
+	if p.collider != nil {
 		return
 	}
 
-	p.Hit(collider)
-	p.collided = true
-
+	p.collider = collider
 	if p.sticky {
 		p.Stop()
-		collider.AddChild(p, NewConnection(collider.Offset(p)))
+		p.collider.AddChild(p, NewConnection(p.collider.Offset(p)))
 		return
 	}
 
@@ -138,6 +136,9 @@ func (p *Projectile) Collide(collider Object, grid *Grid) {
 }
 
 func (p *Projectile) SelfDestruct(grid *Grid) {
+	if p.collider != nil {
+		p.Hit(p.collider)
+	}
 	if p.explode {
 		init := NewObjectInit(grid.NextSpacedId(explosionSpace), p.Pos(), p.explosionSize)	
 		grid.Upsert(NewExplosion(init))

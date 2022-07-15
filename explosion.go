@@ -23,7 +23,7 @@ func NewExplosion(init Init) *Explosion {
 	return explosion
 }
 
-func (e *Explosion) Hit(object Object) {
+func (e *Explosion) Hit(object Object, now time.Time) {
 	if isWasm {
 		return
 	}
@@ -42,6 +42,8 @@ func (e *Explosion) Hit(object Object) {
 		dir.X = 1
 	}
 	dir.Normalize()
+	dir.Y += 0.1
+	dir.Normalize()
 	dir.Scale(15 * e.Dim().X)
 
 	distSqr := e.DistSqr(object.GetProfile())
@@ -49,7 +51,7 @@ func (e *Explosion) Hit(object Object) {
 	dir.Scale(distScalar)
 
 	dir.Add(object.Vel(), 1.0)
-	object.SetVel(dir)
+	object.Knockback(dir, now)
 }
 
 func (e *Explosion) UpdateState(grid *Grid, now time.Time) bool {
@@ -71,7 +73,7 @@ func (e *Explosion) UpdateState(grid *Grid, now time.Time) bool {
 	colliders := grid.GetColliders(e)
 	for len(colliders) > 0 {
 		object := PopObject(&colliders)
-		e.Hit(object)
+		e.Hit(object, now)
 	}
 	return true
 }

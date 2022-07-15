@@ -50,7 +50,7 @@ func NewPaperStar(init Init) *PaperStar {
 	}
 	star.SetTTL(1 * time.Second)
 	star.SetExplode(true)
-	star.SetDamage(10)
+	star.SetDamage(25)
 	star.SetSticky(true)
 	star.SetExplosionSize(NewVec2(1, 1))
 	return star

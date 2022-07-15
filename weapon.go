@@ -17,6 +17,7 @@ const (
 
 	boltShotType
 	rocketShotType
+	paperStarShotType
 )
 
 type WeaponStateType uint8
@@ -128,8 +129,12 @@ func (bw *BaseWeapon) SetWeaponType(weaponType WeaponType) {
 		return
 	}
 
+	if bw.weaponType.Peek().(WeaponType) == weaponType {
+		return
+	}
+
 	if weaponType == uziWeapon {
-		bw.triggers[primaryTrigger] = NewTrigger(boltShotType, 3, 100 * time.Millisecond, 300 * time.Millisecond)
+		bw.triggers[primaryTrigger] = NewTrigger(paperStarShotType, 4, 125 * time.Millisecond, 750 * time.Millisecond)
 		bw.SetOffset(NewVec2(0.3, 0))
 	} else if weaponType == bazookaWeapon {
 		bw.triggers[primaryTrigger] = NewTrigger(rocketShotType, 1, 50 * time.Millisecond, 1000 * time.Millisecond)
@@ -190,7 +195,16 @@ func (bw *BaseWeapon) Shoot(grid *Grid, now time.Time) {
 			continue
 		}
 
-		if trigger.shotType == rocketShotType {
+		if trigger.shotType == boltShotType {
+			bolt := NewBolt(NewObjectInit(grid.NextSpacedId(boltSpace), bw.GetShotOrigin(), NewVec2(0.22, 0.1)))
+			bolt.SetOwner(bw.GetOwner())
+			vel := bw.dir
+			vel.Normalize()
+			vel.Scale(30)
+			bolt.SetVel(vel)
+
+			grid.Upsert(bolt)
+		} else if trigger.shotType == rocketShotType {
 			rocket := NewRocket(NewObjectInit(grid.NextSpacedId(rocketSpace), bw.GetShotOrigin(), NewVec2(0.5, 0.5)))
 			rocket.SetOwner(bw.GetOwner())
 			acc := bw.dir
@@ -207,16 +221,14 @@ func (bw *BaseWeapon) Shoot(grid *Grid, now time.Time) {
 			acc.Scale(2)
 			rocket.SetJerk(acc)
 			grid.Upsert(rocket)
-		} else if trigger.shotType == boltShotType {
-			// bolt := NewBolt(NewObjectInit(grid.NextSpacedId(boltSpace), bw.GetShotOrigin(), NewVec2(0.22, 0.1)))
-			bolt := NewPaperStar(NewObjectInit(grid.NextSpacedId(paperStarSpace), bw.GetShotOrigin(), NewVec2(0.3, 0.3)))
-			bolt.SetOwner(bw.GetOwner())
+		} else if trigger.shotType == paperStarShotType {
+			star := NewPaperStar(NewObjectInit(grid.NextSpacedId(paperStarSpace), bw.GetShotOrigin(), NewVec2(0.3, 0.3)))
+			star.SetOwner(bw.GetOwner())
 			vel := bw.dir
 			vel.Normalize()
 			vel.Scale(30)
-			bolt.SetVel(vel)
-
-			grid.Upsert(bolt)
+			star.SetVel(vel)
+			grid.Upsert(star)
 		}
 	}
 }

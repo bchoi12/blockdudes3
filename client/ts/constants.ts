@@ -37,9 +37,6 @@ declare var pickupSpace : number;
 declare var uziWeapon : number;
 declare var bazookaWeapon : number;
 
-declare var boltShotType : number;
-declare var rocketShotType : number;
-
 declare var objectStatesProp : number;
 declare var initializedProp : number;
 declare var deletedProp : number;

@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"time"
 )
 
 const (
@@ -27,6 +28,7 @@ type Profile interface {
 	Dir() Vec2
 	SetDir(dir Vec2)
 
+	Knockback(dir Vec2, now time.Time)
 	Stop()
 
 	AddSubProfile(key ProfileKey, subProfile SubProfile)
@@ -128,6 +130,10 @@ func (bp *BaseProfile) SetDir(dir Vec2) {
 	for _, sp := range(bp.subProfiles) {
 		sp.SetDir(dir)
 	}
+}
+
+func (bp *BaseProfile) Knockback(dir Vec2, now time.Time) {
+	bp.SetVel(dir)
 }
 
 func (bp *BaseProfile) Stop() {
@@ -367,10 +373,10 @@ func (bp *BaseProfile) updateIgnored(ignored map[SpacedId]bool) {
 
 func (bp BaseProfile) snapObject(other Object) CollideResult {
 	result := NewCollideResult()
-	overlap := bp.PosAdjustment(other)
+	posAdj := bp.PosAdjustment(other)
 	ignored := bp.getIgnored()
 
-	if !bp.GetSnapOptions().Evaluate(other) || overlap.Area() <= 0 {
+	if !bp.GetSnapOptions().Evaluate(other) || posAdj.Area() <= 0 {
 		return result
 	}
 
@@ -380,55 +386,32 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 	}
 
 	// Figure out collision direction
-	relativePos := NewVec2(bp.Pos().X - other.Pos().X, bp.Pos().Y - other.Pos().Y)
+	// relativePos := NewVec2(bp.Pos().X - other.Pos().X, bp.Pos().Y - other.Pos().Y)
 	relativeVel := NewVec2(bp.TotalVel().X - other.TotalVel().X, bp.TotalVel().Y - other.TotalVel().Y)
-	collisionFlag := NewVec2(0, 0)
-
-	if Abs(relativeVel.X) > zeroVelEpsilon {
-		collisionFlag.X = 1
-	} 
-	if Abs(relativeVel.Y) > zeroVelEpsilon {
-		collisionFlag.Y = 1
-	}
-
-	// Handle edge case where relative velocity is zero & the collision direction is unknown.
-	if collisionFlag.IsZero() {
-		if Abs(relativePos.X) > overlapEpsilon {
-			collisionFlag.X = 1
-		}
-		if Abs(relativePos.Y) > overlapEpsilon {
-			collisionFlag.Y = 1
-		}
-	}
-
-	// Objects are centered on each other with 0 relative velocity.
-	if collisionFlag.IsZero() {
-		collisionFlag.Y = 1
-	}
+	collisionFlag := NewVec2(1, 1)
 
 	// Check for tiny collisions that we can ignore
 	if collisionFlag.X != 0 && collisionFlag.Y != 0 {
-		if Sign(collisionFlag.X) != Sign(relativeVel.X) && Abs(overlap.Y) < overlapEpsilon {
+		if Abs(posAdj.Y) < overlapEpsilon {
 			collisionFlag.X = 0
-		} else if Sign(collisionFlag.Y) != Sign(relativeVel.Y) && Abs(overlap.X) < overlapEpsilon {
+		} else if Abs(posAdj.X) < overlapEpsilon {
 			collisionFlag.Y = 0
 		}
 	}
 
 	// Zero out adjustments according to relative velocity.
 	if collisionFlag.X != 0 && collisionFlag.Y != 0 {
-		if SignPos(relativePos.X) == SignPos(relativeVel.X) || Abs(relativeVel.X) < zeroVelEpsilon && Abs(relativeVel.Y) > zeroVelEpsilon {
+		if Abs(relativeVel.X) < zeroVelEpsilon && Abs(relativeVel.Y) > zeroVelEpsilon {
 			collisionFlag.X = 0
-		} else if SignPos(relativePos.Y) == SignPos(relativeVel.Y) || Abs(relativeVel.Y) < zeroVelEpsilon && Abs(relativeVel.X) > zeroVelEpsilon {
+		} else if Abs(relativeVel.Y) < zeroVelEpsilon && Abs(relativeVel.X) > zeroVelEpsilon {
 			collisionFlag.Y = 0
 		}
 	}
 
-
 	// If collision happens in both X, Y compute which overlap is greater based on velocity.
 	if collisionFlag.X != 0 && collisionFlag.Y != 0 {
-		tx := Abs(overlap.X / relativeVel.X)
-		ty := Abs(overlap.Y / relativeVel.Y)
+		tx := Abs(posAdj.X / relativeVel.X)
+		ty := Abs(posAdj.Y / relativeVel.Y)
 
 		if tx > ty {
 			collisionFlag.X = 0
@@ -443,15 +426,15 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 		collisionFlag.Y = 1
 
 		oy, oyReverse := bp.posAdjustmentY(other)
-		overlap.Y = Max(oy, oyReverse)
+		posAdj.Y = Max(oy, oyReverse)
 		// Smooth ascent
-		overlap.Y = Min(overlap.Y, 0.2)
+		posAdj.Y = Min(posAdj.Y, 0.2)
 	}
 
 	// Adjust platform collision at the end after we've determined collision direction.
 	if other.HasAttribute(platformAttribute) {
 		collisionFlag.X = 0
-		if overlap.Y < 0 {
+		if posAdj.Y < 0 {
 			collisionFlag.Y = 0
 		}
 	}
@@ -465,7 +448,8 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 	}
 
 	// Collision
-	posAdj := NewVec2(overlap.X * collisionFlag.X, overlap.Y * collisionFlag.Y)
+	posAdj.X *= collisionFlag.X
+	posAdj.Y *= collisionFlag.Y
 	if posAdj.IsZero() {
 		return result
 	}

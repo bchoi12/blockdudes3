@@ -62,9 +62,6 @@ func setGlobals() {
 	js.Global().Set("uziWeapon", int(uziWeapon))
 	js.Global().Set("bazookaWeapon", int(bazookaWeapon))
 
-	js.Global().Set("boltShotType", int(boltShotType))
-	js.Global().Set("rocketShotType", int(rocketShotType))
-
 	js.Global().Set("objectStatesProp", int(objectStatesProp))
 	js.Global().Set("initializedProp", int(initializedProp))
 	js.Global().Set("deletedProp", int(deletedProp))
