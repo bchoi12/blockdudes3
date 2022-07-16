@@ -68,9 +68,8 @@ func (w *Wall) UpdateState(grid *Grid, now time.Time) bool {
 }
 
 func (w *Wall) GetData() Data {
-	data := NewData()
 	if (w.Vel().IsZero()) {
-		return data
+		return NewData()
 	}
 
 	return w.BaseObject.GetData()

@@ -14,7 +14,7 @@ type ProfileKey uint8
 type Profile interface {
 	InitMethods
 	ProfileMath
-	Component
+	DataMethods
 
 	Vel() Vec2
 	SetVel(vel Vec2)

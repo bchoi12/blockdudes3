@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type Component interface {
+type DataMethods interface {
 	GetInitData() Data
 	GetData() Data
 	GetUpdates() Data
@@ -13,6 +13,7 @@ type Component interface {
 
 type Object interface {
 	Profile
+	DataMethods
 
 	GetProfile() Profile
 
