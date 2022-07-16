@@ -115,10 +115,6 @@ fieldset legend {
 	margin: 6px 12px 6px 12px;
 }
 
-.client-me {
-	font-weight: bold;
-}
-
 .slightly-opaque {
 	opacity: 0.7;
 }
@@ -127,14 +123,6 @@ fieldset legend {
 	font-weight: bold;
 }
 
-.resizable {
-  min-height: 30px;
-  min-width: 30px;
-  resize: both;
-  overflow: auto;
-  max-height: fit-content;
-  max-width: fit-content;
-}
 .no-select {
 	user-select: none;
   -moz-user-select: none;
@@ -142,17 +130,3 @@ fieldset legend {
   -webkit-user-select: none;
   -o-user-select: none;
 } 
-
-.anim-blink {
-  animation: blinker 0.7s linear 0s 2;
-}
-@keyframes blinker {
-	50% {
-		opacity: 0.5;
-	}
-}
-
-::-webkit-scrollbar {
-    width: 0px;
-    background: transparent; /* make scrollbar transparent */
-}
