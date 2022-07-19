@@ -14,14 +14,25 @@ class Renderer {
 	private _canvas : HTMLElement;
 	private _audio : Audio;
 	private _cameraController : CameraController;
-	private _renderer : THREE.WebGLRenderer;
 	private _mousePixels : THREE.Vector2;
+
+	private _renderCounter : number;
+	private _fps : number;
+
+	private _renderer : THREE.WebGLRenderer;
 
 	constructor() {
 		this._canvas = HtmlUtil.elm(this._elmRenderer);
 		this._audio = new Audio();
 		this._cameraController = new CameraController(this._canvas.offsetWidth / this._canvas.offsetHeight);
+		this._mousePixels = new THREE.Vector2(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2);
+
+		this._renderCounter = 0;
+		this._fps = 0;
+		this.updateFPS();
+
 		this._renderer = new THREE.WebGLRenderer({canvas: this._canvas, antialias: true});
+		this._renderer.setClearColor(0x91d6f2, 1.0);
 		this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
 		this._renderer.toneMappingExposure = 1.0;
 
@@ -32,34 +43,21 @@ class Renderer {
 
 		this.resizeCanvas();
 		window.onresize = () => { this.resizeCanvas(); };
-
-		this._mousePixels = new THREE.Vector2(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2);
 	}
 
 	elm() : HTMLElement { return this._canvas; }
-
-	compile(mesh : THREE.Mesh) {
-		this._renderer.compile(mesh, this._cameraController.camera());
-	}
-
+	compile(mesh : THREE.Mesh) { this._renderer.compile(mesh, this._cameraController.camera()); }
 	render() : void {
 		this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
+		this._renderCounter++;
 	}
-	
-	cameraController() : CameraController {
-		return this._cameraController;
-	}
+	fps() : number { return this._fps; }
 
-	cameraTarget() : THREE.Vector3 {
-		return this._cameraController.target();
-	}
-	setCameraTarget(target : THREE.Vector3) : void {
-		this._cameraController.setTarget(target);
-	}
+	cameraController() : CameraController { return this._cameraController; }
+	cameraTarget() : THREE.Vector3 { return this._cameraController.target(); }
+	setCameraTarget(target : THREE.Vector3) : void { this._cameraController.setTarget(target); }
 
-	playSystemSound(sound : Sound) : void {
-		this._audio.playSystemSound(sound);
-	}
+	playSystemSound(sound : Sound) : void { this._audio.playSystemSound(sound); }
 	playSound(sound : Sound, pos : THREE.Vector2) : void {
 		const dist = new THREE.Vector2(pos.x - this._cameraController.target().x, pos.y - this._cameraController.target().y);
 		this._audio.playSound(sound, dist);
@@ -70,9 +68,7 @@ class Renderer {
 		this._audio.playSound3D(sound, dist);
 	}
 
-	setMouseFromPixels(mouse : THREE.Vector2) : void {
-		this._mousePixels = mouse.clone();
-	}
+	setMouseFromPixels(mouse : THREE.Vector2) : void { this._mousePixels = mouse.clone(); }
 	
 	getMouseScreen() : THREE.Vector2 {
 		const mouse = this._mousePixels.clone();
@@ -95,6 +91,14 @@ class Renderer {
 		const mouseWorld = camera.position.clone();
 		mouseWorld.add(mouse.multiplyScalar(distance));
 		return mouseWorld;
+	}
+
+	private updateFPS() : void {
+		this._fps = this._renderCounter;
+		this._renderCounter = 0;
+		setTimeout(() => {
+			this.updateFPS()
+		}, 1000);
 	}
 
 	private resizeCanvas() : void {

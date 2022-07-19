@@ -18,11 +18,19 @@ import { SceneMap } from './scene_map.js'
 import { ui } from './ui.js'
 import { Util } from './util.js'
 
+export enum GameState {
+	UNKNOWN = 0,
+	LOGIN = 1,
+	LOBBY = 2,
+	GAME = 3,
+}
+
 class Game {
 	private readonly _statsInterval = 500;
 	private readonly _objectMaterial = new THREE.MeshStandardMaterial( {color: 0x444444, shadowSide: THREE.FrontSide } );
 
 	private _id : number;
+	private _state : GameState;
 
 	private _sceneMap : SceneMap;
 	private _lastKeys : Set<number>;
@@ -32,6 +40,9 @@ class Game {
 	private _animateFrames : number;
 
 	constructor() {
+		this._id = -1;
+		this._state = GameState.UNKNOWN;
+
 		this._sceneMap = new SceneMap();
 		this._lastKeys = new Set();
 		this._keys = new Set();
@@ -45,50 +56,32 @@ class Game {
 		connection.addHandler(objectUpdateType, (msg : { [k: string]: any }) => { this.updateGameState(msg); });
 		connection.addHandler(playerInitType, (msg : { [k: string]: any }) => { this.initPlayer(msg); });
 		connection.addHandler(levelInitType, (msg : { [k: string]: any }) => { this.initLevel(msg); });
-	}
-
-	start() : void {
-		connection.addSender(keyType, () => {
-			if (!Util.defined(this._id)) return;
-
-			this._keyUpdates++;
-			const msg = this.snapshotKeys();
-			connection.sendData(msg);
-		}, frameMillis);
 
 		this.animate();
-
-		const self = this;
-		function updateStats() {
-			const ping = connection.ping();
-			const fps = self._animateFrames * 1000 / self._statsInterval;
-			ui.updateStats(ping, fps);
-
-			self._animateFrames = 0;
-			setTimeout(updateStats, self._statsInterval);		
-		}
-		updateStats();
 	}
 
-	sceneMap() : SceneMap {
-		return this._sceneMap;
-	}
+	hasId() : boolean { return this._id >= 0; }
+	state() : GameState { return this._state; }
+	sceneMap() : SceneMap { return this._sceneMap; }
+	sceneComponent(type : SceneComponentType) : SceneComponent { return this._sceneMap.getComponent(type); }
 
-	sceneComponent(type : SceneComponentType) : SceneComponent {
-		return this._sceneMap.getComponent(type);
-	}
+	setState(state : GameState) { this._state = state; }
 
 	private animate() : void {
-		this.extrapolateState();
-		this.updateCamera();
+		if (this.state() === GameState.GAME) {
+			this.extrapolateState();
+			this.updateCamera();
+			this.extrapolatePlayerDir();
+		}
+
 		this.sceneMap().updateComponents()
-		this.extrapolatePlayerDir();
 		renderer.render();
 		this._animateFrames++;
 
 		requestAnimationFrame(() => { this.animate(); });
 	}
 
+	// TODO: this seems weird, fix it.
 	private snapshotKeys() : { [k: string]: any } {
 		this._lastKeys = new Set(this._keys);
 		this._keys = ui.getKeys();
@@ -140,6 +133,14 @@ class Game {
 			this.sceneMap().add(playerSpace, id, new RenderPlayer(playerSpace, id));
 			this.sceneMap().update(playerSpace, id, data);
 		}
+
+		connection.addSender(keyType, () => {
+			if (this.state() !== GameState.GAME) return;
+
+			this._keyUpdates++;
+			const msg = this.snapshotKeys();
+			connection.sendData(msg);
+		}, frameMillis);
 	}
 
 	private updateGameState(msg : { [k: string]: any }) : void {
@@ -263,7 +264,7 @@ class Game {
 	}
 
 	private updateCamera() : void {
-		if (!Util.defined(this._id)) return;
+		if (!this.hasId()) return;
 		if (!this.sceneMap().has(playerSpace, this._id)) return;
 
 		const playerPos = this.sceneMap().get(playerSpace, this._id).pos();

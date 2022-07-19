@@ -56,7 +56,7 @@ export class Client extends HtmlComponent {
 		}
 
 		this._voice = new HtmlComponent(document.createElement("audio"));
-		let audioElement = <HTMLAudioElement>this._voice.htmlElm();		
+		let audioElement = <HTMLAudioElement>this._voice.elm();		
 		audioElement.autoplay = true;
 		audioElement.controls = true;
 		audioElement.srcObject = stream;

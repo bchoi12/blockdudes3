@@ -10,7 +10,7 @@ export class HtmlComponent {
 		this._parents = new Array();
 	}
 
-	htmlElm() : HTMLElement { return this._html; }
+	elm() : HTMLElement { return this._html; }
 
 	displayBlock() : void { this._html.style.display = "block"; }
 	displayNone() : void { this._html.style.display = "none"; }
@@ -20,22 +20,22 @@ export class HtmlComponent {
 	padding(pixels : number) : void { this._html.style.padding = pixels + "px"; }
 
 	prependTo(parent : HtmlComponent) : void {
-		parent.htmlElm().prepend(this.htmlElm());
+		parent.elm().prepend(this.elm());
 		this._parents.push(parent);
 	}
 
 	appendTo(parent : HtmlComponent) : void {
-		parent.htmlElm().append(this.htmlElm());
+		parent.elm().append(this.elm());
 		this._parents.push(parent);
 	}
 
 	appendElm(elm : HTMLElement) : void {
-		this.htmlElm().append(elm);
+		this.elm().append(elm);
 	}
 
 	delete() : void {
 		this._parents.forEach((parent) => {
-			parent.htmlElm().removeChild(this.htmlElm());
+			parent.elm().removeChild(this.elm());
 		});
 	}
 }

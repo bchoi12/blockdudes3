@@ -4,40 +4,30 @@ import { ChatHandler } from './chat_handler.js'
 import { Client } from './client.js'
 import { ClientHandler } from './client_handler.js'
 import { connection } from './connection.js'
+import { Html } from './html.js'
 import { HtmlComponent } from './html_component.js'
 import { Icon } from './icon.js'
 import { InputHandler, InputMode } from './input_handler.js'
 import { options } from './options.js'
 import { renderer } from './renderer.js'
+import { StatsHandler } from './stats_handler.js'
 import { HtmlUtil, Util } from './util.js'
 
 class UI {
-	// TODO: make DivHandler for easy access to these containers
-	private readonly _divLogin = "div-login";
-	private readonly _divGame = "div-game";
-	private readonly _divOverlay = "div-overlay";
-	private readonly _divMessages = "div-messages";
-	private readonly _divStats = "div-stats";
-	private readonly _fieldsetClients = "fieldset-clients";
-	private readonly _formSendMessage = "div-send-message";
-	private readonly _inputMessage = "input-message"
-
 	private _chatHandler : ChatHandler;
 	private _clientHandler : ClientHandler;
 	private _inputHandler : InputHandler;
+	private _statsHandler : StatsHandler;
 
 	constructor() {
-		this._chatHandler = new ChatHandler(new HtmlComponent(HtmlUtil.elm(this._divMessages)));
-		this._clientHandler = new ClientHandler(new HtmlComponent(HtmlUtil.elm(this._fieldsetClients)));
+		this._chatHandler = new ChatHandler(new HtmlComponent(HtmlUtil.elm(Html.divChat)));
+		this._clientHandler = new ClientHandler(new HtmlComponent(HtmlUtil.elm(Html.fieldsetClients)));
 		this._inputHandler = new InputHandler();
+		this._statsHandler = new StatsHandler(new HtmlComponent(HtmlUtil.elm(Html.divStats)));
 	}
 
 	setup() : void {
-		HtmlUtil.elm("button-voice").onclick = (e) => {
-			this._clientHandler.toggleVoice();
-			e.stopPropagation();
-		};
-		HtmlUtil.elm(this._divOverlay).onclick = (e : any) => {
+		HtmlUtil.elm(Html.divPause).onclick = (e : any) => {
 			if (this._inputHandler.mode() != InputMode.PAUSE) {
 				return;
 			}
@@ -47,6 +37,7 @@ class UI {
 		this._chatHandler.setup();
 		this._clientHandler.setup();
 		this._inputHandler.setup();
+		this._statsHandler.setup();
 	}
 
 	getKeys() : Set<number> { return this._inputHandler.keys(); }
@@ -61,11 +52,7 @@ class UI {
 	}
 
 	startGame() : void {
-		HtmlUtil.displayNone(this._divLogin);
-		HtmlUtil.displayBlock(this._divGame);
-
-		HtmlUtil.elm(this._inputMessage).style.width = HtmlUtil.elm(this._divMessages).offsetWidth + "px";
-
+		HtmlUtil.elm(Html.inputMessage).style.width = HtmlUtil.elm(Html.divChat).offsetWidth + "px";
 		window.addEventListener("blur", () => {
 			this.changeInputMode(InputMode.PAUSE);
 		});
@@ -73,43 +60,43 @@ class UI {
 		this.changeInputMode(InputMode.GAME);
 	}
 
-	updateStats(ping : number, fps : number) {
-		HtmlUtil.elm(this._divStats).textContent = "Ping : " + ping + " | FPS: " + fps;
-	}
-
 	changeInputMode(inputMode : InputMode) : void {
 		this._inputHandler.changeInputMode(inputMode);
 
 		if (inputMode === InputMode.PAUSE) {
-			HtmlUtil.displayBlock(this._divOverlay);	
+			HtmlUtil.displayBlock(Html.divPause);	
 		} else {
-			HtmlUtil.displayNone(this._divOverlay);
+			HtmlUtil.displayNone(Html.divPause);
 		}
 
 		if (inputMode === InputMode.CHAT) {
-			HtmlUtil.notSlightlyOpaque(this._divMessages);
-			HtmlUtil.selectable(this._divMessages);
-			HtmlUtil.displayBlock(this._formSendMessage);
-			HtmlUtil.elm(this._divMessages).style.bottom = "2em";
-			HtmlUtil.inputElm(this._inputMessage).focus();
+			HtmlUtil.notSlightlyOpaque(Html.divChat);
+			HtmlUtil.selectable(Html.divChat);
+			HtmlUtil.displayBlock(Html.divMessage);
+			HtmlUtil.elm(Html.divChat).style.bottom = "2em";
+			HtmlUtil.inputElm(Html.inputMessage).focus();
 		}
 
 		if (inputMode === InputMode.GAME) {
-			HtmlUtil.slightlyOpaque(this._divMessages);
-			HtmlUtil.unselectable(this._divMessages);
-			HtmlUtil.displayNone(this._formSendMessage);
-			HtmlUtil.elm(this._divMessages).style.bottom = "1em";
-			HtmlUtil.inputElm(this._inputMessage).blur();
+			HtmlUtil.displayNone(Html.divLogin);
+			HtmlUtil.displayBlock(Html.divGame);
+
+			HtmlUtil.slightlyOpaque(Html.divChat);
+			HtmlUtil.unselectable(Html.divChat);
+			HtmlUtil.displayNone(Html.divMessage);
+			HtmlUtil.elm(Html.divChat).style.bottom = "1em";
+			HtmlUtil.inputElm(Html.inputMessage).blur();
 		}
 	}
 
+	// TODO: ChatHandler
 	print(message : string) : void {
 		const messageSpan = document.createElement("span");
 		messageSpan.textContent = message;
 
-		HtmlUtil.elm(this._divMessages).appendChild(messageSpan);
-		HtmlUtil.elm(this._divMessages).appendChild(document.createElement("br"));
-		HtmlUtil.elm(this._divMessages).scrollTop = HtmlUtil.elm(this._divMessages).scrollHeight;
+		HtmlUtil.elm(Html.divChat).appendChild(messageSpan);
+		HtmlUtil.elm(Html.divChat).appendChild(document.createElement("br"));
+		HtmlUtil.elm(Html.divChat).scrollTop = HtmlUtil.elm(Html.divChat).scrollHeight;
 	}
 
 	handleChat() : void {
@@ -118,7 +105,7 @@ class UI {
 			return;
 		}
 
-		if (HtmlUtil.trimmedValue(this._inputMessage).length == 0) {
+		if (HtmlUtil.trimmedValue(Html.inputMessage).length == 0) {
 			this.changeInputMode(InputMode.GAME);
 			return;
 		}
@@ -130,12 +117,12 @@ class UI {
 		const message = {
 			T: chatType,
 			Chat: {
-				M: HtmlUtil.trimmedValue(this._inputMessage),
+				M: HtmlUtil.trimmedValue(Html.inputMessage),
 			}
 		};
 
 		if (connection.send(message)) {
-			HtmlUtil.inputElm(this._inputMessage).value = "";
+			HtmlUtil.inputElm(Html.inputMessage).value = "";
 			this.changeInputMode(InputMode.GAME);
 		} else {
 			this.print("Failed to send chat message!");

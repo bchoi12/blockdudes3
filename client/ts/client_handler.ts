@@ -1,5 +1,6 @@
 import { Client } from './client.js'
 import { connection } from './connection.js'
+import { Html } from './html.js'
 import { HtmlComponent } from './html_component.js'
 import { ui } from './ui.js'
 import { LogUtil, HtmlUtil, Util } from './util.js'
@@ -61,6 +62,11 @@ export class ClientHandler {
 		connection.addHandler(voiceOfferType, (msg : { [k: string]: any }) => { this.processVoiceOffer(msg); });
 		connection.addHandler(voiceAnswerType, (msg : { [k: string]: any }) => { this.processVoiceAnswer(msg); });
 		connection.addHandler(voiceCandidateType, (msg : { [k: string]: any }) => { this.processVoiceCandidate(msg); });
+
+		HtmlUtil.elm(Html.buttonVoice).onclick = (e) => {
+			this.toggleVoice();
+			e.stopPropagation();
+		};
 	}
 
 	toggleVoice() : void {
