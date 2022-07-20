@@ -190,10 +190,6 @@ func (r *Room) addClient(c *Client) error {
 		return err
 	}
 
-	for _, chatMsg := range(r.chat.chatQueue) {
-		c.send(&chatMsg)
-	}
-
 	err = r.updateClients(joinType, c)
 	if err != nil {
 		return err
@@ -202,6 +198,10 @@ func (r *Room) addClient(c *Client) error {
 	r.game.add(NewObjectInit(Id(playerSpace, c.id), NewVec2(5, 5), NewVec2(0.8, 1.44)))
 	gameInitMsg := r.game.createGameInitMsg()
 	c.send(&gameInitMsg)
+
+	for _, chatMsg := range(r.chat.chatQueue) {
+		c.send(&chatMsg)
+	}
 	return nil
 }
 

@@ -2,25 +2,16 @@ import * as THREE from 'three';
 
 import { options } from './options.js'
 import { renderer } from './renderer.js'
-import { ui } from './ui.js'
+import { ui, InputMode } from './ui.js'
 import { HtmlUtil } from './util.js'
-
-export enum InputMode {
-	UNKNOWN = 0,
-	PAUSE = 1,
-	GAME = 2,
-	CHAT = 3,
-}
 
 export class InputHandler {
 	private readonly _elmCursor = "cursor";
 
-	private readonly _chatKeyCode = 13;
 	private readonly _pauseKeyCode = 27;
 	private readonly _cursorWidth = 20;
 	private readonly _cursorHeight = 20;
 
-	private _mode : InputMode;
 	private _mouse : THREE.Vector2;
 	private _lastPointerLock : number;
 	private _keys : Set<number>;
@@ -31,7 +22,6 @@ export class InputHandler {
 	private _keyUpCallbacks : Map<number, (e : any) => void>;
 
 	constructor() {
-		this._mode = InputMode.PAUSE;
 		this._mouse = new THREE.Vector2();
 		this._lastPointerLock = 0;
 		this._keys = new Set<number>();
@@ -51,12 +41,9 @@ export class InputHandler {
 		this.mapKey(38, dashKey);
 		this.mapKey(69, interactKey);
 
-		this.addKeyDownListener(this._chatKeyCode, (e : any) => {
-			ui.handleChat();
-		});
 		this.addKeyUpListener(this._pauseKeyCode, (e : any) => {
 			if (e.keyCode === this._pauseKeyCode) {
-				if (this._mode != InputMode.PAUSE) {
+				if (ui.inputMode() != InputMode.PAUSE) {
 					ui.changeInputMode(InputMode.PAUSE);
 				} else {
 					ui.changeInputMode(InputMode.GAME);
@@ -83,41 +70,32 @@ export class InputHandler {
 				this._lastPointerLock = Date.now();
 			} else {
 				HtmlUtil.hide(this._elmCursor);
-				if (this._mode === InputMode.GAME) {
+				if (ui.inputMode() === InputMode.GAME) {
 					ui.changeInputMode(InputMode.PAUSE);
 				}
 			}
 		});
 		document.addEventListener("pointerlockerror", (e : any) => {
-			if (this._mode !== InputMode.GAME) {
+			if (ui.inputMode() !== InputMode.GAME) {
 				return;
 			}
 			setTimeout(() => {
-				if (this._mode === InputMode.GAME) {
+				if (ui.inputMode() === InputMode.GAME) {
 					this.pointerLock();
 				}
 			}, 1000);
 		});
 	}
 
-	mode() : InputMode { return this._mode; }
+	mode() : InputMode { return ui.inputMode(); }
 	keys() : Set<number> { return this._keys; }
 
 	changeInputMode(mode : InputMode) : void {
-		this._mode = mode;
-
-		if (this._mode === InputMode.PAUSE) {
-			this.pointerUnlock();
-		}
-
-		if (this._mode === InputMode.CHAT) {
-			this.pointerUnlock();
-		}
-
-		if (this._mode === InputMode.GAME) {
+		if (mode === InputMode.GAME) {
 			this.pointerLock();
 		} else {
 			this._keys.clear();
+			this.pointerUnlock();
 		}
 	}
 
@@ -142,7 +120,7 @@ export class InputHandler {
 	}
 
 	private keyDown(e : any) : void {
-		if (this._mode != InputMode.GAME) return;
+		if (ui.inputMode() != InputMode.GAME) return;
 		if (!this._keyMap.has(e.keyCode)) return;
 
 		const key = this._keyMap.get(e.keyCode);
@@ -152,7 +130,7 @@ export class InputHandler {
 	}
 
 	private keyUp(e : any) : void {
-		if (this._mode != InputMode.GAME) return;
+		if (ui.inputMode() != InputMode.GAME) return;
 		if (!this._keyMap.has(e.keyCode)) return;
 
 		const key = this._keyMap.get(e.keyCode);
@@ -162,7 +140,7 @@ export class InputHandler {
 	}
 
 	private mouseDown(e : any) : void {
-		if (this._mode != InputMode.GAME) {
+		if (ui.inputMode() != InputMode.GAME) {
 			return;
 		}
 
@@ -177,7 +155,7 @@ export class InputHandler {
 	}
 
 	private mouseUp(e : any) : void {
-		if (this._mode != InputMode.GAME) {
+		if (ui.inputMode() != InputMode.GAME) {
 			return;
 		}
 
