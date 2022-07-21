@@ -55,7 +55,7 @@ class Renderer {
 
 	cameraController() : CameraController { return this._cameraController; }
 	cameraTarget() : THREE.Vector3 { return this._cameraController.target(); }
-	setCameraTarget(target : THREE.Vector3) : void { this._cameraController.setTarget(target); }
+	setCameraAnchor(anchor : THREE.Vector3) : void { this._cameraController.setAnchor(anchor); }
 
 	playSystemSound(sound : Sound) : void { this._audio.playSystemSound(sound); }
 	playSound(sound : Sound, pos : THREE.Vector2) : void {

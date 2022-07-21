@@ -8,11 +8,14 @@ export namespace Html {
 	export const buttonLogin = "button-login";
 
 	export const divOverlays = "div-overlays";
-	export const divStats = "div-stats";
-	export const divChat = "div-chat";
 
+	export const divStats = "div-stats";
+
+	export const divChat = "div-chat";
 	export const divMessage = "div-message";
 	export const inputMessage = "input-message"
+
+	export const divScoreboard = "div-scoreboard";
 
 	export const divPause = "div-pause";
 	export const buttonVoice = "button-voice";

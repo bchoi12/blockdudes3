@@ -9,6 +9,10 @@ class Options {
 	public extrapolateFrames : number;
 	public extrapolateWeight : number;
 
+	public scoreboardKeyCode : number = 192;
+	public pauseKeyCode : number = 27;
+	public chatKeyCode : number = 13;
+
 	constructor() {
 		THREE.Cache.enabled = true;
 

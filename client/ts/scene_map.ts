@@ -55,6 +55,13 @@ export class SceneMap {
 		});
 	}
 
+	getMap(space : number) : Map<number, RenderObject> {
+		if (!this._renders.has(space)) {
+			this._renders.set(space, new Map<number, RenderObject>());
+		}
+		return this._renders.get(space);
+	}
+
 	add(space : number, id : number, object : RenderObject) : void {
 		const map = this.getMap(space);
 		if (map.has(id)) {
@@ -137,12 +144,5 @@ export class SceneMap {
 		if (object.deleted()) {
 			this.delete(space, id);
 		}
-	}
-
-	private getMap(space : number) : Map<number, RenderObject> {
-		if (!this._renders.has(space)) {
-			this._renders.set(space, new Map<number, RenderObject>());
-		}
-		return this._renders.get(space);
 	}
 }

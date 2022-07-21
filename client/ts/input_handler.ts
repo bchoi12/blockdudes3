@@ -1,14 +1,13 @@
 import * as THREE from 'three';
 
+import { InterfaceHandler } from './interface_handler.js'
 import { options } from './options.js'
 import { renderer } from './renderer.js'
 import { ui, InputMode } from './ui.js'
 import { HtmlUtil } from './util.js'
 
-export class InputHandler {
+export class InputHandler implements InterfaceHandler {
 	private readonly _elmCursor = "cursor";
-
-	private readonly _pauseKeyCode = 27;
 	private readonly _cursorWidth = 20;
 	private readonly _cursorHeight = 20;
 
@@ -40,16 +39,6 @@ export class InputHandler {
 		this.mapKey(32, dashKey);
 		this.mapKey(38, dashKey);
 		this.mapKey(69, interactKey);
-
-		this.addKeyUpListener(this._pauseKeyCode, (e : any) => {
-			if (e.keyCode === this._pauseKeyCode) {
-				if (ui.inputMode() != InputMode.PAUSE) {
-					ui.changeInputMode(InputMode.PAUSE);
-				} else {
-					ui.changeInputMode(InputMode.GAME);
-				}
-			}
-		});
 
 		document.addEventListener("keydown", (e : any) => {
 			if (this._keyDownCallbacks.has(e.keyCode)) {
@@ -87,9 +76,6 @@ export class InputHandler {
 		});
 	}
 
-	mode() : InputMode { return ui.inputMode(); }
-	keys() : Set<number> { return this._keys; }
-
 	changeInputMode(mode : InputMode) : void {
 		if (mode === InputMode.GAME) {
 			this.pointerLock();
@@ -98,6 +84,8 @@ export class InputHandler {
 			this.pointerUnlock();
 		}
 	}
+
+	keys() : Set<number> { return this._keys; }
 
 	addKeyDownListener(keyCode : number, cb : (e : any) => void) : void {
 		this._keyDownCallbacks.set(keyCode, cb);

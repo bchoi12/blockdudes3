@@ -141,6 +141,22 @@ export class RenderObject extends RenderMesh {
 		return new SpacedId(0, -1);
 	}
 
+	hasKills() : boolean { return this._msg.has(killProp); }
+	kills() : number {
+		if (this.hasKills()) {
+			return this._msg.get(killProp);
+		}
+		return 0;
+	}
+
+	hasDeaths() : boolean { return this._msg.has(deathProp); }
+	deaths() : number {
+		if (this.hasDeaths()) {
+			return this._msg.get(deathProp);
+		}
+		return 0;
+	}
+
 	private maybeUpdateMeshPosition() {
 		if (!this.hasMesh() || !this.hasPos()) {
 			return;

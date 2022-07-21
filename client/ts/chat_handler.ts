@@ -2,12 +2,12 @@
 import { connection } from './connection.js'
 import { Html } from './html.js'
 import { HtmlComponent } from './html_component.js'
+import { InterfaceHandler } from './interface_handler.js'
+import { options } from './options.js'
 import { ui, InputMode } from './ui.js'
 import { HtmlUtil, Util } from './util.js'
 
-export class ChatHandler {
-	private readonly _chatKeyCode = 13;
-
+export class ChatHandler implements InterfaceHandler {
 	private _chatComponent : HtmlComponent;
 
 	constructor(chatComponent : HtmlComponent) {
@@ -19,8 +19,11 @@ export class ChatHandler {
 
 		connection.addHandler(chatType, (msg : { [k: string]: any }) => { this.chat(msg) })
 		document.addEventListener("keydown", (e : any) => {
-			if (e.keyCode === this._chatKeyCode) {
+			if (e.keyCode === options.chatKeyCode) {
 				this.chatKeyPressed();
+			}
+			if (e.keyCode === options.pauseKeyCode && ui.inputMode() === InputMode.CHAT) {
+				ui.changeInputMode(InputMode.GAME);
 			}
 		});
 	}
@@ -53,6 +56,8 @@ export class ChatHandler {
 	private chatKeyPressed() : void {
 		if (ui.inputMode() === InputMode.GAME) {
 			ui.changeInputMode(InputMode.CHAT);
+			return;
+		} else if (ui.inputMode() !== InputMode.CHAT) {
 			return;
 		}
 

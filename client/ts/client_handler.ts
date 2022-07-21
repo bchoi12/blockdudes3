@@ -2,10 +2,11 @@ import { Client } from './client.js'
 import { connection } from './connection.js'
 import { Html } from './html.js'
 import { HtmlComponent } from './html_component.js'
-import { ui } from './ui.js'
+import { InterfaceHandler } from './interface_handler.js'
+import { ui, InputMode } from './ui.js'
 import { LogUtil, HtmlUtil, Util } from './util.js'
 
-export class ClientHandler {
+export class ClientHandler implements InterfaceHandler {
 	private readonly _iceConfig = {
 		iceServers: [
 			{
@@ -50,10 +51,6 @@ export class ClientHandler {
 		this._voiceEnabled = false;
 	}
 
-	empty() : boolean { return this._clients.size === 0; }
-	hasClient(id : number) : boolean { return this._clients.has(id); }
-	getClient(id : number) : Client { return this._clients.get(id); }
-
 	setup() : void {
  		connection.addHandler(joinType, (msg : { [k: string]: any }) => { this.updateClients(msg); });
 		connection.addHandler(leftType, (msg : { [k: string]: any }) => { this.updateClients(msg); });
@@ -69,7 +66,12 @@ export class ClientHandler {
 		};
 	}
 
-	toggleVoice() : void {
+	changeInputMode(mode : InputMode) : void {}
+
+	hasClient(id : number) : boolean { return this._clients.has(id); }
+	getClient(id : number) : Client { return this._clients.get(id); }
+
+	private toggleVoice() : void {
 		if (!connection.ready()) {
 			return;
 		}
@@ -104,7 +106,7 @@ export class ClientHandler {
 	}
 
 	private updateClients(msg : { [k: string]: any }) : void {
-		if (this.empty()) {
+		if (this._clients.size === 0) {
 			for (let [stringId, client] of Object.entries(msg.Clients) as [string, any]) {
 				this.addClient(new Client(client.Id, client.Name));
 			}

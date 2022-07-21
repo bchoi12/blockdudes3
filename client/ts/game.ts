@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { connection } from './connection.js'
+import { Keys } from './keys.js'
 import { Model, loader } from './loader.js'
 import { options } from './options.js'
 import { RenderBolt } from './render_bolt.js'
@@ -20,9 +21,7 @@ import { Util } from './util.js'
 
 export enum GameState {
 	UNKNOWN = 0,
-	LOGIN = 1,
-	LOBBY = 2,
-	GAME = 3,
+	GAME = 1,
 }
 
 class Game {
@@ -33,22 +32,18 @@ class Game {
 	private _state : GameState;
 
 	private _sceneMap : SceneMap;
-	private _lastKeys : Set<number>;
-	private _keys : Set<number>;
-	private _keyUpdates : number;
+	private _keys : Keys;
+	private _keySeqNum : number;
 	private _lastSeqNum : number;
-	private _animateFrames : number;
 
 	constructor() {
 		this._id = -1;
 		this._state = GameState.UNKNOWN;
 
 		this._sceneMap = new SceneMap();
-		this._lastKeys = new Set();
-		this._keys = new Set();
-		this._keyUpdates = 0;
+		this._keys = new Keys();
+		this._keySeqNum = 0;
 		this._lastSeqNum = 0;
-		this._animateFrames = 0;
 	}
 
 	setup() : void {
@@ -56,19 +51,20 @@ class Game {
 		connection.addHandler(objectUpdateType, (msg : { [k: string]: any }) => { this.updateGameState(msg); });
 		connection.addHandler(playerInitType, (msg : { [k: string]: any }) => { this.initPlayer(msg); });
 		connection.addHandler(levelInitType, (msg : { [k: string]: any }) => { this.initLevel(msg); });
-
-		this.animate();
 	}
 
 	hasId() : boolean { return this._id >= 0; }
+	id() : number { return this._id; }
 	state() : GameState { return this._state; }
 	sceneMap() : SceneMap { return this._sceneMap; }
 	sceneComponent(type : SceneComponentType) : SceneComponent { return this._sceneMap.getComponent(type); }
 
+	startRender() : void { this.animate(); }
 	setState(state : GameState) { this._state = state; }
 
 	private animate() : void {
 		if (this.state() === GameState.GAME) {
+			this._keys.snapshotKeys();
 			this.extrapolateState();
 			this.updateCamera();
 			this.extrapolatePlayerDir();
@@ -76,51 +72,8 @@ class Game {
 
 		this.sceneMap().updateComponents()
 		renderer.render();
-		this._animateFrames++;
-
 		requestAnimationFrame(() => { this.animate(); });
 	}
-
-	// TODO: this seems weird, fix it.
-	private snapshotKeys() : { [k: string]: any } {
-		this._lastKeys = new Set(this._keys);
-		this._keys = ui.getKeys();
-   		const mouse = renderer.getMouseWorld();
-		const msg = {
-			T: keyType,
-			Key: {
-				S: this._keyUpdates,
-				K: Array.from(this._keys),
-				M: {
-					X: mouse.x,
-					Y: mouse.y,
-				},
-				D: {
-					X: 1,
-					Y: 0,
-				},
-			},
-		};
-
-		if (this.sceneMap().has(playerSpace, this._id)) {
-	   		const mouse = renderer.getMouseWorld();
-
-	   		const player : any = this.sceneMap().get(playerSpace, this._id);
-	   		const weaponPos = player.weaponPos();
-	   		const dir = new THREE.Vector2(mouse.x - weaponPos.x, mouse.y - weaponPos.y);
-
-	   		dir.normalize();
-			msg.Key.D = {
-				X: dir.x,
-				Y: dir.y,
-			};
-		} 
-		return msg;
-	}
-
-	private keyPressed(key : number) : boolean { return this._keys.has(key) && !this._lastKeys.has(key); }
-	private keyDown(key : number) : boolean { return this._keys.has(key); }
-	private keyReleased(key : number) : boolean { return !this._keys.has(key) && this._lastKeys.has(key); }
 
 	private initPlayer(msg : { [k: string]: any }) : void {
 		this._id = msg.Id;
@@ -137,8 +90,8 @@ class Game {
 		connection.addSender(keyType, () => {
 			if (this.state() !== GameState.GAME) return;
 
-			this._keyUpdates++;
-			const msg = this.snapshotKeys();
+			this._keySeqNum++;
+			const msg = this._keys.keyMsg(this._keySeqNum);
 			connection.sendData(msg);
 		}, frameMillis);
 	}
@@ -208,7 +161,7 @@ class Game {
 
 		// Update key presses.
 		if (this.sceneMap().has(playerSpace, this._id)) {
-			const keyMsg = this.snapshotKeys();
+			const keyMsg = this._keys.keyMsg(this._keySeqNum);
 			keyMsg.Key.K = Util.arrayToString(keyMsg.Key.K);
 			wasmUpdateKeys(this._id, keyMsg.Key);
 		}
@@ -268,16 +221,16 @@ class Game {
 		if (!this.sceneMap().has(playerSpace, this._id)) return;
 
 		const playerPos = this.sceneMap().get(playerSpace, this._id).pos();
-		renderer.setCameraTarget(new THREE.Vector3(playerPos.x, playerPos.y, 0));
+		renderer.setCameraAnchor(new THREE.Vector3(playerPos.x, playerPos.y, 0));
 
 		const panEnabled = renderer.cameraController().panEnabled();
-		if (!panEnabled && this.keyDown(altMouseClick)) {
+		if (!panEnabled && this._keys.keyDown(altMouseClick)) {
 			const mouseScreen = renderer.getMouseScreen();
 			let pan = new THREE.Vector3(mouseScreen.x, mouseScreen.y, 0);
 			pan.normalize();
 			pan.multiplyScalar(8);
 			renderer.cameraController().enablePan(pan);
-		} else if (panEnabled && !this.keyDown(altMouseClick)) {
+		} else if (panEnabled && !this._keys.keyDown(altMouseClick)) {
 			renderer.cameraController().disablePan();
 		}
 	}

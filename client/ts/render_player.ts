@@ -113,14 +113,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 			}
 		}
 
-		// TODO: do this better
-		if (msg.hasOwnProperty(killProp)) {
-			ui.getClient(this.id()).setKills(msg[killProp]);
-		}
-		if (msg.hasOwnProperty(deathProp)) {
-			ui.getClient(this.id()).setDeaths(msg[deathProp]);
-		}
-
 		const pos = this.pos();
 		const dim = this.dim();
 		const vel = this.vel();
