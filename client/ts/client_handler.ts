@@ -1,10 +1,9 @@
-import { Client } from './client.js'
+import { ClientWrapper } from './client_wrapper.js'
 import { connection } from './connection.js'
 import { Html } from './html.js'
-import { HtmlComponent } from './html_component.js'
 import { InterfaceHandler } from './interface_handler.js'
 import { ui, InputMode } from './ui.js'
-import { LogUtil, HtmlUtil, Util } from './util.js'
+import { LogUtil, Util } from './util.js'
 
 export class ClientHandler implements InterfaceHandler {
 	private readonly _iceConfig = {
@@ -35,16 +34,17 @@ export class ClientHandler implements InterfaceHandler {
 		offerToReceiveVideo: false,
 	};
 
-	private _clientsComponent : HtmlComponent;
-	private _clients : Map<number, Client>
+	private _clientsElm : HTMLElement;
+	private _clients : Map<number, ClientWrapper>
 	private _peerConnections : Map<number, RTCPeerConnection>;
 	private _iceCandidates : Map<number, Array<RTCIceCandidate>>;
 	private _voiceEnabled : boolean;
 
 	private _stream : MediaStream;
 
-	constructor(clientsComponent : HtmlComponent) {
-		this._clientsComponent = clientsComponent;
+
+	constructor() {
+		this._clientsElm = Html.elm(Html.fieldsetClients);
 		this._clients = new Map();
 		this._peerConnections = new Map();
 		this._iceCandidates = new Map();
@@ -60,7 +60,7 @@ export class ClientHandler implements InterfaceHandler {
 		connection.addHandler(voiceAnswerType, (msg : { [k: string]: any }) => { this.processVoiceAnswer(msg); });
 		connection.addHandler(voiceCandidateType, (msg : { [k: string]: any }) => { this.processVoiceCandidate(msg); });
 
-		HtmlUtil.elm(Html.buttonVoice).onclick = (e) => {
+		Html.elm(Html.buttonVoice).onclick = (e) => {
 			this.toggleVoice();
 			e.stopPropagation();
 		};
@@ -68,8 +68,9 @@ export class ClientHandler implements InterfaceHandler {
 
 	changeInputMode(mode : InputMode) : void {}
 
-	hasClient(id : number) : boolean { return this._clients.has(id); }
-	getClient(id : number) : Client { return this._clients.get(id); }
+	displayName(id : number) : string {
+		return this._clients.has(id) ? this._clients.get(id).displayName() : "Unknown";
+	}
 
 	private toggleVoice() : void {
 		if (!connection.ready()) {
@@ -108,18 +109,18 @@ export class ClientHandler implements InterfaceHandler {
 	private updateClients(msg : { [k: string]: any }) : void {
 		if (this._clients.size === 0) {
 			for (let [stringId, client] of Object.entries(msg.Clients) as [string, any]) {
-				this.addClient(new Client(client.Id, client.Name));
+				this.addClient(new ClientWrapper(client.Id, client.Name));
 			}
 		} else if (msg.T === joinType) {
-			this.addClient(new Client(msg.Client.Id, msg.Client.Name));
+			this.addClient(new ClientWrapper(msg.Client.Id, msg.Client.Name));
 		} else if (msg.T === leftType) {
 			this.removeClient(msg.Client.Id);
 			this.removeVoice(msg.Client.Id);
 		}
 	}
 
-	private addClient(client : Client) : void {
-		client.appendTo(this._clientsComponent);
+	private addClient(client : ClientWrapper) : void {
+		this._clientsElm.append(client.elm());
 		this._clients.set(client.id(), client);
 		ui.print(client.displayName() + " just joined!");
 	}
@@ -128,7 +129,7 @@ export class ClientHandler implements InterfaceHandler {
 		let client = this._clients.get(id);
 		ui.print(client.displayName() + " left");
 
-		client.delete();
+		this._clientsElm.removeChild(client.elm());
 		this._clients.delete(id);
 	}
 
@@ -168,7 +169,7 @@ export class ClientHandler implements InterfaceHandler {
 	}
 
 	private removeVoice(id : number) : void {
-		if (this.hasClient(id)) {
+		if (this._clients.has(id)) {
 			ui.print(ui.getClientName(id) + " left voice chat");
 		}
 		if (id === connection.id()) {
@@ -200,7 +201,7 @@ export class ClientHandler implements InterfaceHandler {
 			}
 		}
 		pc.ontrack = (event) => {
-			this.getClient(id).enableVoiceControls(event.streams[0]);
+			this._clients.get(id).enableVoiceControls(event.streams[0]);
 		}	
 
 		pc.createOffer(this._voiceOfferOptions).then((description) => {

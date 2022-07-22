@@ -45,7 +45,7 @@ export class ForegroundGroup {
 	}
 
 	update() : void {
-		const position = renderer.cameraTarget();
+		const position = renderer.cameraAnchor();
 		this._transparent = this._boundingBox.containsPoint(new THREE.Vector2(position.x, position.y));
 
 		if (this._transparent && this._opacity <= this._minOpacity) {

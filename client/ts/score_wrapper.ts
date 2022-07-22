@@ -1,13 +1,13 @@
-import { HtmlComponent } from './html_component.js'
+import { Html, HtmlWrapper } from './html.js'
 import { ui } from './ui.js'
 
-export class ScoreComponent extends HtmlComponent {
+export class ScoreWrapper extends HtmlWrapper {
 	private _name : string;
 	private _kills : number;
 	private _deaths : number;
 
-	constructor(id : number, html : HTMLElement) {
-		super(html);
+	constructor(id : number) {
+		super(Html.div());
 
 		this._name = ui.getClientName(id);
 		this._kills = 0;
@@ -25,6 +25,6 @@ export class ScoreComponent extends HtmlComponent {
 	}
 
 	private updateText() : void {
-		super.text(this._name + "| " + this._kills + "/" + this._deaths);
+		this.elm().textContent = this._name + "| " + this._kills + "/" + this._deaths;
 	}
 }

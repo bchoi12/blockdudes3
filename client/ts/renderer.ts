@@ -3,8 +3,7 @@ import * as THREE from 'three'
 import { Audio, Sound } from './audio.js'
 import { CameraController } from './camera_controller.js'
 import { game } from './game.js'
-import { HtmlUtil } from './util.js'
-
+import { Html } from './html.js'
 import { options } from './options.js'
 
 // TODO: rename to system or something
@@ -22,7 +21,7 @@ class Renderer {
 	private _renderer : THREE.WebGLRenderer;
 
 	constructor() {
-		this._canvas = HtmlUtil.elm(this._elmRenderer);
+		this._canvas = Html.elm(this._elmRenderer);
 		this._audio = new Audio();
 		this._cameraController = new CameraController(this._canvas.offsetWidth / this._canvas.offsetHeight);
 		this._mousePixels = new THREE.Vector2(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2);
@@ -54,6 +53,7 @@ class Renderer {
 	fps() : number { return this._fps; }
 
 	cameraController() : CameraController { return this._cameraController; }
+	cameraAnchor() : THREE.Vector3 { return this._cameraController.anchor(); }
 	cameraTarget() : THREE.Vector3 { return this._cameraController.target(); }
 	setCameraAnchor(anchor : THREE.Vector3) : void { this._cameraController.setAnchor(anchor); }
 

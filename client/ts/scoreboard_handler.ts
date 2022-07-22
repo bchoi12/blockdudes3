@@ -1,20 +1,18 @@
 import { game } from './game.js'
 import { Html } from './html.js'
-import { HtmlComponent } from './html_component.js'
 import { InterfaceHandler } from './interface_handler.js'
 import { options } from './options.js'
-import { ScoreComponent } from './score_component.js'
+import { ScoreWrapper } from './score_wrapper.js'
 import { ui, InputMode } from './ui.js'
-import { HtmlUtil } from './util.js'
 
 export class ScoreboardHandler implements InterfaceHandler {
 
-	private _scoreboardComponent : HtmlComponent;
-	private _scores : Map<number, ScoreComponent>;
+	private _scoreboardElm : HTMLElement;
+	private _scores : Map<number, ScoreWrapper>;
 
-	constructor(component : HtmlComponent) {
-		this._scoreboardComponent = component;
-		this._scores = new Map<number, ScoreComponent>();
+	constructor() {
+		this._scoreboardElm = Html.elm(Html.divScoreboard);
+		this._scores = new Map<number, ScoreWrapper>();
 	}
 
 	setup() : void {
@@ -24,7 +22,7 @@ export class ScoreboardHandler implements InterfaceHandler {
 			}
 
 			this.updateScoreboard();
-			this._scoreboardComponent.displayBlock();
+			Html.displayBlock(this._scoreboardElm);
 		});
 
 		document.addEventListener("keyup", (e : any) => {
@@ -32,7 +30,7 @@ export class ScoreboardHandler implements InterfaceHandler {
 				return;
 			}
 
-			this._scoreboardComponent.displayNone();
+			Html.displayNone(this._scoreboardElm);
 		});
 	}
 
@@ -43,9 +41,8 @@ export class ScoreboardHandler implements InterfaceHandler {
 
 		players.forEach((player, id) => {
 			if (!this._scores.has(id)) {
-				const scoreDiv = document.createElement("div");
-				const scoreComponent = new ScoreComponent(id, scoreDiv);
-				scoreComponent.appendTo(this._scoreboardComponent);
+				const scoreComponent = new ScoreWrapper(id);
+				this._scoreboardElm.append(scoreComponent.elm());
 				this._scores.set(id, scoreComponent);
 			}
 

@@ -1,4 +1,4 @@
-import { LogUtil, HtmlUtil, Util } from './util.js'
+import { LogUtil, Util } from './util.js'
 
 import { connection } from './connection.js'
 import { game, GameState } from './game.js'
@@ -7,14 +7,14 @@ import { ui, InputMode } from './ui.js'
 
 declare var Go: any;
 document.addEventListener('DOMContentLoaded', (event) => {
-	HtmlUtil.displayNone("js-check");
+	Html.displayNone(Html.elm("js-check"));
 	game.startRender();
 
 	if (Util.isDev()) {
 		LogUtil.d("Dev mode enabled!");
-		HtmlUtil.inputElm(Html.inputName).value = "b";
+		Html.inputElm(Html.inputName).value = "b";
 	}
-	HtmlUtil.inputElm(Html.inputRoom).value = "test_room";
+	Html.inputElm(Html.inputRoom).value = "test_room";
 
 	const go = new Go();
 	WebAssembly.instantiateStreaming(fetch("./game.wasm"), go.importObject).then((result) => {
@@ -24,6 +24,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
 		game.setup();
 		ui.changeInputMode(InputMode.LOGIN);
 
-		HtmlUtil.displayNone("wasm-check");
+		Html.displayNone(Html.elm("wasm-check"));
 	});
 });

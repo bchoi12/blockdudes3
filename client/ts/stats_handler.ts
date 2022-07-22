@@ -1,15 +1,14 @@
-
 import { connection } from './connection.js'
-import { HtmlComponent } from './html_component.js'
+import { Html } from './html.js'
 import { InterfaceHandler } from './interface_handler.js'
 import { renderer } from './renderer.js'
 import { InputMode } from './ui.js'
 
 export class StatsHandler implements InterfaceHandler {
-	private _statsComponent : HtmlComponent;
+	private _statsElm : HTMLElement;
 
-	constructor(component : HtmlComponent) {
-		this._statsComponent = component;
+	constructor() {
+		this._statsElm = Html.elm(Html.divStats);
 	}
 
 	setup() : void {
@@ -21,7 +20,7 @@ export class StatsHandler implements InterfaceHandler {
 	private updateStats() {
 		const ping = connection.ping();
 		const fps = renderer.fps();
-		this._statsComponent.text("Ping : " + ping + " | FPS: " + fps);
+		this._statsElm.textContent = "Ping : " + ping + " | FPS: " + fps;
 		setTimeout(() => {
 			this.updateStats();
 		}, 500);

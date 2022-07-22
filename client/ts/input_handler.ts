@@ -1,16 +1,16 @@
 import * as THREE from 'three';
 
+import { Html } from './html.js'
 import { InterfaceHandler } from './interface_handler.js'
 import { options } from './options.js'
 import { renderer } from './renderer.js'
 import { ui, InputMode } from './ui.js'
-import { HtmlUtil } from './util.js'
 
 export class InputHandler implements InterfaceHandler {
-	private readonly _elmCursor = "cursor";
 	private readonly _cursorWidth = 20;
 	private readonly _cursorHeight = 20;
 
+	private _cursorElm : HTMLElement;
 	private _mouse : THREE.Vector2;
 	private _lastPointerLock : number;
 	private _keys : Set<number>;
@@ -21,6 +21,7 @@ export class InputHandler implements InterfaceHandler {
 	private _keyUpCallbacks : Map<number, (e : any) => void>;
 
 	constructor() {
+		this._cursorElm = Html.elm(Html.cursor);
 		this._mouse = new THREE.Vector2();
 		this._lastPointerLock = 0;
 		this._keys = new Set<number>();
@@ -55,10 +56,10 @@ export class InputHandler implements InterfaceHandler {
     	document.addEventListener("mouseup", (e : any) => { this.mouseUp(e); });
 		document.addEventListener("pointerlockchange", (e : any) => {
 			if(this.pointerLocked()) {
-				HtmlUtil.show(this._elmCursor);
+				Html.show(this._cursorElm);
 				this._lastPointerLock = Date.now();
 			} else {
-				HtmlUtil.hide(this._elmCursor);
+				Html.hide(this._cursorElm);
 				if (ui.inputMode() === InputMode.GAME) {
 					ui.changeInputMode(InputMode.PAUSE);
 				}
@@ -175,8 +176,8 @@ export class InputHandler implements InterfaceHandler {
 			this._mouse.y = 0;
 		}
 
-		HtmlUtil.elm(this._elmCursor).style.left = (this._mouse.x - this._cursorWidth / 2) + "px";
-		HtmlUtil.elm(this._elmCursor).style.top = (this._mouse.y - this._cursorHeight / 2) + "px";
+		this._cursorElm.style.left = (this._mouse.x - this._cursorWidth / 2) + "px";
+		this._cursorElm.style.top = (this._mouse.y - this._cursorHeight / 2) + "px";
 		renderer.setMouseFromPixels(this._mouse);
 	}
 

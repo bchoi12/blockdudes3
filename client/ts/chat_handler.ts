@@ -1,21 +1,24 @@
 
 import { connection } from './connection.js'
 import { Html } from './html.js'
-import { HtmlComponent } from './html_component.js'
 import { InterfaceHandler } from './interface_handler.js'
 import { options } from './options.js'
 import { ui, InputMode } from './ui.js'
-import { HtmlUtil, Util } from './util.js'
+import { Util } from './util.js'
 
 export class ChatHandler implements InterfaceHandler {
-	private _chatComponent : HtmlComponent;
+	private _chatElm : HTMLElement;
+	private _messageElm : HTMLElement;
+	private _messageInputElm : HTMLInputElement;
 
-	constructor(chatComponent : HtmlComponent) {
-		this._chatComponent = chatComponent;
+	constructor() {
+		this._chatElm = Html.elm(Html.divChat);
+		this._messageElm = Html.elm(Html.divMessage);
+		this._messageInputElm = Html.inputElm(Html.inputMessage);
 	}
 
 	setup() : void {
-		HtmlUtil.elm(Html.inputMessage).style.width = this._chatComponent.elm().offsetWidth + "px";
+		this._messageInputElm.style.width = this._chatElm.offsetWidth + "px";
 
 		connection.addHandler(chatType, (msg : { [k: string]: any }) => { this.chat(msg) })
 		document.addEventListener("keydown", (e : any) => {
@@ -30,27 +33,27 @@ export class ChatHandler implements InterfaceHandler {
 
 	changeInputMode(mode : InputMode) : void {
 		if (mode === InputMode.CHAT) {
-			HtmlUtil.notSlightlyOpaque(Html.divChat);
-			HtmlUtil.selectable(Html.divChat);
-			HtmlUtil.displayBlock(Html.divMessage);
-			HtmlUtil.elm(Html.divChat).style.bottom = "2em";
-			HtmlUtil.inputElm(Html.inputMessage).focus();
+			Html.notSlightlyOpaque(this._chatElm);
+			Html.selectable(this._chatElm);
+			Html.displayBlock(this._messageElm);
+			this._chatElm.style.bottom = "2em";
+			this._messageInputElm.focus();
 		} else {
-			HtmlUtil.slightlyOpaque(Html.divChat);
-			HtmlUtil.unselectable(Html.divChat);
-			HtmlUtil.displayNone(Html.divMessage);
-			HtmlUtil.elm(Html.divChat).style.bottom = "1em";
-			HtmlUtil.inputElm(Html.inputMessage).blur();
+			Html.slightlyOpaque(this._chatElm);
+			Html.unselectable(this._chatElm);
+			Html.displayNone(this._messageElm);
+			this._chatElm.style.bottom = "1em";
+			this._messageInputElm.blur();
 		}
 	}
 
 	print(message : string) : void {
-		const messageSpan = document.createElement("span");
+		const messageSpan = Html.span();
 		messageSpan.textContent = message;
 
-		this._chatComponent.appendElm(messageSpan);
-		this._chatComponent.appendElm(document.createElement("br"));
-		HtmlUtil.elm(Html.divChat).scrollTop = HtmlUtil.elm(Html.divChat).scrollHeight;
+		this._chatElm.append(messageSpan);
+		this._chatElm.append(Html.br());
+		this._chatElm.scrollTop = this._chatElm.scrollHeight;
 	}
 
 	private chatKeyPressed() : void {
@@ -61,7 +64,7 @@ export class ChatHandler implements InterfaceHandler {
 			return;
 		}
 
-		if (HtmlUtil.trimmedValue(Html.inputMessage).length == 0) {
+		if (Html.trimmedValue(this._messageInputElm).length == 0) {
 			ui.changeInputMode(InputMode.GAME);
 			return;
 		}
@@ -73,12 +76,12 @@ export class ChatHandler implements InterfaceHandler {
 		const message = {
 			T: chatType,
 			Chat: {
-				M: HtmlUtil.trimmedValue(Html.inputMessage),
+				M: Html.trimmedValue(this._messageInputElm),
 			}
 		};
 
 		if (connection.send(message)) {
-			HtmlUtil.inputElm(Html.inputMessage).value = "";
+			this._messageInputElm.value = "";
 			ui.changeInputMode(InputMode.GAME);
 		} else {
 			ui.print("Failed to send chat message!");
@@ -91,10 +94,10 @@ export class ChatHandler implements InterfaceHandler {
 
 		if (!Util.defined(message) || message.length === 0) return;
 
-		const nameSpan = new HtmlComponent(document.createElement("span"));
-		nameSpan.addClass("message-name");
-		nameSpan.text(name + ": ");
-		nameSpan.appendTo(this._chatComponent);
+		const nameSpan = Html.span();
+		Html.bold(nameSpan);
+		nameSpan.textContent = name + ": ";
+		this._chatElm.append(nameSpan);
 
 		ui.print(message);
 	}

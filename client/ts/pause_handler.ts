@@ -1,13 +1,13 @@
-import { HtmlComponent } from './html_component.js'
+import { Html } from './html.js'
 import { InterfaceHandler } from './interface_handler.js'
 import { options } from './options.js'
 import { ui, InputMode } from './ui.js'
 
 export class PauseHandler implements InterfaceHandler {
-	private _pauseComponent : HtmlComponent;
+	private _pauseElm : HTMLElement;
 
-	constructor(component : HtmlComponent) {
-		this._pauseComponent = component;
+	constructor() {
+		this._pauseElm = Html.elm(Html.divPause);
 	}
 
 	setup() : void {
@@ -28,7 +28,7 @@ export class PauseHandler implements InterfaceHandler {
 			}
 		})
 
-		this._pauseComponent.elm().onclick = (e : any) => {
+		this._pauseElm.onclick = (e : any) => {
 			if (ui.inputMode() !== InputMode.PAUSE) {
 				return;
 			}
@@ -38,9 +38,9 @@ export class PauseHandler implements InterfaceHandler {
 
 	changeInputMode(mode : InputMode) : void {
 		if (mode === InputMode.PAUSE) {
-			this._pauseComponent.displayBlock();
+			Html.displayBlock(this._pauseElm);
 		} else {
-			this._pauseComponent.displayNone();
+			Html.displayNone(this._pauseElm);
 		}
 	}
 }
