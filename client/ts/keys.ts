@@ -19,6 +19,20 @@ export class Keys {
 		this._keys = ui.getKeys();
 	}
 
+	changed() : boolean {
+		if (this._lastKeys.size !== this._keys.size) {
+			return true;
+		}
+
+		for (let it = this._keys.values(), val = null; val = it.next().value;) {
+		    if (!this._lastKeys.has(val)) {
+		    	return true;
+		    }
+		}
+
+		return false;
+	}
+
 	keyMsg(keySeqNum : number) : { [k: string]: any } {
    		const mouse = renderer.getMouseWorld();
 		const msg = {

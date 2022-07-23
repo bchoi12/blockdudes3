@@ -85,7 +85,7 @@ func (g *Game) processKeyMsg(id IdType, keyMsg KeyMsg) {
 		return
 	}
 	player := g.grid.Get(Id(playerSpace, id)).(*Player)
-	player.updateKeys(keyMsg)
+	player.UpdateKeys(keyMsg)
 }
 
 func (g *Game) updateState() {

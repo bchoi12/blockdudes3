@@ -40,7 +40,7 @@ func (c *Chat) processChatMsg(client *Client, msg ChatMsg) ChatMsg {
 
 	outMsg := ChatMsg {
 		T: chatType,
-		Client: client.getClientData(),
+		Id: client.id,
 		M: newMsg,
 	}
 	c.addChatMsg(outMsg)

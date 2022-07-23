@@ -122,8 +122,7 @@ type ClientMsg struct {
 
 type ChatMsg struct {
 	T MessageType
-	// TODO: this only needs to be ID
-	Client ClientData
+	Id IdType
 	M string
 }
 

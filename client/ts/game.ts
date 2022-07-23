@@ -93,6 +93,9 @@ class Game {
 			this._keySeqNum++;
 			const msg = this._keys.keyMsg(this._keySeqNum);
 			connection.sendData(msg);
+			if (this._keys.changed()) {
+				connection.send(msg);
+			}
 		}, frameMillis);
 	}
 

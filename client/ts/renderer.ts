@@ -6,7 +6,6 @@ import { game } from './game.js'
 import { Html } from './html.js'
 import { options } from './options.js'
 
-// TODO: rename to system or something
 class Renderer {
 	private readonly _elmRenderer = "canvas-game";
 

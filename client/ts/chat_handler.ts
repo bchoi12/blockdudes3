@@ -89,7 +89,7 @@ export class ChatHandler implements InterfaceHandler {
 	}
 
 	private chat(msg : { [k: string]: any }) {
-		const name = ui.getClientName(msg.Client.Id);
+		const name = ui.getClientName(msg.Id);
 		const message = msg.M;
 
 		if (!Util.defined(message) || message.length === 0) return;

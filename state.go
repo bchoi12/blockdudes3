@@ -7,14 +7,12 @@ const (
 type State struct {
 	state interface{}
 	changed bool
-
 	ttl int
 
 	// If the state was ever set
 	set bool
 }
 
-// TODO: bit weird to pass in an initial state here
 func NewBlankState(state interface{}) *State {
 	return &State {
 		state: state,

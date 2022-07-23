@@ -57,8 +57,6 @@ func (ir *IntersectResults) Merge(other IntersectResults) {
 type CollideResult struct {
 	hit bool
 	ignored bool
-
-	// TODO: this is always positive, should fix
 	posAdjustment Vec2
 	velModifier Vec2
 }
@@ -91,7 +89,6 @@ func (cr *CollideResult) Merge(other CollideResult) {
 	velMod.AbsMax(other.GetVelModifier())
 }
 
-// TODO: rename CollisionResults
 type SnapResults struct {
 	snap bool
 

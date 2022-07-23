@@ -31,30 +31,23 @@ const (
 	airResistance = 0.9
 
 	jumpDuration time.Duration = 300 * time.Millisecond
+	jumpGraceDuration time.Duration = 100 * time.Millisecond
 	knockbackDuration time.Duration = 150 * time.Millisecond
-	canJumpGracePeriod time.Duration = 100 * time.Millisecond
 
 	bodySubProfile ProfileKey = 1
 )
 
 type Player struct {
 	BaseObject
+	Keys
 	weapon Weapon
 
 	canJump bool
 	canDash bool
-	lastJumpTime time.Time
-	lastGroundedTime time.Time
-	lastKnockbackTime time.Time
 
-	ignoredColliders map[SpacedId]bool
-
-	keys map[KeyType]bool
-	// Keys held down during last update cycle
-	lastKeys map[KeyType] bool
-	lastKeyUpdate SeqNumType
-
-	mouse Vec2
+	jumpTimer Timer
+	jumpGraceTimer Timer
+	knockbackTimer Timer
 }
 
 func NewPlayer(init Init) *Player {
@@ -83,21 +76,15 @@ func NewPlayer(init Init) *Player {
 
 	player := &Player {
 		BaseObject: NewBaseObject(profile),
+		Keys: NewKeys(),
 		weapon: weapon,
 
 		canJump: false,
 		canDash: true,
-		lastJumpTime: time.Time{},
-		lastGroundedTime: time.Time{},
-		lastKnockbackTime: time.Time{},
 
-		ignoredColliders: make(map[SpacedId]bool, 0),
-
-		keys: make(map[KeyType]bool, 0),
-		lastKeys: make(map[KeyType]bool, 0),
-		lastKeyUpdate: 0,
-
-		mouse: NewVec2(0, 0),
+		jumpTimer: NewTimer(jumpDuration),
+		jumpGraceTimer: NewTimer(jumpGraceDuration),
+		knockbackTimer: NewTimer(knockbackDuration),
 	}
 	player.Respawn()
 	return player
@@ -117,7 +104,7 @@ func (p Player) GetData() Data {
 
 	data.Set(dirProp, p.Dir())
 	data.Set(equipDirProp, p.weapon.Dir())
-	data.Set(keysProp, p.keys)
+	data.Set(keysProp, p.GetKeys())
 
 	if (debugMode) {
 		data.Set(profilePosProp, p.Pos())
@@ -144,7 +131,7 @@ func (p *Player) SetData(data Data) {
 	p.weapon.SetData(data)
 
 	if data.Has(keysProp) {
-		p.keys = data.Get(keysProp).(map[KeyType]bool)
+		p.SetKeys(data.Get(keysProp).(map[KeyType]bool))
 	}
 	if data.Has(dirProp) {
 		p.SetDir(data.Get(dirProp).(Vec2))
@@ -171,7 +158,7 @@ func (p Player) UpdateScore(g *Grid) {
 
 func (p *Player) Knockback(dir Vec2, now time.Time) {
 	p.BaseObject.Knockback(dir, now)
-	p.lastKnockbackTime = now
+	p.knockbackTimer.Start(now)
 }
 
 func (p *Player) Respawn() {
@@ -208,7 +195,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	// Gravity & air resistance
 	acc.Y = gravityAcc
 	if !grounded {
-		if now.Sub(p.lastJumpTime) > jumpDuration || vel.Y <= 0 {
+		if !p.jumpTimer.On(now) || vel.Y <= 0 {
 			acc.Y += downAcc
 		}
 		if acc.X == 0 {
@@ -217,8 +204,8 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	}
 
 	// Left & right
-	if p.keyDown(leftKey) != p.keyDown(rightKey) {
-		if p.keyDown(leftKey) {
+	if p.KeyDown(leftKey) != p.KeyDown(rightKey) {
+		if p.KeyDown(leftKey) {
 			acc.X = leftAcc
 		} else {
 			acc.X = rightAcc
@@ -234,13 +221,13 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 
 	// Grounded actions
 	if grounded {
-		p.lastGroundedTime = now
+		p.jumpGraceTimer.Start(now)
 		p.canJump = true
 		p.canDash = true
 
 		// Friction
 		if Sign(acc.X) != Sign(vel.X) {
-			if now.Sub(p.lastKnockbackTime) <= knockbackDuration {
+			if p.knockbackTimer.On(now) {
 				vel.X *= knockbackFriction
 			} else {
 				vel.X *= friction
@@ -249,17 +236,17 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	}
 
 	// Jump & double jump
-	if p.keyDown(dashKey) {
-		if p.canJump && now.Sub(p.lastGroundedTime) <= canJumpGracePeriod {
+	if p.KeyDown(dashKey) {
+		if p.canJump && p.jumpGraceTimer.On(now) {
 			p.canJump = false
 			acc.Y = 0
 			vel.Y = Max(0, vel.Y) + jumpVel
-			p.lastJumpTime = now
-		} else if p.keyPressed(dashKey) && p.canDash {
+			p.jumpTimer.Start(now)
+		} else if p.KeyPressed(dashKey) && p.canDash {
 			acc.Y = 0
 			vel.Y = jumpVel
 			p.canDash = false
-			p.lastJumpTime = now
+			p.jumpTimer.Start(now)
 		}
 	}
 
@@ -301,16 +288,15 @@ func (p *Player) Postprocess(grid *Grid, now time.Time) {
 	p.BaseObject.Postprocess(grid, now)
 
 	p.weapon.SetPos(p.GetSubProfile(bodySubProfile).Pos())
-	if p.keyDown(mouseClick) {
+	if p.KeyDown(mouseClick) {
 		p.weapon.PressTrigger(primaryTrigger)
 	}
-	if p.keyDown(altMouseClick) {
+	if p.KeyDown(altMouseClick) {
 		p.weapon.PressTrigger(secondaryTrigger)
 	}
 	p.weapon.Shoot(grid, now)
 
-	// Save state
-	p.lastKeys = p.keys
+	p.Keys.SaveKeys()
 }
 
 func (p *Player) checkCollisions(grid *Grid) {
@@ -327,23 +313,15 @@ func (p *Player) checkCollisions(grid *Grid) {
 		collider := PopObject(&colliders)
 		switch object := collider.(type) {
 		case *Pickup:
-			if p.keyDown(interactKey) {
+			if p.KeyDown(interactKey) {
 				p.weapon.SetWeaponType(object.GetWeaponType())
 			}
 		}
 	}
 }
 
-func (p *Player) updateKeys(keyMsg KeyMsg) {
-	if keyMsg.S < p.lastKeyUpdate {
-		return
-	}
-	p.lastKeyUpdate = keyMsg.S
-	keys := make(map[KeyType]bool)
-	for _, key := range(keyMsg.K) {
-		keys[key] = true
-	}
-	p.keys = keys
+func (p *Player) UpdateKeys(keyMsg KeyMsg) {
+	p.Keys.UpdateKeys(keyMsg)
 
 	weaponDir := keyMsg.D
 	p.weapon.SetDir(weaponDir)
@@ -362,12 +340,4 @@ func (p *Player) updateKeys(keyMsg KeyMsg) {
 		dir.Y = sqrtHalf * FSignPos(dir.Y)
 	}
 	p.SetDir(dir)
-}
-
-func (p *Player) keyDown(key KeyType) bool {
-	return p.keys[key]
-}
-
-func (p *Player) keyPressed(key KeyType) bool {
-	return p.keys[key] && !p.lastKeys[key]
 }

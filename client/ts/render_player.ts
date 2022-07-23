@@ -36,7 +36,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private _profilePointsMesh : THREE.Points;
 
 	constructor(space : number, id : number) {
-		// TODO: consider just using playerSpace
 		super(space, id);
 
 		this._weaponType = 0;
