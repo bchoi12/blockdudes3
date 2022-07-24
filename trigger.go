@@ -111,7 +111,12 @@ func (t Trigger) ProjectileAcc() float64 { return t.projectileAcc }
 func (t Trigger) ProjectileJerk() float64 { return t.projectileJerk } 
 func (t Trigger) ProjectileLimit() int { return t.projectileLimit }
 
-func (t *Trigger) SetPressed(pressed bool) { t.pressed = pressed }
+func (t *Trigger) SetPressed(pressed bool) {
+	if t.Pressed() && t.State() == readyTriggerState {
+		return
+	}
+	t.pressed = pressed
+}
 func (t *Trigger) SetMaxAmmo(maxAmmo int) { t.maxAmmo = maxAmmo }
 func (t *Trigger) SetAmmoReloadTime(ammoReloadTime time.Duration) { t.ammoTimer.SetDuration(ammoReloadTime) }
 func (t *Trigger) SetReloadTime(reloadTime time.Duration) { t.reloadTimer.SetDuration(reloadTime) }
@@ -196,9 +201,9 @@ func (t *Trigger) Shoot(grid *Grid, now time.Time) {
 	if t.ProjectileRelativeSpeed() {
 		owner := grid.Get(t.weapon.GetOwner())
 		if owner != nil {
-			ownerVel := owner.TotalVel()
-			ownerVel.Scale(Max(1, t.weapon.Dir().Dot(ownerVel)))
-			vel.Add(ownerVel, 1.0)
+			addedVel := t.weapon.Dir()
+			addedVel.Scale(Max(1, Abs(addedVel.Dot(owner.TotalVel()))))
+			vel.Add(addedVel, 1.0)
 		}
 	}
 	projectile.SetVel(vel)

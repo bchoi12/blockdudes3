@@ -21,7 +21,7 @@ const (
 	maxHorizontalVel = 12.0
 	maxDownwardVel = -24.0
 	maxVelMultiplier = 0.9
-	extVelMultiplier = 0.9
+	extVelMultiplier = 0.98
 	maxSpeed = 50.0
 
 	jumpVel = 10.0

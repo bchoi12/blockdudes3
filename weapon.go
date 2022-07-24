@@ -88,6 +88,7 @@ func (bw *BaseWeapon) SetWeaponType(weaponType WeaponType) {
 		bw.SetOffset(NewVec2(0.3, 0))
 	case bazookaWeapon:
 		bw.triggers[primaryTrigger] = NewTrigger(bw, rocketSpace)
+		delete(bw.triggers, secondaryTrigger)
 		bw.SetOffset(NewVec2(0.3, 0))
 	default:
 		Debug("Unknown weapon type! %d", weaponType)

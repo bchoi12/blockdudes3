@@ -133,7 +133,8 @@ func (bp *BaseProfile) SetDir(dir Vec2) {
 }
 
 func (bp *BaseProfile) Knockback(dir Vec2, now time.Time) {
-	bp.SetExtVel(dir)
+	// TODO: probably should switch to ExtVel
+	bp.SetVel(dir)
 }
 
 func (bp *BaseProfile) Stop() {

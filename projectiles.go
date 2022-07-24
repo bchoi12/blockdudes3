@@ -86,7 +86,11 @@ func (h *GrapplingHook) UpdateState(grid *Grid, now time.Time) bool {
 	}
 
 	player := grid.Get(h.GetOwner())
-	if player != nil {
+	if player == nil {
+		grid.Delete(h.GetSpacedId())
+	}
+
+	if player != nil && !h.connected {
 		h.connected = true
 		h.RemoveTTL()
 		connection := NewAttractConnection(20)
