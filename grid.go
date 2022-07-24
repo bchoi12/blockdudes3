@@ -4,10 +4,6 @@ import (
 	"time"
 )
 
-const (
-	
-)
-
 type GridCoord struct {
 	x int
 	y int
@@ -57,6 +53,32 @@ func (g *Grid) GetUnitLength() int {
 
 func (g *Grid) GetUnitHeight() int {
 	return g.unitHeight
+}
+
+func (g *Grid) New(init Init) Object {
+	switch init.GetSpace() {
+	case playerSpace:
+		return NewPlayer(init)
+	case wallSpace:
+		return NewWall(init)
+	case bombSpace:
+		return NewBomb(init)
+	case boltSpace:
+		return NewBolt(init)
+	case rocketSpace:
+		return NewRocket(init)
+	case paperStarSpace:
+		return NewPaperStar(init)
+	case grapplingHookSpace:
+		return NewGrapplingHook(init)
+	case explosionSpace:
+		return NewExplosion(init)
+	case pickupSpace:
+		return NewPickup(init)
+	default:
+		Debug("Unknown space! %+v", init)
+		return nil
+	}
 }
 
 func (g *Grid) Upsert(object Object) {

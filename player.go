@@ -21,7 +21,7 @@ const (
 	maxHorizontalVel = 12.0
 	maxDownwardVel = -24.0
 	maxVelMultiplier = 0.9
-	extVelMultiplier = 0.98
+	extVelMultiplier = 0.9
 	maxSpeed = 50.0
 
 	jumpVel = 10.0
@@ -175,11 +175,8 @@ func (p *Player) Respawn() {
 }
 
 func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
-	ts := GetTimestep(now, p.lastUpdateTime)
-	if ts < 0 {
-		return false
-	}
-	p.lastUpdateTime = now
+	ts := p.PrepareUpdate(now)
+	p.BaseObject.UpdateState(grid, now)
 
 	if p.Dead() {
 		p.UpdateScore(grid)
@@ -187,6 +184,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	}
 
 	pos := p.Pos()
+	totalVel := p.TotalVel()
 	vel := p.Vel()
 	evel := p.ExtVel()
 	acc := p.Acc()
@@ -195,11 +193,8 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	// Gravity & air resistance
 	acc.Y = gravityAcc
 	if !grounded {
-		if !p.jumpTimer.On(now) || vel.Y <= 0 {
+		if !p.jumpTimer.On(now) || totalVel.Y <= 0 {
 			acc.Y += downAcc
-		}
-		if acc.X == 0 {
-			vel.X *= airResistance
 		}
 	}
 
@@ -210,11 +205,16 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		} else {
 			acc.X = rightAcc
 		}
-		if Sign(acc.X) == -Sign(vel.X) {
+		if Sign(acc.X) == -Sign(totalVel.X) {
 			acc.X *= turnMultiplier
 		}
 	} else {
 		acc.X = 0
+	}
+
+	if p.HasAttribute(attachedAttribute) {
+		acc.X = 0
+		acc.Y = 0
 	}
 
 	p.SetAcc(acc)
@@ -226,12 +226,16 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		p.canDash = true
 
 		// Friction
-		if Sign(acc.X) != Sign(vel.X) {
+		if Sign(acc.X) != Sign(totalVel.X) {
 			if p.knockbackTimer.On(now) {
 				vel.X *= knockbackFriction
 			} else {
 				vel.X *= friction
 			}
+		}
+	} else {
+		if acc.X == 0 {
+			vel.X *= airResistance
 		}
 	}
 
@@ -276,6 +280,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	}
 	p.SetExtVel(evel)
 
+
 	// Move
 	pos.Add(p.TotalVel(), ts)
 	p.SetPos(pos)
@@ -288,13 +293,10 @@ func (p *Player) Postprocess(grid *Grid, now time.Time) {
 	p.BaseObject.Postprocess(grid, now)
 
 	p.weapon.SetPos(p.GetSubProfile(bodySubProfile).Pos())
-	if p.KeyDown(mouseClick) {
-		p.weapon.PressTrigger(primaryTrigger)
-	}
-	if p.KeyDown(altMouseClick) {
-		p.weapon.PressTrigger(secondaryTrigger)
-	}
-	p.weapon.Shoot(grid, now)
+	// TODO: add grace period for shooting?
+	p.weapon.PressTrigger(primaryTrigger, p.KeyDown(mouseClick))
+	p.weapon.PressTrigger(secondaryTrigger, p.KeyDown(altMouseClick))
+	p.weapon.UpdateState(grid, now)
 
 	p.Keys.SaveKeys()
 }

@@ -48,6 +48,7 @@ const (
 	boltSpace
 	rocketSpace
 	paperStarSpace
+	grapplingHookSpace
 	explosionSpace
 	pickupSpace
 )

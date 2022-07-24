@@ -28,6 +28,7 @@ func NewBomb(init Init) *Bomb {
 
 func (b *Bomb) UpdateState(grid *Grid, now time.Time) bool {
 	b.PrepareUpdate(now)
+	b.BaseObject.UpdateState(grid, now)
 
 	if isWasm {
 		return true

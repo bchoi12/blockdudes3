@@ -133,7 +133,7 @@ func (bp *BaseProfile) SetDir(dir Vec2) {
 }
 
 func (bp *BaseProfile) Knockback(dir Vec2, now time.Time) {
-	bp.SetVel(dir)
+	bp.SetExtVel(dir)
 }
 
 func (bp *BaseProfile) Stop() {
@@ -341,23 +341,27 @@ func (bp *BaseProfile) Snap(nearbyObjects ObjectHeap) SnapResults {
 	}
 
 	if results.snap {
-		vel := bp.Vel()
+		if results.posAdjustment.Y > 0 {
+			bp.SetExtVel(results.velModifier)
+		}
 
+		vel := bp.Vel()
+		evel := bp.ExtVel()
 		if results.posAdjustment.X > 0 {
 			vel.X = Max(0, vel.X)
+			evel.X = Max(0, evel.X)
 		} else if results.posAdjustment.X < 0 {
 			vel.X = Min(0, vel.X)
+			evel.X = Min(0, evel.X)
 		}
 		if results.posAdjustment.Y > 0 {
 			vel.Y = Max(0, vel.Y)
 		} else if results.posAdjustment.Y < 0 {
 			vel.Y = Min(0, vel.Y)
+			evel.Y = Min(0, evel.Y)
 		}
 		bp.SetVel(vel)
-
-		if results.posAdjustment.Y > 0 {
-			bp.SetExtVel(results.velModifier)
-		}
+		bp.SetExtVel(evel)
 	}
 
 	bp.updateIgnored(ignored)

@@ -11,31 +11,7 @@ const (
 	bazookaWeapon
 )
 
-type ShotType uint8
-const (
-	unknownShotType ShotType = iota
-
-	boltShotType
-	rocketShotType
-	paperStarShotType
-)
-
-type WeaponStateType uint8
-const (
-	unknownWeaponState WeaponStateType = iota
-	readyWeaponState
-	rotatingAmmoWeaponState
-	reloadingWeaponState
-	shootingWeaponState
-)
-
-type TriggerType uint8
-const (
-	unknownTrigger TriggerType = iota
-	primaryTrigger
-	secondaryTrigger
-)
-
+// TODO: this should just be an object
 type Weapon interface {
 	GetOwner() SpacedId
 
@@ -49,9 +25,8 @@ type Weapon interface {
 
 	SetWeaponType(weaponType WeaponType)
 	SetTrigger(triggerType TriggerType, trigger *Trigger)
-	PressTrigger(trigger TriggerType)
-	UpdateState(trigger TriggerType, now time.Time) WeaponStateType
-	Shoot(grid *Grid, now time.Time)
+	PressTrigger(trigger TriggerType, pressed bool)
+	UpdateState(grid *Grid, now time.Time) bool
 
 	GetInitData() Data
 	GetData() Data
@@ -65,34 +40,7 @@ type BaseWeapon struct {
 
 	weaponType *State
 	triggers map[TriggerType]*Trigger
-}
-
-type Trigger struct {
-	pressed bool
-	shotType ShotType
-
-	maxAmmo int
-	ammo int
-	ammoReloadTime time.Duration
-
-	reloadTime time.Duration
-	lastShotTime time.Time
-}
-
-func NewTrigger(shotType ShotType, maxAmmo int, ammoReloadTime time.Duration, reloadTime time.Duration) *Trigger {
-	return &Trigger {
-		pressed: false,
-		shotType: shotType,
-		maxAmmo: maxAmmo,
-		ammo: maxAmmo,
-		ammoReloadTime: ammoReloadTime,
-		reloadTime: reloadTime,
-		lastShotTime: time.Time{},
-	}
-}
-
-func (t *Trigger) Reload() {
-	t.ammo = t.maxAmmo
+	uniqueShots map[SpaceType]IdType
 }
 
 func NewBaseWeapon(owner SpacedId) *BaseWeapon {
@@ -103,8 +51,8 @@ func NewBaseWeapon(owner SpacedId) *BaseWeapon {
 		offset: NewVec2(0, 0),
 
 		weaponType: NewBlankState(unknownWeapon),
-
 		triggers: make(map[TriggerType]*Trigger),
+		uniqueShots: make(map[SpaceType]IdType),
 	}
 	return bw
 }
@@ -133,13 +81,15 @@ func (bw *BaseWeapon) SetWeaponType(weaponType WeaponType) {
 		return
 	}
 
-	if weaponType == uziWeapon {
-		bw.triggers[primaryTrigger] = NewTrigger(paperStarShotType, 4, 125 * time.Millisecond, 750 * time.Millisecond)
+	switch weaponType {
+	case uziWeapon:
+		bw.triggers[primaryTrigger] = NewTrigger(bw, paperStarSpace)
+		bw.triggers[secondaryTrigger] = NewTrigger(bw, grapplingHookSpace)
 		bw.SetOffset(NewVec2(0.3, 0))
-	} else if weaponType == bazookaWeapon {
-		bw.triggers[primaryTrigger] = NewTrigger(rocketShotType, 1, 50 * time.Millisecond, 1000 * time.Millisecond)
+	case bazookaWeapon:
+		bw.triggers[primaryTrigger] = NewTrigger(bw, rocketSpace)
 		bw.SetOffset(NewVec2(0.3, 0))
-	} else {
+	default:
 		Debug("Unknown weapon type! %d", weaponType)
 		return
 	}
@@ -151,86 +101,20 @@ func (bw *BaseWeapon) SetTrigger(triggerType TriggerType, trigger *Trigger) {
 	bw.triggers[triggerType] = trigger
 }
 
-func (bw *BaseWeapon) PressTrigger(triggerType TriggerType) {
+func (bw *BaseWeapon) PressTrigger(triggerType TriggerType, pressed bool) {
 	if trigger, ok := bw.triggers[triggerType]; ok {
-		trigger.pressed = true
+		trigger.SetPressed(pressed)
 	}
 }
 
-func (bw *BaseWeapon) UpdateState(triggerType TriggerType, now time.Time) WeaponStateType {
-	trigger, ok := bw.triggers[triggerType]
-	if !ok {
-		return unknownWeaponState
-	}
-
-	if trigger.pressed && trigger.ammo > 0 {
-		if now.Sub(trigger.lastShotTime) <= trigger.ammoReloadTime {
-			return reloadingWeaponState
-		}
-
-		trigger.ammo -= 1
-		trigger.lastShotTime = now
-		return shootingWeaponState
-	}
-
-	if trigger.ammo == 0 {
-		if now.Sub(trigger.lastShotTime) > trigger.reloadTime {
-			trigger.Reload()
-		} else {
-			trigger.pressed = false
-			return reloadingWeaponState
+func (bw *BaseWeapon) UpdateState(grid *Grid, now time.Time) bool {
+	updated := false
+	for _, trigger := range(bw.triggers) {
+		if trigger.UpdateState(grid, now) {
+			updated = true
 		}
 	}
-	return readyWeaponState
-}
-
-func (bw *BaseWeapon) Shoot(grid *Grid, now time.Time) {
-	if isWasm {
-		return
-	}
-
-	for triggerType, trigger := range(bw.triggers) {
-		state := bw.UpdateState(triggerType, now)
-		if state != shootingWeaponState {
-			continue
-		}
-
-		if trigger.shotType == boltShotType {
-			bolt := NewBolt(NewObjectInit(grid.NextSpacedId(boltSpace), bw.GetShotOrigin(), NewVec2(0.22, 0.1)))
-			bolt.SetOwner(bw.GetOwner())
-			vel := bw.dir
-			vel.Normalize()
-			vel.Scale(30)
-			bolt.SetVel(vel)
-
-			grid.Upsert(bolt)
-		} else if trigger.shotType == rocketShotType {
-			rocket := NewRocket(NewObjectInit(grid.NextSpacedId(rocketSpace), bw.GetShotOrigin(), NewVec2(0.5, 0.5)))
-			rocket.SetOwner(bw.GetOwner())
-			acc := bw.dir
-			acc.Normalize()
-			acc.Scale(24)
-
-			vel := bw.dir
-			vel.Normalize()
-			ownerVel := grid.Get(bw.GetOwner()).TotalVel()
-			vel.Scale(Max(1, vel.Dot(ownerVel)))
-			rocket.SetVel(vel)
-			rocket.SetAcc(acc)
-
-			acc.Scale(2)
-			rocket.SetJerk(acc)
-			grid.Upsert(rocket)
-		} else if trigger.shotType == paperStarShotType {
-			star := NewPaperStar(NewObjectInit(grid.NextSpacedId(paperStarSpace), bw.GetShotOrigin(), NewVec2(0.3, 0.3)))
-			star.SetOwner(bw.GetOwner())
-			vel := bw.dir
-			vel.Normalize()
-			vel.Scale(30)
-			star.SetVel(vel)
-			grid.Upsert(star)
-		}
-	}
+	return updated
 }
 
 func (bw BaseWeapon) GetInitData() Data {

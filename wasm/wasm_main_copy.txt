@@ -56,6 +56,7 @@ func setGlobals() {
 	js.Global().Set("boltSpace", int(boltSpace))
 	js.Global().Set("rocketSpace", int(rocketSpace))
 	js.Global().Set("paperStarSpace", int(paperStarSpace))
+	js.Global().Set("grapplingHookSpace", int(grapplingHookSpace))
 	js.Global().Set("explosionSpace", int(explosionSpace))
 	js.Global().Set("pickupSpace", int(pickupSpace))
 

@@ -6,6 +6,7 @@ import { Model, loader } from './loader.js'
 import { options } from './options.js'
 import { RenderBolt } from './render_bolt.js'
 import { RenderExplosion } from './render_explosion.js'
+import { RenderGrapplingHook } from './render_grappling_hook.js'
 import { RenderObject } from './render_object.js'
 import { RenderPaperStar } from './render_paper_star.js'
 import { RenderPickup } from './render_pickup.js'
@@ -142,6 +143,8 @@ class Game {
 						renderObj = new RenderRocket(space, id);
 					} else if (space === paperStarSpace) {
 						renderObj = new RenderPaperStar(space, id);
+					} else if (space === grapplingHookSpace) {
+						renderObj = new RenderGrapplingHook(space, id);
 					} else if (space === pickupSpace) {
 						renderObj = new RenderPickup(space, id);
 					} else {
@@ -163,10 +166,10 @@ class Game {
 		}
 
 		// Update key presses.
-		if (this.sceneMap().has(playerSpace, this._id)) {
+		if (this.sceneMap().has(playerSpace, this.id())) {
 			const keyMsg = this._keys.keyMsg(this._keySeqNum);
 			keyMsg.Key.K = Util.arrayToString(keyMsg.Key.K);
-			wasmUpdateKeys(this._id, keyMsg.Key);
+			wasmUpdateKeys(this.id(), keyMsg.Key);
 		}
 
 		const state = JSON.parse(wasmUpdateState());
@@ -185,9 +188,9 @@ class Game {
 	}
 
 	private extrapolatePlayerDir() : void {
-		if (this.sceneMap().has(playerSpace, this._id)) {
+		if (this.sceneMap().has(playerSpace, this.id())) {
 	   		const mouse = renderer.getMouseWorld();
-	   		const player : any = this.sceneMap().get(playerSpace, this._id);
+	   		const player : any = this.sceneMap().get(playerSpace, this.id());
 
 	   		const playerPos = player.pos();
 	   		const dir = new THREE.Vector2(mouse.x - playerPos.x, mouse.y - playerPos.y);
@@ -221,20 +224,24 @@ class Game {
 
 	private updateCamera() : void {
 		if (!this.hasId()) return;
-		if (!this.sceneMap().has(playerSpace, this._id)) return;
+		if (!this.sceneMap().has(playerSpace, this.id())) return;
 
-		const playerPos = this.sceneMap().get(playerSpace, this._id).pos();
+		const player = this.sceneMap().get(playerSpace, this.id());
+
+		const playerPos = player.pos();
 		renderer.setCameraAnchor(new THREE.Vector3(playerPos.x, playerPos.y, 0));
 
-		const panEnabled = renderer.cameraController().panEnabled();
-		if (!panEnabled && this._keys.keyDown(altMouseClick)) {
-			const mouseScreen = renderer.getMouseScreen();
-			let pan = new THREE.Vector3(mouseScreen.x, mouseScreen.y, 0);
-			pan.normalize();
-			pan.multiplyScalar(8);
-			renderer.cameraController().enablePan(pan);
-		} else if (panEnabled && !this._keys.keyDown(altMouseClick)) {
-			renderer.cameraController().disablePan();
+		if (player.weaponType() === bazookaWeapon) {
+			const panEnabled = renderer.cameraController().panEnabled();
+			if (!panEnabled && this._keys.keyDown(altMouseClick)) {
+				const mouseScreen = renderer.getMouseScreen();
+				let pan = new THREE.Vector3(mouseScreen.x, mouseScreen.y, 0);
+				pan.normalize();
+				pan.multiplyScalar(8);
+				renderer.cameraController().enablePan(pan);
+			} else if (panEnabled && !this._keys.keyDown(altMouseClick)) {
+				renderer.cameraController().disablePan();
+			}
 		}
 	}
 }

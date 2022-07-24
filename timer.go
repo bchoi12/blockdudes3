@@ -17,6 +17,10 @@ func NewTimer(duration time.Duration) Timer {
 	}
 }
 
+func (t *Timer) SetDuration(duration time.Duration) {
+	t.duration = duration
+}
+
 func (t *Timer) Start(now time.Time) {
 	t.started = now
 }

@@ -31,6 +31,7 @@ declare var bombSpace : number;
 declare var boltSpace : number;
 declare var rocketSpace : number;
 declare var paperStarSpace : number;
+declare var grapplingHookSpace : number;
 declare var explosionSpace : number;
 declare var pickupSpace : number;
 

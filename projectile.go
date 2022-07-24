@@ -6,7 +6,6 @@ import (
 
 type Projectile struct {
 	BaseObject
-	owner *State
 	hits []*Hit
 
 	damage int
@@ -20,7 +19,6 @@ type Projectile struct {
 func NewProjectile(object BaseObject) Projectile {
 	p := Projectile {
 		BaseObject: object,
-		owner: NewBlankState(InvalidId()),
 		hits: make([]*Hit, 0),
 
 		damage: 0,
@@ -39,13 +37,8 @@ func NewProjectile(object BaseObject) Projectile {
 	return p
 }
 
-func (p Projectile) GetOwner() SpacedId {
-	return p.owner.Peek().(SpacedId)
-}
-
 func (p *Projectile) SetOwner(owner SpacedId) {
-	p.owner.Set(owner)
-
+	p.BaseObject.SetOwner(owner)
 	overlapOptions := p.GetOverlapOptions()
 	overlapOptions.SetIds(false, owner)
 	p.SetOverlapOptions(overlapOptions)
@@ -77,6 +70,7 @@ func (p *Projectile) SetSticky(sticky bool) {
 
 func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 	ts := p.PrepareUpdate(now)
+	p.BaseObject.UpdateState(grid, now)
 
 	p.hits = make([]*Hit, 0)
 
@@ -128,7 +122,8 @@ func (p *Projectile) Collide(collider Object, grid *Grid) {
 	p.collider = collider
 	if p.sticky {
 		p.Stop()
-		p.collider.AddChild(p, NewConnection(p.collider.Offset(p)))
+		connection := NewOffsetConnection(p.collider.Offset(p))
+		p.AddConnection(p.collider.GetSpacedId(), connection)
 		return
 	}
 
@@ -161,11 +156,6 @@ func (p *Projectile) Hit(collider Object) {
 func (p *Projectile) GetInitData() Data {
 	data := NewData()
 	data.Merge(p.BaseObject.GetInitData())
-
-	if p.owner.Has() {
-		data.Set(ownerProp, p.owner.Peek())
-	}
-
 	data.Set(velProp, p.Vel())
 	return data
 }
@@ -173,21 +163,12 @@ func (p *Projectile) GetInitData() Data {
 func (p *Projectile) GetData() Data {
 	data := NewData()
 	data.Merge(p.BaseObject.GetData())
-
-	if owner, ok := p.owner.Pop(); ok {
-		data.Set(ownerProp, owner)
-	}
-
 	return data
 }
 
 func (p *Projectile) GetUpdates() Data {
 	updates := NewData()
 	updates.Merge(p.BaseObject.GetUpdates())
-
-	if owner, ok := p.owner.GetOnce(); ok {
-		updates.Set(ownerProp, owner)
-	}
 
 	if len(p.hits) > 0 {
 		hitPropMaps := make([]PropMap, 0)

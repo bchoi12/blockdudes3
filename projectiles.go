@@ -55,3 +55,45 @@ func NewPaperStar(init Init) *PaperStar {
 	star.SetExplosionSize(NewVec2(1, 1))
 	return star
 }
+
+type GrapplingHook struct {
+	Projectile
+	connected bool
+}
+
+func NewGrapplingHook(init Init) *GrapplingHook {
+	hook := &GrapplingHook {
+		Projectile: NewProjectile(NewCircleObject(init)),
+		connected: false,
+	}
+
+	hook.SetTTL(800 * time.Millisecond)
+	hook.SetExplode(false)
+	hook.SetDamage(10)
+	hook.SetSticky(true)
+	return hook
+}
+
+func (h *GrapplingHook) UpdateState(grid *Grid, now time.Time) bool {
+	updateResult := h.Projectile.UpdateState(grid, now)
+
+	if !h.HasAttribute(attachedAttribute) {
+		return updateResult
+	}
+
+	if h.connected {
+		return updateResult
+	}
+
+	player := grid.Get(h.GetOwner())
+	if player != nil {
+		h.connected = true
+		h.RemoveTTL()
+		connection := NewAttractConnection(20)
+		connection.SetOffset(NewVec2(0, -player.Dim().Y / 2))
+		player.AddConnection(h.GetSpacedId(), connection)
+		return true
+	}
+
+	return updateResult
+}

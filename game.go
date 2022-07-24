@@ -24,30 +24,7 @@ func newGame() *Game {
 }
 
 func (g *Game) add(init Init) Object {
-	var object Object
-
-	// TODO: move this logic to grid
-	switch init.GetSpace() {
-	case playerSpace:
-		object = NewPlayer(init)
-	case wallSpace:
-		object = NewWall(init)
-	case bombSpace:
-		object = NewBomb(init)
-	case boltSpace:
-		object = NewBolt(init)
-	case rocketSpace:
-		object = NewRocket(init)
-	case paperStarSpace:
-		object = NewPaperStar(init)
-	case explosionSpace:
-		object = NewExplosion(init)
-	case pickupSpace:
-		object = NewPickup(init)
-	default:
-		Debug("Unknown space! %+v", init)
-	}
-
+	object := g.grid.New(init)
 	if object != nil {
 		g.grid.Upsert(object)
 	}
