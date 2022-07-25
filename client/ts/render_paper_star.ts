@@ -49,7 +49,7 @@ export class RenderPaperStar extends RenderProjectile {
 		const attached = this.attribute(attachedAttribute);
 		if (!attached) {
 			const vel = this.vel();
-			mesh.rotation.z -= MathUtil.signPos(vel.x) * 0.12;
+			mesh.rotation.z -= MathUtil.signPos(vel.x) * 0.1;
 		}
 	}
 }

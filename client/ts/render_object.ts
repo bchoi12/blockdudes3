@@ -82,7 +82,7 @@ export class RenderObject extends RenderMesh {
 		if (this.hasDim()) {
 			return new THREE.Vector2(this._msg.get(dimProp).X, this._msg.get(dimProp).Y);
 		}
-		return new THREE.Vector2(0, 0);
+		return new THREE.Vector2();
 	}
 
 	hasPos() : boolean { return this._msg.has(posProp); }
@@ -90,7 +90,13 @@ export class RenderObject extends RenderMesh {
 		if (this.hasPos()) {
 			return new THREE.Vector2(this._msg.get(posProp).X, this._msg.get(posProp).Y);
 		}
-		return new THREE.Vector2(0, 0);
+		return new THREE.Vector2();
+	}
+	pos3() : THREE.Vector3 {
+		if (this.hasPos()) {
+			return new THREE.Vector3(this._msg.get(posProp).X, this._msg.get(posProp).Y, this.hasMesh() ? this.mesh().position.z : 0);
+		}
+		return new THREE.Vector3();
 	}
 
 	hasVel() : boolean { return this._msg.has(velProp); }

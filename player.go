@@ -21,7 +21,6 @@ const (
 	maxHorizontalVel = 12.0
 	maxDownwardVel = -24.0
 	maxVelMultiplier = 0.9
-	extVelMultiplier = 0.98
 	maxSpeed = 50.0
 
 	jumpVel = 10.0
@@ -184,16 +183,14 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	}
 
 	pos := p.Pos()
-	totalVel := p.TotalVel()
 	vel := p.Vel()
-	evel := p.ExtVel()
 	acc := p.Acc()
 	grounded := p.HasAttribute(groundedAttribute)
 
 	// Gravity & air resistance
 	acc.Y = gravityAcc
 	if !grounded {
-		if !p.jumpTimer.On(now) || totalVel.Y <= 0 {
+		if !p.jumpTimer.On(now) || vel.Y <= 0 {
 			acc.Y += downAcc
 		}
 	}
@@ -205,19 +202,16 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		} else {
 			acc.X = rightAcc
 		}
-		if Sign(acc.X) == -Sign(totalVel.X) {
+		if Sign(acc.X) == -Sign(vel.X) {
 			acc.X *= turnMultiplier
 		}
 	} else {
 		acc.X = 0
 	}
-
-	if p.HasAttribute(attachedAttribute) {
-		acc.X = 0
-		acc.Y = 0
-	}
-
 	p.SetAcc(acc)
+
+	p.ApplyForces()
+	vel = p.Vel()
 
 	// Grounded actions
 	if grounded {
@@ -226,7 +220,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		p.canDash = true
 
 		// Friction
-		if Sign(acc.X) != Sign(totalVel.X) {
+		if Sign(acc.X) != Sign(vel.X) {
 			if p.knockbackTimer.On(now) {
 				vel.X *= knockbackFriction
 			} else {
@@ -234,7 +228,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 			}
 		}
 	} else {
-		if acc.X == 0 {
+		if acc.X == 0 && !p.HasAttribute(attachedAttribute) {
 			vel.X *= airResistance
 		}
 	}
@@ -255,7 +249,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	}
 
 	// Calculate & clamp speed
-	vel.Add(acc, ts)
+	vel.Add(p.Acc(), ts)
 	if Abs(vel.X) > maxHorizontalVel {
 		vel.X *= maxVelMultiplier
 	}
@@ -270,19 +264,10 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		vel.Normalize()
 		vel.Scale(maxSpeed)
 	}
-
 	p.SetVel(vel)
 
-	// Slow down momentum from other objects if not grounded
-	if !grounded {
-		evel.X *= extVelMultiplier
-		evel.Y *= extVelMultiplier
-	}
-	p.SetExtVel(evel)
-
-
 	// Move
-	pos.Add(p.TotalVel(), ts)
+	pos.Add(p.Vel(), ts)
 	p.SetPos(pos)
 	p.checkCollisions(grid)
 

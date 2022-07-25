@@ -14,7 +14,9 @@ const (
 type Connection struct {
 	connectionType ConnectionType
 	offset Vec2
+
 	attractFactor float64
+	distance float64
 }
 
 func NewOffsetConnection(offset Vec2) Connection {
@@ -28,6 +30,7 @@ func NewAttractConnection(attract float64) Connection {
 	return Connection {
 		connectionType: attractConnectionType,
 		attractFactor: attract,
+		distance: 0,
 	}
 }
 
@@ -39,13 +42,13 @@ func (c *Connection) SetOffset(offset Vec2) {
 	c.offset = offset
 }
 
-func (c Connection) GetOffset() Vec2 {
-	return c.offset
+func (c *Connection) SetDistance(distance float64) {
+	c.distance = distance
 }
 
-func (c Connection) GetAttractFactor() float64 {
-	return c.attractFactor
-}
+func (c Connection) GetOffset() Vec2 { return c.offset }
+func (c Connection) GetAttractFactor() float64 { return c.attractFactor }
+func (c Connection) GetDistance() float64 { return c.distance }
 
 type Attachment struct {
 	connections map[SpacedId]Connection
@@ -82,10 +85,16 @@ func (a *Attachment) UpdateState(grid *Grid, now time.Time) bool {
 			force.Add(connection.GetOffset(), 1.0)
 			force.Sub(child.Pos(), 1.0)
 
-			smoothing := Min(1, force.Len())
+			forceLen := force.Len() - connection.GetDistance()
 			force.Normalize()
-			force.Scale(smoothing * connection.GetAttractFactor())
-			child.SetVel(force)
+			force.Scale(connection.attractFactor)
+
+			smoothingDistance := connection.attractFactor
+			if forceLen < smoothingDistance {
+				force.Scale(forceLen / smoothingDistance)
+				force.Scale(forceLen / smoothingDistance)
+			}
+			child.AddForce(force)
 		}
 
 		if !child.HasAttribute(attachedAttribute) {
@@ -116,7 +125,6 @@ func (a *Attachment) Postprocess(grid *Grid, now time.Time) {
 			child.SetPos(pos)
 
 			child.SetVel(parent.Vel())
-			child.SetExtVel(parent.ExtVel())
 			child.SetAcc(parent.Acc())
 			child.SetJerk(parent.Jerk())
 			grid.Upsert(child)

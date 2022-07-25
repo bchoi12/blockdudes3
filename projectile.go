@@ -88,7 +88,7 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 	p.SetVel(vel)
 
 	pos := p.Pos()
-	pos.Add(p.TotalVel(), ts)
+	pos.Add(p.Vel(), ts)
 	p.SetPos(pos)
 
 	if isWasm {
@@ -122,7 +122,7 @@ func (p *Projectile) Collide(collider Object, grid *Grid) {
 	p.collider = collider
 	if p.sticky {
 		p.Stop()
-		connection := NewOffsetConnection(p.collider.Offset(p))
+		connection := NewOffsetConnection(p.Offset(p.collider))
 		p.AddConnection(p.collider.GetSpacedId(), connection)
 		return
 	}

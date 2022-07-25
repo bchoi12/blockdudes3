@@ -26,6 +26,7 @@ type Object interface {
 
 	UpdateState(grid *Grid, now time.Time) bool
 	Postprocess(grid *Grid, now time.Time)
+	OnDelete(grid *Grid)
 }
 
 type BaseObject struct {
@@ -81,6 +82,10 @@ func (o *BaseObject) UpdateState(grid *Grid, now time.Time) bool {
 
 func (o *BaseObject) Postprocess(grid *Grid, now time.Time) {
 	o.Attachment.Postprocess(grid, now)
+}
+
+func (o *BaseObject) OnDelete(grid *Grid) {
+	return
 }
 
 func (o *BaseObject) SetData(data Data) {

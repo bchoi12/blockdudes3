@@ -71,7 +71,6 @@ func setGlobals() {
 	js.Global().Set("dimProp", int(dimProp))
 	js.Global().Set("posProp", int(posProp))
 	js.Global().Set("velProp", int(velProp))
-	js.Global().Set("extVelProp", int(extVelProp))
 	js.Global().Set("accProp", int(accProp))
 	js.Global().Set("jerkProp", int(jerkProp))
 	js.Global().Set("dirProp", int(dirProp))
@@ -302,11 +301,6 @@ func getData(data js.Value) Data {
 	prop, err = getPropData(data, velProp)
 	if err == nil {
 		d.Set(velProp, parseVec2(prop))
-	}
-
-	prop, err = getPropData(data, extVelProp)
-	if err == nil {
-		d.Set(extVelProp, parseVec2(prop))
 	}
 
 	prop, err = getPropData(data, accProp)

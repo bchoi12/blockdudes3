@@ -59,17 +59,19 @@ func NewPaperStar(init Init) *PaperStar {
 type GrapplingHook struct {
 	Projectile
 	connected bool
+	attractFactor float64
 }
 
 func NewGrapplingHook(init Init) *GrapplingHook {
 	hook := &GrapplingHook {
 		Projectile: NewProjectile(NewCircleObject(init)),
 		connected: false,
+		attractFactor: 8,
 	}
 
 	hook.SetTTL(800 * time.Millisecond)
 	hook.SetExplode(false)
-	hook.SetDamage(10)
+	hook.SetDamage(0)
 	hook.SetSticky(true)
 	return hook
 }
@@ -86,18 +88,35 @@ func (h *GrapplingHook) UpdateState(grid *Grid, now time.Time) bool {
 	}
 
 	player := grid.Get(h.GetOwner())
-	if player == nil {
+	if player == nil && !isWasm {
 		grid.Delete(h.GetSpacedId())
+		return true
 	}
 
 	if player != nil && !h.connected {
 		h.connected = true
 		h.RemoveTTL()
-		connection := NewAttractConnection(20)
-		connection.SetOffset(NewVec2(0, -player.Dim().Y / 2))
+		connection := NewAttractConnection(h.attractFactor)
+		connection.SetDistance(Min(1, h.Offset(player).Len() / 4))
 		player.AddConnection(h.GetSpacedId(), connection)
 		return true
 	}
 
 	return updateResult
+}
+
+func (h *GrapplingHook) OnDelete(grid *Grid) {
+	if !h.connected {
+		return
+	}
+
+	player := grid.Get(h.GetOwner())
+	if player == nil {
+		return
+	}
+
+	force := h.Offset(player)
+	force.Normalize()
+	force.Scale(h.attractFactor)
+	player.AddForce(force)
 }

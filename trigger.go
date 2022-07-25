@@ -91,7 +91,7 @@ func NewTrigger(weapon Weapon, space SpaceType) *Trigger {
 		t.SetReloadTime(1000 * time.Millisecond)
 		t.SetProjectileSize(NewVec2(0.3, 0.3))
 		t.SetProjectileDeleteOnRelease(true)
-		t.SetProjectileVel(30)
+		t.SetProjectileVel(25)
 		t.SetProjectileLimit(1)
 	}
 	t.Reload()
@@ -202,7 +202,7 @@ func (t *Trigger) Shoot(grid *Grid, now time.Time) {
 		owner := grid.Get(t.weapon.GetOwner())
 		if owner != nil {
 			addedVel := t.weapon.Dir()
-			addedVel.Scale(Max(1, Abs(addedVel.Dot(owner.TotalVel()))))
+			addedVel.Scale(Max(1, Abs(addedVel.Dot(owner.Vel()))))
 			vel.Add(addedVel, 1.0)
 		}
 	}

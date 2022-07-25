@@ -143,6 +143,7 @@ func (g *Grid) deleteCoords(sid SpacedId) {
 }
 
 func (g *Grid) deleteObject(sid SpacedId) {
+	g.objects[sid].OnDelete(g)
 	g.deleteCoords(sid)
 	delete(g.objects, sid)
 	delete(g.spacedObjects[sid.GetSpace()], sid.GetId())

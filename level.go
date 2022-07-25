@@ -39,6 +39,7 @@ func (g *Game) loadTestLevel() {
 	g.grid.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
 	g.grid.GetLast(wallSpace).(*Wall).SetVel(NewVec2(0, 2))
 	g.grid.GetLast(wallSpace).(*Wall).SetYBounds(2, 5)
+	g.add(g.createInit(wallSpace, NewVec2(11, 15), NewVec2(1, 1)))
 
 	g.add(g.createInitBL(wallSpace, NewVec2(14, -6), NewVec2(16, 10)))
 	g.add(g.createInitBL(wallSpace, NewVec2(14, 9), NewVec2(16, 0.5)))
@@ -70,6 +71,7 @@ func (g *Game) loadTestLevel() {
 	g.grid.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
 	g.grid.GetLast(wallSpace).(*Wall).SetVel(NewVec2(0, 2))
 	g.grid.GetLast(wallSpace).(*Wall).SetYBounds(2, 5)
+	g.add(g.createInit(wallSpace, NewVec2(33, 15), NewVec2(1, 1)))
 
 	g.add(g.createInitBL(wallSpace, NewVec2(36, -6), NewVec2(8, 12)))
 	g.add(g.createInit(wallSpace, NewVec2(40, 8), NewVec2(3, 0.2)))

@@ -12,7 +12,6 @@ const (
 	dimProp
 	posProp
 	velProp
-	extVelProp
 	accProp
 	jerkProp
 	dirProp

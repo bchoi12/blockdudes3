@@ -58,7 +58,7 @@ type CollideResult struct {
 	hit bool
 	ignored bool
 	posAdjustment Vec2
-	velModifier Vec2
+	force Vec2
 }
 
 func NewCollideResult() CollideResult {
@@ -66,34 +66,34 @@ func NewCollideResult() CollideResult {
 		hit: false,
 		ignored: false,
 		posAdjustment: NewVec2(0, 0),
-		velModifier: NewVec2(0, 0),
+		force: NewVec2(0, 0),
 	}
 }
 
 func (cr CollideResult) GetHit() bool { return cr.hit }
 func (cr CollideResult) GetIgnored() bool { return cr.ignored }
 func (cr CollideResult) GetPosAdjustment() Vec2 { return cr.posAdjustment }
-func (cr CollideResult) GetVelModifier() Vec2 { return cr.velModifier }
+func (cr CollideResult) GetForce() Vec2 { return cr.force }
 func (cr *CollideResult) SetHit(hit bool) { cr.hit = hit }
 func (cr *CollideResult) SetIgnored(ignored bool) { cr.ignored = ignored }
 func (cr *CollideResult) SetPosAdjustment(posAdj Vec2) { cr.posAdjustment = posAdj }
-func (cr *CollideResult) SetVelModifier(vel Vec2) { cr.velModifier = vel }
+func (cr *CollideResult) SetForce(force Vec2) { cr.force = force }
 
 func (cr *CollideResult) Merge(other CollideResult) {
 	cr.hit = cr.hit || other.hit
 	cr.ignored = cr.ignored && other.ignored
 
 	posAdj := &cr.posAdjustment
-	velMod := &cr.velModifier
+	force := &cr.force
 	posAdj.AbsMax(other.GetPosAdjustment())
-	velMod.AbsMax(other.GetVelModifier())
+	force.AbsMax(other.GetForce())
 }
 
 type SnapResults struct {
 	snap bool
 
 	posAdjustment Vec2
-	velModifier Vec2
+	force Vec2
 	collideResults map[SpacedId]CollideResult
 }
 
@@ -101,7 +101,7 @@ func NewSnapResults() SnapResults {
 	return SnapResults {
 		snap: false,
 		posAdjustment: NewVec2(0, 0),
-		velModifier: NewVec2(0, 0),
+		force: NewVec2(0, 0),
 		collideResults: make(map[SpacedId]CollideResult),
 	}
 }
@@ -115,9 +115,9 @@ func (sr *SnapResults) AddCollideResult(sid SpacedId, result CollideResult) {
 	sr.snap = sr.snap || (result.hit && !result.ignored)
 
 	posAdj := &sr.posAdjustment
-	velMod := &sr.velModifier
+	force := &sr.force
 	posAdj.AbsMax(result.GetPosAdjustment())
-	velMod.AbsMax(result.GetVelModifier())
+	force.AbsMax(result.GetForce())
 }
 
 func (sr *SnapResults) Merge(other SnapResults) {

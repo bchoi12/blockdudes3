@@ -46,7 +46,6 @@ declare var attributesProp : number;
 declare var dimProp : number;
 declare var posProp : number;
 declare var velProp : number;
-declare var extVelProp : number;
 declare var accProp : number;
 declare var jerkProp : number;
 declare var dirProp : number;

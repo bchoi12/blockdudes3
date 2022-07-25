@@ -18,9 +18,6 @@ type Profile interface {
 
 	Vel() Vec2
 	SetVel(vel Vec2)
-	ExtVel() Vec2
-	SetExtVel(vel Vec2)
-	TotalVel() Vec2
 	Acc() Vec2
 	SetAcc(acc Vec2)
 	Jerk() Vec2
@@ -28,6 +25,8 @@ type Profile interface {
 	Dir() Vec2
 	SetDir(dir Vec2)
 
+	AddForce(force Vec2)
+	ApplyForces()
 	Knockback(dir Vec2, now time.Time)
 	Stop()
 
@@ -47,9 +46,10 @@ type Profile interface {
 
 type BaseProfile struct {
 	Init
-	pos, vel, extVel, acc, jerk, dir Vec2
+	pos, vel, acc, jerk, dir Vec2
 	dim *State
 	static bool
+	forces []Vec2
 
 	subProfiles map[ProfileKey]SubProfile
 	ignoredColliders map[SpacedId]bool
@@ -61,11 +61,11 @@ func NewBaseProfile(init Init) BaseProfile {
 		Init: init,
 		pos: init.Pos(),
 		vel: NewVec2(0, 0),
-		extVel: NewVec2(0, 0),
 		acc: NewVec2(0, 0),
 		dir: NewVec2(1, 0),
 		dim: NewState(init.Dim()),
 		static: true,
+		forces: make([]Vec2, 0),
 
 		subProfiles: make(map[ProfileKey]SubProfile),
 		ignoredColliders: make(map[SpacedId]bool),
@@ -97,18 +97,7 @@ func (bp *BaseProfile) SetVel(vel Vec2) {
 		sp.SetVel(vel)
 	}
 }
-func (bp BaseProfile) ExtVel() Vec2 { return bp.extVel }
-func (bp *BaseProfile) SetExtVel(extVel Vec2) {
-	bp.extVel = extVel
-	for _, sp := range(bp.subProfiles) {
-		sp.SetExtVel(extVel)
-	}
-}
-func (bp BaseProfile) TotalVel() Vec2 {
-	total := bp.Vel()
-	total.Add(bp.ExtVel(), 1)
-	return total
-}
+
 func (bp BaseProfile) Acc() Vec2 { return bp.acc }
 func (bp *BaseProfile) SetAcc(acc Vec2) {
 	bp.acc = acc
@@ -132,9 +121,28 @@ func (bp *BaseProfile) SetDir(dir Vec2) {
 	}
 }
 
+func (bp *BaseProfile) AddForce(force Vec2) {
+	if force.IsZero() {
+		return
+	}
+
+	bp.forces = append(bp.forces, force)
+}
+
+func (bp *BaseProfile) ApplyForces() {
+	if len(bp.forces) == 0 {
+		return
+	}
+	vel := bp.Vel()
+	for _, force := range(bp.forces) {
+		vel.Add(force, 1.0)
+	}
+	bp.forces = make([]Vec2, 0)
+	bp.SetVel(vel)
+}
+
 func (bp *BaseProfile) Knockback(dir Vec2, now time.Time) {
-	// TODO: probably should switch to ExtVel
-	bp.SetVel(dir)
+	bp.AddForce(dir)
 }
 
 func (bp *BaseProfile) Stop() {
@@ -157,9 +165,6 @@ func (bp BaseProfile) GetData() Data {
 	data.Set(posProp, bp.Pos())
 	if !bp.Vel().IsZero() {
 		data.Set(velProp, bp.Vel())
-	}
-	if !bp.ExtVel().IsZero() {
-		data.Set(extVelProp, bp.ExtVel())
 	}
 	if !bp.Acc().IsZero() {
 		data.Set(accProp, bp.Acc())
@@ -200,11 +205,6 @@ func (bp *BaseProfile) SetData(data Data) {
 	} else {
 		bp.SetVel(NewVec2(0, 0))
 	}
-	if data.Has(extVelProp) {
-		bp.SetExtVel(data.Get(extVelProp).(Vec2))
-	} else {
-		bp.SetExtVel(NewVec2(0, 0))
-	}
 	if data.Has(accProp) {
 		bp.SetAcc(data.Get(accProp).(Vec2))
 	} else {
@@ -237,7 +237,7 @@ func (bp BaseProfile) posAdjustmentX(other Profile) (float64, float64) {
 	}
 
 	relativePos := FSign(bp.Pos().X - other.Pos().X)
-	relativeVel := FSign(bp.TotalVel().X - other.TotalVel().X)
+	relativeVel := FSign(bp.Vel().X - other.Vel().X)
 	reverseDist := Max(bp.Dim().X, other.Dim().X) + bp.Dim().X / 2 + other.Dim().X / 2
 	if relativePos == relativeVel {
 		overlap = reverseDist - overlap
@@ -253,7 +253,7 @@ func (bp BaseProfile) posAdjustmentY(other Profile) (float64, float64) {
 	}
 
 	relativePos := FSign(bp.Pos().Y - other.Pos().Y)
-	relativeVel := FSign(bp.TotalVel().Y - other.TotalVel().Y)
+	relativeVel := FSign(bp.Vel().Y - other.Vel().Y)
 	reverseDist := Max(bp.Dim().Y, other.Dim().Y) + bp.Dim().Y / 2 + other.Dim().Y / 2
 	if relativePos == relativeVel {
 		overlap = reverseDist - overlap
@@ -264,8 +264,8 @@ func (bp BaseProfile) posAdjustmentY(other Profile) (float64, float64) {
 }
 
 func (bp BaseProfile) Offset(other Profile) Vec2 {
-	offset := other.Pos()
-	offset.Sub(bp.Pos(), 1.0)
+	offset := bp.Pos()
+	offset.Sub(other.Pos(), 1.0)
 	return offset
 }
 
@@ -343,26 +343,26 @@ func (bp *BaseProfile) Snap(nearbyObjects ObjectHeap) SnapResults {
 
 	if results.snap {
 		if results.posAdjustment.Y > 0 {
-			bp.SetExtVel(results.velModifier)
+			force := results.force
+			if force.Y > 0 {
+				// Upward force already accounted for by position adjustment
+				force.Y = 0
+			}
+			bp.AddForce(force)
 		}
 
 		vel := bp.Vel()
-		evel := bp.ExtVel()
 		if results.posAdjustment.X > 0 {
 			vel.X = Max(0, vel.X)
-			evel.X = Max(0, evel.X)
 		} else if results.posAdjustment.X < 0 {
 			vel.X = Min(0, vel.X)
-			evel.X = Min(0, evel.X)
 		}
 		if results.posAdjustment.Y > 0 {
 			vel.Y = Max(0, vel.Y)
 		} else if results.posAdjustment.Y < 0 {
 			vel.Y = Min(0, vel.Y)
-			evel.Y = Min(0, evel.Y)
 		}
 		bp.SetVel(vel)
-		bp.SetExtVel(evel)
 	}
 
 	bp.updateIgnored(ignored)
@@ -392,7 +392,7 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 
 	// Figure out collision direction
 	// relativePos := NewVec2(bp.Pos().X - other.Pos().X, bp.Pos().Y - other.Pos().Y)
-	relativeVel := NewVec2(bp.TotalVel().X - other.TotalVel().X, bp.TotalVel().Y - other.TotalVel().Y)
+	relativeVel := NewVec2(bp.Vel().X - other.Vel().X, bp.Vel().Y - other.Vel().Y)
 	collisionFlag := NewVec2(1, 1)
 
 	// Check for tiny collisions that we can ignore
@@ -462,7 +462,7 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 	result.SetHit(true)
 	result.SetPosAdjustment(posAdj)
 	if posAdj.Y > 0 {
-		result.SetVelModifier(other.TotalVel())
+		result.SetForce(other.Vel())
 	}
 	return result
 }
@@ -473,7 +473,7 @@ func (bp *BaseProfile) Stick(result CollideResult) {
 	}
 
 	pos := bp.Pos()
-	vel := bp.TotalVel()
+	vel := bp.Vel()
 	posAdj := result.GetPosAdjustment()
 
 	if Abs(vel.X) < zeroVelEpsilon {

@@ -48,7 +48,6 @@ func (a Association) GetUpdates() Data {
 
 func (a *Association) SetData(data Data) {
 	if data.Has(ownerProp) {
-		Debug("SET OWNER")
 		a.SetOwner(data.Get(ownerProp).(SpacedId))
 	}
 }
