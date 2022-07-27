@@ -32,6 +32,8 @@ export class Weather extends SceneComponent {
 
 			const speed = MathUtil.randomRange(0.01, 0.016);
 			const updateCloud = () => {
+
+				// TODO: here and elsewhere, speed needs to be based on timestep
 				cloud.mesh().position.x += speed;
 				if (cloud.mesh().position.x > 40) {
 					cloud.mesh().position.x = 0;

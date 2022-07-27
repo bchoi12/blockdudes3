@@ -2,7 +2,6 @@ package main
 
 import (
 	"math"
-	"time"
 )
 
 const (
@@ -26,8 +25,7 @@ type Profile interface {
 	SetDir(dir Vec2)
 
 	AddForce(force Vec2)
-	ApplyForces()
-	Knockback(dir Vec2, now time.Time)
+	ApplyForces() Vec2
 	Stop()
 
 	AddSubProfile(key ProfileKey, subProfile SubProfile)
@@ -129,20 +127,25 @@ func (bp *BaseProfile) AddForce(force Vec2) {
 	bp.forces = append(bp.forces, force)
 }
 
-func (bp *BaseProfile) ApplyForces() {
-	if len(bp.forces) == 0 {
-		return
-	}
-	vel := bp.Vel()
-	for _, force := range(bp.forces) {
-		vel.Add(force, 1.0)
-	}
-	bp.forces = make([]Vec2, 0)
-	bp.SetVel(vel)
+func (bp BaseProfile) HasForces() bool {
+	return len(bp.forces) > 0
 }
 
-func (bp *BaseProfile) Knockback(dir Vec2, now time.Time) {
-	bp.AddForce(dir)
+func (bp *BaseProfile) ApplyForces() Vec2 {
+	totalForce := NewVec2(0, 0)
+	if len(bp.forces) == 0 {
+		return totalForce
+	}
+	for _, force := range(bp.forces) {
+		totalForce.Add(force, 1.0)
+	}
+	bp.forces = make([]Vec2, 0)
+
+	vel := bp.Vel()
+	vel.Add(totalForce, 1.0)
+	bp.SetVel(vel)
+
+	return totalForce
 }
 
 func (bp *BaseProfile) Stop() {

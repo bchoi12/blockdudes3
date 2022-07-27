@@ -22,12 +22,12 @@ func Unpack(b []byte, msg interface{}) error {
 	return nil
 }
 
-func GetTimestep(now time.Time, lastUpdate time.Time) float64 {
+func GetTimestep(now time.Time, lastTime time.Time) float64 {
 	var timeStep time.Duration
-	if lastUpdate.IsZero() {
+	if lastTime.IsZero() {
 		timeStep = 0
 	} else {
-		timeStep = now.Sub(lastUpdate)
+		timeStep = now.Sub(lastTime)
 	}
 	return float64(timeStep) / float64(time.Second)
 }

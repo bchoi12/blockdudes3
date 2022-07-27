@@ -22,6 +22,7 @@ const (
 	maxDownwardVel = -24.0
 	maxVelMultiplier = 0.9
 	maxSpeed = 50.0
+	knockbackForceSquared = 50
 
 	jumpVel = 10.0
 
@@ -155,11 +156,6 @@ func (p Player) UpdateScore(g *Grid) {
 	g.IncrementScore(sid, killProp, 1)
 }
 
-func (p *Player) Knockback(dir Vec2, now time.Time) {
-	p.BaseObject.Knockback(dir, now)
-	p.knockbackTimer.Start(now)
-}
-
 func (p *Player) Respawn() {
 	p.Health.Respawn()
 
@@ -190,7 +186,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	// Gravity & air resistance
 	acc.Y = gravityAcc
 	if !grounded {
-		if !p.jumpTimer.On(now) || vel.Y <= 0 {
+		if !p.jumpTimer.On() || vel.Y <= 0 {
 			acc.Y += downAcc
 		}
 	}
@@ -210,19 +206,16 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	}
 	p.SetAcc(acc)
 
-	p.ApplyForces()
-	vel = p.Vel()
-
 	// Grounded actions
 	if grounded {
-		p.jumpGraceTimer.Start(now)
+		p.jumpGraceTimer.Start()
 		p.canJump = true
 		p.canDash = true
 
 		// Friction
 		if Sign(acc.X) != Sign(vel.X) {
-			if p.knockbackTimer.On(now) {
-				vel.X *= knockbackFriction
+			if p.knockbackTimer.On() {
+				vel.X *= p.knockbackTimer.Lerp(knockbackFriction, friction)
 			} else {
 				vel.X *= friction
 			}
@@ -235,16 +228,14 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 
 	// Jump & double jump
 	if p.KeyDown(dashKey) {
-		if p.canJump && p.jumpGraceTimer.On(now) {
+		if p.canJump && p.jumpGraceTimer.On() {
 			p.canJump = false
-			acc.Y = 0
 			vel.Y = Max(0, vel.Y) + jumpVel
-			p.jumpTimer.Start(now)
+			p.jumpTimer.Start()
 		} else if p.KeyPressed(dashKey) && p.canDash {
-			acc.Y = 0
 			vel.Y = jumpVel
 			p.canDash = false
-			p.jumpTimer.Start(now)
+			p.jumpTimer.Start()
 		}
 	}
 
@@ -265,6 +256,9 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		vel.Scale(maxSpeed)
 	}
 	p.SetVel(vel)
+	if force := p.ApplyForces(); force.LenSquared() > knockbackForceSquared {
+		p.knockbackTimer.Start()
+	}
 
 	// Move
 	pos.Add(p.Vel(), ts)

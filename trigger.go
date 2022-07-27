@@ -132,7 +132,7 @@ func (t *Trigger) Reload() { t.ammo = t.maxAmmo }
 
 func (t *Trigger) UpdateState(grid *Grid, now time.Time) bool {
 	if t.Ammo() > 0 && (t.Pressed() || t.Ammo() < t.MaxAmmo()) {
-		if t.ammoTimer.On(now) {
+		if t.ammoTimer.On() {
 			t.state = rotatingAmmoTriggerState
 			return true
 		}
@@ -155,7 +155,7 @@ func (t *Trigger) UpdateState(grid *Grid, now time.Time) bool {
 			return true
 		}
 	} else if t.Ammo() == 0 {
-		if t.reloadTimer.On(now) {
+		if t.reloadTimer.On() {
 			t.state = reloadingTriggerState
 			return true
 		} else {
@@ -183,8 +183,8 @@ func (t *Trigger) Shoot(grid *Grid, now time.Time) {
 	}
 
 	t.ammo -= 1
-	t.ammoTimer.Start(now)
-	t.reloadTimer.Start(now)
+	t.ammoTimer.Start()
+	t.reloadTimer.Start()
 
 	if isWasm {
 		return
