@@ -88,7 +88,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 		}
 	}
 
-	override update(msg : Map<number, any>, seqNum? : number) : void {
+	override update(msg : Object, seqNum? : number) : void {
 		super.update(msg, seqNum);
 
 		if (!this.hasMesh()) {
@@ -130,18 +130,17 @@ export class RenderPlayer extends RenderAnimatedObject {
 		if (grounded != this._lastGrounded) {
 			this._lastGrounded = grounded;
 
-			if (vel.y >= 0) {
-				const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(0.3, 6, 6), this._cloudMaterial);
-				cloudMesh.position.x = pos.x;
-				cloudMesh.position.y = pos.y - dim.y / 2;
-				cloudMesh.position.z = 0.5;
-				const cloud = new RenderCustom();
-				cloud.setMesh(cloudMesh);
-				cloud.setUpdate(() => {
-					cloud.mesh().scale.multiplyScalar(0.92);
-				});
-				game.sceneComponent(SceneComponentType.PARTICLES).addCustomTemp(cloud, 800);
-			}
+			// TODO: move this to particles?
+			const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(0.3, 6, 6), this._cloudMaterial);
+			cloudMesh.position.x = pos.x;
+			cloudMesh.position.y = pos.y - dim.y / 2;
+			cloudMesh.position.z = 0.5;
+			const cloud = new RenderCustom();
+			cloud.setMesh(cloudMesh);
+			cloud.setUpdate(() => {
+				cloud.mesh().scale.multiplyScalar(0.92);
+			});
+			game.sceneComponent(SceneComponentType.PARTICLES).addCustomTemp(cloud, 800);
 		}
 
 		if (!grounded) {
@@ -190,20 +189,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 		return pos;
 	}
 
-	setDir(dir : THREE.Vector2) {
+	private setDir(dir : THREE.Vector2) {
 		if (!this.hasMesh()) {
 			return;
-		}
-
-		// TODO: use WASM to get extrapolated dir and delete this duplication
-		// Match rotation with server logic
-		const currentDir = this.dir();
-		if (Math.abs(dir.x) < 0.3 && MathUtil.signPos(dir.x) != MathUtil.signPos(currentDir.x)) {
-			dir.x = MathUtil.signPos(currentDir.x) * Math.abs(dir.x);
-		}
-		if (Math.abs(dir.x) < this._sqrtHalf) {
-			dir.x = this._sqrtHalf * MathUtil.signPos(dir.x);
-			dir.y = this._sqrtHalf * MathUtil.signPos(dir.y);
 		}
 
 		if (MathUtil.signPos(dir.x) != MathUtil.signPos(this._playerMesh.scale.z)) {
@@ -215,7 +203,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 		neck.rotation.x = dir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI : 0);
 	}
 
-	setWeaponDir(weaponDir : THREE.Vector2) {
+	private setWeaponDir(weaponDir : THREE.Vector2) {
 		if (!this.hasMesh()) {
 			return;
 		}

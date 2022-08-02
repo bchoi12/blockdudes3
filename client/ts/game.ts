@@ -68,7 +68,7 @@ class Game {
 			this._keys.snapshotKeys();
 			this.extrapolateState();
 			this.updateCamera();
-			this.extrapolatePlayerDir();
+			this.extrapolatePlayer();
 		}
 
 		this.sceneMap().updateComponents()
@@ -160,18 +160,20 @@ class Game {
 		}
 	}
 
-	private extrapolateState() {
-		if (!options.clientPrediction) {
-			return;
-		}
-
-		// Update key presses.
+	private updateKeys() : void {
 		if (this.sceneMap().has(playerSpace, this.id())) {
 			const keyMsg = this._keys.keyMsg(this._keySeqNum);
 			keyMsg.Key.K = Util.arrayToString(keyMsg.Key.K);
 			wasmUpdateKeys(this.id(), keyMsg.Key);
 		}
+	}
 
+	private extrapolateState() {
+		if (!options.fullClientPrediction) {
+			return;
+		}
+
+		this.updateKeys();
 		const state = JSON.parse(wasmUpdateState());
 		for (const [stringSpace, objects] of Object.entries(state.Os) as [string, any]) {
 			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
@@ -187,29 +189,20 @@ class Game {
 		}
 	}
 
-	private extrapolatePlayerDir() : void {
-		if (this.sceneMap().has(playerSpace, this.id())) {
-	   		const mouse = renderer.getMouseWorld();
-	   		const player : any = this.sceneMap().get(playerSpace, this.id());
-
-	   		const playerPos = player.pos();
-	   		const dir = new THREE.Vector2(mouse.x - playerPos.x, mouse.y - playerPos.y);
-	   		dir.normalize();
-
-	   		const weaponPos = player.weaponPos();
-	   		const weaponDir = new THREE.Vector2(mouse.x - weaponPos.x, mouse.y - weaponPos.y);
-	   		weaponDir.normalize();
-
-	   		player.setDir(dir);
-	   		player.setWeaponDir(weaponDir);
+	private extrapolatePlayer() : void {
+		if (!this.sceneMap().has(playerSpace, this.id())) {
+			return;
 		}
+
+		this.updateKeys();
+		const data : Object = JSON.parse(wasmGetData(playerSpace, this.id()));
+		this.sceneMap().update(playerSpace, this.id(), data);
 	}
 
 	private initLevel(msg : { [k: string]: any }) : void {
 		this.sceneMap().clearObjects();
 
 		const level = JSON.parse(wasmLoadLevel(msg.L));
-
 		for (const [stringSpace, objects] of Object.entries(level.Os) as [string, any]) {
 			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
 				const space = Number(stringSpace);

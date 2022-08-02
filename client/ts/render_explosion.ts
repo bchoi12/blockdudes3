@@ -32,7 +32,7 @@ export class RenderExplosion extends RenderObject {
 		this.scale(this._scale);
 	}
 
-	override update(msg : Map<number, any>, seqNum? : number) : void {
+	override update(msg : Object, seqNum? : number) : void {
 		super.update(msg, seqNum);
 
 		if (!this.hasMesh()) {

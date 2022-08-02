@@ -19,7 +19,7 @@ export class RenderBolt extends RenderProjectile {
 		this.setMesh(mesh);
 	}
 
-	override update(msg : Map<number, any>, seqNum? : number) : void {
+	override update(msg : Object, seqNum? : number) : void {
 		super.update(msg, seqNum);
 
 		if (!this.hasMesh()) {

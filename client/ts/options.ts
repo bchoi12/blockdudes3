@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 class Options {
-	public clientPrediction : boolean;
+	public fullClientPrediction : boolean;
 	public pointerLock : boolean;
 	public enableShadows : boolean;
 	public rendererScale : number;
@@ -16,7 +16,7 @@ class Options {
 	constructor() {
 		THREE.Cache.enabled = true;
 
-		this.clientPrediction = true;
+		this.fullClientPrediction = true;
 		this.pointerLock = true;
 		this.enableShadows = true;
 		this.rendererScale = 0.66;

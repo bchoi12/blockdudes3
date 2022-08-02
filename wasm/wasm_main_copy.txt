@@ -206,8 +206,13 @@ func GetData(g *Game) js.Func {
 			fmt.Println("GetData: Object does not exist: ", space, id)
 			return nil
 		}
-
-		return g.getData(Id(space, id)).Props()
+		data := g.getData(Id(space, id)).Props()
+		b, err := json.Marshal(data)
+		if err != nil {
+			fmt.Println("GetData: ", err)
+			fmt.Println("data: ", data)
+		}
+		return string(b)
     })
 }
 
@@ -248,7 +253,7 @@ func LoadLevel(g *Game) js.Func {
 		objects := g.createObjectInitMsg()
 		b, err := json.Marshal(objects)
 		if err != nil {
-			fmt.Println("wasmLoadLevel: ", err)
+			fmt.Println("LoadLevel: ", err)
 			fmt.Println("objects: ", objects)
 		}
 		return string(b)
@@ -261,7 +266,7 @@ func UpdateState(g *Game) js.Func {
 		state := g.createGameStateMsg()
 		b, err := json.Marshal(state)
 		if err != nil {
-			fmt.Println("wasmUpdateState: ", err)
+			fmt.Println("UpdateState: ", err)
 			fmt.Println("state: ", state)
 		}
 		return string(b)

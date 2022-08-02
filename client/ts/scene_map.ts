@@ -92,6 +92,10 @@ export class SceneMap {
 		return map.get(id);
 	}
 
+	getAsAny(space : number, id : number) : any {
+		return this.get(space, id);
+	}
+
 	delete(space : number, id : number) : void {
 		const map = this.getMap(space);
 		if (map.has(id)) {
@@ -122,7 +126,7 @@ export class SceneMap {
 		});
 	}
 
-	update(space : number, id : number, msg : Map<number, any>, seqNum?: number) : void {
+	update(space : number, id : number, msg : Object, seqNum?: number) : void {
 		const map = this.getMap(space);
 		const object = map.get(id);
 

@@ -35,7 +35,7 @@ export class RenderRocket extends RenderProjectile {
 		mesh.rotation.y = Math.PI / 2;
 	}
 
-	override update(msg : Map<number, any>, seqNum? : number) : void {
+	override update(msg : Object, seqNum? : number) : void {
 		super.update(msg, seqNum);
 
 		if (!this.hasMesh()) {

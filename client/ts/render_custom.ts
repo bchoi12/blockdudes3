@@ -6,16 +6,18 @@ import { renderer } from './renderer.js'
 
 export class RenderCustom extends RenderMesh {
 
+	private _lastUpdate : number;
 	private _hasUpdate : boolean;
-	private _update : () => void;
+	private _update : (timestep : number) => void;
 
 	constructor() {
 		super();
 
+		this._lastUpdate = Date.now();
 		this._hasUpdate = false;
 	}
 
-	setUpdate(update : () => void) : void {
+	setUpdate(update : (timestep : number) => void) : void {
 		this._hasUpdate = true;
 		this._update = update;
 	}
@@ -24,7 +26,10 @@ export class RenderCustom extends RenderMesh {
 		if (!this._hasUpdate) {
 			return;
 		}
-		this._update();
+
+		const ts = (Date.now() - this._lastUpdate) / 1000;
+		this._update(ts);
+		this._lastUpdate = Date.now();
 	}
 }
 

@@ -34,7 +34,7 @@ export class Message {
 		this._lastUpdate = Date.now();
 	}
 
-	update(msg : Map<number, any>, seqNum? : number) {
+	update(msg : Object, seqNum? : number) {
 		this.sanitizeData(msg);
 		this._newData = new Map();
 
@@ -85,7 +85,7 @@ export class Message {
 		return this._lastUpdate;
 	}
 
-	private sanitizeData(data : Map<number, any>) : void {
+	private sanitizeData(data : Object) : void {
 		// Maps aren't supported well in WASM so store them separately then convert them to strings for WASM.
 		this._mapProps.forEach((overwriteMethod, prop) => {
 			if (!data.hasOwnProperty(prop)) {

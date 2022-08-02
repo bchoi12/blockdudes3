@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { game } from './game.js'
+import { RenderPlayer } from './render_player.js'
 import { renderer } from './renderer.js'
 import { ui } from './ui.js'
 
@@ -44,30 +45,40 @@ export class Keys {
 					X: mouse.x,
 					Y: mouse.y,
 				},
-				D: {
-					X: 1,
-					Y: 0,
-				},
+				D: this.weaponDir(),
 			},
 		};
-
-		if (game.sceneMap().has(playerSpace, game.id())) {
-	   		const mouse = renderer.getMouseWorld();
-
-	   		const player : any = game.sceneMap().get(playerSpace, game.id());
-	   		const weaponPos = player.weaponPos();
-	   		const dir = new THREE.Vector2(mouse.x - weaponPos.x, mouse.y - weaponPos.y);
-
-	   		dir.normalize();
-			msg.Key.D = {
-				X: dir.x,
-				Y: dir.y,
-			};
-		} 
 		return msg;
 	}
 
 	keyPressed(key : number) : boolean { return this._keys.has(key) && !this._lastKeys.has(key); }
 	keyDown(key : number) : boolean { return this._keys.has(key); }
 	keyReleased(key : number) : boolean { return !this._keys.has(key) && this._lastKeys.has(key); }
+
+	private dir() : any {
+		if (!game.sceneMap().has(playerSpace, game.id())) {
+			return new THREE.Vector2(1, 0);
+		}
+
+   		const mouse = renderer.getMouseWorld();
+   		const player : RenderPlayer = game.sceneMap().getAsAny(playerSpace, game.id());
+   		const pos = player.pos();
+   		let dir = new THREE.Vector2(mouse.x - pos.x, mouse.y - pos.y);
+   		dir.normalize();
+
+   		return {X: dir.x, Y: dir.y};
+	}
+	private weaponDir() : any {
+		if (!game.sceneMap().has(playerSpace, game.id())) {
+			return new THREE.Vector2(1, 0);
+		}
+
+   		const mouse = renderer.getMouseWorld();
+   		const player : RenderPlayer = game.sceneMap().getAsAny(playerSpace, game.id());
+   		const weaponPos = player.weaponPos();
+   		let dir = new THREE.Vector2(mouse.x - weaponPos.x, mouse.y - weaponPos.y);
+   		dir.normalize();
+
+   		return {X: dir.x, Y: dir.y};
+	}
 }
