@@ -53,7 +53,7 @@ export class RenderObject extends RenderMesh {
 	initialized() : boolean { return this._initialized; }
 	ready() : boolean { return this._msg.has(posProp) && this._msg.has(dimProp); }
 
-	update(msg : Object, seqNum? : number) : void {
+	update(msg : { [k: string]: any }, seqNum? : number) : void {
 		this._msg.update(msg, seqNum);
 		this.maybeUpdateMeshPosition();
 	}

@@ -106,6 +106,7 @@ func (a *Attachment) UpdateState(grid *Grid, now time.Time) bool {
 }
 
 func (a *Attachment) Postprocess(grid *Grid, now time.Time) {
+	// TODO: refactor so code is not duplicated
 	for parentId, connection := range(a.GetConnections()) {
 		parent := grid.Get(parentId)
 		child := grid.Get(a.sid)

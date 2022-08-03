@@ -126,7 +126,7 @@ export class SceneMap {
 		});
 	}
 
-	update(space : number, id : number, msg : Object, seqNum?: number) : void {
+	update(space : number, id : number, msg : { [k: string]: any }, seqNum?: number) : void {
 		const map = this.getMap(space);
 		const object = map.get(id);
 

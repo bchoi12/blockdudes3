@@ -211,19 +211,6 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		p.jumpGraceTimer.Start()
 		p.canJump = true
 		p.canDash = true
-
-		// Friction
-		if Sign(acc.X) != Sign(vel.X) {
-			if p.knockbackTimer.On() {
-				vel.X *= p.knockbackTimer.Lerp(knockbackFriction, friction)
-			} else {
-				vel.X *= friction
-			}
-		}
-	} else {
-		if acc.X == 0 && !p.HasAttribute(attachedAttribute) {
-			vel.X *= airResistance
-		}
 	}
 
 	// Jump & double jump
@@ -241,6 +228,27 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 
 	// Calculate & clamp speed
 	vel.Add(p.Acc(), ts)
+	p.SetVel(vel)
+	if force := p.ApplyForces(); force.LenSquared() > knockbackForceSquared {
+		p.knockbackTimer.Start()
+	}
+	vel = p.Vel()
+
+	// Friction
+	if grounded {
+		if Sign(acc.X) != Sign(vel.X) {
+			if p.knockbackTimer.On() {
+				vel.X *= p.knockbackTimer.Lerp(knockbackFriction, friction)
+			} else {
+				vel.X *= friction
+			}
+		}
+	} else {
+		if acc.X == 0 {
+			vel.X *= airResistance
+		}
+	}
+
 	if Abs(vel.X) > maxHorizontalVel {
 		vel.X *= maxVelMultiplier
 	}
@@ -256,9 +264,6 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		vel.Scale(maxSpeed)
 	}
 	p.SetVel(vel)
-	if force := p.ApplyForces(); force.LenSquared() > knockbackForceSquared {
-		p.knockbackTimer.Start()
-	}
 
 	// Move
 	pos.Add(p.Vel(), ts)

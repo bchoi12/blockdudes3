@@ -66,7 +66,7 @@ func NewGrapplingHook(init Init) *GrapplingHook {
 	hook := &GrapplingHook {
 		Projectile: NewProjectile(NewCircleObject(init)),
 		connected: false,
-		attractFactor: 8,
+		attractFactor: 4,
 	}
 
 	hook.SetTTL(800 * time.Millisecond)

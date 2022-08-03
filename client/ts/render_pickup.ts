@@ -40,7 +40,7 @@ export class RenderPickup extends RenderObject {
 		}
 	}
 
-	override update(msg : Object, seqNum? : number) : void {
+	override update(msg : { [k: string]: any }, seqNum? : number) : void {
 		super.update(msg, seqNum);
 
 		if (!this.hasMesh()) {

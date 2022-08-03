@@ -36,6 +36,37 @@ func NewClient(room* Room, ws *websocket.Conn, name string) *Client {
 	return client
 }
 
+func (c *Client) init() error {
+	var err error
+	r := c.room
+
+	playerInitMsg := r.game.createPlayerInitMsg(c.id)
+	err = c.send(&playerInitMsg)
+	if err != nil {
+		return err
+	}
+
+	levelMsg := r.game.createLevelInitMsg()
+	err = c.send(&levelMsg)
+	if err != nil {
+		return err
+	}
+
+	err = r.updateClients(joinType, c)
+	if err != nil {
+		return err
+	}
+
+	r.game.add(NewObjectInit(Id(playerSpace, c.id), NewVec2(5, 5), NewVec2(0.8, 1.44)))
+	gameInitMsg := r.game.createGameInitMsg()
+	c.send(&gameInitMsg)
+
+	for _, chatMsg := range(r.chat.chatQueue) {
+		c.send(&chatMsg)
+	}
+	return err
+}
+
 func (c Client) getDisplayName() string {
 	return c.name + " #" + strconv.Itoa(int(c.id))
 }
@@ -77,6 +108,11 @@ func (c *Client) initWebRTC() error {
 	}
 
 	c.dc.OnOpen(func() {
+		err := c.init()
+		if err != nil {
+			log.Printf("Error initializing client: %s", err)
+		}
+
 		log.Printf("Opened data channel for %s: %s-%d", c.getDisplayName(), c.dc.Label(), c.dc.ID())
 	})
 	c.dc.OnMessage(func(msg webrtc.DataChannelMessage) {
@@ -160,6 +196,7 @@ func (c *Client) send(msg interface{}) error {
 }
 
 func (c *Client) sendBytes(b []byte) error {
+	// TODO: if locking impacts performance, can try creating separate thread that reads a channel and sends bytes
 	c.mu.Lock()
 	err := c.ws.WriteMessage(websocket.BinaryMessage, b)
 	c.mu.Unlock()

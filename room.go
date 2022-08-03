@@ -85,7 +85,7 @@ func (r *Room) run() {
 			case client := <-r.register:
 				client.initWebRTC()
 				r.clients[client.id] = client
-				err := r.addClient(client)
+				err := r.connectClient(client)
 				if err != nil {
 					log.Printf("Failed to add client %s to room: %v", client.getDisplayName(), err)
 					delete(r.clients, client.id)
@@ -165,8 +165,7 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 	}
 }
 
-// Add client to room
-func (r *Room) addClient(c *Client) error {
+func (r *Room) connectClient(c *Client) error {
 	var err error
 
 	if err != nil {
@@ -176,31 +175,6 @@ func (r *Room) addClient(c *Client) error {
 	err = r.updateClients(initType, c)
 	if err != nil {
 		return err
-	}
-
-	playerInitMsg := r.game.createPlayerInitMsg(c.id)
-	err = c.send(&playerInitMsg)
-	if err != nil {
-		return err
-	}
-
-	levelMsg := r.game.createLevelInitMsg()
-	err = c.send(&levelMsg)
-	if err != nil {
-		return err
-	}
-
-	err = r.updateClients(joinType, c)
-	if err != nil {
-		return err
-	}
-
-	r.game.add(NewObjectInit(Id(playerSpace, c.id), NewVec2(5, 5), NewVec2(0.8, 1.44)))
-	gameInitMsg := r.game.createGameInitMsg()
-	c.send(&gameInitMsg)
-
-	for _, chatMsg := range(r.chat.chatQueue) {
-		c.send(&chatMsg)
 	}
 	return nil
 }

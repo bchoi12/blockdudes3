@@ -34,7 +34,7 @@ export class Message {
 		this._lastUpdate = Date.now();
 	}
 
-	update(msg : Object, seqNum? : number) {
+	update(msg : { [k: string]: any }, seqNum? : number) {
 		this.sanitizeData(msg);
 		this._newData = new Map();
 
