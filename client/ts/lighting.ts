@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { options } from './options.js'
 import { renderer } from './renderer.js'
 import { SceneComponent, SceneComponentType } from './scene_component.js'
 import { Sky } from 'three/examples/jsm/objects/Sky.js'
@@ -36,7 +37,9 @@ export class Lighting extends SceneComponent {
 		// this._sunLight = new THREE.DirectionalLight(0x6f6e92, 0.8);
 		this._sunLightOffset = new THREE.Vector3(-50, 50, 50);
 		this._sunLight.position.copy(this._sunLightOffset);
-		this._sunLight.castShadow = true;
+		if (options.enableShadows) {
+			this._sunLight.castShadow = true;
+		}
 		
 		const side = 10;
 		this._sunLight.shadow.camera = new THREE.OrthographicCamera(-side, side, side, -side, 0.1, 500 );

@@ -98,6 +98,8 @@ class Game {
 				connection.send(msg);
 			}
 		}, frameMillis);
+
+		this.setState(GameState.GAME);
 	}
 
 	private updateGameState(msg : { [k: string]: any }) : void {

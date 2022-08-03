@@ -176,6 +176,19 @@ func (r *Room) connectClient(c *Client) error {
 	if err != nil {
 		return err
 	}
+
+	levelMsg := r.game.createLevelInitMsg()
+	err = c.send(&levelMsg)
+	if err != nil {
+		return err
+	}
+
+	playerInitMsg := r.game.createPlayerInitMsg(c.id)
+	err = c.send(&playerInitMsg)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

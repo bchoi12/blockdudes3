@@ -41,6 +41,7 @@ class Connection {
 	}
 
 	addHandler(type : number, handler : MessageHandler) : boolean {
+		// TODO: do we ever want to delete handlers? maybe they should be unique to a class
 		if (this._handlers.has(type)) {
 			this._handlers.get(type).push(handler);
 		} else {
@@ -119,6 +120,7 @@ class Connection {
 		this._ws = new WebSocket(endpoint);
 		this._ws.binaryType = "arraybuffer";
 
+		// TODO: add timeout
 		this._ws.onopen = () => {
 			console.log("Successfully created websocket");
 			LogUtil.d("Successfully connected to " + endpoint);
@@ -145,8 +147,9 @@ class Connection {
 		};
 	}
 
-	private initWebRTC(cb : () => void) : void {
-		// TODO: add timeout error reporting & recovery (need to restart websocket too)
+	private initWebRTC(dcSuccess : () => void) : void {
+		// TODO: initialize this when we get an ID response from the server, initialization needs to be idempotent
+		// TODO: add timeout error and retries
 		this._wrtc = new RTCPeerConnection(this._iceConfig);
 
 		const dataChannelConfig = {
@@ -171,7 +174,7 @@ class Connection {
 			console.log("Successfully created data channel");
 			this._dc = event.channel;
 			this._dc.onmessage = (event) => { this.handlePayload(event.data); }	
-			cb();
+			dcSuccess();
 		};
 	}
 

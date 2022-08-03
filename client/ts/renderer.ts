@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { BlendFunction, BloomEffect, EffectComposer, EffectPass, RenderPass } from "postprocessing";
 
 import { Audio, Sound } from './audio.js'
 import { CameraController } from './camera_controller.js'
@@ -18,6 +19,8 @@ class Renderer {
 	private _fps : number;
 
 	private _renderer : THREE.WebGLRenderer;
+	private _composer : EffectComposer;
+	private _composerInitialized : boolean;
 
 	constructor() {
 		this._canvas = Html.elm(this._elmRenderer);
@@ -29,7 +32,15 @@ class Renderer {
 		this._fps = 0;
 		this.updateFPS();
 
-		this._renderer = new THREE.WebGLRenderer({canvas: this._canvas, antialias: true});
+		// Settings from github.com/pmndrs/postprocessing
+		this._renderer = new THREE.WebGLRenderer({
+			canvas: this._canvas,
+			powerPreference: "high-performance",
+			antialias: false,
+			stencil: false,
+			depth: false,
+		});
+
 		this._renderer.setClearColor(0x91d6f2, 1.0);
 		this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
 		this._renderer.toneMappingExposure = 1.0;
@@ -39,6 +50,9 @@ class Renderer {
 			this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		}
 
+		this._composer = new EffectComposer(this._renderer);
+		this._composerInitialized = false;
+
 		this.resizeCanvas();
 		window.onresize = () => { this.resizeCanvas(); };
 	}
@@ -46,7 +60,16 @@ class Renderer {
 	elm() : HTMLElement { return this._canvas; }
 	compile(mesh : THREE.Mesh) { this._renderer.compile(mesh, this._cameraController.camera()); }
 	render() : void {
-		this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
+		// this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
+
+		if (!this._composerInitialized) {
+			this._composer.addPass(new RenderPass(game.sceneMap().scene(), this._cameraController.camera()));
+			this._composer.addPass(new EffectPass(this._cameraController.camera(), new BloomEffect({ luminanceThreshold: 0.9 })));
+			this._composer.multisampling = 2;
+
+			this._composerInitialized = true;
+		}
+		this._composer.render();
 		this._renderCounter++;
 	}
 	fps() : number { return this._fps; }

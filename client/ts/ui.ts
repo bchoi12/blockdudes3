@@ -77,12 +77,6 @@ class UI {
 
 	changeInputMode(inputMode : InputMode) : void {
 		this._mode = inputMode;
-
-		// TODO: in the future this probably belongs somewhere else
-		if (inputMode === InputMode.GAME && game.state() !== GameState.GAME) {
-			game.setState(GameState.GAME);
-		}
-
 		this._handlers.forEach((handler) => {
 			handler.changeInputMode(inputMode);
 		});

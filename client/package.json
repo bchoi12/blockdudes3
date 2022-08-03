@@ -7,6 +7,7 @@
     "@msgpack/msgpack": "^2.7.2",
     "howler": "^2.2.3",
     "normalize.css": "^8.0.1",
+    "postprocessing": "^6.28.4",
     "three": "^0.137.5"
   },
   "devDependencies": {

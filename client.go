@@ -40,18 +40,6 @@ func (c *Client) init() error {
 	var err error
 	r := c.room
 
-	playerInitMsg := r.game.createPlayerInitMsg(c.id)
-	err = c.send(&playerInitMsg)
-	if err != nil {
-		return err
-	}
-
-	levelMsg := r.game.createLevelInitMsg()
-	err = c.send(&levelMsg)
-	if err != nil {
-		return err
-	}
-
 	err = r.updateClients(joinType, c)
 	if err != nil {
 		return err
@@ -59,7 +47,10 @@ func (c *Client) init() error {
 
 	r.game.add(NewObjectInit(Id(playerSpace, c.id), NewVec2(5, 5), NewVec2(0.8, 1.44)))
 	gameInitMsg := r.game.createGameInitMsg()
-	c.send(&gameInitMsg)
+	err = c.send(&gameInitMsg)
+	if err != nil {
+		return err
+	}
 
 	for _, chatMsg := range(r.chat.chatQueue) {
 		c.send(&chatMsg)
