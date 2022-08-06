@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { Sound } from './audio.js'
+import { options } from './options.js'
 import { RenderObject } from './render_object.js'
 import { renderer } from './renderer.js'
 
@@ -27,9 +28,11 @@ export class RenderExplosion extends RenderObject {
 	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
 
-		mesh.receiveShadow = true;
-		this._scale = 0.1;
-		this.scale(this._scale);
+		if (options.enableShadows) {
+			mesh.receiveShadow = true;
+		}
+
+		this.scale(0.1);
 	}
 
 	override update(msg : { [k: string]: any }, seqNum? : number) : void {
@@ -51,6 +54,7 @@ export class RenderExplosion extends RenderObject {
 	}
 
 	private scale(scale : number) : void {
+		this._scale = scale;
 		this.mesh().scale.copy(new THREE.Vector3(scale, scale, scale));
 	}
 }

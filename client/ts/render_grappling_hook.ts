@@ -28,7 +28,8 @@ export class RenderGrapplingHook extends RenderProjectile {
 		const group = new THREE.Group();
 
 		this._ropeGeometry = new THREE.BufferGeometry();
-		const ropeLine = new THREE.Line(this._ropeGeometry, new THREE.LineBasicMaterial({color: 0x000000}));
+		let ropeLine = new THREE.Line(this._ropeGeometry, new THREE.LineBasicMaterial({color: 0x000000}));
+		ropeLine.frustumCulled = false;
 		const gyro = new Gyroscope();
 		gyro.add(ropeLine);
 		group.add(gyro);

@@ -1,11 +1,16 @@
 import * as THREE from 'three'
-import { BlendFunction, BloomEffect, EffectComposer, EffectPass, RenderPass } from "postprocessing";
+import { BlendFunction, BloomEffect, EffectComposer, EffectPass, RenderPass, Selection, SelectiveBloomEffect } from "postprocessing";
 
 import { Audio, Sound } from './audio.js'
 import { CameraController } from './camera_controller.js'
 import { game } from './game.js'
 import { Html } from './html.js'
 import { options } from './options.js'
+
+enum Layer {
+	DEFAULT = 0,
+	BLOOM = 1,
+}
 
 class Renderer {
 	private readonly _elmRenderer = "canvas-game";
@@ -20,6 +25,7 @@ class Renderer {
 
 	private _renderer : THREE.WebGLRenderer;
 	private _composer : EffectComposer;
+	private _bloomSelection : Selection;
 	private _composerInitialized : boolean;
 
 	constructor() {
@@ -37,8 +43,8 @@ class Renderer {
 			canvas: this._canvas,
 			powerPreference: "high-performance",
 			antialias: false,
-			stencil: false,
-			depth: false,
+			stencil: true,
+			depth: true,
 		});
 
 		this._renderer.setClearColor(0x91d6f2, 1.0);
@@ -63,9 +69,18 @@ class Renderer {
 		// this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
 
 		if (!this._composerInitialized) {
+			let selectiveBloom = new SelectiveBloomEffect(game.sceneMap().scene(), this._cameraController.camera(), {
+				blendFunction: BlendFunction.ADD,
+				luminanceThreshold: 0.4,
+				luminanceSmoothing: 0.6,
+				intensity: 1.0,
+			});
+			this._bloomSelection = selectiveBloom.selection;
+			selectiveBloom.ignoreBackground = true;
+
 			this._composer.addPass(new RenderPass(game.sceneMap().scene(), this._cameraController.camera()));
-			this._composer.addPass(new EffectPass(this._cameraController.camera(), new BloomEffect({ luminanceThreshold: 0.9 })));
-			this._composer.multisampling = 2;
+			this._composer.addPass(new EffectPass(this._cameraController.camera(), selectiveBloom));
+			this._composer.multisampling = 4;
 
 			this._composerInitialized = true;
 		}
@@ -78,6 +93,10 @@ class Renderer {
 	cameraAnchor() : THREE.Vector3 { return this._cameraController.anchor(); }
 	cameraTarget() : THREE.Vector3 { return this._cameraController.target(); }
 	setCameraAnchor(anchor : THREE.Vector3) : void { this._cameraController.setAnchor(anchor); }
+
+	addBloom(object : THREE.Object3D) : void {
+		this._bloomSelection.add(object);
+	}
 
 	playSystemSound(sound : Sound) : void { this._audio.playSystemSound(sound); }
 	playSound(sound : Sound, pos : THREE.Vector2) : void {

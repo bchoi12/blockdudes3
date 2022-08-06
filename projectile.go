@@ -100,7 +100,8 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 		return true
 	}
 
-	if p.collider != nil {
+	if p.collider != nil && !p.sticky {
+		p.SelfDestruct(grid)
 		return true
 	}
 
@@ -120,14 +121,12 @@ func (p *Projectile) Collide(collider Object, grid *Grid) {
 	}
 
 	p.collider = collider
-	if p.sticky {
-		p.Stop()
-		connection := NewOffsetConnection(p.Offset(p.collider))
-		p.AddConnection(p.collider.GetSpacedId(), connection)
-		return
-	}
+	p.Stop()
+	connection := NewOffsetConnection(p.Offset(p.collider))
 
-	p.SelfDestruct(grid)
+	if p.sticky {
+		p.AddConnection(p.collider.GetSpacedId(), connection)
+	}
 }
 
 func (p *Projectile) SelfDestruct(grid *Grid) {

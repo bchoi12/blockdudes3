@@ -2,9 +2,10 @@ import * as THREE from 'three';
 
 import { Sound } from './audio.js'
 import { RenderProjectile } from './render_projectile.js'
+import { renderer } from './renderer.js'
 
 export class RenderBolt extends RenderProjectile {
-	private readonly _material = new THREE.MeshStandardMaterial( {color: 0xa3fa98 });
+	private readonly _material = new THREE.MeshStandardMaterial( {color: 0x62ed51 });
 
 	constructor(space : number, id : number) {
 		super(space, id);
@@ -17,6 +18,11 @@ export class RenderBolt extends RenderProjectile {
 		const dim = this.dim();
 		const mesh = new THREE.Mesh(new THREE.BoxGeometry(dim.x, dim.y, 0.2), this._material);
 		this.setMesh(mesh);
+	}
+
+	override setMesh(mesh : THREE.Object3D) {
+		super.setMesh(mesh);
+		renderer.addBloom(mesh);
 	}
 
 	override update(msg : { [k: string]: any }, seqNum? : number) : void {

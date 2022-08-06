@@ -69,7 +69,7 @@ func NewTrigger(weapon Weapon, space SpaceType) *Trigger {
 	case boltSpace:
 		t.SetMaxAmmo(3)
 		t.SetAmmoReloadTime(100 * time.Millisecond)
-		t.SetReloadTime(300 * time.Millisecond)
+		t.SetReloadTime(400 * time.Millisecond)
 		t.SetProjectileSize(NewVec2(0.22, 0.1))
 		t.SetProjectileVel(30)
 	case rocketSpace:
@@ -83,7 +83,7 @@ func NewTrigger(weapon Weapon, space SpaceType) *Trigger {
 	case paperStarSpace:
 		t.SetMaxAmmo(4)
 		t.SetAmmoReloadTime(125 * time.Millisecond)
-		t.SetReloadTime(500 * time.Millisecond)
+		t.SetReloadTime(700 * time.Millisecond)
 		t.SetProjectileVel(30)
 		t.SetProjectileSize(NewVec2(0.3, 0.3))
 	case grapplingHookSpace:

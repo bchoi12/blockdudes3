@@ -116,6 +116,9 @@ func (h *GrapplingHook) OnDelete(grid *Grid) {
 	}
 
 	force := h.Offset(player)
+	if force.Y < 0 {
+		return
+	}
 	force.Normalize()
 	force.Scale(2 * h.attractFactor)
 	player.AddForce(force)

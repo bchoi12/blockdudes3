@@ -83,7 +83,7 @@ func (bw *BaseWeapon) SetWeaponType(weaponType WeaponType) {
 
 	switch weaponType {
 	case uziWeapon:
-		bw.triggers[primaryTrigger] = NewTrigger(bw, paperStarSpace)
+		bw.triggers[primaryTrigger] = NewTrigger(bw, boltSpace)
 		bw.triggers[secondaryTrigger] = NewTrigger(bw, grapplingHookSpace)
 		bw.SetOffset(NewVec2(0.3, 0))
 	case bazookaWeapon:
