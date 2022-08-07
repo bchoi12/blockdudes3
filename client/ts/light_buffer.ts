@@ -14,7 +14,7 @@ export class LightBuffer {
 		this._spotLights = new RingBuffer<THREE.SpotLight>();
 		this._pointLights = new RingBuffer<THREE.PointLight>();
 
-		// TODO: do these lights need intensity > 0 to preload?
+		// TODO: do these lights need to be rendered with intensity > 0 to preload?
 		for (let i = 0; i < this._bufferSize; ++i) {
 			let spotLight = new THREE.SpotLight(0xFFFFFF, 0, 0, 0);
 			this._spotLights.push(spotLight);

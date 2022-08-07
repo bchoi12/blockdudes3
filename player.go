@@ -216,7 +216,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		p.jumpGraceTimer.Start()
 		p.canJump = true
 		p.canDoubleJump = true
-		p.canDash = false
+		p.canDash = true
 	}
 
 	// Jump & double jump
@@ -238,7 +238,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		if weaponType == bazookaWeapon {
 			// add JUICE
 			p.AddForce(NewVec2(0, 1))
-		} else if weaponType == starWeapon && p.canDash {
+		} else if weaponType == starWeapon && !grounded && p.canDash {
 			dash := p.Dir()
 			dash.Scale(4 * jumpVel)
 			vel.X = dash.X

@@ -43,8 +43,15 @@ func (gs *GameState) IncrementScore(sid SpacedId, prop Prop, delta int) {
 	gs.objectStates[sid][prop].Set(gs.objectStates[sid][prop].Peek().(ScoreType) + ScoreType(delta))
 }
 
-func (gs *GameState) HasObjectState(sid SpacedId, prop Prop) bool {
+func (gs GameState) HasId(sid SpacedId) bool {
 	if _, ok := gs.objectStates[sid]; !ok {
+		return false
+	}
+	return true	
+}
+
+func (gs GameState) HasObjectState(sid SpacedId, prop Prop) bool {
+	if !gs.HasId(sid) {
 		return false
 	}
 	if _, ok := gs.objectStates[sid][prop]; !ok {
@@ -61,6 +68,9 @@ func (gs *GameState) GetObjectState(sid SpacedId, prop Prop) *State {
 }
 
 func (gs *GameState) SetObjectState(sid SpacedId, prop Prop, data interface{}) {
+	if !gs.HasId(sid) {
+		Debug("Skipping setting prop %d for non-existent player %+v", prop, sid)
+	}
 	if !gs.HasObjectState(sid, prop) {
 		gs.objectStates[sid][prop] = NewState(data)
 		return
