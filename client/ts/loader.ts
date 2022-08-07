@@ -7,16 +7,15 @@ import { options } from './options.js'
 
 export enum Model {
 	UNKNOWN = "",
-	CHICKEN = "chicken",
-	DUCK = "duck",
+	CHICKEN = "CHICKEN",
+	DUCK = "DUCK",
 
-	UZI = "uzi",
-	BAZOOKA = "bazooka",
-	SNIPER = "sniper",
-	STAR_GUN = "star_gun",
+	UZI = "UZI",
+	BAZOOKA = "BAZOOKA",
+	SNIPER = "SNIPER",
+	STAR_GUN = "STAR_GUN",
 
-	BOLT = "bolt",
-	ROCKET = "rocket",
+	ROCKET = "ROCKET",
 }
 
 class Loader {
@@ -37,8 +36,7 @@ class Loader {
 				continue;
 			}
 
-			console.log(this._modelPrefix + model + ".glb");
-			this._paths.set(Model[model], this._modelPrefix + model + ".glb");
+			this._paths.set(Model[model], this._modelPrefix + model.toLowerCase() + ".glb");
 		}
 	}
 
@@ -93,10 +91,6 @@ class Loader {
 					data.scene.getObjectByName("mesh").castShadow = true;
 					data.scene.getObjectByName("mesh").receiveShadow = true;
 				}
-				break;
-			case Model.BOLT:
-				data.scene.getObjectByName("mesh").castShadow = false;
-				data.scene.getObjectByName("mesh").receiveShadow = false;
 				break;
 			default:
 				LogUtil.d("Model " + model + " processing skipped.");
