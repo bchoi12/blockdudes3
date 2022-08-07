@@ -18,13 +18,7 @@ export class RenderPickup extends RenderObject {
 	override initialize() : void {
 		super.initialize();
 
-		let model = Model.UNKNOWN;
-		if (this.weaponType() === uziWeapon) {
-			model = Model.UZI;
-		} else if (this.weaponType() === bazookaWeapon) {
-			model = Model.BAZOOKA;
-		}
-
+		const model = loader.getWeaponModel(this.weaponType());
 		loader.load(model, (mesh) => {
 			this.setMesh(mesh);
 		});

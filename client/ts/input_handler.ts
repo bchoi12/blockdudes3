@@ -37,8 +37,8 @@ export class InputHandler implements InterfaceHandler {
 		this.mapKey(65, leftKey);
 		this.mapKey(39, rightKey);
 		this.mapKey(68, rightKey);
-		this.mapKey(32, dashKey);
-		this.mapKey(38, dashKey);
+		this.mapKey(32, jumpKey);
+		this.mapKey(38, jumpKey);
 		this.mapKey(69, interactKey);
 
 		document.addEventListener("keydown", (e : any) => {

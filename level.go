@@ -34,6 +34,8 @@ func (g *Game) loadTestLevel() {
 	g.add(g.createInitBL(wallSpace, NewVec2(0, -6), NewVec2(8, 12)))
 	g.add(g.createInit(wallSpace, NewVec2(4, 8), NewVec2(3, 0.2)))
 	g.grid.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
+	g.add(g.createInitB(pickupSpace, NewVec2(4, 8.1), NewVec2(1, 1)))
+	g.grid.GetLast(pickupSpace).(*Pickup).SetWeaponType(sniperWeapon)
 
 	g.add(g.createInit(wallSpace, NewVec2(11, 2), NewVec2(3, 0.2)))
 	g.grid.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
@@ -76,4 +78,6 @@ func (g *Game) loadTestLevel() {
 	g.add(g.createInitBL(wallSpace, NewVec2(36, -6), NewVec2(8, 12)))
 	g.add(g.createInit(wallSpace, NewVec2(40, 8), NewVec2(3, 0.2)))
 	g.grid.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
+	g.add(g.createInitB(pickupSpace, NewVec2(40, 8.1), NewVec2(1, 1)))
+	g.grid.GetLast(pickupSpace).(*Pickup).SetWeaponType(starWeapon)
 }

@@ -43,6 +43,7 @@ type Player struct {
 	weapon Weapon
 
 	canJump bool
+	canDoubleJump bool
 	canDash bool
 
 	jumpTimer Timer
@@ -80,6 +81,7 @@ func NewPlayer(init Init) *Player {
 		weapon: weapon,
 
 		canJump: false,
+		canDoubleJump: true,
 		canDash: true,
 
 		jumpTimer: NewTimer(jumpDuration),
@@ -161,7 +163,7 @@ func (p *Player) Respawn() {
 
 	p.SetHealth(100)
 	p.RemoveAttribute(groundedAttribute)
-	p.canDash = true
+	p.canDoubleJump = true
 
 	rand.Seed(time.Now().Unix())
 	p.SetPos(NewVec2(float64(15 + rand.Intn(15)), 20))
@@ -204,30 +206,52 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	} else {
 		acc.X = 0
 	}
+
 	p.SetAcc(acc)
+
+	vel.Add(p.Acc(), ts)
 
 	// Grounded actions
 	if grounded {
 		p.jumpGraceTimer.Start()
 		p.canJump = true
-		p.canDash = true
+		p.canDoubleJump = true
+		p.canDash = false
 	}
 
 	// Jump & double jump
-	if p.KeyDown(dashKey) {
+	if p.KeyDown(jumpKey) {
 		if p.canJump && p.jumpGraceTimer.On() {
 			p.canJump = false
+			p.canDash = true
 			vel.Y = Max(0, vel.Y) + jumpVel
 			p.jumpTimer.Start()
-		} else if p.KeyPressed(dashKey) && p.canDash {
+		} else if p.KeyPressed(jumpKey) && p.canDoubleJump {
 			vel.Y = jumpVel
-			p.canDash = false
+			p.canDoubleJump = false
 			p.jumpTimer.Start()
 		}
 	}
 
-	// Calculate & clamp speed
-	vel.Add(p.Acc(), ts)
+	if p.KeyDown(altMouseClick) {
+		weaponType := p.weapon.GetWeaponType()
+		if weaponType == bazookaWeapon {
+			// add JUICE
+			p.AddForce(NewVec2(0, 1))
+		} else if weaponType == starWeapon && p.canDash {
+			dash := p.Dir()
+			dash.Scale(4 * jumpVel)
+			vel.X = dash.X
+			vel.Y = dash.Y
+			p.canDash = false
+
+			p.knockbackTimer.Start()
+			if vel.Y > 0 {
+				p.jumpTimer.Start()
+			}
+		}
+	}
+
 	p.SetVel(vel)
 	if force := p.ApplyForces(); force.LenSquared() > knockbackForceSquared {
 		p.knockbackTimer.Start()

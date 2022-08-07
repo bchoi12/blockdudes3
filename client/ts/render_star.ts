@@ -5,7 +5,7 @@ import { PrismGeometry } from './prism_geometry.js'
 import { RenderProjectile } from './render_projectile.js'
 import { MathUtil } from './util.js'
 
-export class RenderPaperStar extends RenderProjectile {
+export class RenderStar extends RenderProjectile {
 	private readonly _prismGeometry = new PrismGeometry([
 		new THREE.Vector2(0, 0),
 		new THREE.Vector2(-0.1, 0),

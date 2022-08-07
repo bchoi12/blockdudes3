@@ -6,15 +6,17 @@ import { LogUtil, Util } from './util.js'
 import { options } from './options.js'
 
 export enum Model {
-	UNKNOWN = 0,
-	CHICKEN = 1,
-	DUCK = 2,
+	UNKNOWN = "",
+	CHICKEN = "chicken",
+	DUCK = "duck",
 
-	UZI = 10,
-	BAZOOKA = 11,
+	UZI = "uzi",
+	BAZOOKA = "bazooka",
+	SNIPER = "sniper",
+	STAR_GUN = "star_gun",
 
-	BOLT = 20,
-	ROCKET = 21,
+	BOLT = "bolt",
+	ROCKET = "rocket",
 }
 
 class Loader {
@@ -29,12 +31,14 @@ class Loader {
 		this._cache = new Map<Model, any>();
 
 		this._paths = new Map<Model, string>();
-		this._paths.set(Model.CHICKEN, this._modelPrefix + "chicken.glb");
-		this._paths.set(Model.DUCK, this._modelPrefix + "duck.glb");
-		this._paths.set(Model.UZI, this._modelPrefix + "uzi.glb");
-		this._paths.set(Model.BAZOOKA, this._modelPrefix + "bazooka.glb");
-		this._paths.set(Model.BOLT, this._modelPrefix + "bolt.glb");
-		this._paths.set(Model.ROCKET, this._modelPrefix + "rocket.glb");
+
+		for (const model in Model) {
+			if (model.length === 0) {
+				continue;
+			}
+
+			this._paths.set(Model[model], this._modelPrefix + model + ".glb");
+		}
 	}
 
 	preload(models : Array<Model>) : void {
@@ -55,6 +59,20 @@ class Loader {
 		});
 	}
 
+	getWeaponModel(weaponType : number) : Model {
+		switch (weaponType) {
+			case uziWeapon:
+				return Model.UZI;
+			case bazookaWeapon:
+				return Model.BAZOOKA;
+			case sniperWeapon:
+				return Model.SNIPER;
+			case starWeapon:
+				return Model.STAR_GUN;
+		}
+		return Model.UNKNOWN;
+	}
+
 	private process(model : Model, data : any) : void {
 		switch (model) {
 			case Model.CHICKEN:
@@ -67,6 +85,8 @@ class Loader {
 				break;
 			case Model.UZI:
 			case Model.BAZOOKA:
+			case Model.SNIPER:
+			case Model.STAR_GUN:
 			case Model.ROCKET:
 				if (options.enableShadows) {
 					data.scene.getObjectByName("mesh").castShadow = true;

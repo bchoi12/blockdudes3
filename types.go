@@ -47,7 +47,7 @@ const (
 	bombSpace
 	boltSpace
 	rocketSpace
-	paperStarSpace
+	starSpace
 	grapplingHookSpace
 	explosionSpace
 	pickupSpace
@@ -81,7 +81,7 @@ const (
 	leftKey
 	rightKey
 
-	dashKey
+	jumpKey
 	interactKey
 
 	mouseClick

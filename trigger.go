@@ -80,7 +80,7 @@ func NewTrigger(weapon Weapon, space SpaceType) *Trigger {
 		t.SetProjectileRelativeSpeed(true)
 		t.SetProjectileAcc(24)
 		t.SetProjectileJerk(48)
-	case paperStarSpace:
+	case starSpace:
 		t.SetMaxAmmo(4)
 		t.SetAmmoReloadTime(125 * time.Millisecond)
 		t.SetReloadTime(700 * time.Millisecond)

@@ -9,6 +9,8 @@ const (
 	unknownWeapon WeaponType = iota
 	uziWeapon
 	bazookaWeapon
+	sniperWeapon
+	starWeapon
 )
 
 // TODO: this should just be an object
@@ -23,6 +25,7 @@ type Weapon interface {
 	SetOffset(offset Vec2)
 	GetShotOrigin() Vec2
 
+	GetWeaponType() WeaponType
 	SetWeaponType(weaponType WeaponType)
 	SetTrigger(triggerType TriggerType, trigger *Trigger)
 	PressTrigger(trigger TriggerType, pressed bool)
@@ -72,6 +75,8 @@ func (bw BaseWeapon) GetShotOrigin() Vec2 {
 	return origin
 }
 
+func (bw BaseWeapon) GetWeaponType() WeaponType { return bw.weaponType.Peek().(WeaponType) }
+
 func (bw *BaseWeapon) SetWeaponType(weaponType WeaponType) {
 	if isWasm {
 		return
@@ -90,6 +95,14 @@ func (bw *BaseWeapon) SetWeaponType(weaponType WeaponType) {
 		bw.triggers[primaryTrigger] = NewTrigger(bw, rocketSpace)
 		delete(bw.triggers, secondaryTrigger)
 		bw.SetOffset(NewVec2(0.3, 0))
+	case sniperWeapon:
+		bw.triggers[primaryTrigger] = NewTrigger(bw, boltSpace)
+		delete(bw.triggers, secondaryTrigger)
+		bw.SetOffset(NewVec2(0.6, 0))
+	case starWeapon:
+		bw.triggers[primaryTrigger] = NewTrigger(bw, starSpace)
+		delete(bw.triggers, secondaryTrigger)
+		bw.SetOffset(NewVec2(0.1, 0))
 	default:
 		Debug("Unknown weapon type! %d", weaponType)
 		return

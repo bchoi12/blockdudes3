@@ -40,12 +40,12 @@ func NewRocket(init Init) *Rocket {
 	return rocket
 }
 
-type PaperStar struct {
+type Star struct {
 	Projectile
 }
 
-func NewPaperStar(init Init) *PaperStar {
-	star := &PaperStar {
+func NewStar(init Init) *Star {
+	star := &Star {
 		Projectile: NewProjectile(NewCircleObject(init)),
 	}
 	star.SetTTL(1 * time.Second)

@@ -80,9 +80,6 @@ export class Effects {
 			console.error("Attempting to add object outline before effects initialization.")
 			return;
 		}
-
-		console.log("added");
-		console.log(object);
 		this._outlineSelection.add(object);
 	}
 

@@ -95,17 +95,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 		if (this.hasWeaponType()) {
 			const weaponType = this.weaponType();
 			if (this._weaponType != weaponType) {
-				let model = Model.UNKNOWN;
-				if (weaponType === uziWeapon) {
-					model = Model.UZI;
-				} else if (weaponType === bazookaWeapon) {
-					model = Model.BAZOOKA;
-				}
-
-				if (model !== Model.UNKNOWN) {
-					this._weaponType = weaponType;
-					this.setWeapon(model);
-				}
+				this._weaponType = weaponType;
+				const model = loader.getWeaponModel(weaponType);
+				this.setWeapon(model);
 			}
 		}
 

@@ -30,13 +30,15 @@ declare var wallSpace : number;
 declare var bombSpace : number;
 declare var boltSpace : number;
 declare var rocketSpace : number;
-declare var paperStarSpace : number;
+declare var starSpace : number;
 declare var grapplingHookSpace : number;
 declare var explosionSpace : number;
 declare var pickupSpace : number;
 
 declare var uziWeapon : number;
 declare var bazookaWeapon : number;
+declare var sniperWeapon : number;
+declare var starWeapon : number;
 
 declare var objectStatesProp : number;
 declare var initializedProp : number;
@@ -78,7 +80,7 @@ declare var upKey : number;
 declare var downKey : number;
 declare var leftKey : number;
 declare var rightKey : number;
-declare var dashKey : number;
+declare var jumpKey : number;
 declare var interactKey : number;
 declare var mouseClick : number;
 declare var altMouseClick : number;

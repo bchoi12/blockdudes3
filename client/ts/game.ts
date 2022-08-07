@@ -8,7 +8,7 @@ import { RenderBolt } from './render_bolt.js'
 import { RenderExplosion } from './render_explosion.js'
 import { RenderGrapplingHook } from './render_grappling_hook.js'
 import { RenderObject } from './render_object.js'
-import { RenderPaperStar } from './render_paper_star.js'
+import { RenderStar } from './render_star.js'
 import { RenderPickup } from './render_pickup.js'
 import { RenderPlayer } from './render_player.js'
 import { RenderRocket } from './render_rocket.js'
@@ -143,8 +143,8 @@ class Game {
 						renderObj = new RenderBolt(space, id);
 					} else if (space === rocketSpace) {
 						renderObj = new RenderRocket(space, id);
-					} else if (space === paperStarSpace) {
-						renderObj = new RenderPaperStar(space, id);
+					} else if (space === starSpace) {
+						renderObj = new RenderStar(space, id);
 					} else if (space === grapplingHookSpace) {
 						renderObj = new RenderGrapplingHook(space, id);
 					} else if (space === pickupSpace) {
@@ -226,7 +226,7 @@ class Game {
 		const playerPos = player.pos();
 		renderer.setCameraAnchor(new THREE.Vector3(playerPos.x, playerPos.y, 0));
 
-		if (player.weaponType() === bazookaWeapon) {
+		if (player.weaponType() === sniperWeapon) {
 			const panEnabled = renderer.cameraController().panEnabled();
 			if (!panEnabled && this._keys.keyDown(altMouseClick)) {
 				const mouseScreen = renderer.getMouseScreen();
