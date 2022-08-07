@@ -37,6 +37,7 @@ class Loader {
 				continue;
 			}
 
+			console.log(this._modelPrefix + model + ".glb");
 			this._paths.set(Model[model], this._modelPrefix + model + ".glb");
 		}
 	}
