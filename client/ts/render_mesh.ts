@@ -44,15 +44,7 @@ export class RenderMesh {
 		}
 	}
 
-	parent() : RenderMesh {
-		return this._parent;
-	}
-
-	hasParent() : boolean {
-		return this._hasParent;
-	}
-
-	setParent(parent : RenderMesh) : void {
-		this._parent = parent;
+	delete() : void {
+		return;
 	}
 }

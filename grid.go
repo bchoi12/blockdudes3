@@ -151,6 +151,10 @@ func (g *Grid) deleteObject(sid SpacedId) {
 
 func (g *Grid) Update(now time.Time) {
 	for _, object := range(g.GetAllObjects()) {
+		object.Preprocess(g, now)
+	}
+
+	for _, object := range(g.GetAllObjects()) {
 		if object.GetSpace() == playerSpace {
 			continue
 		}

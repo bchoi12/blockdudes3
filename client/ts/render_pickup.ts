@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { Model, loader } from './loader.js'
 import { options } from './options.js'
 import { RenderObject } from './render_object.js'
+import { renderer } from './renderer.js'
 
 export class RenderPickup extends RenderObject {
 
@@ -38,6 +39,8 @@ export class RenderPickup extends RenderObject {
 		if (options.enableShadows) {
 			mesh.receiveShadow = true;
 		}
+
+		renderer.addOutline(mesh.getObjectByName("mesh"));
 	}
 
 	override update(msg : { [k: string]: any }, seqNum? : number) : void {
@@ -47,8 +50,8 @@ export class RenderPickup extends RenderObject {
 			return;
 		}
 
-		this.mesh().rotation.y += 0.01;
-		this.mesh().rotation.x += 0.005;
+		this.mesh().rotation.y += 1.2 * this.timestep();
+		this.mesh().rotation.x += 0.6 * this.timestep();
 	}
 }
 

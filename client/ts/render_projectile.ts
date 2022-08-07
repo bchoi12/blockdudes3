@@ -50,7 +50,7 @@ export class RenderProjectile extends RenderObject {
 		}
 
 		if (this.mesh().position.z > 0) {
-			this.mesh().position.z -= .02;
+			this.mesh().position.z -= 2 * this.timestep();
 		}
 	}
 }

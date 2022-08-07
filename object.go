@@ -24,6 +24,7 @@ type Object interface {
 	HasAttribute(attribute AttributeType) bool
 	AddConnection(parent SpacedId, connection Connection)
 
+	Preprocess(grid *Grid, now time.Time)
 	UpdateState(grid *Grid, now time.Time) bool
 	Postprocess(grid *Grid, now time.Time)
 	OnDelete(grid *Grid)
@@ -70,14 +71,12 @@ func (o BaseObject) GetAttachment() Attachment {
 	return o.Attachment
 }
 
+func (o *BaseObject) Preprocess(grid *Grid, now time.Time) {
+	o.Attachment.Preprocess(grid, now)
+}
+
 func (o *BaseObject) UpdateState(grid *Grid, now time.Time) bool {
-	updateResult := false
-
-	if o.Attachment.UpdateState(grid, now) {
-		updateResult = true
-	}
-
-	return updateResult
+	return false
 }
 
 func (o *BaseObject) Postprocess(grid *Grid, now time.Time) {

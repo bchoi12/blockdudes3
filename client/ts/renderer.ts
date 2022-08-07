@@ -1,16 +1,11 @@
 import * as THREE from 'three'
-import { BlendFunction, BloomEffect, EffectComposer, EffectPass, RenderPass, Selection, SelectiveBloomEffect } from "postprocessing";
 
 import { Audio, Sound } from './audio.js'
 import { CameraController } from './camera_controller.js'
+import { Effects } from './effects.js'
 import { game } from './game.js'
 import { Html } from './html.js'
 import { options } from './options.js'
-
-enum Layer {
-	DEFAULT = 0,
-	BLOOM = 1,
-}
 
 class Renderer {
 	private readonly _elmRenderer = "canvas-game";
@@ -24,9 +19,7 @@ class Renderer {
 	private _fps : number;
 
 	private _renderer : THREE.WebGLRenderer;
-	private _composer : EffectComposer;
-	private _bloomSelection : Selection;
-	private _composerInitialized : boolean;
+	private _effects : Effects;
 
 	constructor() {
 		this._canvas = Html.elm(this._elmRenderer);
@@ -56,8 +49,7 @@ class Renderer {
 			this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		}
 
-		this._composer = new EffectComposer(this._renderer);
-		this._composerInitialized = false;
+		this._effects = new Effects(this._renderer);
 
 		this.resizeCanvas();
 		window.onresize = () => { this.resizeCanvas(); };
@@ -66,25 +58,12 @@ class Renderer {
 	elm() : HTMLElement { return this._canvas; }
 	compile(mesh : THREE.Mesh) { this._renderer.compile(mesh, this._cameraController.camera()); }
 	render() : void {
-		// this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
-
-		if (!this._composerInitialized) {
-			let selectiveBloom = new SelectiveBloomEffect(game.sceneMap().scene(), this._cameraController.camera(), {
-				blendFunction: BlendFunction.ADD,
-				luminanceThreshold: 0.4,
-				luminanceSmoothing: 0.6,
-				intensity: 1.0,
-			});
-			this._bloomSelection = selectiveBloom.selection;
-			selectiveBloom.ignoreBackground = true;
-
-			this._composer.addPass(new RenderPass(game.sceneMap().scene(), this._cameraController.camera()));
-			this._composer.addPass(new EffectPass(this._cameraController.camera(), selectiveBloom));
-			this._composer.multisampling = 4;
-
-			this._composerInitialized = true;
+		if (options.enableEffects) {
+			this._effects.render(game.sceneMap().scene(), this._cameraController.camera());
+		} else {
+			this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
 		}
-		this._composer.render();
+		
 		this._renderCounter++;
 	}
 	fps() : number { return this._fps; }
@@ -94,9 +73,10 @@ class Renderer {
 	cameraTarget() : THREE.Vector3 { return this._cameraController.target(); }
 	setCameraAnchor(anchor : THREE.Vector3) : void { this._cameraController.setAnchor(anchor); }
 
-	addBloom(object : THREE.Object3D) : void {
-		this._bloomSelection.add(object);
-	}
+	addBloom(object : THREE.Object3D) : void { this._effects.addBloom(object); }
+	removeBloom(object : THREE.Object3D) : void { this._effects.removeBloom(object); }
+	addOutline(object : THREE.Object3D) : void { this._effects.addOutline(object); }
+	removeOutline(object : THREE.Object3D) : void { this._effects.removeOutline(object); }
 
 	playSystemSound(sound : Sound) : void { this._audio.playSystemSound(sound); }
 	playSound(sound : Sound, pos : THREE.Vector2) : void {
@@ -110,7 +90,6 @@ class Renderer {
 	}
 
 	setMouseFromPixels(mouse : THREE.Vector2) : void { this._mousePixels = mouse.clone(); }
-	
 	getMouseScreen() : THREE.Vector2 {
 		const mouse = this._mousePixels.clone();
 		mouse.x -= window.innerWidth / 2;

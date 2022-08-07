@@ -6,7 +6,7 @@ import { SceneComponentType } from './scene_component.js'
 import { RenderAnimatedObject } from './render_animated_object.js'
 import { RenderCustom } from './render_custom.js'
 import { RenderWeapon} from './render_weapon.js'
-import { ui } from './ui.js'
+import { renderer } from './renderer.js'
 import { MathUtil, Util } from './util.js'
 
 // enum name has to be the same as value
@@ -23,7 +23,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private readonly _pointsMaterial = new THREE.PointsMaterial( { color: 0x000000, size: 0.2} );
 
 	private _weaponType : number;
-	private _lastUpdate : number;
 	private _lastGrounded : boolean;
 
 	private _playerMesh : THREE.Object3D;
@@ -40,16 +39,14 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		this._weaponType = 0;
 		this._weapon = new RenderWeapon();
-		this._weapon.setParent(this);
 
-		this._lastUpdate = Date.now();
 		this._lastGrounded = false;
 	}
 
 	override initialize() : void {
 		super.initialize();
 
-		loader.load(this._id % 2 == 0 ? Model.CHICKEN : Model.DUCK, (mesh : THREE.Mesh) => {
+		loader.load(this.id() % 2 == 0 ? Model.CHICKEN : Model.DUCK, (mesh : THREE.Mesh) => {
 			this.setMesh(mesh);
 		});
 	}
@@ -122,7 +119,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		if (this._arm.position.lengthSq() > 0) {
 			let armOffset = this._armOrigin.clone().sub(this._arm.position);
-			armOffset.setLength(Math.min(armOffset.length(), 0.4 * Math.max(0, (Date.now() - this._lastUpdate) / 1000)));
+			armOffset.setLength(Math.min(armOffset.length(), 0.4 * Math.max(0, this.timestep())));
 			this._arm.position.add(armOffset);
 		}
 
@@ -156,8 +153,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this.fadeOut(PlayerAction.Jump, 0.1);
 			this.fadeIn(PlayerAction.Idle, 0.1);
 		}
-
-		this._lastUpdate = Date.now();
 
 		if (debugMode) {
 			const profilePos = msg[profilePosProp];

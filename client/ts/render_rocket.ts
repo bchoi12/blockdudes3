@@ -7,13 +7,14 @@ import { SceneComponentType } from './scene_component.js'
 import { RenderCustom } from './render_custom.js'
 import { RenderProjectile } from './render_projectile.js'
 import { renderer } from './renderer.js'
-import { MathUtil } from './util.js'
+import { MathUtil, Util } from './util.js'
 
 export class RenderRocket extends RenderProjectile {
 	private readonly _smokeMaterial = new THREE.MeshStandardMaterial( {color: 0xbbbbbb , transparent: true, opacity: 0.5} );
 	private readonly _smokeInterval = 15;
-	private readonly _rotateZ = 0.12;
+	private readonly _rotateZ = 8;
 
+	private _light : THREE.PointLight;
 	private _lastSmoke : number;
 
 	constructor(space : number, id : number) {
@@ -30,9 +31,24 @@ export class RenderRocket extends RenderProjectile {
 		});
 	}
 
+	override delete() : void {
+		if (Util.defined(this._light)) {
+			this._light.intensity = 0;
+		}
+	}
+
 	override setMesh(mesh : THREE.Object3D) : void {
 		super.setMesh(mesh);
 		mesh.rotation.y = Math.PI / 2;
+
+		this._light = game.sceneMap().getPointLight();
+
+		if (Util.defined(this._light)) {
+			this._light.color = new THREE.Color(0xFF0000);
+			this._light.intensity = 3.0;
+			this._light.distance = 6.0;
+			mesh.add(this._light);
+		}
 	}
 
 	override update(msg : { [k: string]: any }, seqNum? : number) : void {
@@ -50,7 +66,7 @@ export class RenderRocket extends RenderProjectile {
 
 		const projectile = this.mesh().getObjectByName("mesh");
 		projectile.rotation.x = angle;
-		projectile.rotateZ(this._rotateZ);
+		projectile.rotation.z += this._rotateZ * this.timestep();
 
 		if (Date.now() - this._lastSmoke >= this._smokeInterval) {
 			const smokeMesh = new THREE.Mesh(new THREE.SphereGeometry(MathUtil.randomRange(0.1, 0.2), 3, 3), this._smokeMaterial);

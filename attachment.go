@@ -66,7 +66,7 @@ func (a *Attachment) AddConnection(parent SpacedId, connection Connection) {
 	a.connections[parent] = connection
 }
 
-func (a *Attachment) UpdateState(grid *Grid, now time.Time) bool {
+func (a *Attachment) Preprocess(grid *Grid, now time.Time) {
 	for parentId, connection := range(a.GetConnections()) {
 		parent := grid.Get(parentId)
 		child := grid.Get(a.sid)
@@ -101,8 +101,6 @@ func (a *Attachment) UpdateState(grid *Grid, now time.Time) bool {
 			child.AddAttribute(attachedAttribute)
 		}
 	}
-
-	return false
 }
 
 func (a *Attachment) Postprocess(grid *Grid, now time.Time) {

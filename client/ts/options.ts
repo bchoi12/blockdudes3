@@ -4,6 +4,8 @@ class Options {
 	public fullClientPrediction : boolean;
 	public pointerLock : boolean;
 	public enableShadows : boolean;
+	public enableEffects : boolean;
+	public enableDynamicLighting : boolean;
 	public rendererScale : number;
 
 	public extrapolateFrames : number;
@@ -19,6 +21,8 @@ class Options {
 		this.fullClientPrediction = false;
 		this.pointerLock = true;
 		this.enableShadows = true;
+		this.enableEffects = true;
+		this.enableDynamicLighting = true;
 		this.rendererScale = 0.66;
 
 		this.extrapolateFrames = 6;

@@ -7,11 +7,14 @@ import { SpacedId } from './spaced_id.js'
 import { renderer } from './renderer.js'
 
 export class RenderObject extends RenderMesh {
-	protected _space : number;
-	protected _id : number;
-	protected _msg : Message;
-	protected _initialized : boolean;
-	
+	private _space : number;
+	private _id : number;
+	private _msg : Message;
+	private _initialized : boolean;
+
+	private _timestep : number;
+	private _lastUpdate : number;
+
 	constructor(space : number, id : number) {
 		super();
 
@@ -19,6 +22,8 @@ export class RenderObject extends RenderMesh {
 		this._id = id;
 		this._msg = new Message();
 		this._initialized = false;
+		this._lastUpdate = Date.now();
+		this._timestep = 0;
 	}
 
 	override setMesh(mesh : THREE.Object3D) : void {
@@ -56,6 +61,13 @@ export class RenderObject extends RenderMesh {
 	update(msg : { [k: string]: any }, seqNum? : number) : void {
 		this._msg.update(msg, seqNum);
 		this.maybeUpdateMeshPosition();
+
+		this._timestep = (Date.now() - this._lastUpdate) / 1000;
+		this._lastUpdate = Date.now();
+	}
+
+	timestep() : number {
+		return this._timestep;
 	}
 
 	deleted() : boolean {

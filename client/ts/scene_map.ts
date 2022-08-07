@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { Decoration } from './decoration.js'
+import { LightBuffer } from './light_buffer.js'
 import { Lighting } from './lighting.js'
 import { Particles } from './particles.js'
 import { RenderMesh } from './render_mesh.js'
@@ -18,6 +19,7 @@ export class SceneMap {
 	private _deleted : Map<number, Set<number>>;
 
 	private _components : Map<SceneComponentType, SceneComponent>;
+	private _lightBuffer : LightBuffer;
 
 	constructor() {
 		this.reset();
@@ -35,6 +37,8 @@ export class SceneMap {
 		this.addComponent(SceneComponentType.WEATHER, new Weather());
 		this.addComponent(SceneComponentType.PARTICLES, new Particles());
 		this.addComponent(SceneComponentType.DECORATION, new Decoration());
+
+		this._lightBuffer = new LightBuffer(this._scene);
 	}
 
 	addComponent(type : SceneComponentType, component : SceneComponent) : void {
@@ -54,6 +58,9 @@ export class SceneMap {
 			component.update();
 		});
 	}
+
+	getSpotLight() : THREE.SpotLight { return this._lightBuffer.getSpotLight(); }
+	getPointLight() : THREE.PointLight { return this._lightBuffer.getPointLight(); }
 
 	getMap(space : number) : Map<number, RenderObject> {
 		if (!this._renders.has(space)) {
@@ -99,6 +106,7 @@ export class SceneMap {
 	delete(space : number, id : number) : void {
 		const map = this.getMap(space);
 		if (map.has(id)) {
+			map.get(id).delete();
 			this._scene.remove(map.get(id).mesh());
 			wasmDelete(space, id);
 			map.delete(id);
