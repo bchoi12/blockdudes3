@@ -33,102 +33,204 @@ type Room struct {
 
 	nextClientId IdType
 	clients map[IdType]*Client
-	msgQueue []IncomingMsg
+	register chan *Client
+	registerQueue []*Client
+	init chan *Client
+	initQueue []*Client
+	unregister chan *Client
+	unregisterQueue []*Client
 
 	game *Game
-	chat *Chat
-
-	incoming chan IncomingMsg
 	ticker *time.Ticker
 	gameTicks int
 	statTicker *time.Ticker
-	register chan *Client
-	unregister chan *Client
+
+	chat *Chat
+
+	incoming chan IncomingMsg
+	incomingQueue []IncomingMsg
 }
 
 var rooms = make(map[string]*Room)
+func NewRoom(roomName string, clientName string, ws *websocket.Conn) {
+	_, roomExists := rooms[roomName]
 
-func createOrJoinRoom(room string, name string, ws *websocket.Conn) {
-	if _, ok := rooms[room]; !ok {
-		rooms[room] = &Room {
-			id: room,
+	if !roomExists {
+		rooms[roomName] = &Room {
+			id: roomName,
 
 			nextClientId: 0,
 			clients: make(map[IdType]*Client),
-			msgQueue: make([]IncomingMsg, 0),
+			register: make(chan *Client),
+			registerQueue: make([]*Client, 0),
+			init: make(chan *Client),
+			initQueue: make([]*Client, 0),
+			unregister: make(chan *Client),
+			unregisterQueue: make([]*Client, 0),
 
 			game: newGame(),
-			chat: newChat(),
-
-			incoming: make(chan IncomingMsg),
 			ticker: time.NewTicker(frameTime),
 			gameTicks: 0,
 			statTicker: time.NewTicker(1 * time.Second),
-			register: make(chan *Client),
-			unregister: make(chan *Client),
+
+			chat: newChat(),
+
+			incoming: make(chan IncomingMsg),
+			incomingQueue: make([]IncomingMsg, 0),
 		}
+		log.Printf("Created new room %s", roomName)
 
-		rooms[room].game.loadLevel(testLevel)
-		log.Printf("Created new room %s", room)
-
-
-		go rooms[room].run()
+		rooms[roomName].game.loadLevel(testLevel)
+		go rooms[roomName].run()
 	}
 
-	client := NewClient(rooms[room], ws, name)
-	rooms[room].register <- client
+	client := NewClient(rooms[roomName], ws, clientName)
+	rooms[roomName].register <- client
 }
 
 func (r *Room) run() {
+	defer func() {
+		log.Printf("Deleting room %v", r.id)
+		delete(rooms, r.id)
+	}()
+
 	for {
 		select {
 			case client := <-r.register:
-				client.initWebRTC()
-				r.clients[client.id] = client
-				err := r.connectClient(client)
-				if err != nil {
-					log.Printf("Failed to add client %s to room: %v", client.getDisplayName(), err)
-					delete(r.clients, client.id)
+				r.registerQueue = append(r.registerQueue, client)
+			case client := <-r.init:
+				r.initQueue = append(r.initQueue, client)
+			case client := <-r.unregister:
+				r.unregisterQueue = append(r.unregisterQueue, client)
+			case imsg := <-r.incoming:
+				r.incomingQueue = append(r.incomingQueue, imsg)
+			case _ = <-r.ticker.C:
+				if len(r.clients) == 0 {
 					continue
 				}
-				log.Printf("New client %s joined %s, total=%d", client.getDisplayName(), r.id, len(r.clients))
-			case client := <-r.unregister:
-				err := r.deleteClient(client)
-				if err != nil {
-					log.Printf("Failed to delete client %s from %s: %v", client.getDisplayName(), r.id, err)
-				} else if len(r.clients) == 0 {
-					log.Printf("Deleting room %v", r.id)
-					delete(rooms, r.id)
-					return
-				}
-			case imsg := <-r.incoming:
-				r.msgQueue = append(r.msgQueue, imsg)
-			case _ = <-r.ticker.C:
 				r.game.updateState()
-				r.sendState()
+				r.sendGameState()
 				r.gameTicks += 1
 			case _ = <-r.statTicker.C:
+				if len(r.clients) == 0 {
+					continue
+				}
 				log.Printf("FPS: %d", r.gameTicks)
 				r.gameTicks = 0
 			default:
-				if len(r.msgQueue) == 0 {
-					continue
-				}
-				for _, imsg := range(r.msgQueue) {
-					msg := Msg{}
-					err := Unpack(imsg.b, &msg)
-					if err != nil {
-						log.Printf("error unpacking: %v", err)
-						continue
+				if len(r.registerQueue) > 0 {
+					for _, client := range(r.registerQueue) {
+						err := r.registerClient(client)
+						if err != nil {
+							r.unregister <- client
+						}
 					}
-					r.processMsg(msg, imsg.client)
+					r.registerQueue = r.registerQueue[:0]
 				}
-				r.msgQueue = r.msgQueue[:0]
+
+				if len(r.initQueue) > 0 {
+					for _, client := range(r.initQueue) {
+						err := r.initClient(client)
+						if err != nil {
+							r.unregister <- client
+						}
+					}
+					r.initQueue = r.initQueue[:0]
+				}
+
+				if len(r.unregisterQueue) > 0 {
+					for _, client := range(r.unregisterQueue) {
+						r.unregisterClient(client)
+					}
+					r.unregisterQueue = r.unregisterQueue[:0]
+
+					if len(r.clients) == 0 {
+						return
+					}
+				}
+
+				if len(r.incomingQueue) > 0 {
+					for _, imsg := range(r.incomingQueue) {
+						msg := Msg{}
+						err := Unpack(imsg.b, &msg)
+						if err != nil {
+							log.Printf("error unpacking: %v", err)
+							continue
+						}
+						r.processMsg(msg, imsg.client)
+					}
+					r.incomingQueue = r.incomingQueue[:0]
+				}
 		}
 	}
 }
 
-func (r* Room) processMsg(msg Msg, c* Client) {
+func (r *Room) registerClient(client *Client) error {
+	err := client.InitWebRTC(func() {
+		r.init <- client
+	})
+	if err != nil {
+		return err
+	}
+	return r.updateClients(initType, client)
+}
+
+func (r *Room) initClient(client *Client) error {
+	var err error
+
+	err = r.updateClients(joinType, client)
+	if err != nil {
+		return err
+	}
+
+	levelMsg := r.game.createLevelInitMsg()
+	client.Send(&levelMsg)
+	if err != nil {
+		return err
+	}
+
+	r.game.add(NewObjectInit(Id(playerSpace, client.id), NewVec2(5, 5), NewVec2(0.8, 1.44)))
+	playerInitMsg := r.game.createPlayerInitMsg(client.id)
+	err = client.Send(&playerInitMsg)
+	if err != nil {
+		return err
+	}
+
+	gameInitMsg := r.game.createGameInitMsg()
+	err = client.Send(&gameInitMsg)
+	if err != nil {
+		return err
+	}
+
+	for _, chatMsg := range(r.chat.chatQueue) {
+		client.Send(&chatMsg)
+	}
+
+	r.clients[client.id] = client
+	log.Printf("New client %s initialized in %s, total=%d", client.GetDisplayName(), r.id, len(r.clients))
+	return nil
+}
+
+func (r *Room) unregisterClient(client *Client) error {
+	client.ws.Close()
+	if client.dc != nil {
+		client.dc.Close()
+	}
+
+	if _, ok := r.clients[client.id]; ok {
+		err := r.updateClients(leftType, client)
+		if err != nil {
+			return err
+		}
+		r.game.delete(Id(playerSpace, client.id))
+		delete(r.clients, client.id)
+	}
+	log.Printf("Unregistering client %s, total=%d", client.GetDisplayName(), len(r.clients))
+
+	return nil
+}
+
+func (r* Room) processMsg(msg Msg, c* Client) error {
 	var err error
 
 	switch(msg.T) {
@@ -137,15 +239,15 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 			T: pingType,
 			S: msg.Ping.S,
 		}
-		c.send(&outMsg)
+		c.Send(&outMsg)
 	case offerType:
 		err = c.processWebRTCOffer(msg.JSON)
 	case candidateType:
 		err = c.processWebRTCCandidate(msg.JSON)
 	case joinVoiceType:
-		err = c.joinVoice(r)
+		err = r.joinVoice(c)
 	case leftVoiceType:
-		err = c.leaveVoice(r)
+		err = r.leaveVoice(c)
 	case voiceCandidateType: fallthrough
 	case voiceOfferType: fallthrough
 	case voiceAnswerType:
@@ -160,56 +262,16 @@ func (r* Room) processMsg(msg Msg, c* Client) {
 	}
 
 	if err != nil {
-		log.Printf("error when parsing message: %v", err)
-		return
+		log.Printf("error when processing message: %v", err)
 	}
+	return err
 }
 
-func (r *Room) connectClient(c *Client) error {
-	var err error
-
-	if err != nil {
-		return err
-	}
-
-	err = r.updateClients(initType, c)
-	if err != nil {
-		return err
-	}
-
-	levelMsg := r.game.createLevelInitMsg()
-	err = c.send(&levelMsg)
-	if err != nil {
-		return err
-	}
-
-	playerInitMsg := r.game.createPlayerInitMsg(c.id)
-	err = c.send(&playerInitMsg)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *Room) deleteClient(c *Client) error {
-	if _, ok := r.clients[c.id]; ok {
-		err := r.updateClients(leftType, c)
-		if err != nil {
-			return err
-		}
-		r.game.delete(Id(playerSpace, c.id))
-		delete(r.clients, c.id)
-		log.Printf("Unregistering client %s, total=%d", c.getDisplayName(), len(r.clients))
-	}
-	return nil
-}
-
-func (r *Room) updateClients(msgType MessageType, c *Client) error {
-	msg := r.createClientMsg(msgType, c, false)
+func (r *Room) updateClients(msgType MessageType, client *Client) error {
+	msg := r.createClientMsg(msgType, client, false)
 
 	if msgType == initType {
-		return c.send(&msg)
+		return client.Send(&msg)
 	} else {
 		r.send(&msg)
 		return nil
@@ -219,19 +281,58 @@ func (r *Room) updateClients(msgType MessageType, c *Client) error {
 func (r *Room) createClientMsg(msgType MessageType, c *Client, voice bool) ClientMsg {
 	msg := ClientMsg {
 		T: msgType,
-		Client: c.getClientData(),
+		Client: c.GetClientData(),
 		Clients: make(map[IdType]ClientData, 0),
 	}
 	for id, client := range r.clients {
 		if (msgType == leftType && id == c.id) || (voice && !client.voice) {
 			continue
 		}
-		msg.Clients[id] = client.getClientData()
+		msg.Clients[id] = client.GetClientData()
 	}
 	return msg
 }
 
-func (r *Room) sendState() {
+func (r *Room) joinVoice(c *Client) error {
+	msg := r.createClientMsg(joinVoiceType, c, true)
+	r.send(&msg)
+	c.voice = true
+	return nil
+}
+
+func (r *Room) leaveVoice(c *Client) error {
+	msg := r.createClientMsg(leftVoiceType, c, true)
+	r.send(&msg)
+	c.voice = false
+	return nil
+}
+
+func (r *Room) forwardVoiceMessage(msgType MessageType, c *Client, msg JSONPeerMsg) error {
+	outMsg := JSONPeerMsg {
+		T: msgType,
+		From: c.id,
+		To: msg.To,
+		JSON: msg.JSON,
+	}
+
+	id := msg.To
+	client := r.clients[msg.To]
+
+	if !client.voice || c.id == id {
+		return nil
+	}
+
+	return client.Send(&outMsg)
+}
+
+func (r *Room) send(msg interface{}) {
+	b := Pack(msg)
+	for _, c := range(r.clients) {
+		c.SendBytes(b)
+	}
+}
+
+func (r *Room) sendGameState() {
 	state := r.game.createGameStateMsg()
 	r.sendUDP(&state)
 
@@ -240,16 +341,9 @@ func (r *Room) sendState() {
 	}
 }
 
-func (r *Room) send(msg interface{}) {
-	b := Pack(msg)
-	for _, c := range(r.clients) {
-		c.sendBytes(b)
-	}
-}
-
 func (r *Room) sendUDP(msg interface{}) {
 	b := Pack(msg)
 	for _, c := range(r.clients) {
-		c.dc.Send(b)
+		c.SendBytesUDP(b)
 	}
 }

@@ -1,5 +1,6 @@
 import { encode, decode } from "@msgpack/msgpack"
 import { Pinger } from './pinger.js'
+import { ui } from './ui.js'
 import { LogUtil, Util } from './util.js'
 
 type MessageHandler = (msg : any) => void;
@@ -11,6 +12,7 @@ class Connection {
 	    		urls: [
 	                "stun:stun1.l.google.com:19302",
 	                "stun:stun2.l.google.com:19302",
+					"stun:openrelay.metered.ca:80",
 	    		]
 	    	}
 	    ]
@@ -32,9 +34,23 @@ class Connection {
 		this._senders = new Map();
 	}
 
-	connect(room : string, name : string, socketSuccess : () => void, dcSuccess : () => void) : void {
-		if (Util.defined(this._ws)) return;
+	setup() : void {
+		this.addHandler(initType, (msg : any) => {
+			this._id = msg.Client.Id;
+			LogUtil.d("Initialized connection with id " + this._id);
+		});
+		this.addHandler(answerType, (msg : any) => { this.setRemoteDescription(msg); });
+		this.addHandler(candidateType, (msg : any) => { this.addIceCandidate(msg); });
+	}
 
+	id() : number { return Util.defined(this._id) ? this._id : -1; }
+	wsConnecting() : boolean { return Util.defined(this._ws) && (this._ws.readyState === 0 || this._ws.readyState === 1); }
+	wsReady() : boolean { return Util.defined(this._ws) && this._ws.readyState === 1; }
+	dcConnecting() : boolean { return Util.defined(this._dc) && (this._dc.readyState === "connecting" || this._dc.readyState === "open"); }
+	dcReady() : boolean { return Util.defined(this._dc) && this._dc.readyState === "open"; }
+	ready() : boolean { return Util.defined(this._id) && this.wsReady() && this.dcReady(); }
+
+	connect(room : string, name : string, socketSuccess : () => void, dcSuccess : () => void) : void {
 		const prefix = Util.isDev() ? "ws://" : "wss://"
 		const endpoint = prefix + window.location.host + "/newclient/room=" + room + "&name=" + name;
 		this.initWebSocket(endpoint, socketSuccess, dcSuccess);
@@ -73,10 +89,6 @@ class Connection {
 		this._senders.delete(type);
 	}
 
-	id() : number {
-		return Util.defined(this._id) ? this._id : -1;
-	}
-
 	ping() : number {
 		if (!Util.defined(this._pinger)) {
 			return 0;
@@ -106,58 +118,66 @@ class Connection {
 		return true;
 	}
 
-	wsReady() : boolean {
-		return Util.defined(this._ws) && this._ws.readyState == 1;
-	}
-	dcReady() : boolean {
-		return Util.defined(this._dc) && this._dc.readyState == "open";
-	}
-	ready() : boolean {
-		return Util.defined(this._id) && this.wsReady() && this.dcReady();
-	}
-
 	private initWebSocket(endpoint : string, socketSuccess : () => void, dcSuccess : () => void) : void {
+		if (this.wsReady() && !this.dcConnecting()) {
+			this.initWebRTC(dcSuccess);
+			return;
+		}
+
+		if (this.wsConnecting()) {
+			return;
+		}
+
 		this._ws = new WebSocket(endpoint);
 		this._ws.binaryType = "arraybuffer";
 
-		// TODO: add timeout
 		this._ws.onopen = () => {
 			console.log("Successfully created websocket");
 			LogUtil.d("Successfully connected to " + endpoint);
 
-			this.addHandler(initType, (msg : any) => {
-				this._id = msg.Client.Id;
-			});
-
-			this.addHandler(answerType, (msg : any) => { this.setRemoteDescription(msg); });
-			this.addHandler(candidateType, (msg : any) => { this.addIceCandidate(msg); });
-
-			this._pinger = new Pinger();
 			socketSuccess();
+			this._pinger = new Pinger();
+			
 			this.initWebRTC(dcSuccess);
 		};
 		this._ws.onmessage = (event) => {	
 			this.handlePayload(event.data);
 		};
 		this._ws.onerror = (event) => {
-			console.error("Error when creating websocket!");
+			console.error("Websocket error!");
 		};
 		this._ws.onclose = (event) => {
-			console.error("Websocket closed: " + event.reason);
+			console.error("Websocket closed!");
+			if (Util.defined(this._wrtc)) {
+				this._wrtc.close();
+			}
+			if (Util.defined(this._dc)) {
+				this._dc.close();
+			}
+			ui.disconnected();
 		};
 	}
 
 	private initWebRTC(dcSuccess : () => void) : void {
-		// TODO: initialize this when we get an ID response from the server, initialization needs to be idempotent
-		// TODO: add timeout error and retries
+		if (Util.defined(this._wrtc)) {
+			this._wrtc.close();
+		}
 		this._wrtc = new RTCPeerConnection(this._iceConfig);
 
 		const dataChannelConfig = {
 			ordered: false,
 			maxRetransmits: 0
 		};
+
+		if (Util.defined(this._dc)) {
+			this._dc.close();
+		}
 		this._dc = this._wrtc.createDataChannel("data", dataChannelConfig);
 		this._candidates = new Array<RTCIceCandidate>();
+
+		this._wrtc.onconnectionstatechange = (event) => {
+			console.log("WebRTC connection state changed: " + this._wrtc.connectionState);
+		};
 
 		this._wrtc.onicecandidate = (event) => {
 			if (event && event.candidate) {

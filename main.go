@@ -73,5 +73,5 @@ func newClientHandler(w http.ResponseWriter, r *http.Request) {
 	// Try to keep the socket alive?
 	ws.SetReadDeadline(time.Time{})
 
-	createOrJoinRoom(room, name, ws)
+	NewRoom(room, name, ws)
 }

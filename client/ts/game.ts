@@ -18,11 +18,12 @@ import { renderer } from './renderer.js'
 import { SceneComponent, SceneComponentType } from './scene_component.js'
 import { SceneMap } from './scene_map.js'
 import { ui } from './ui.js'
-import { Util } from './util.js'
+import { LogUtil, Util } from './util.js'
 
 export enum GameState {
 	UNKNOWN = 0,
-	GAME = 1,
+	PAUSED = 1,
+	GAME = 2,
 }
 
 class Game {
@@ -39,7 +40,7 @@ class Game {
 
 	constructor() {
 		this._id = -1;
-		this._state = GameState.UNKNOWN;
+		this._state = GameState.PAUSED;
 
 		this._sceneMap = new SceneMap();
 		this._keys = new Keys();
@@ -100,6 +101,7 @@ class Game {
 		}, frameMillis);
 
 		this.setState(GameState.GAME);
+		LogUtil.d("Initialize player with id " + this._id);
 	}
 
 	private updateGameState(msg : { [k: string]: any }) : void {

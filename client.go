@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/pion/webrtc/v3"
@@ -25,6 +26,8 @@ func NewClient(room* Room, ws *websocket.Conn, name string) *Client {
 	client := &Client {
 		room: room,
 		ws: ws,
+		wrtc: nil,
+		dc: nil,
 
 		id: room.nextClientId,
 		name: name,
@@ -36,40 +39,66 @@ func NewClient(room* Room, ws *websocket.Conn, name string) *Client {
 	return client
 }
 
-func (c *Client) init() error {
-	var err error
-	r := c.room
+func (c *Client) run() {
+	defer func() {
+		c.room.unregister <- c
+	}()
 
-	err = r.updateClients(joinType, c)
-	if err != nil {
-		return err
-	}
+	for {
+		_, b, err := c.ws.ReadMessage()
 
-	r.game.add(NewObjectInit(Id(playerSpace, c.id), NewVec2(5, 5), NewVec2(0.8, 1.44)))
-	gameInitMsg := r.game.createGameInitMsg()
-	err = c.send(&gameInitMsg)
-	if err != nil {
-		return err
-	}
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("unexpected socket error: %v", err)
+			}
+			return
+		}
 
-	for _, chatMsg := range(r.chat.chatQueue) {
-		c.send(&chatMsg)
+		imsg := IncomingMsg{
+			b: b,
+			client: c,
+		}
+		c.room.incoming <- imsg
 	}
-	return err
 }
 
-func (c Client) getDisplayName() string {
+func (c Client) GetDisplayName() string {
 	return c.name + " #" + strconv.Itoa(int(c.id))
 }
 
-func (c *Client) getClientData() ClientData {
+func (c *Client) GetClientData() ClientData {
 	return ClientData {
 		Id: c.id,
 		Name: c.name,
 	}
 }
 
-func (c *Client) initWebRTC() error {
+func (c *Client) Send(msg interface{}) error {
+	b := Pack(msg)
+	return c.SendBytes(b)
+}
+
+func (c *Client) SendBytes(b []byte) error {
+	// Lock required to synchronize writes from room and WebRTC callbacks
+	c.mu.Lock()
+	err := c.ws.WriteMessage(websocket.BinaryMessage, b)
+	c.mu.Unlock()
+	return err
+}
+
+func (c *Client) SendUDP(msg interface{}) error {
+	b := Pack(msg)
+	return c.SendBytesUDP(b)
+}
+
+func (c *Client) SendBytesUDP(b []byte) error {
+	if c.dc == nil {
+		return errors.New("Data channel not initialized")
+	}
+	return c.dc.Send(b)
+}
+
+func (c *Client) InitWebRTC(onSuccess func()) error {
 	var err error
 	config := webrtc.Configuration{
 		ICEServers: []webrtc.ICEServer{
@@ -82,13 +111,15 @@ func (c *Client) initWebRTC() error {
 			},
 		},
 	}
+
+	log.Printf("Starting new WebRTC connection")
 	c.wrtc, err = webrtc.NewPeerConnection(config)
 	if err != nil {
 		return err
 	}
 
 	c.wrtc.OnConnectionStateChange(func(s webrtc.PeerConnectionState) {
-		log.Printf("Client data channel for %s has changed: %s", c.getDisplayName(), s.String())
+		log.Printf("WebRTC connection state for %s has changed: %s", c.GetDisplayName(), s.String())
 	})
 
 	ordered := false
@@ -103,13 +134,10 @@ func (c *Client) initWebRTC() error {
 	}
 
 	c.dc.OnOpen(func() {
-		err := c.init()
-		if err != nil {
-			log.Printf("Error initializing client: %s", err)
-		}
-
-		log.Printf("Opened data channel for %s: %s-%d", c.getDisplayName(), c.dc.Label(), c.dc.ID())
+		onSuccess()
+		log.Printf("Opened data channel for %s: %s-%d", c.GetDisplayName(), c.dc.Label(), c.dc.ID())
 	})
+
 	c.dc.OnMessage(func(msg webrtc.DataChannelMessage) {
 		imsg := IncomingMsg{
 			b: msg.Data,
@@ -128,13 +156,15 @@ func (c *Client) initWebRTC() error {
 			JSON: ice.ToJSON(),
 		}
 
-		c.send(&candidateMsg)
+		c.Send(&candidateMsg)
 	})
 
 	return nil
 }
 
 func (c *Client) processWebRTCOffer(json interface{}) error {
+	log.Printf("Received WebRTC offer for %s", c.GetDisplayName())
+
 	offer, ok := json.(map[string]interface{})
 	if !ok {
 		return fmt.Errorf("Unable to parse offer: %+v", json)
@@ -160,11 +190,13 @@ func (c *Client) processWebRTCOffer(json interface{}) error {
 		T: answerType,
 		JSON: answer,
 	}
-	c.send(&answerMsg)
+	c.Send(&answerMsg)
 	return nil
 }
 
 func (c *Client) processWebRTCCandidate(json interface{}) error {
+	log.Printf("Received WebRTC ICE candidate for %s", c.GetDisplayName())
+
 	candidate, ok := json.(map[string]interface{})
 	if !ok {
 		return fmt.Errorf("Unable to parse offer message: %+v", json)
@@ -183,49 +215,4 @@ func (c *Client) processWebRTCCandidate(json interface{}) error {
 		return err
 	}
 	return nil
-}
-
-func (c *Client) send(msg interface{}) error {
-	b := Pack(msg)
-	return c.sendBytes(b)
-}
-
-func (c *Client) sendBytes(b []byte) error {
-	// TODO: if locking impacts performance, can try creating separate thread that reads a channel and sends bytes
-	c.mu.Lock()
-	err := c.ws.WriteMessage(websocket.BinaryMessage, b)
-	c.mu.Unlock()
-
-	if err != nil {
-		log.Printf("error writing out message: %v", err)
-	}
-	return err
-}
-
-func (c *Client) run() {
-	defer func() {
-		c.room.unregister <- c
-		c.ws.Close()
-
-		if c.dc != nil {
-			c.dc.Close()
-		}
-	}()
-
-	for {
-		_, b, err := c.ws.ReadMessage()
-
-		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("unexpected socket error: %v", err)
-			}
-			return
-		}
-
-		imsg := IncomingMsg{
-			b: b,
-			client: c,
-		}
-		c.room.incoming <- imsg
-	}
 }

@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 	WebAssembly.instantiateStreaming(fetch("./game.wasm"), go.importObject).then((result) => {
 		go.run(result.instance);
 
+		connection.setup();
 		ui.setup();
 		game.setup();
 		ui.changeInputMode(InputMode.LOGIN);
