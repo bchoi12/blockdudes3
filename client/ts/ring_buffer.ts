@@ -9,11 +9,15 @@ export class RingBuffer<T> {
 		this._buffer = new Array<T>();
 	}
 
+	asArray() : Array<T> {
+		return this._buffer;
+	}
+
 	push(t : T) {
 		this._buffer.push(t);
 	}
 
-	get() : T {
+	getNext() : T {
 		if (this._buffer.length === 0) {
 			return null;
 		}

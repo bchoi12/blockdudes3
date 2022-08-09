@@ -14,7 +14,7 @@ type Game struct {
 	seqNum SeqNumType
 }
 
-func newGame() *Game {
+func NewGame() *Game {
 	game := &Game {
 		grid: NewGrid(4, 4),
 		level: unknownLevel,

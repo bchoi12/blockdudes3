@@ -32,6 +32,10 @@ func (h *Health) Respawn() {
 	h.ticks = make([]DamageTick, 0)
 }
 
+func (h *Health) Die() {
+	h.SetHealth(0)
+}
+
 func (h *Health) SetHealth(health int) {
 	h.enabled = true
 	h.health.Set(health)

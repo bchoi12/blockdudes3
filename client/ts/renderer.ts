@@ -56,7 +56,7 @@ class Renderer {
 	}
 
 	elm() : HTMLElement { return this._canvas; }
-	compile(mesh : THREE.Mesh) { this._renderer.compile(mesh, this._cameraController.camera()); }
+	compile(scene : THREE.Scene) { this._renderer.compile(scene, this._cameraController.camera()); }
 	render() : void {
 		if (options.enableEffects) {
 			this._effects.render(game.sceneMap().scene(), this._cameraController.camera());
@@ -80,12 +80,12 @@ class Renderer {
 
 	playSystemSound(sound : Sound) : void { this._audio.playSystemSound(sound); }
 	playSound(sound : Sound, pos : THREE.Vector2) : void {
-		const dist = new THREE.Vector2(pos.x - this._cameraController.target().x, pos.y - this._cameraController.target().y);
+		const dist = new THREE.Vector2(pos.x - this._cameraController.anchor().x, pos.y - this._cameraController.anchor().y);
 		this._audio.playSound(sound, dist);
 	}
 	playSound3D(sound : Sound, pos : THREE.Vector3) : void {
 		const dist = pos.clone();
-		dist.sub(this._cameraController.target());
+		dist.sub(this._cameraController.anchor());
 		this._audio.playSound3D(sound, dist);
 	}
 

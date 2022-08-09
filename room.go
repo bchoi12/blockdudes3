@@ -68,12 +68,12 @@ func NewRoom(roomName string, clientName string, ws *websocket.Conn) {
 			unregister: make(chan *Client),
 			unregisterQueue: make([]*Client, 0),
 
-			game: newGame(),
+			game: NewGame(),
 			ticker: time.NewTicker(frameTime),
 			gameTicks: 0,
 			statTicker: time.NewTicker(1 * time.Second),
 
-			chat: newChat(),
+			chat: NewChat(),
 
 			incoming: make(chan IncomingMsg),
 			incomingQueue: make([]IncomingMsg, 0),
@@ -96,71 +96,71 @@ func (r *Room) run() {
 
 	for {
 		select {
-			case client := <-r.register:
-				r.registerQueue = append(r.registerQueue, client)
-			case client := <-r.init:
-				r.initQueue = append(r.initQueue, client)
-			case client := <-r.unregister:
-				r.unregisterQueue = append(r.unregisterQueue, client)
-			case imsg := <-r.incoming:
-				r.incomingQueue = append(r.incomingQueue, imsg)
-			case _ = <-r.ticker.C:
+		case client := <-r.register:
+			r.registerQueue = append(r.registerQueue, client)
+		case client := <-r.init:
+			r.initQueue = append(r.initQueue, client)
+		case client := <-r.unregister:
+			r.unregisterQueue = append(r.unregisterQueue, client)
+		case imsg := <-r.incoming:
+			r.incomingQueue = append(r.incomingQueue, imsg)
+		case _ = <-r.ticker.C:
+			if len(r.clients) == 0 {
+				continue
+			}
+			r.game.updateState()
+			r.sendGameState()
+			r.gameTicks += 1
+		case _ = <-r.statTicker.C:
+			if len(r.clients) == 0 {
+				continue
+			}
+			log.Printf("FPS: %d", r.gameTicks)
+			r.gameTicks = 0
+		default:
+			if len(r.registerQueue) > 0 {
+				for _, client := range(r.registerQueue) {
+					err := r.registerClient(client)
+					if err != nil {
+						r.unregister <- client
+					}
+				}
+				r.registerQueue = r.registerQueue[:0]
+			}
+
+			if len(r.initQueue) > 0 {
+				for _, client := range(r.initQueue) {
+					err := r.initClient(client)
+					if err != nil {
+						r.unregister <- client
+					}
+				}
+				r.initQueue = r.initQueue[:0]
+			}
+
+			if len(r.unregisterQueue) > 0 {
+				for _, client := range(r.unregisterQueue) {
+					r.unregisterClient(client)
+				}
+				r.unregisterQueue = r.unregisterQueue[:0]
+
 				if len(r.clients) == 0 {
-					continue
+					return
 				}
-				r.game.updateState()
-				r.sendGameState()
-				r.gameTicks += 1
-			case _ = <-r.statTicker.C:
-				if len(r.clients) == 0 {
-					continue
-				}
-				log.Printf("FPS: %d", r.gameTicks)
-				r.gameTicks = 0
-			default:
-				if len(r.registerQueue) > 0 {
-					for _, client := range(r.registerQueue) {
-						err := r.registerClient(client)
-						if err != nil {
-							r.unregister <- client
-						}
-					}
-					r.registerQueue = r.registerQueue[:0]
-				}
+			}
 
-				if len(r.initQueue) > 0 {
-					for _, client := range(r.initQueue) {
-						err := r.initClient(client)
-						if err != nil {
-							r.unregister <- client
-						}
+			if len(r.incomingQueue) > 0 {
+				for _, imsg := range(r.incomingQueue) {
+					msg := Msg{}
+					err := Unpack(imsg.b, &msg)
+					if err != nil {
+						log.Printf("error unpacking: %v", err)
+						continue
 					}
-					r.initQueue = r.initQueue[:0]
+					r.processMsg(msg, imsg.client)
 				}
-
-				if len(r.unregisterQueue) > 0 {
-					for _, client := range(r.unregisterQueue) {
-						r.unregisterClient(client)
-					}
-					r.unregisterQueue = r.unregisterQueue[:0]
-
-					if len(r.clients) == 0 {
-						return
-					}
-				}
-
-				if len(r.incomingQueue) > 0 {
-					for _, imsg := range(r.incomingQueue) {
-						msg := Msg{}
-						err := Unpack(imsg.b, &msg)
-						if err != nil {
-							log.Printf("error unpacking: %v", err)
-							continue
-						}
-						r.processMsg(msg, imsg.client)
-					}
-					r.incomingQueue = r.incomingQueue[:0]
-				}
+				r.incomingQueue = r.incomingQueue[:0]
+			}
 		}
 	}
 }
@@ -245,9 +245,9 @@ func (r* Room) processMsg(msg Msg, c* Client) error {
 	case candidateType:
 		err = c.processWebRTCCandidate(msg.JSON)
 	case joinVoiceType:
-		err = r.joinVoice(c)
+		err = r.addVoiceClient(c)
 	case leftVoiceType:
-		err = r.leaveVoice(c)
+		err = r.removeVoiceClient(c)
 	case voiceCandidateType: fallthrough
 	case voiceOfferType: fallthrough
 	case voiceAnswerType:
@@ -293,14 +293,14 @@ func (r *Room) createClientMsg(msgType MessageType, c *Client, voice bool) Clien
 	return msg
 }
 
-func (r *Room) joinVoice(c *Client) error {
+func (r *Room) addVoiceClient(c *Client) error {
 	msg := r.createClientMsg(joinVoiceType, c, true)
 	r.send(&msg)
 	c.voice = true
 	return nil
 }
 
-func (r *Room) leaveVoice(c *Client) error {
+func (r *Room) removeVoiceClient(c *Client) error {
 	msg := r.createClientMsg(leftVoiceType, c, true)
 	r.send(&msg)
 	c.voice = false

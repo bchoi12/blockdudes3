@@ -8,6 +8,8 @@ const (
 	initializedProp
 	deletedProp
 
+	// TODO: add colorProp, byteAttributesProp
+
 	attributesProp
 	dimProp
 	posProp
@@ -16,6 +18,7 @@ const (
 	jerkProp
 	dirProp
 
+	// TODO: deprecate
 	equipTypeProp
 	equipDirProp
 

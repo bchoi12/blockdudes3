@@ -7,7 +7,7 @@ import { renderer } from './renderer.js'
 import { Util } from './util.js'
 
 export class RenderBolt extends RenderProjectile {
-	private readonly _material = new THREE.MeshStandardMaterial( {color: 0x62ed51 });
+	private readonly _material = new THREE.MeshStandardMaterial( {color: 0x47def5 });
 
 	private _light : THREE.PointLight;
 
@@ -38,9 +38,15 @@ export class RenderBolt extends RenderProjectile {
 		this._light = game.sceneMap().getPointLight();
 
 		if (Util.defined(this._light)) {
-			this._light.color = new THREE.Color(0xa3fa98);
-			this._light.intensity = 2.0;
-			this._light.distance = 4.0;
+			this._light.color = new THREE.Color(0x98fafa);
+
+			if (this.dim().x > 0.5) {
+				this._light.intensity = 4.0;
+				this._light.distance = 10.0;
+			} else {
+				this._light.intensity = 2.0;
+				this._light.distance = 4.0;
+			}
 			mesh.add(this._light);
 		}
 	}

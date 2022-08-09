@@ -91,7 +91,7 @@ func NewTrigger(weapon Weapon, space SpaceType) *Trigger {
 		t.SetReloadTime(1000 * time.Millisecond)
 		t.SetProjectileSize(NewVec2(0.3, 0.3))
 		t.SetProjectileDeleteOnRelease(true)
-		t.SetProjectileVel(25)
+		t.SetProjectileVel(30)
 		t.SetProjectileLimit(1)
 	}
 	t.Reload()

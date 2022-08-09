@@ -14,7 +14,7 @@ type Chat struct {
 	replacer *strings.Replacer
 }
 
-func newChat() *Chat {
+func NewChat() *Chat {
 	replacer := strings.NewReplacer(
 	    "\r\n", "",
 	    "\r", "",

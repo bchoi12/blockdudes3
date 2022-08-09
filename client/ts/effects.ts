@@ -48,6 +48,7 @@ export class Effects {
 			});
 			this._outlineSelection = outline.selection;
 
+			// TODO: add foreground pass before outline so bloom still works
 			this._composer.addPass(new RenderPass(scene, camera));
 			this._composer.addPass(new EffectPass(camera, selectiveBloom));
 			this._composer.addPass(new EffectPass(camera, outline));

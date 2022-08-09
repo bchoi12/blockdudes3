@@ -41,6 +41,7 @@ export class RenderRocket extends RenderProjectile {
 		super.setMesh(mesh);
 		mesh.rotation.y = Math.PI / 2;
 
+		/*
 		this._light = game.sceneMap().getPointLight();
 
 		if (Util.defined(this._light)) {
@@ -49,6 +50,7 @@ export class RenderRocket extends RenderProjectile {
 			this._light.distance = 6.0;
 			mesh.add(this._light);
 		}
+		*/
 	}
 
 	override update(msg : { [k: string]: any }, seqNum? : number) : void {

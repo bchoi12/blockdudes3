@@ -52,6 +52,11 @@ func (rp *RotPoly) SetPos(pos Vec2) {
 	rp.computeSides()
 }
 
+func (rp *RotPoly) SetDim(dim Vec2) {
+	rp.BaseProfile.SetDim(dim)
+	rp.computeSides()
+}
+
 func (rp *RotPoly) SetDir(dir Vec2) {
 	rp.BaseProfile.SetDir(dir)
 	rp.computeSides()

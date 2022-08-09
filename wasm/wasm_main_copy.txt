@@ -15,10 +15,9 @@ const (
 var game *Game
 
 func main() {
-	fmt.Println("WebAssembly loaded!")
-
 	setGlobals()
 	setGameAPI()
+	fmt.Println("WebAssembly loaded!")
 
     <-make(chan bool)
 }
@@ -109,7 +108,7 @@ func setGlobals() {
 }
 
 func setGameAPI() {
-	game = newGame()
+	game = NewGame()
 	js.Global().Set("wasmAdd", Add(game))
 	js.Global().Set("wasmHas", Has(game))
 	js.Global().Set("wasmDelete", Delete(game))

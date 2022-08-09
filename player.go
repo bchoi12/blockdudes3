@@ -45,6 +45,7 @@ type Player struct {
 	canJump bool
 	canDoubleJump bool
 	canDash bool
+	jetpack int
 
 	jumpTimer Timer
 	jumpGraceTimer Timer
@@ -83,6 +84,7 @@ func NewPlayer(init Init) *Player {
 		canJump: false,
 		canDoubleJump: true,
 		canDash: true,
+		jetpack: 100,
 
 		jumpTimer: NewTimer(jumpDuration),
 		jumpGraceTimer: NewTimer(jumpGraceDuration),
@@ -180,10 +182,19 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		p.Respawn()
 	}
 
-	pos := p.Pos()
-	vel := p.Vel()
-	acc := p.Acc()
 	grounded := p.HasAttribute(groundedAttribute)
+	acc := p.Acc()
+	vel := p.Vel()
+	pos := p.Pos()
+
+	if grounded {
+		p.jumpGraceTimer.Start()
+		p.canJump = true
+		p.canDoubleJump = true
+		p.canDash = true
+		p.jetpack = 100
+	}
+
 
 	// Gravity & air resistance
 	acc.Y = gravityAcc
@@ -211,14 +222,6 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 
 	vel.Add(p.Acc(), ts)
 
-	// Grounded actions
-	if grounded {
-		p.jumpGraceTimer.Start()
-		p.canJump = true
-		p.canDoubleJump = true
-		p.canDash = true
-	}
-
 	// Jump & double jump
 	if p.KeyDown(jumpKey) {
 		if p.canJump && p.jumpGraceTimer.On() {
@@ -235,14 +238,16 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 
 	if p.KeyDown(altMouseClick) {
 		weaponType := p.weapon.GetWeaponType()
-		if weaponType == bazookaWeapon {
-			// add JUICE
-			p.AddForce(NewVec2(0, 1))
+		if weaponType == bazookaWeapon && p.jetpack > 0 {
+			p.AddForce(NewVec2(0, 0.6))
+			p.jetpack -= 1
 		} else if weaponType == starWeapon && !grounded && p.canDash {
 			dash := p.Dir()
 			dash.Scale(4 * jumpVel)
 			vel.X = dash.X
 			vel.Y = dash.Y
+
+			// TODO: replace canDash with timer
 			p.canDash = false
 
 			p.knockbackTimer.Start()

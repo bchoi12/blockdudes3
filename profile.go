@@ -15,6 +15,10 @@ type Profile interface {
 	ProfileMath
 	DataMethods
 
+	Pos() Vec2
+	SetPos(pos Vec2)
+	Dim() Vec2
+	SetDim(dim Vec2)
 	Vel() Vec2
 	SetVel(vel Vec2)
 	Acc() Vec2

@@ -97,6 +97,12 @@ func (bw *BaseWeapon) SetWeaponType(weaponType WeaponType) {
 		bw.SetOffset(NewVec2(0.3, 0))
 	case sniperWeapon:
 		bw.triggers[primaryTrigger] = NewTrigger(bw, boltSpace)
+		bw.triggers[primaryTrigger].SetMaxAmmo(1)
+		bw.triggers[primaryTrigger].SetProjectileSize(NewVec2(0.6, 0.2))
+		bw.triggers[primaryTrigger].SetProjectileVel(45)
+		bw.triggers[primaryTrigger].SetReloadTime(2 * time.Second)
+		bw.triggers[primaryTrigger].Reload()
+
 		delete(bw.triggers, secondaryTrigger)
 		bw.SetOffset(NewVec2(0.6, 0))
 	case starWeapon:

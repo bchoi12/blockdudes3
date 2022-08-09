@@ -22,7 +22,19 @@ func NewBolt(init Init) *Bolt {
 	}
 	bolt.SetTTL(800 * time.Millisecond)
 	bolt.SetDamage(10)
+
+	if width > 0.5 {
+		bolt.Ultra()
+	}
+
 	return bolt
+}
+
+func (b *Bolt) Ultra() {
+	b.SetTTL(1600 * time.Millisecond)
+	b.SetDamage(80)
+	b.SetExplode(true)
+	b.SetExplosionSize(NewVec2(5, 5))
 }
 
 type Rocket struct {
@@ -120,6 +132,6 @@ func (h *GrapplingHook) OnDelete(grid *Grid) {
 		return
 	}
 	force.Normalize()
-	force.Scale(2 * h.attractFactor)
+	force.Scale(5 * h.attractFactor)
 	player.AddForce(force)
 }
