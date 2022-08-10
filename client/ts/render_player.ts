@@ -131,7 +131,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	}
 
 	weaponPos() : THREE.Vector3 {
-		if (!Util.defined(this._weapon) || !this._weapon.hasMesh()) {
+		if (!Util.defined(this._weapon) || !this._weapon.hasMesh() || !Util.defined(this._arm)) {
 			const pos = this.pos();
 			return new THREE.Vector3(pos.x, pos.y, 0);
 		}
@@ -144,13 +144,17 @@ export class RenderPlayer extends RenderAnimatedObject {
 	}
 
 	setWeapon(model : Model) {
-		if (this._weapon.hasMesh()) {
+		if (this._weapon.hasMesh() && Util.defined(this._arm)) {
 			this._arm.remove(this._weapon.mesh())
 		}
 		this._weapon.setModel(model);
 	}
 
 	shoot() : void {
+		if (!Util.defined(this._arm)) {
+			return;
+		}
+
 		const axis = new THREE.Vector3(1, 0, 0);
 		const recoil = new THREE.Vector3(0, 0, -0.1);
 		recoil.applyAxisAngle(axis, this._arm.rotation.x);
