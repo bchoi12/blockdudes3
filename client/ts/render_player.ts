@@ -30,10 +30,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private _arm : THREE.Object3D;
 	private _armOrigin : THREE.Vector3;
 
-	private _profileMesh : THREE.Mesh;
-	private _profilePoints : THREE.BufferGeometry;
-	private _profilePointsMesh : THREE.Points;
-
 	constructor(space : number, id : number) {
 		super(space, id);
 
@@ -70,23 +66,10 @@ export class RenderPlayer extends RenderAnimatedObject {
 		}
 		this.fadeOut(PlayerAction.Walk, 0);
 		this.fadeOut(PlayerAction.Jump, 0);
-
-		if (debugMode) {
-			this._profileMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), this._debugMaterial);
-			mesh.add(this._profileMesh);
-
-			const points = [];
-			points.push(0, 0, 0);
-			this._profilePoints = new THREE.BufferGeometry();
-			this._profilePoints.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
-
-			this._profilePointsMesh = new THREE.Points(this._profilePoints, this._pointsMaterial);
-			mesh.add(this._profilePointsMesh);
-		}
 	}
 
-	override update(msg : { [k: string]: any }, seqNum? : number) : void {
-		super.update(msg, seqNum);
+	override update() : void {
+		super.update();
 
 		if (!this.hasMesh()) {
 			return;
@@ -145,22 +128,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this.fadeOut(PlayerAction.Jump, 0.1);
 			this.fadeIn(PlayerAction.Idle, 0.1);
 		}
-
-		if (debugMode) {
-			const profilePos = msg[profilePosProp];
-			const profileDim = msg[profileDimProp];
-
-			this._profileMesh.scale.x = profileDim.X;
-			this._profileMesh.scale.y = profileDim.Y;
-
-			if (msg.hasOwnProperty(profilePointsProp)) {
-				const points = [];
-				msg[profilePointsProp].forEach((point) => {
-					points.push(point.X - pos.x, point.Y - pos.y, 0);
-				});
-				this._profilePoints.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
-			}
-		}
 	}
 
 	weaponPos() : THREE.Vector3 {
@@ -174,27 +141,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 		pos.y += this._weapon.mesh().position.y;
 		pos.y -= this.dim().y / 2;
 		return pos;
-	}
-
-	private setDir(dir : THREE.Vector2) {
-		if (!this.hasMesh()) {
-			return;
-		}
-
-		if (MathUtil.signPos(dir.x) != MathUtil.signPos(this._playerMesh.scale.z)) {
-			this._playerMesh.scale.z = MathUtil.signPos(dir.x);
-			this._playerMesh.rotation.y = Math.PI / 2 + Math.sign(this._playerMesh.scale.z) * this._rotationOffset;
-		}
-
-		const neck = this.mesh().getObjectByName("neck");
-		neck.rotation.x = dir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI : 0);
-	}
-
-	private setWeaponDir(weaponDir : THREE.Vector2) {
-		if (!this.hasMesh()) {
-			return;
-		}
-		this._arm.rotation.x = weaponDir.angle() * Math.sign(-this._playerMesh.scale.z) + (this._playerMesh.scale.z < 0 ? Math.PI / 2 : 3 * Math.PI / 2);	
 	}
 
 	setWeapon(model : Model) {
@@ -211,5 +157,25 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		this._arm.position.y = this._armOrigin.y - recoil.z;
 		this._arm.position.z = this._armOrigin.z + recoil.y;
+	}
+
+	private setDir(dir : THREE.Vector2) {
+		if (!this.hasMesh()) {
+			return;
+		}
+
+		if (MathUtil.signPos(dir.x) != MathUtil.signPos(this.mesh().scale.x)) {
+			this.mesh().scale.x = MathUtil.signPos(dir.x);
+		}
+
+		const neck = this.mesh().getObjectByName("neck");
+		neck.rotation.x = dir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI : 0);
+	}
+
+	private setWeaponDir(weaponDir : THREE.Vector2) {
+		if (!this.hasMesh()) {
+			return;
+		}
+		this._arm.rotation.x = weaponDir.angle() * Math.sign(-this.mesh().scale.x) + (this.mesh().scale.x < 0 ? Math.PI / 2 : 3 * Math.PI / 2);	
 	}
 }

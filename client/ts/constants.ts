@@ -1,6 +1,5 @@
 /* WASM variables */
 declare var frameMillis : number;
-declare var debugMode : boolean;
 
 declare var pingType: number;
 declare var candidateType : number;

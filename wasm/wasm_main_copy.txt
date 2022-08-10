@@ -24,7 +24,6 @@ func main() {
 
 func setGlobals() {
 	js.Global().Set("frameMillis", frameMillis)
-	js.Global().Set("debugMode", debugMode)
 
 	js.Global().Set("pingType", int(pingType))
 	js.Global().Set("candidateType", int(candidateType))
@@ -87,10 +86,6 @@ func setGlobals() {
 	js.Global().Set("killProp", int(killProp))
 	js.Global().Set("deathProp", int(deathProp))
 
-	js.Global().Set("profileDimProp", int(profileDimProp))
-	js.Global().Set("profilePosProp", int(profilePosProp))
-	js.Global().Set("profilePointsProp", int(profilePointsProp))
-
 	js.Global().Set("stairAttribute", int(stairAttribute))
 	js.Global().Set("platformAttribute", int(platformAttribute))
 	js.Global().Set("groundedAttribute", int(groundedAttribute))
@@ -129,13 +124,15 @@ func Add(g *Game) js.Func {
 		space := SpaceType(args[0].Int())
 		id := IdType(args[1].Int())
 		init := NewInit(Id(space, id))
-		data := getData(args[2])
 
 		object := g.add(init)
-
-		if object != nil {
-			object.SetData(data)
+		if object == nil {
+			fmt.Println("Add: failed to create object ", space, id)
+			return nil
 		}
+
+		data := getData(args[2])
+		object.SetData(data)
 		return nil
     })
 }
@@ -227,7 +224,6 @@ func SetData(g *Game) js.Func {
 		space := SpaceType(args[0].Int())
 		id := IdType(args[1].Int())
 		if !g.has(Id(space, id)) {
-			fmt.Println("SetData: Object does not exist: ", space, id)
 			return nil
 		}
 
@@ -276,96 +272,87 @@ func UpdateState(g *Game) js.Func {
 
 func getData(data js.Value) Data {
 	var prop js.Value
-	var err error
+	var ok bool
 	d := NewData()
 
-	prop, err = getPropData(data, initializedProp)
-	if err == nil {
+	/*
+	if prop, ok = getPropData(data, initializedProp); ok {
 		d.Set(initializedProp, prop.Bool())
 	}
 
-	prop, err = getPropData(data, deletedProp)
-	if err == nil {
+	if prop, ok = getPropData(data, deletedProp); ok {
 		d.Set(deletedProp, prop.Bool())
 	}
+	*/
 
-	prop, err = getPropData(data, attributesProp)
-	if err == nil {
+	if prop, ok = getPropData(data, attributesProp); ok {
 		d.Set(attributesProp, parseAttributesAsProp(prop.String()))
 	}
 
-	prop, err = getPropData(data, dimProp)
-	if err == nil {
+	if prop, ok = getPropData(data, dimProp); ok {
 		d.Set(dimProp, parseVec2(prop))
 	}
 
-	prop, err = getPropData(data, posProp)
-	if err == nil {
+	if prop, ok = getPropData(data, posProp); ok {
 		d.Set(posProp, parseVec2(prop))
 	}
 
-	prop, err = getPropData(data, velProp)
-	if err == nil {
+	if prop, ok = getPropData(data, velProp); ok {
 		d.Set(velProp, parseVec2(prop))
 	}
 
-	prop, err = getPropData(data, accProp)
-	if err == nil {
+	if prop, ok = getPropData(data, accProp); ok {
 		d.Set(accProp, parseVec2(prop))
 	}
 
-	prop, err = getPropData(data, jerkProp)
-	if err == nil {
+	if prop, ok = getPropData(data, jerkProp); ok {
 		d.Set(jerkProp, parseVec2(prop))
 	}
 
-	prop, err = getPropData(data, dirProp)
-	if err == nil {
+	if prop, ok = getPropData(data, dirProp); ok {
 		d.Set(dirProp, parseVec2(prop))
 	}
 
-	prop, err = getPropData(data, equipTypeProp)
-	if err == nil {
+	/*
+	if prop, ok = getPropData(data, equipTypeProp); ok {
 		d.Set(equipTypeProp, prop.Int())
 	}
+	*/
 
-	prop, err = getPropData(data, equipDirProp)
-	if err == nil {
+	if prop, ok = getPropData(data, equipDirProp); ok {
 		d.Set(equipDirProp, parseVec2(prop))
 	}
 
-	prop, err = getPropData(data, keysProp)
-	if err == nil {
+	/*
+	if prop, ok = getPropData(data, keysProp); ok {
 		d.Set(keysProp, parseKeysAsProp(prop.String()))
 	}
 
-	prop, err = getPropData(data, healthProp)
-	if err == nil {
+	if prop, ok = getPropData(data, healthProp); ok {
 		d.Set(healthProp, prop.Int())
 	}
 
-	prop, err = getPropData(data, ownerProp)
-	if err == nil {
+	if prop, ok = getPropData(data, ownerProp); ok {
 		d.Set(ownerProp, parseSpacedId(prop))
 	}
 
-	prop, err = getPropData(data, targetProp)
-	if err == nil {
+	if prop, ok = getPropData(data, targetProp); ok {
 		d.Set(targetProp, parseSpacedId(prop))
 	}
+	*/
 
 	// hitsProp not parsed.
 
 	return d
 }
 
-func getPropData(data js.Value, prop Prop) (js.Value, error) {
+func getPropData(data js.Value, prop Prop) (js.Value, bool) {
 	stringKey := strconv.Itoa(int(prop))
 	propData := data.Get(stringKey)
 	if propData.IsNull() || propData.IsNaN() || propData.IsUndefined() {
-		return propData, fmt.Errorf("Prop data is missing for %d", prop)
+		return propData, false
 	}
-	return propData, nil
+	return propData, true
 }
 
 func parseSpacedId(sid js.Value) SpacedId {

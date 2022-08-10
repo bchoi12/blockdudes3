@@ -39,6 +39,10 @@ class Game {
 	private _lastSeqNum : number;
 
 	constructor() {
+		this.reset();
+	}
+
+	reset() : void {
 		this._id = -1;
 		this._state = GameState.PAUSED;
 
@@ -68,11 +72,13 @@ class Game {
 		if (this.state() === GameState.GAME) {
 			this._keys.snapshotKeys();
 			this.extrapolateState();
+		}
+		this.sceneMap().update()
+
+		if (this.state() === GameState.GAME) {
 			this.updateCamera();
 			this.extrapolatePlayer();
 		}
-
-		this.sceneMap().updateComponents()
 		renderer.render();
 		requestAnimationFrame(() => { this.animate(); });
 	}
@@ -86,7 +92,7 @@ class Game {
 				return;
 			}
 			this.sceneMap().add(playerSpace, id, new RenderPlayer(playerSpace, id));
-			this.sceneMap().update(playerSpace, id, data);
+			this.sceneMap().setData(playerSpace, id, data);
 		}
 
 		connection.addSender(keyType, () => {
@@ -159,7 +165,7 @@ class Game {
 					this.sceneMap().add(space, id, renderObj);
 				}
 
-				this.sceneMap().update(space, id, object, seqNum);
+				this.sceneMap().setData(space, id, object, seqNum);
 			}
 		}
 	}
@@ -177,18 +183,17 @@ class Game {
 			return;
 		}
 
-		this.updateKeys();
+		this.sceneMap().snapshotWasm();
 		const state = JSON.parse(wasmUpdateState());
 		for (const [stringSpace, objects] of Object.entries(state.Os) as [string, any]) {
 			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
 				const space = Number(stringSpace);
 				const id = Number(stringId);
 				if (!this.sceneMap().has(space, id)) {
-					console.error("Extrapolated nonexistent object: " + space + " " + id);
 					continue;
 				}
 
-				this.sceneMap().update(space, id, object);
+				this.sceneMap().setData(space, id, object);
 			}
 		}
 	}
@@ -197,10 +202,15 @@ class Game {
 		if (!this.sceneMap().has(playerSpace, this.id())) {
 			return;
 		}
+		if (!wasmHas(playerSpace, this.id())) {
+			return;
+		}
 
+		let player = this.sceneMap().get(playerSpace, this.id());
+		wasmSetData(playerSpace, this.id(), player.data());
 		this.updateKeys();
-		const data : Object = JSON.parse(wasmGetData(playerSpace, this.id()));
-		this.sceneMap().update(playerSpace, this.id(), data);
+		player.setData(JSON.parse(wasmGetData(playerSpace, this.id())));
+		player.update();
 	}
 
 	private initLevel(msg : { [k: string]: any }) : void {
@@ -208,13 +218,13 @@ class Game {
 
 		const level = JSON.parse(wasmLoadLevel(msg.L));
 		for (const [stringSpace, objects] of Object.entries(level.Os) as [string, any]) {
-			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
+			for (const [stringId, data] of Object.entries(objects) as [string, any]) {
 				const space = Number(stringSpace);
 				const id = Number(stringId);
 
 				const wall = new RenderWall(space, id);
 				this.sceneMap().add(space, id, wall);
-				this.sceneMap().update(space, id, object, 0);
+				this.sceneMap().setData(space, id, data, /*seqNum=*/0);
 			}
 		}
 	}

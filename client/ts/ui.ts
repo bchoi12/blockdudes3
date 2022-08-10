@@ -75,7 +75,8 @@ class UI {
 
 	// TODO: add something better for disconnect
 	disconnected() : void {
-		game.setState(GameState.PAUSED);
+		game.reset();
+		this.changeInputMode(InputMode.LOGIN);
 		this.print("Error: disconnected from server.")
 	}
 	print(message : string) : void { this._chatHandler.print(message); }

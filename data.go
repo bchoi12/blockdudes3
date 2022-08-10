@@ -30,11 +30,6 @@ const (
 
 	killProp
 	deathProp
-
-	// debug props
-	profileDimProp
-	profilePosProp
-	profilePointsProp
 )
 
 type PropMap map[Prop]interface{}

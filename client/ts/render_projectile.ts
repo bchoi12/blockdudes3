@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { Sound } from './audio.js'
 import { game } from './game.js'
 import { RenderObject } from './render_object.js'
+import { RenderPlayer } from './render_player.js'
 import { renderer } from './renderer.js'
 import { Util } from './util.js'
 
@@ -32,8 +33,8 @@ export class RenderProjectile extends RenderObject {
 		super.initialize();
 
 		const owner = this.owner();
-		if (owner.valid() && owner.space() === playerSpace) {
-			const player : any = game.sceneMap().get(owner.space(), owner.id());
+		if (owner.valid() && owner.space() === playerSpace && game.sceneMap().has(owner.space(), owner.id())) {
+			const player : RenderPlayer = game.sceneMap().getAsAny(owner.space(), owner.id());
 			player.shoot();
 		}
 
@@ -42,8 +43,8 @@ export class RenderProjectile extends RenderObject {
 		}
 	}
 
-	override update(msg : { [k: string]: any }, seqNum? : number) : void {
-		super.update(msg, seqNum);
+	override update() : void {
+		super.update();
 
 		if (!this.hasMesh()) {
 			return;

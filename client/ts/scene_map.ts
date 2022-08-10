@@ -53,9 +53,36 @@ export class SceneMap {
 		return this._components.get(type);
 	}
 
-	updateComponents() : void {
+	update() : void {
 		this._components.forEach((component, type) => {
 			component.update();
+		});
+
+		this._renders.forEach((map, space) => {
+			map.forEach((object, id) => {
+				if (object.deleted()) {
+					this.delete(space, id);
+				}
+				if (!object.ready()) {
+					return;
+				}
+				if (!object.initialized()) {
+					object.initialize();
+				}
+				object.update();
+			});
+		});
+	}
+
+	snapshotWasm() : void {
+		this._renders.forEach((map, space) => {
+			map.forEach((object, id) => {
+				if (!object.ready() || !object.initialized() || object.deleted()) {
+					return;
+				}
+
+				wasmSetData(space, id, object.data());
+			});
 		});
 	}
 
@@ -108,7 +135,6 @@ export class SceneMap {
 		if (map.has(id)) {
 			map.get(id).delete();
 			this._scene.remove(map.get(id).mesh());
-			wasmDelete(space, id);
 			map.delete(id);
 
 			if (!this._deleted.has(space)) {
@@ -134,7 +160,7 @@ export class SceneMap {
 		});
 	}
 
-	update(space : number, id : number, msg : { [k: string]: any }, seqNum?: number) : void {
+	setData(space : number, id : number, msg : { [k: string]: any }, seqNum?: number) : void {
 		const map = this.getMap(space);
 		const object = map.get(id);
 
@@ -142,19 +168,6 @@ export class SceneMap {
 			this.delete(space, id);
 			return;
 		}
-
-		object.update(msg, seqNum);
-
-		if (!object.initialized() && object.ready()) {
-			object.initialize();
-		}
-
-		if (wasmHas(space, id)) {
-			wasmSetData(space, id, object.newData());
-		}
-
-		if (object.deleted()) {
-			this.delete(space, id);
-		}
+		object.setData(msg, seqNum);
 	}
 }

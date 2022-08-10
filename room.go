@@ -178,6 +178,8 @@ func (r *Room) registerClient(client *Client) error {
 func (r *Room) initClient(client *Client) error {
 	var err error
 
+	r.clients[client.id] = client
+
 	err = r.updateClients(joinType, client)
 	if err != nil {
 		return err
@@ -206,7 +208,6 @@ func (r *Room) initClient(client *Client) error {
 		client.Send(&chatMsg)
 	}
 
-	r.clients[client.id] = client
 	log.Printf("New client %s initialized in %s, total=%d", client.GetDisplayName(), r.id, len(r.clients))
 	return nil
 }

@@ -35,8 +35,8 @@ export class RenderExplosion extends RenderObject {
 		this.scale(0.1);
 	}
 
-	override update(msg : { [k: string]: any }, seqNum? : number) : void {
-		super.update(msg, seqNum);
+	override update() : void {
+		super.update();
 
 		if (!this.hasMesh()) {
 			return;

@@ -32,8 +32,8 @@ export class RenderAnimatedObject extends RenderObject {
 		this._mixer = new THREE.AnimationMixer(mesh);
 	}
 
-	override update(msg : { [k: string]: any }, seqNum? : number) : void {
-		super.update(msg, seqNum);
+	override update() : void {
+		super.update();
 
 		if (!Util.defined(this._mixer)) {
 			return;

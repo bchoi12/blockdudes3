@@ -110,12 +110,6 @@ func (p Player) GetData() Data {
 	data.Set(equipDirProp, p.weapon.Dir())
 	data.Set(keysProp, p.GetKeys())
 
-	if (debugMode) {
-		data.Set(profilePosProp, p.Pos())
-		data.Set(profileDimProp, p.Dim())
-		data.Set(profilePointsProp, p.GetSubProfile(bodySubProfile).Profile.(*RotPoly).points)
-	}
-
 	return data
 }
 

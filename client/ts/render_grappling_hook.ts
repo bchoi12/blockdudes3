@@ -45,8 +45,8 @@ export class RenderGrapplingHook extends RenderProjectile {
 		this.setMesh(group);
 	}
 
-	override update(msg : { [k: string]: any }, seqNum? : number) : void {
-		super.update(msg, seqNum);
+	override update() : void {
+		super.update();
 
 		if (!this.hasMesh()) {
 			return;

@@ -22,18 +22,5 @@ export class RenderWall extends RenderObject {
 
 		this.setMesh(mesh);
 	}
-
-	override update(msg : { [k: string]: any }, seqNum? : number) : void {
-		super.update(msg, seqNum);
-
-		if (!this.hasMesh() || !this.hasPos()) {
-			return;
-		}
-
-		const mesh = this.mesh();
-		const pos = this.pos();
-		mesh.position.x = pos.x;
-		mesh.position.y = pos.y;
-	}
 }
 

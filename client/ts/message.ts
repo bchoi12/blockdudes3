@@ -20,23 +20,33 @@ export class Message {
 		[keysProp, OverwriteMethod.REPLACE_ALL],
 	]);
 
-	private _newData : Map<number, any>;
 	private _data : Map<number, any>;
 	private _maps : Map<number, Map<number, boolean>>;
 	private _seqNum : Map<number, number>;
 	private _lastUpdate : number;
 
 	constructor() {
-		this._newData = new Map<number, any>();
 		this._data = new Map<number, any>();
 		this._maps = new Map<number, Map<number, boolean>>();
 		this._seqNum = new Map<number, number>();
 		this._lastUpdate = Date.now();
 	}
 
-	update(msg : { [k: string]: any }, seqNum? : number) {
+	setData(msg : { [k: string]: any }, seqNum? : number) {
 		this.sanitizeData(msg);
-		this._newData = new Map();
+
+		// Copied from profile.go
+		if (Util.defined(seqNum)) {
+			if (this._data.has(velProp) && !msg.hasOwnProperty(velProp)) {
+				this._data.set(velProp, {X: 0, Y: 0});
+			}
+			if (this._data.has(accProp) && !msg.hasOwnProperty(accProp)) {
+				this._data.set(accProp, {X: 0, Y: 0});
+			}
+			if (this._data.has(jerkProp) && !msg.hasOwnProperty(jerkProp)) {
+				this._data.set(jerkProp, {X: 0, Y: 0});
+			}
+		}
 
 		const millisElapsed = Date.now() - this._lastUpdate;
 		const weight = Math.min(millisElapsed / (frameMillis * options.extrapolateFrames), 1) * options.extrapolateWeight;
@@ -46,27 +56,19 @@ export class Message {
 
 			if (!Util.defined(seqNum)) {
 				if (this._weightedExtrapolateProps.has(prop) && this._data.has(prop)) {
-					this._newData.set(prop, this.extrapolateVec2(this.get(prop), data, weight));
+					this._data.set(prop, this.extrapolateVec2(this.get(prop), data, weight));
 				} else {
-					this._newData.set(prop, data);
+					this._data.set(prop, data);
 				}
 			} else if (!this.has(prop) || !this._seqNum.has(prop) || seqNum >= this._seqNum.get(prop)) {
-				this._newData.set(prop, data);
+				this._data.set(prop, data);
 				this._seqNum.set(prop, seqNum);
 			}
-		}
-
-		for (const [prop, data] of this._newData) {
-			this._data.set(prop, data);
 		}
 	}
 
 	data() : { [k: string]: any } {
 		return Object.fromEntries(this._data);
-	}
-
-	newData() : { [k: string]: any} {
-		return Object.fromEntries(this._newData);
 	}
 
 	has(prop : number) : boolean {

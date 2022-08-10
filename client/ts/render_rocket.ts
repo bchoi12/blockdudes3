@@ -32,6 +32,8 @@ export class RenderRocket extends RenderProjectile {
 	}
 
 	override delete() : void {
+		super.delete();
+
 		if (Util.defined(this._light)) {
 			this._light.intensity = 0;
 		}
@@ -53,8 +55,8 @@ export class RenderRocket extends RenderProjectile {
 		*/
 	}
 
-	override update(msg : { [k: string]: any }, seqNum? : number) : void {
-		super.update(msg, seqNum);
+	override update() : void {
+		super.update();
 
 		if (!this.hasMesh()) {
 			return;

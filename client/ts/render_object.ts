@@ -22,8 +22,8 @@ export class RenderObject extends RenderMesh {
 		this._id = id;
 		this._msg = new Message();
 		this._initialized = false;
-		this._lastUpdate = Date.now();
 		this._timestep = 0;
+		this._lastUpdate = Date.now();
 	}
 
 	override setMesh(mesh : THREE.Object3D) : void {
@@ -39,7 +39,6 @@ export class RenderObject extends RenderMesh {
 
 	msg() : Message { return this._msg; }
 	data() : { [k: string]: any } { return this._msg.data(); }
-	newData() : { [k: string]: any } { return this._msg.newData(); }
 
 	space() : number { return this._space; }
 	id() : number { return this._id; }
@@ -50,17 +49,30 @@ export class RenderObject extends RenderMesh {
 			return;
 		}
 
-		this.maybeUpdateMeshPosition();
 		wasmAdd(this.space(), this.id(), this.data());
 		this._initialized = true;
+	}
+
+	delete() : void {
+		wasmDelete(this.space(), this.id());
 	}
 
 	initialized() : boolean { return this._initialized; }
 	ready() : boolean { return this._msg.has(posProp) && this._msg.has(dimProp); }
 
-	update(msg : { [k: string]: any }, seqNum? : number) : void {
-		this._msg.update(msg, seqNum);
-		this.maybeUpdateMeshPosition();
+	setData(msg : { [k: string]: any }, seqNum? : number) : void {
+		this._msg.setData(msg, seqNum);
+	}
+
+	update() : void {
+		if (!this.hasMesh() || !this.hasPos()) {
+			return;
+		}
+
+		let mesh = this.mesh();
+		const pos = this.pos();
+		mesh.position.x = pos.x;
+		mesh.position.y = pos.y;
 
 		this._timestep = (Date.now() - this._lastUpdate) / 1000;
 		this._lastUpdate = Date.now();
@@ -173,16 +185,5 @@ export class RenderObject extends RenderMesh {
 			return this._msg.get(deathProp);
 		}
 		return 0;
-	}
-
-	private maybeUpdateMeshPosition() {
-		if (!this.hasMesh() || !this.hasPos()) {
-			return;
-		}
-
-		let mesh = this.mesh();
-		const pos = this.pos();
-		mesh.position.x = pos.x;
-		mesh.position.y = pos.y;
 	}
 }

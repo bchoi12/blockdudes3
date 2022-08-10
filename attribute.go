@@ -68,7 +68,9 @@ func (a Attribute) GetData() Data {
 			newAttributes[attribute] = a.attributes[attribute]
 		}
 	}
-	data.Set(attributesProp, newAttributes)
+	if len(newAttributes) > 0 {
+		data.Set(attributesProp, newAttributes)
+	}
 
 	return data
 }
@@ -86,7 +88,10 @@ func (a Attribute) GetUpdates() Data {
 			newAttributes[attribute] = a.attributes[attribute]
 		}
 	}
-	updates.Set(attributesProp, newAttributes)
+
+	if len(newAttributes) > 0 {
+		updates.Set(attributesProp, newAttributes)
+	}
 	return updates
 }
 

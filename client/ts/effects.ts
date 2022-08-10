@@ -10,6 +10,7 @@ import {
 	SelectiveBloomEffect,
 } from "postprocessing";
 
+import { options } from './options.js'
 import { Util } from './util.js'
 
 export class Effects {
@@ -61,6 +62,9 @@ export class Effects {
 	}
 
 	addBloom(object : THREE.Object3D) : void {
+		if (!options.enableEffects) {
+			return;
+		}
 		if (!Util.defined(this._bloomSelection)) {
 			console.error("Attempting to add object bloom before effects initialization.")
 			return;
@@ -69,6 +73,9 @@ export class Effects {
 	}
 
 	removeBloom(object : THREE.Object3D) : void {
+		if (!options.enableEffects) {
+			return;
+		}
 		if (!Util.defined(this._bloomSelection)) {
 			console.error("Attempting to remove object bloom before effects initialization.")
 			return;
@@ -77,6 +84,9 @@ export class Effects {
 	}
 
 	addOutline(object : THREE.Object3D) : void {
+		if (!options.enableEffects) {
+			return;
+		}
 		if (!Util.defined(this._outlineSelection)) {
 			console.error("Attempting to add object outline before effects initialization.")
 			return;
@@ -85,6 +95,9 @@ export class Effects {
 	}
 
 	removeOutline(object : THREE.Object3D) : void {
+		if (!options.enableEffects) {
+			return;
+		}
 		if (!Util.defined(this._outlineSelection)) {
 			console.error("Attempting to remove object outline before effects initialization.")
 			return;

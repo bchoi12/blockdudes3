@@ -37,8 +37,8 @@ export class RenderPickup extends RenderObject {
 		renderer.addOutline(mesh.getObjectByName("mesh"));
 	}
 
-	override update(msg : { [k: string]: any }, seqNum? : number) : void {
-		super.update(msg, seqNum);
+	override update() : void {
+		super.update();
 
 		if (!this.hasMesh()) {
 			return;

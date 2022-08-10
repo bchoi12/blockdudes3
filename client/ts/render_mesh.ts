@@ -43,8 +43,4 @@ export class RenderMesh {
 			this._onMeshLoad.push(onMeshLoad);
 		}
 	}
-
-	delete() : void {
-		return;
-	}
 }
