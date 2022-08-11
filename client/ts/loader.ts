@@ -38,12 +38,7 @@ class Loader {
 
 			this._paths.set(Model[model], this._modelPrefix + model.toLowerCase() + ".glb");
 		}
-	}
-
-	preload(models : Array<Model>) : void {
-		models.forEach((model) => {
-			this.load(model, (mesh) => {}); 
-		});
+		this.preload();
 	}
 
 	load(model : Model, cb : (any) => void) : void {
@@ -70,6 +65,16 @@ class Loader {
 				return Model.STAR_GUN;
 		}
 		return Model.UNKNOWN;
+	}
+
+	private preload() : void {
+		for (const model in Model) {
+			if (model.length === 0) {
+				continue;
+			}
+
+			this.load(Model[model], () => {});
+		}
 	}
 
 	private process(model : Model, data : any) : void {

@@ -22,6 +22,13 @@ export class RenderExplosion extends RenderObject {
 	override initialize() : void {
 		super.initialize();
 		const mesh = new THREE.Mesh(new THREE.SphereGeometry(this.dim().x / 2, 12, 8), this._material);
+
+		if (this.dim().x >= 5) {
+			mesh.material.color = new THREE.Color(0x47def5);
+		} else if (this.dim().x <= 1) {
+			mesh.material.color = new THREE.Color(0xEFA8F6);
+		}
+
 		this.setMesh(mesh);
 	}
 
@@ -43,7 +50,7 @@ export class RenderExplosion extends RenderObject {
 		}
 
 		if (this._scale < 1) {
-			this._scale = Math.min(this._scale + 0.15, 1);
+			this._scale = Math.min(this._scale + this.timestep() * 12, 1);
 			this.scale(this._scale);
 		}
 

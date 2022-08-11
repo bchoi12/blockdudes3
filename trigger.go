@@ -67,9 +67,9 @@ func NewTrigger(weapon Weapon, space SpaceType) *Trigger {
 
 	switch space {
 	case boltSpace:
-		t.SetMaxAmmo(3)
+		t.SetMaxAmmo(1)
 		t.SetAmmoReloadTime(100 * time.Millisecond)
-		t.SetReloadTime(400 * time.Millisecond)
+		t.SetReloadTime(180 * time.Millisecond)
 		t.SetProjectileSize(NewVec2(0.22, 0.1))
 		t.SetProjectileVel(30)
 	case rocketSpace:

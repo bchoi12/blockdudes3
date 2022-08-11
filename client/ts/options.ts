@@ -18,7 +18,7 @@ class Options {
 	constructor() {
 		THREE.Cache.enabled = true;
 
-		this.fullClientPrediction = false;
+		this.fullClientPrediction = true;
 		this.pointerLock = true;
 		this.enableShadows = true;
 		this.enableEffects = true;

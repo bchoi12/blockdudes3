@@ -81,7 +81,7 @@ export class SceneMap {
 					return;
 				}
 
-				wasmSetData(space, id, object.data());
+				object.snapshotWasm();
 			});
 		});
 	}

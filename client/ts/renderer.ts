@@ -23,15 +23,14 @@ class Renderer {
 
 	constructor() {
 		this._canvas = Html.elm(this._elmRenderer);
-		this._audio = new Audio();
-		this._cameraController = new CameraController(this._canvas.offsetWidth / this._canvas.offsetHeight);
-		this._mousePixels = new THREE.Vector2(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2);
-
 		this._renderCounter = 0;
 		this._fps = 0;
 		this.updateFPS();
 
-		// Settings from github.com/pmndrs/postprocessing
+		this._audio = new Audio();
+		this._cameraController = new CameraController(this._canvas.offsetWidth / this._canvas.offsetHeight);
+		this._mousePixels = new THREE.Vector2(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2);
+
 		this._renderer = new THREE.WebGLRenderer({
 			canvas: this._canvas,
 			powerPreference: "high-performance",
@@ -44,15 +43,19 @@ class Renderer {
 		this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
 		this._renderer.toneMappingExposure = 1.0;
 
+		this.reset();
+
+		window.onresize = () => { this.resizeCanvas(); };
+	}
+
+	reset() : void {
 		if (options.enableShadows) {
 			this._renderer.shadowMap.enabled = true;
 			this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		}
-
+		
 		this._effects = new Effects(this._renderer);
-
 		this.resizeCanvas();
-		window.onresize = () => { this.resizeCanvas(); };
 	}
 
 	elm() : HTMLElement { return this._canvas; }

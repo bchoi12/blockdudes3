@@ -135,9 +135,10 @@ class Connection {
 			console.log("Successfully created websocket");
 			LogUtil.d("Successfully connected to " + endpoint);
 
-			socketSuccess();
-			this._pinger = new Pinger();
-			
+			if (!Util.defined(this._pinger)) {
+				this._pinger = new Pinger();
+			}
+			socketSuccess();		
 			this.initWebRTC(dcSuccess);
 		};
 		this._ws.onmessage = (event) => {	

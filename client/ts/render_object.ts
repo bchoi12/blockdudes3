@@ -14,6 +14,7 @@ export class RenderObject extends RenderMesh {
 
 	private _timestep : number;
 	private _lastUpdate : number;
+	private _wasmLastSeqNum : number;
 
 	constructor(space : number, id : number) {
 		super();
@@ -24,6 +25,7 @@ export class RenderObject extends RenderMesh {
 		this._initialized = false;
 		this._timestep = 0;
 		this._lastUpdate = Date.now();
+		this._wasmLastSeqNum = 0;
 	}
 
 	override setMesh(mesh : THREE.Object3D) : void {
@@ -37,11 +39,15 @@ export class RenderObject extends RenderMesh {
 		mesh.name = new SpacedId(this._space, this._id).toString();
 	}
 
+	space() : number { return this._space; }
+	id() : number { return this._id; }
 	msg() : Message { return this._msg; }
 	data() : { [k: string]: any } { return this._msg.data(); }
 
-	space() : number { return this._space; }
-	id() : number { return this._id; }
+	timestep() : number { return this._timestep; }
+	ready() : boolean { return this._msg.has(posProp) && this._msg.has(dimProp); }
+	initialized() : boolean { return this._initialized; }
+	deleted() : boolean { return this._msg.has(deletedProp) && this._msg.get(deletedProp); }
 
 	initialize() : void {
 		if (this.initialized()) {
@@ -50,18 +56,19 @@ export class RenderObject extends RenderMesh {
 		}
 
 		wasmAdd(this.space(), this.id(), this.data());
+		this._wasmLastSeqNum = this.msg().lastSeqNum();
 		this._initialized = true;
 	}
 
-	delete() : void {
-		wasmDelete(this.space(), this.id());
-	}
-
-	initialized() : boolean { return this._initialized; }
-	ready() : boolean { return this._msg.has(posProp) && this._msg.has(dimProp); }
-
 	setData(msg : { [k: string]: any }, seqNum? : number) : void {
 		this._msg.setData(msg, seqNum);
+	}
+
+	snapshotWasm() : void {
+		if (this.msg().lastSeqNum() > this._wasmLastSeqNum) {
+			wasmSetData(this.space(), this.id(), this.data());
+			this._wasmLastSeqNum = this.msg().lastSeqNum();
+		}
 	}
 
 	update() : void {
@@ -78,12 +85,8 @@ export class RenderObject extends RenderMesh {
 		this._lastUpdate = Date.now();
 	}
 
-	timestep() : number {
-		return this._timestep;
-	}
-
-	deleted() : boolean {
-		return this._msg.has(deletedProp) && this._msg.get(deletedProp);
+	delete() : void {
+		wasmDelete(this.space(), this.id());
 	}
 
 	hasAttributes() : boolean { return this._msg.has(attributesProp); }

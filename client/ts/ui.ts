@@ -76,6 +76,7 @@ class UI {
 	// TODO: add something better for disconnect
 	disconnected() : void {
 		game.reset();
+		renderer.reset();
 		this.changeInputMode(InputMode.LOGIN);
 		this.print("Error: disconnected from server.")
 	}

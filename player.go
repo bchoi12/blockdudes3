@@ -33,6 +33,7 @@ const (
 	jumpDuration time.Duration = 300 * time.Millisecond
 	jumpGraceDuration time.Duration = 100 * time.Millisecond
 	knockbackDuration time.Duration = 150 * time.Millisecond
+	dashCooldown time.Duration = 1000 * time.Millisecond
 
 	bodySubProfile ProfileKey = 1
 )
@@ -44,12 +45,12 @@ type Player struct {
 
 	canJump bool
 	canDoubleJump bool
-	canDash bool
 	jetpack int
 
 	jumpTimer Timer
 	jumpGraceTimer Timer
 	knockbackTimer Timer
+	dashTimer Timer
 }
 
 func NewPlayer(init Init) *Player {
@@ -83,12 +84,12 @@ func NewPlayer(init Init) *Player {
 
 		canJump: false,
 		canDoubleJump: true,
-		canDash: true,
 		jetpack: 100,
 
 		jumpTimer: NewTimer(jumpDuration),
 		jumpGraceTimer: NewTimer(jumpGraceDuration),
 		knockbackTimer: NewTimer(knockbackDuration),
+		dashTimer: NewTimer(1500 * time.Millisecond),
 	}
 	player.Respawn()
 	return player
@@ -185,7 +186,6 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		p.jumpGraceTimer.Start()
 		p.canJump = true
 		p.canDoubleJump = true
-		p.canDash = true
 		p.jetpack = 100
 	}
 
@@ -220,7 +220,6 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	if p.KeyDown(jumpKey) {
 		if p.canJump && p.jumpGraceTimer.On() {
 			p.canJump = false
-			p.canDash = true
 			vel.Y = Max(0, vel.Y) + jumpVel
 			p.jumpTimer.Start()
 		} else if p.KeyPressed(jumpKey) && p.canDoubleJump {
@@ -235,19 +234,12 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		if weaponType == bazookaWeapon && p.jetpack > 0 {
 			p.AddForce(NewVec2(0, 0.6))
 			p.jetpack -= 1
-		} else if weaponType == starWeapon && !grounded && p.canDash {
+		} else if weaponType == starWeapon && !grounded && !p.dashTimer.On() {
 			dash := p.Dir()
 			dash.Scale(4 * jumpVel)
 			vel.X = dash.X
 			vel.Y = dash.Y
-
-			// TODO: replace canDash with timer
-			p.canDash = false
-
-			p.knockbackTimer.Start()
-			if vel.Y > 0 {
-				p.jumpTimer.Start()
-			}
+			p.dashTimer.Start()
 		}
 	}
 

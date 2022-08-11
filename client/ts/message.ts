@@ -23,20 +23,24 @@ export class Message {
 	private _data : Map<number, any>;
 	private _maps : Map<number, Map<number, boolean>>;
 	private _seqNum : Map<number, number>;
+	private _lastSeqNum : number;
 	private _lastUpdate : number;
 
 	constructor() {
 		this._data = new Map<number, any>();
 		this._maps = new Map<number, Map<number, boolean>>();
 		this._seqNum = new Map<number, number>();
+		this._lastSeqNum = 0;
 		this._lastUpdate = Date.now();
 	}
 
 	setData(msg : { [k: string]: any }, seqNum? : number) {
 		this.sanitizeData(msg);
 
-		// Copied from profile.go
 		if (Util.defined(seqNum)) {
+			this._lastSeqNum = Math.max(seqNum, this._lastSeqNum);
+
+			// Copied from profile.go
 			if (this._data.has(velProp) && !msg.hasOwnProperty(velProp)) {
 				this._data.set(velProp, {X: 0, Y: 0});
 			}
@@ -67,13 +71,10 @@ export class Message {
 		}
 	}
 
-	data() : { [k: string]: any } {
-		return Object.fromEntries(this._data);
-	}
-
-	has(prop : number) : boolean {
-		return this._data.has(prop);
-	}
+	data() : { [k: string]: any } { return Object.fromEntries(this._data); }
+	has(prop : number) : boolean { return this._data.has(prop); }
+	lastSeqNum() : number { return this._lastSeqNum; }
+	lastUpdate() : number { return this._lastUpdate; }
 
 	get(prop : number) : any {
 		if (this._mapProps.has(prop)) {
@@ -81,10 +82,6 @@ export class Message {
 		}
 
 		return this._data.get(prop);
-	}
-
-	lastUpdate() : number {
-		return this._lastUpdate;
 	}
 
 	private sanitizeData(data : Object) : void {
