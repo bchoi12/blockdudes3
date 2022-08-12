@@ -180,6 +180,8 @@ func (bp BaseProfile) GetData() Data {
 		data.Set(jerkProp, bp.Jerk())
 	}
 
+	// TODO: set dir here if it ever changes
+
 	return data
 }
 
@@ -221,6 +223,10 @@ func (bp *BaseProfile) SetData(data Data) {
 		bp.SetJerk(data.Get(jerkProp).(Vec2))
 	} else {
 		bp.SetJerk(NewVec2(0, 0))
+	}
+
+	if data.Has(dirProp) {
+		bp.SetDir(data.Get(dirProp).(Vec2))
 	}
 
 	if data.Has(dimProp) {

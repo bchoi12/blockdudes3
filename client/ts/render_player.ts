@@ -168,12 +168,20 @@ export class RenderPlayer extends RenderAnimatedObject {
 			return;
 		}
 
-		if (MathUtil.signPos(dir.x) != MathUtil.signPos(this.mesh().scale.x)) {
-			this.mesh().scale.x = MathUtil.signPos(dir.x);
-		}
+		let neck = this.mesh().getObjectByName("neck");
 
-		const neck = this.mesh().getObjectByName("neck");
-		neck.rotation.x = dir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI : 0);
+		if (this.attribute(deadAttribute)) {
+			neck.rotation.x = 0;
+			this.mesh().rotation.z = MathUtil.signPos(this.mesh().scale.x) * Math.PI / 2;
+			return;
+		} else {
+			this.mesh().rotation.z = 0;
+			neck.rotation.x = dir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI : 0);
+
+			if (MathUtil.signPos(dir.x) != MathUtil.signPos(this.mesh().scale.x)) {
+				this.mesh().scale.x = MathUtil.signPos(dir.x);
+			}
+		}
 	}
 
 	private setWeaponDir(weaponDir : THREE.Vector2) {

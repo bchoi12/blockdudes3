@@ -17,18 +17,19 @@ export class Message {
 	private readonly _weightedExtrapolateProps : Set<number> = new Set<number>([posProp, velProp, accProp]);
 	private readonly _mapProps : Map<number, OverwriteMethod> = new Map<number, OverwriteMethod>([
 		[attributesProp, OverwriteMethod.MERGE_AND_REPLACE],
+		[byteAttributesProp, OverwriteMethod.MERGE_AND_REPLACE],
 		[keysProp, OverwriteMethod.REPLACE_ALL],
 	]);
 
 	private _data : Map<number, any>;
-	private _maps : Map<number, Map<number, boolean>>;
+	private _maps : Map<number, Map<number, number>>;
 	private _seqNum : Map<number, number>;
 	private _lastSeqNum : number;
 	private _lastUpdate : number;
 
 	constructor() {
 		this._data = new Map<number, any>();
-		this._maps = new Map<number, Map<number, boolean>>();
+		this._maps = new Map<number, Map<number, number>>();
 		this._seqNum = new Map<number, number>();
 		this._lastSeqNum = 0;
 		this._lastUpdate = Date.now();
@@ -53,7 +54,7 @@ export class Message {
 		}
 
 		const millisElapsed = Date.now() - this._lastUpdate;
-		const weight = Math.min(millisElapsed / (frameMillis * options.extrapolateFrames), 1) * options.extrapolateWeight;
+		const weight = Math.min(millisElapsed / (options.extrapolateMs), 1) * options.extrapolateWeight;
 
 		for (const [stringProp, data] of Object.entries(msg) as [string, any]) {
 			const prop = Number(stringProp);
@@ -95,7 +96,7 @@ export class Message {
 			}
 
 			if (!this._maps.has(prop)) {
-				this._maps.set(prop, new Map<number, boolean>());
+				this._maps.set(prop, new Map<number, number>());
 			}
 
 			let map = this._maps.get(prop);
@@ -110,12 +111,18 @@ export class Message {
 				if (overwriteMethod === OverwriteMethod.MERGE_AND_SKIP && map.has(key)) {
 					continue;
 				}
-				if (map.get(key) === value) {
+				
+				let num = value;
+				if (typeof value === 'boolean') {
+					num = value ? 1 : 0;
+				}
+
+				if (map.get(key) === num) {
 					continue;
 				}
 
 				edited = true;
-				map.set(key, value);
+				map.set(key, num);
 			}
 
 			if (!edited) {
@@ -124,7 +131,7 @@ export class Message {
 
 			let string = "";
 			for (const [key, value] of map) {
-				string += key + ":" + (value ? "1" : "0") + ",";
+				string += key + ":" + value + ",";
 			}
 			if (string.length > 0) {
 				string = string.slice(0, -1);

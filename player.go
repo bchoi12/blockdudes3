@@ -51,6 +51,7 @@ type Player struct {
 	jumpGraceTimer Timer
 	knockbackTimer Timer
 	dashTimer Timer
+	deathTimer Timer
 }
 
 func NewPlayer(init Init) *Player {
@@ -84,12 +85,13 @@ func NewPlayer(init Init) *Player {
 
 		canJump: false,
 		canDoubleJump: true,
-		jetpack: 100,
+		jetpack: 80,
 
 		jumpTimer: NewTimer(jumpDuration),
 		jumpGraceTimer: NewTimer(jumpGraceDuration),
 		knockbackTimer: NewTimer(knockbackDuration),
 		dashTimer: NewTimer(1500 * time.Millisecond),
+		deathTimer: NewTimer(1 * time.Second),
 	}
 	player.Respawn()
 	return player
@@ -141,7 +143,7 @@ func (p *Player) SetData(data Data) {
 }
 
 func (p Player) Dead() bool {
-	return p.Health.Dead() || p.Pos().Y < -5
+	return p.Health.Dead()
 }
 
 func (p Player) UpdateScore(g *Grid) {
@@ -172,9 +174,25 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	ts := p.PrepareUpdate(now)
 	p.BaseObject.UpdateState(grid, now)
 
+	// Handle health stuff
+	if p.Pos().Y < -5 {
+		p.Die()
+	}
+
+	p.SetByteAttribute(healthByteAttribute, uint8(p.GetHealth()))
 	if p.Dead() {
-		p.UpdateScore(grid)
-		p.Respawn()
+		if !p.HasAttribute(deadAttribute) {
+			p.AddAttribute(deadAttribute)
+			p.Keys.SetEnabled(false)
+			p.deathTimer.Start()
+			p.UpdateScore(grid)
+		}
+
+		if !p.deathTimer.On() {
+			p.RemoveAttribute(deadAttribute)
+			p.Keys.SetEnabled(true)
+			p.Respawn()
+		}
 	}
 
 	grounded := p.HasAttribute(groundedAttribute)
@@ -186,7 +204,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		p.jumpGraceTimer.Start()
 		p.canJump = true
 		p.canDoubleJump = true
-		p.jetpack = 100
+		p.jetpack = 80
 	}
 
 
@@ -232,9 +250,12 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 	if p.KeyDown(altMouseClick) {
 		weaponType := p.weapon.GetWeaponType()
 		if weaponType == bazookaWeapon && p.jetpack > 0 {
-			p.AddForce(NewVec2(0, 0.6))
+			jet := NewVec2(FSign(p.Dir().X) * -p.Dir().Y, 1)
+			scale := 0.3 + 0.6 * Clamp(0, 1 - vel.Y, 1) 
+			jet.Scale(scale)
+			p.AddForce(jet)
 			p.jetpack -= 1
-		} else if weaponType == starWeapon && !grounded && !p.dashTimer.On() {
+		} else if weaponType == starWeapon && !p.dashTimer.On() {
 			dash := p.Dir()
 			dash.Scale(4 * jumpVel)
 			vel.X = dash.X

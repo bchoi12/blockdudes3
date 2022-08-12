@@ -1,37 +1,5 @@
 package main
 
-type Prop uint8
-const (
-	unknownProp Prop = iota
-
-	objectStatesProp
-	initializedProp
-	deletedProp
-
-	// TODO: add colorProp, byteAttributesProp
-
-	attributesProp
-	dimProp
-	posProp
-	velProp
-	accProp
-	jerkProp
-	dirProp
-
-	// TODO: deprecate
-	equipTypeProp
-	equipDirProp
-
-	keysProp
-	healthProp
-	ownerProp
-	targetProp
-	hitsProp
-
-	killProp
-	deathProp
-)
-
 type PropMap map[Prop]interface{}
 type ValidProps map[Prop]bool
 

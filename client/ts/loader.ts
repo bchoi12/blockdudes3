@@ -68,13 +68,9 @@ class Loader {
 	}
 
 	private preload() : void {
-		for (const model in Model) {
-			if (model.length === 0) {
-				continue;
-			}
-
+		this._paths.forEach((path, model) => {
 			this.load(Model[model], () => {});
-		}
+		});
 	}
 
 	private process(model : Model, data : any) : void {

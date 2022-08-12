@@ -17,14 +17,14 @@ type DamageTick struct {
 
 type Health struct {
 	enabled bool
-	health *State
+	health int
 	ticks []DamageTick
 }
 
 func NewHealth() Health {
 	return Health {
 		enabled: false,
-		health: NewBlankState(0),
+		health: 0,
 	}
 }
 
@@ -38,18 +38,18 @@ func (h *Health) Die() {
 
 func (h *Health) SetHealth(health int) {
 	h.enabled = true
-	h.health.Set(health)
+	h.health = health
 }
 
 func (h Health) GetHealth() int {
-	return h.health.Peek().(int)
+	return h.health
 }
 
 func (h Health) Dead() bool {
 	if isWasm || !h.enabled {
 		return false
 	}
-	return h.health.Peek().(int) <= 0
+	return h.health <= 0
 }
 
 func (h Health) GetLastTicks(duration time.Duration) []DamageTick {
@@ -79,7 +79,7 @@ func (h *Health) TakeDamage(sid SpacedId, damage int) {
 	if !h.enabled || h.Dead() || isWasm {
 		return
 	}
-	h.health.Set(h.health.Peek().(int) - damage)
+	h.SetHealth(h.health - damage)
 
 	tick := DamageTick {
 		sid: sid,
@@ -91,41 +91,4 @@ func (h *Health) TakeDamage(sid SpacedId, damage int) {
 	if len(h.ticks) > maxDamageTicks {
 		h.ticks = h.ticks[1 : maxDamageTicks + 1]
 	}
-}
-
-func (h *Health) SetData(data Data) {
-	if !h.enabled || data.Size() == 0 {
-		return
-	}
-
-	if data.Has(healthProp) {
-		h.health.Set(data.Get(healthProp).(int))
-	}
-}
-
-func (h Health) GetInitData() Data {
-	return NewData()
-}
-
-func (h Health) GetData() Data {
-	data := NewData()
-	if !h.enabled {
-		return data
-	}
-	if health, ok := h.health.Pop(); ok {
-		data.Set(healthProp, health)
-	}
-	return data
-}
-
-func (h Health) GetUpdates() Data {
-	updates := NewData()
-	if !h.enabled {
-		return updates
-	}
-
-	if health, ok := h.health.GetOnce(); ok {
-		updates.Set(healthProp, health)
-	}
-	return updates
 }

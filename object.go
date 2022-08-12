@@ -16,13 +16,17 @@ type Object interface {
 	DataMethods
 
 	GetProfile() Profile
+
 	GetOwner() SpacedId
 	SetOwner(sid SpacedId)
-	GetAttachment() Attachment
+
+	AddConnection(parent SpacedId, connection Connection)
+
 	AddAttribute(attribute AttributeType)
 	RemoveAttribute(attribute AttributeType)
 	HasAttribute(attribute AttributeType) bool
-	AddConnection(parent SpacedId, connection Connection)
+	SetByteAttribute(attribute ByteAttributeType, byte uint8)
+	GetByteAttribute(attribute ByteAttributeType) (uint8, bool)
 
 	Preprocess(grid *Grid, now time.Time)
 	UpdateState(grid *Grid, now time.Time) bool
@@ -93,7 +97,6 @@ func (o *BaseObject) SetData(data Data) {
 	}
 	o.Profile.SetData(data)
 	o.Association.SetData(data)
-	o.Health.SetData(data)
 	o.Attribute.SetData(data)
 	o.lastUpdateTime = time.Now()
 }
@@ -102,7 +105,6 @@ func (o BaseObject) GetInitData() Data {
 	data := NewData()
 	data.Merge(o.Profile.GetInitData())
 	data.Merge(o.Association.GetInitData())
-	data.Merge(o.Health.GetInitData())
 	data.Merge(o.Attribute.GetInitData())
 	return data
 }
@@ -111,7 +113,6 @@ func (o BaseObject) GetData() Data {
 	data := NewData()
 	data.Merge(o.Profile.GetData())
 	data.Merge(o.Association.GetData())
-	data.Merge(o.Health.GetData())
 	data.Merge(o.Attribute.GetData())
 	return data
 }
@@ -120,7 +121,6 @@ func (o BaseObject) GetUpdates() Data {
 	updates := NewData()
 	updates.Merge(o.Profile.GetUpdates())
 	updates.Merge(o.Association.GetUpdates())
-	updates.Merge(o.Health.GetUpdates())
 	updates.Merge(o.Attribute.GetUpdates())
 	return updates
 }

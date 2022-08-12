@@ -4,6 +4,7 @@ const (
 	stateDefaultTTL int = 3
 )
 
+// TODO: change to Flag & remove interface? OR new flag class
 type State struct {
 	state interface{}
 	changed bool
@@ -50,6 +51,10 @@ func (st *State) Set(state interface{}) {
 	}
 
 	st.state = state
+	st.Refresh()
+}
+
+func (st *State) Refresh() {
 	st.changed = true
 	st.ttl = stateDefaultTTL
 }

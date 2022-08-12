@@ -90,19 +90,35 @@ export class RenderObject extends RenderMesh {
 	}
 
 	hasAttributes() : boolean { return this._msg.has(attributesProp); }
-	attributes() : Map<number, boolean> {
+	attributes() : Map<number, number> {
 		if (this.hasAttributes()) {
 			return this._msg.get(attributesProp);
 		}
-		return new Map<number, boolean>();
+		return new Map<number, number>();
 	}
 	hasAttribute(attribute : number) : boolean { return this.hasAttributes() && this.attributes().has(attribute); }
 	attribute(attribute : number) : boolean {
 		if (this.hasAttribute(attribute)) {
-			return this.attributes().get(attribute);
+			return this.attributes().get(attribute) === 1;
 		}
 		return false;
 	}
+
+	hasByteAttributes() : boolean { return this._msg.has(byteAttributesProp); }
+	byteAttributes() : Map<number, number> {
+		if (this.hasByteAttributes()) {
+			return this._msg.get(byteAttributesProp);
+		}
+		return new Map<number, number>();
+	}
+	hasByteAttribute(attribute : number) : boolean { return this.hasByteAttributes() && this.byteAttributes().has(attribute); }
+	byteAttribute(attribute : number) : number {
+		if (this.hasByteAttribute(attribute)) {
+			return this.byteAttributes().get(attribute);
+		}
+		return 0;
+	}
+
 
 	hasDim() : boolean { return this._msg.has(dimProp); }
 	dim() : THREE.Vector2 {

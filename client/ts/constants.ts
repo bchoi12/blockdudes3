@@ -44,6 +44,7 @@ declare var initializedProp : number;
 declare var deletedProp : number;
 
 declare var attributesProp : number;
+declare var byteAttributesProp : number;
 declare var dimProp : number;
 declare var posProp : number;
 declare var velProp : number;
@@ -74,6 +75,11 @@ declare var platformAttribute : number;
 declare var groundedAttribute : number;
 declare var solidAttribute : number;
 declare var attachedAttribute : number;
+declare var deadAttribute : number;
+
+declare var modelByteAttribute : number;
+declare var healthByteAttribute : number;
+declare var juiceByteAttribute : number;
 
 declare var upKey : number;
 declare var downKey : number;

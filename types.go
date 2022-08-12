@@ -53,6 +53,40 @@ const (
 	pickupSpace
 )
 
+type Prop uint8
+const (
+	unknownProp Prop = iota
+
+	objectStatesProp
+	initializedProp
+	deletedProp
+
+	attributesProp
+	byteAttributesProp
+
+	// TODO: colorProp
+
+	dimProp
+	posProp
+	velProp
+	accProp
+	jerkProp
+	dirProp
+
+	// TODO: deprecate
+	equipTypeProp
+	equipDirProp
+
+	keysProp
+	healthProp
+	ownerProp
+	targetProp
+	hitsProp
+
+	killProp
+	deathProp
+)
+
 type AttributeType uint8
 const (
 	unknownAttribute AttributeType = iota
@@ -63,6 +97,16 @@ const (
 	solidAttribute
 	groundedAttribute
 	attachedAttribute
+	deadAttribute
+)
+
+type ByteAttributeType uint8
+const (
+	unknownByteAttribute ByteAttributeType = iota
+
+	modelByteAttribute
+	healthByteAttribute
+	juiceByteAttribute
 )
 
 type LevelIdType uint8

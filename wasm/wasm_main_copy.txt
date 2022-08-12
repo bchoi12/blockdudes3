@@ -68,6 +68,7 @@ func setGlobals() {
 	js.Global().Set("deletedProp", int(deletedProp))
 
 	js.Global().Set("attributesProp", int(attributesProp))
+	js.Global().Set("byteAttributesProp", int(byteAttributesProp))
 	js.Global().Set("dimProp", int(dimProp))
 	js.Global().Set("posProp", int(posProp))
 	js.Global().Set("velProp", int(velProp))
@@ -91,6 +92,11 @@ func setGlobals() {
 	js.Global().Set("groundedAttribute", int(groundedAttribute))
 	js.Global().Set("solidAttribute", int(solidAttribute))
 	js.Global().Set("attachedAttribute", int(attachedAttribute))
+	js.Global().Set("deadAttribute", int(deadAttribute))
+
+	js.Global().Set("modelByteAttribute", int(modelByteAttribute))
+	js.Global().Set("healthByteAttribute", int(healthByteAttribute))
+	js.Global().Set("juiceByteAttribute", int(juiceByteAttribute))
 
 	js.Global().Set("upKey", int(upKey))
 	js.Global().Set("downKey", int(downKey))
@@ -289,6 +295,10 @@ func getData(data js.Value) Data {
 		d.Set(attributesProp, parseAttributesAsProp(prop.String()))
 	}
 
+	if prop, ok = getPropData(data, byteAttributesProp); ok {
+		d.Set(byteAttributesProp, parseByteAttributesAsProp(prop.String()))
+	}
+
 	if prop, ok = getPropData(data, dimProp); ok {
 		d.Set(dimProp, parseVec2(prop))
 	}
@@ -382,7 +392,11 @@ func parseKeysAsProp(keyStr string) map[KeyType]bool {
 	parsedMap := parseStringMap(keyStr)
 
 	for k, v := range(parsedMap) {
-		keys[KeyType(k)] = v
+		if v == 1 {
+			keys[KeyType(k)] = true
+		} else {
+			keys[KeyType(k)] = false
+		}
 	}
 	return keys
 }
@@ -393,13 +407,35 @@ func parseAttributesAsProp(attributeStr string) map[AttributeType]bool {
 	parsedMap := parseStringMap(attributeStr)
 
 	for k, v := range(parsedMap) {
-		attributes[AttributeType(k)] = v
+		if _, ok := wasmIgnoreAttributes[AttributeType(k)]; ok {
+			continue
+		}
+
+		if v == 1 {
+			attributes[AttributeType(k)] = true
+		} else {
+			attributes[AttributeType(k)] = false
+		}
 	}
 	return attributes
 }
 
-func parseStringMap(stringMap string) map[int]bool {
-	resultMap := make(map[int]bool)
+// Attribute format: "1:0,3:4,4:6"
+func parseByteAttributesAsProp(attributeStr string) map[ByteAttributeType]uint8 {
+	attributes := make(map[ByteAttributeType]uint8)
+	parsedMap := parseStringMap(attributeStr)
+
+	for k, v := range(parsedMap) {
+		if _, ok := wasmIgnoreByteAttributes[ByteAttributeType(k)]; ok {
+			continue
+		}
+		attributes[ByteAttributeType(k)] = v
+	}
+	return attributes
+}
+
+func parseStringMap(stringMap string) map[int]uint8 {
+	resultMap := make(map[int]uint8)
 	for _, entry := range(strings.Split(stringMap, ",")) {
 		pair := strings.Split(entry, ":")
 
@@ -419,11 +455,7 @@ func parseStringMap(stringMap string) map[int]bool {
 			continue
 		}
 
-		if value == 0 {
-			resultMap[key] = false 
-		} else if value == 1 {
-			resultMap[key] = true
-		}
+		resultMap[key] = uint8(value)
 	}
 	return resultMap
 }

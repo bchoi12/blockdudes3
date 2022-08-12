@@ -1,6 +1,7 @@
 package main
 
 type Keys struct {
+	enabled bool
 	keys map[KeyType]bool
 	lastKeys map[KeyType]bool
 	lastKeyChange map[KeyType]SeqNumType
@@ -8,22 +9,39 @@ type Keys struct {
 
 func NewKeys() Keys {
 	return Keys {
+		enabled: true,
 		keys: make(map[KeyType]bool),
 		lastKeys: make(map[KeyType]bool),
 		lastKeyChange: make(map[KeyType]SeqNumType),
 	}
 }
 
+func (k *Keys) SetEnabled(enabled bool) {
+	k.enabled = enabled
+}
+
 func (k Keys) GetKeys() map[KeyType]bool {
+	if !k.enabled {
+		return make(map[KeyType]bool)
+	}
+
 	return k.keys
 }
 
 func (k Keys) KeyDown(key KeyType) bool {
+	if !k.enabled {
+		return false
+	}
+
 	val, ok := k.keys[key]
 	return ok && val
 }
 
 func (k Keys) KeyPressed(key KeyType) bool {
+	if !k.enabled {
+		return false
+	}
+
 	val, ok := k.lastKeys[key]
 	pressed := k.KeyDown(key) && (!ok || !val)
 	return pressed

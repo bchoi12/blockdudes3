@@ -8,7 +8,7 @@ class Options {
 	public enableDynamicLighting : boolean;
 	public rendererScale : number;
 
-	public extrapolateFrames : number;
+	public extrapolateMs : number;
 	public extrapolateWeight : number;
 
 	public scoreboardKeyCode : number = 192;
@@ -25,7 +25,7 @@ class Options {
 		this.enableDynamicLighting = true;
 		this.rendererScale = 0.66;
 
-		this.extrapolateFrames = 6;
+		this.extrapolateMs = 100;
 		this.extrapolateWeight = 0.5;
 
 		this.load();
