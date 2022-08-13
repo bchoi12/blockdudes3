@@ -46,6 +46,10 @@ export namespace LogUtil {
 }
 
 export namespace MathUtil {
+	export function clamp(min : number, n : number, max : number) : number {
+		return Math.min(max, Math.max(min, n));
+	}
+
 	export function normalize(radians : number) : number {
 		if (radians >= 2 * Math.PI) {
 			radians -= Math.floor(radians / (2 * Math.PI)) * 2 * Math.PI;

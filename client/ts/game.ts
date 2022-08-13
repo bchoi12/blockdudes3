@@ -244,7 +244,7 @@ class Game {
 				const mouseScreen = renderer.getMouseScreen();
 				let pan = new THREE.Vector3(mouseScreen.x, mouseScreen.y, 0);
 				pan.normalize();
-				pan.multiplyScalar(8);
+				pan.multiplyScalar(9);
 				renderer.cameraController().enablePan(pan);
 			} else if (panEnabled && !this._keys.keyDown(altMouseClick)) {
 				renderer.cameraController().disablePan();

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 
 import { Interp } from './interp.js'
 import { Timer } from './timer.js'
+import { MathUtil } from './util.js'
 
 export class CameraController {
 	private readonly _cameraOffset = new THREE.Vector3(0, 1.2, 30.0);
@@ -65,13 +66,12 @@ export class CameraController {
 
 	enablePan(pan : THREE.Vector3) : void {
 		this._pan = pan.clone();
-		this._pan.y = Math.min(4, this._pan.y);
-		this._pan.y = Math.max(-4, this._pan.y);
+		this._pan.y = MathUtil.clamp(-4, this._pan.y, 4);
 		this._panTimer.start();
 	}
 
 	disablePan() : void {
-		this._panTimer.stop();
+		this._panTimer.reverse(2);
 	}
 
 	setAspect(aspect : number) {

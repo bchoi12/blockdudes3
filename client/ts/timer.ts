@@ -4,26 +4,49 @@ import { Util } from './util.js'
 export class Timer {
 
 	private _enabled : boolean;
+	private _reversed : boolean;
+
 	private _started : number;
-
-	private _hasDuration : boolean;
 	private _duration : number;
+	private _fullDuration : number;
 
-	constructor(duration? : number) {
+	constructor(duration : number) {
 		this._enabled = false;
+		this._reversed = false;
 		this._started = 0;
 
-		if (Util.defined(duration)) {
-			this._duration = duration;
-			this._hasDuration = true;
-		} else {
-			this._hasDuration = false;
-		}
+		this._duration = 0;
+		this._fullDuration = duration;
 	}
 
-	start() : void {
+	start(speed? : number) : void {
 		this._started = Date.now();
+		this._duration = this._fullDuration;
+
+		if (Util.defined(speed) && speed > 0) {
+			this._duration /= speed;
+		}
+
 		this._enabled = true;
+		this._reversed = false;
+	}
+
+	reverse(speed? : number) : void {
+		if (this._reversed) {
+			return
+		}
+
+		this._duration = Math.min(this.timeElapsed(), this._fullDuration);
+		if (Util.defined(speed) && speed > 0) {
+			this._duration /= speed;
+		}
+
+
+		if (this._duration > 0) {
+			this._started = Date.now();
+			this._enabled = true;
+			this._reversed = true;
+		}
 	}
 
 	stop() : void {
@@ -31,7 +54,7 @@ export class Timer {
 	}
 
 	enabled() : boolean {
-		return this._enabled;
+		return this._enabled && this.weight() > 0;
 	}
 
 	timeElapsed() : number {
@@ -43,10 +66,14 @@ export class Timer {
 	}
 
 	weight() : number {
-		if (!this._enabled || !this._hasDuration) {
+		if (!this._enabled) {
 			return 0;
 		}
 
-		return Math.min(1, (Date.now() - this._started) / this._duration);
+		const weight = Math.min(1, (Date.now() - this._started) / this._duration);
+		if (this._reversed) {
+			return 1 - weight;
+		}
+		return weight;
 	}
 }
