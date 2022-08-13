@@ -66,10 +66,6 @@ declare var scoreProp : number;
 declare var killProp : number;
 declare var deathProp : number;
 
-declare var profileDimProp : number;
-declare var profilePosProp : number;
-declare var profilePointsProp : number;
-
 declare var stairAttribute : number;
 declare var platformAttribute : number;
 declare var groundedAttribute : number;
@@ -99,3 +95,4 @@ declare var wasmGetData : any;
 declare var wasmSetData : any;
 declare var wasmLoadLevel : any;
 declare var wasmUpdateState : any;
+declare var wasmGetStats : any;

@@ -38,6 +38,9 @@ class Game {
 	private _keySeqNum : number;
 	private _lastSeqNum : number;
 
+	private _numObjectsAdded : number;
+	private _numObjectsUpdated : number;
+
 	constructor() {
 		this.reset();
 	}
@@ -50,6 +53,9 @@ class Game {
 		this._keys = new Keys();
 		this._keySeqNum = 0;
 		this._lastSeqNum = 0;
+
+		this._numObjectsAdded = 0;
+		this._numObjectsUpdated = 0;
 	}
 
 	setup() : void {
@@ -67,6 +73,18 @@ class Game {
 
 	startRender() : void { this.animate(); }
 	setState(state : GameState) { this._state = state; }
+
+	flushAdded() : number {
+		const copy = this._numObjectsAdded;
+		this._numObjectsAdded = 0;
+		return copy;
+	}
+
+	flushUpdated() : number {
+		const copy = this._numObjectsUpdated;
+		this._numObjectsUpdated = 0;
+		return copy;
+	}
 
 	private animate() : void {
 		if (this.state() === GameState.GAME) {
@@ -156,9 +174,11 @@ class Game {
 						continue;
 					}
 					this.sceneMap().add(space, id, renderObj);
+					this._numObjectsAdded++;
 				}
 
 				this.sceneMap().setData(space, id, object, seqNum);
+				this._numObjectsUpdated++;
 			}
 		}
 	}

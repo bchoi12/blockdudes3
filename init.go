@@ -69,8 +69,10 @@ func NewInit(sid SpacedId) Init {
 
 func NewObjectInit(sid SpacedId, pos Vec2, dim Vec2) Init {
 	init := NewInit(sid)
-	init.SetPos(pos)
-	init.SetDim(dim)
+	init.pos = pos
+	init.hasPos = true
+	init.dim = dim
+	init.hasDim = true
 	return init
 }
 
@@ -78,18 +80,8 @@ func (i Init) Pos() Vec2 {
 	return i.pos
 } 
 
-func (i *Init) SetPos(pos Vec2) {
-	i.pos = pos
-	i.hasPos = true
-}
-
 func (i Init) Dim() Vec2 {
 	return i.dim
-}
-
-func (i *Init) SetDim(dim Vec2) {
-	i.dim = dim
-	i.hasDim = true
 }
 
 func (i Init) GetInitData() Data {

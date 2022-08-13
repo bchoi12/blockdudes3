@@ -15,6 +15,10 @@ type Object interface {
 	Profile
 	DataMethods
 
+	GetId() IdType
+	GetSpace() SpaceType
+	GetSpacedId() SpacedId
+	
 	GetProfile() Profile
 
 	GetOwner() SpacedId

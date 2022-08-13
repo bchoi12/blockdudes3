@@ -151,11 +151,9 @@ func (p Player) UpdateScore(g *Grid) {
 	g.IncrementScore(p.GetSpacedId(), deathProp, 1)
 
 	if sid.Invalid() {
-		Debug("Invalid ID")
 		return
 	}
 
-	Debug("Increment for %+v")
 	g.IncrementScore(sid, killProp, 1)
 }
 

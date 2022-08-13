@@ -6,6 +6,7 @@ import { Html } from './html.js'
 import { ui, InputMode } from './ui.js'
 
 declare var Go: any;
+
 document.addEventListener('DOMContentLoaded', (event) => {
 	Html.displayNone(Html.elm("js-check"));
 	game.startRender();

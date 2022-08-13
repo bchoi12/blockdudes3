@@ -80,7 +80,6 @@ export class SceneMap {
 				if (!object.ready() || !object.initialized() || object.deleted()) {
 					return;
 				}
-
 				object.snapshotWasm();
 			});
 		});

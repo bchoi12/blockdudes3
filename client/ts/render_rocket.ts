@@ -63,13 +63,11 @@ export class RenderRocket extends RenderProjectile {
 		}
 
 		const pos = this.pos();
-		const vel = this.vel();
+		const dir = this.dir();
 		const dim = this.dim();
-		const dir = vel.clone().normalize();
-		const angle = vel.angle() * -1;
 
 		const projectile = this.mesh().getObjectByName("mesh");
-		projectile.rotation.x = angle;
+		projectile.rotation.x = dir.angle() * -1;
 		projectile.rotation.z += this._rotateZ * this.timestep();
 
 		if (Date.now() - this._lastSmoke >= this._smokeInterval) {

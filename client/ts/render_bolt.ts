@@ -59,7 +59,8 @@ export class RenderBolt extends RenderProjectile {
 		if (!this.hasMesh()) {
 			return;
 		}
-		this.mesh().rotation.z = this.vel().angle();
+
+		this.mesh().rotation.z = this.dir().angle();
 	}
 }
 

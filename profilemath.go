@@ -1,23 +1,5 @@
 package main
 
-type ProfileMath interface {
-	Contains(point Vec2) ContainResults
-	Intersects(line Line) IntersectResults
-
-	GetOverlapOptions() ColliderOptions
-	SetOverlapOptions(options ColliderOptions)
-	GetSnapOptions() ColliderOptions
-	SetSnapOptions(options ColliderOptions)
-
-	OverlapProfile(profile Profile) CollideResult
-	Snap(nearbyObjects ObjectHeap) SnapResults
-
-	Stick(result CollideResult)
-
-	getIgnored() map[SpacedId]bool
-	updateIgnored(ignored map[SpacedId]bool) 
-}
-
 type ContainResults struct {
 	contains bool
 	ignored bool

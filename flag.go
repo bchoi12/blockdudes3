@@ -27,11 +27,11 @@ func (f *Flag) Set(flag bool) {
 		return
 	}
 
-	f.flag.Set(flag)
-	f.Refresh()
+	f.Reset(flag)
 }
 
-func (f *Flag) Refresh() {
+func (f *Flag) Reset(flag bool) {
+	f.flag.Set(flag)
 	f.changed = true
 	f.ttl = flagDefaultTTL
 }

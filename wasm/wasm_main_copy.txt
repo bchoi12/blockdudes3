@@ -6,13 +6,20 @@ import (
 	"strconv"
 	"strings"
 	"syscall/js"
+	"time"
 )
 
 const (
 	isWasm bool = true
 )
 
+type WasmStats struct {
+	setDataCalls int
+	setDataTime time.Time
+}
+
 var game *Game
+var wasmStats *WasmStats
 
 func main() {
 	setGlobals()
@@ -110,6 +117,11 @@ func setGlobals() {
 
 func setGameAPI() {
 	game = NewGame()
+	wasmStats = &WasmStats{
+		setDataCalls: 0,
+		setDataTime: time.Now(),
+	}
+
 	js.Global().Set("wasmAdd", Add(game))
 	js.Global().Set("wasmHas", Has(game))
 	js.Global().Set("wasmDelete", Delete(game))
@@ -118,6 +130,7 @@ func setGameAPI() {
 	js.Global().Set("wasmSetData", SetData(game))
 	js.Global().Set("wasmLoadLevel", LoadLevel(game))
 	js.Global().Set("wasmUpdateState", UpdateState(game))
+	js.Global().Set("wasmGetStats", GetStats(wasmStats))
 }
 
 func Add(g *Game) js.Func {  
@@ -227,6 +240,8 @@ func SetData(g *Game) js.Func {
 			return nil
 		}
 
+		wasmStats.setDataCalls += 1
+
 		space := SpaceType(args[0].Int())
 		id := IdType(args[1].Int())
 		if !g.has(Id(space, id)) {
@@ -276,20 +291,30 @@ func UpdateState(g *Game) js.Func {
     })
 }
 
+func GetStats(s *WasmStats) js.Func {  
+    return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+    	now := time.Now()
+
+    	var sb strings.Builder
+    	{
+    		dur := now.Sub(s.setDataTime)
+    		if dur > 0 {
+    			setData := float64(s.setDataCalls) / (float64(dur) / float64(time.Second))
+    			sb.WriteString(fmt.Sprintf("%.0f", setData))
+    		}
+
+    		s.setDataCalls = 0
+    		s.setDataTime = time.Now()
+    	}
+
+    	return sb.String()
+    })
+}
+
 func getData(data js.Value) Data {
 	var prop js.Value
 	var ok bool
 	d := NewData()
-
-	/*
-	if prop, ok = getPropData(data, initializedProp); ok {
-		d.Set(initializedProp, prop.Bool())
-	}
-
-	if prop, ok = getPropData(data, deletedProp); ok {
-		d.Set(deletedProp, prop.Bool())
-	}
-	*/
 
 	if prop, ok = getPropData(data, attributesProp); ok {
 		d.Set(attributesProp, parseAttributesAsProp(prop.String()))
@@ -323,35 +348,9 @@ func getData(data js.Value) Data {
 		d.Set(dirProp, parseVec2(prop))
 	}
 
-	/*
-	if prop, ok = getPropData(data, equipTypeProp); ok {
-		d.Set(equipTypeProp, prop.Int())
-	}
-	*/
-
 	if prop, ok = getPropData(data, equipDirProp); ok {
 		d.Set(equipDirProp, parseVec2(prop))
 	}
-
-	/*
-	if prop, ok = getPropData(data, keysProp); ok {
-		d.Set(keysProp, parseKeysAsProp(prop.String()))
-	}
-
-	if prop, ok = getPropData(data, healthProp); ok {
-		d.Set(healthProp, prop.Int())
-	}
-
-	if prop, ok = getPropData(data, ownerProp); ok {
-		d.Set(ownerProp, parseSpacedId(prop))
-	}
-
-	if prop, ok = getPropData(data, targetProp); ok {
-		d.Set(targetProp, parseSpacedId(prop))
-	}
-	*/
-
-	// hitsProp not parsed.
 
 	return d
 }

@@ -28,6 +28,7 @@ func (o Optional) Value() bool {
 }
 
 func (o *Optional) Set(value bool) {
+	o.has = true
 	o.value = value
 }
 

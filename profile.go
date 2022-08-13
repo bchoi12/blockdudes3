@@ -12,7 +12,6 @@ const (
 type ProfileKey uint8
 type Profile interface {
 	InitMethods
-	ProfileMath
 	DataMethods
 
 	Pos() Vec2
@@ -44,13 +43,28 @@ type Profile interface {
 	PosAdjustment(other Profile) Vec2
 	posAdjustmentX(other Profile) (float64, float64)
 	posAdjustmentY(other Profile) (float64, float64)
+
+	Contains(point Vec2) ContainResults
+	Intersects(line Line) IntersectResults
+
+	GetOverlapOptions() ColliderOptions
+	SetOverlapOptions(options ColliderOptions)
+	GetSnapOptions() ColliderOptions
+	SetSnapOptions(options ColliderOptions)
+
+	OverlapProfile(profile Profile) CollideResult
+	Snap(nearbyObjects ObjectHeap) SnapResults
+
+	Stick(result CollideResult)
+
+	getIgnored() map[SpacedId]bool
+	updateIgnored(ignored map[SpacedId]bool) 
 }
 
 type BaseProfile struct {
 	Init
-	pos, vel, acc, jerk, dir Vec2
-	dim *State
-	static bool
+	pos, vel, acc, jerk, dir, dim Vec2
+	posFlag, velFlag, accFlag, jerkFlag, dirFlag, dimFlag Flag
 	forces []Vec2
 
 	subProfiles map[ProfileKey]SubProfile
@@ -62,11 +76,17 @@ func NewBaseProfile(init Init) BaseProfile {
 	bp := BaseProfile {
 		Init: init,
 		pos: init.Pos(),
+		posFlag: NewFlag(),
 		vel: NewVec2(0, 0),
+		velFlag: NewFlag(),
 		acc: NewVec2(0, 0),
+		accFlag: NewFlag(),
+		jerk: NewVec2(0, 0),
+		jerkFlag: NewFlag(),
 		dir: NewVec2(1, 0),
-		dim: NewState(init.Dim()),
-		static: true,
+		dirFlag: NewFlag(),
+		dim: init.Dim(),
+		dimFlag: NewFlag(),
 		forces: make([]Vec2, 0),
 
 		subProfiles: make(map[ProfileKey]SubProfile),
@@ -77,9 +97,10 @@ func NewBaseProfile(init Init) BaseProfile {
 	return bp
 }
 
-func (bp BaseProfile) Dim() Vec2 { return bp.dim.Peek().(Vec2) }
+func (bp BaseProfile) Dim() Vec2 { return bp.dim }
 func (bp *BaseProfile) SetDim(dim Vec2) {
-	bp.dim.Set(dim)
+	bp.dim = dim
+	bp.dimFlag.Reset(true)
 }
 func (bp BaseProfile) Pos() Vec2 { return bp.pos }
 func (bp *BaseProfile) SetPos(pos Vec2) {
@@ -87,32 +108,43 @@ func (bp *BaseProfile) SetPos(pos Vec2) {
 	for _, sp := range(bp.subProfiles) {
 		sp.SetPos(pos)
 	}
+	bp.posFlag.Reset(true)
 }
 func (bp BaseProfile) Vel() Vec2 { return bp.vel }
 func (bp *BaseProfile) SetVel(vel Vec2) {
-	if !vel.IsZero() {
-		bp.static = false
+	if bp.vel.IsZero() && vel.IsZero() {
+		return
 	}
 
 	bp.vel = vel
 	for _, sp := range(bp.subProfiles) {
 		sp.SetVel(vel)
 	}
+	bp.velFlag.Reset(true)
 }
 
 func (bp BaseProfile) Acc() Vec2 { return bp.acc }
 func (bp *BaseProfile) SetAcc(acc Vec2) {
+	if bp.acc.IsZero() && acc.IsZero() {
+		return
+	}
+
 	bp.acc = acc
 	for _, sp := range(bp.subProfiles) {
 		sp.SetAcc(acc)
 	}
+	bp.accFlag.Reset(true)
 }
 func (bp BaseProfile) Jerk() Vec2 { return bp.jerk }
 func (bp *BaseProfile) SetJerk(jerk Vec2) {
+	if bp.jerk.IsZero() && jerk.IsZero() {
+		return
+	}
 	bp.jerk = jerk
 	for _, sp := range(bp.subProfiles) {
 		sp.SetJerk(jerk)
 	}
+	bp.jerkFlag.Reset(true)
 }
 
 func (bp BaseProfile) Dir() Vec2 { return bp.dir }
@@ -121,6 +153,7 @@ func (bp *BaseProfile) SetDir(dir Vec2) {
 	for _, sp := range(bp.subProfiles) {
 		sp.SetDir(dir)
 	}
+	bp.dirFlag.Reset(true)
 }
 
 func (bp *BaseProfile) AddForce(force Vec2) {
@@ -160,27 +193,24 @@ func (bp *BaseProfile) Stop() {
 
 func (bp BaseProfile) GetData() Data {
 	data := NewData()
-
-	if dim, ok := bp.dim.Pop(); ok {
-		data.Set(dimProp, dim)
+	if bp.posFlag.Has() {
+		data.Set(posProp, bp.Pos())
 	}
-
-	if bp.static {
-		return data
-	}
-
-	data.Set(posProp, bp.Pos())
-	if !bp.Vel().IsZero() {
+	if bp.velFlag.Has() {
 		data.Set(velProp, bp.Vel())
 	}
-	if !bp.Acc().IsZero() {
+	if bp.accFlag.Has() {
 		data.Set(accProp, bp.Acc())
 	}
-	if !bp.Jerk().IsZero() {
+	if bp.jerkFlag.Has() {
 		data.Set(jerkProp, bp.Jerk())
 	}
-
-	// TODO: set dir here if it ever changes
+	if bp.dirFlag.Has() {
+		data.Set(dirProp, bp.Dir())
+	}
+	if flag, ok := bp.dimFlag.Pop(); ok && flag {
+		data.Set(dimProp, bp.Dim())
+	}
 
 	return data
 }
@@ -188,14 +218,14 @@ func (bp BaseProfile) GetData() Data {
 func (bp BaseProfile) GetInitData() Data {
 	data := NewData()
 	data.Set(posProp, bp.Pos())
-	data.Set(dimProp, bp.dim.Peek())
+	data.Set(dimProp, bp.Dim())
 	return data
 }
 
 func (bp BaseProfile) GetUpdates() Data {
 	data := NewData()
-	if dim, ok := bp.dim.GetOnce(); ok {
-		data.Set(dimProp, dim)
+	if flag, ok := bp.dimFlag.GetOnce(); ok && flag {
+		data.Set(dimProp, bp.dim)
 	}
 	return data
 }
@@ -208,7 +238,6 @@ func (bp *BaseProfile) SetData(data Data) {
 	if data.Has(posProp) {
 		bp.SetPos(data.Get(posProp).(Vec2))
 	}
-
 	if data.Has(velProp) {
 		bp.SetVel(data.Get(velProp).(Vec2))
 	} else {
