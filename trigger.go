@@ -21,7 +21,7 @@ const (
 )
 
 type Trigger struct {
-	weapon Weapon
+	weapon *Weapon
 
 	pressed bool
 	space SpaceType
@@ -43,7 +43,7 @@ type Trigger struct {
 	currentProjectiles map[SpacedId]bool
 }
 
-func NewTrigger(weapon Weapon, space SpaceType) *Trigger {
+func NewTrigger(weapon *Weapon, space SpaceType) *Trigger {
 	t := &Trigger {
 		weapon: weapon,
 		pressed: false,

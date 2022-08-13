@@ -26,6 +26,7 @@ declare var levelInitType : number;
 
 declare var playerSpace : number;
 declare var wallSpace : number;
+declare var weaponSpace : number;
 declare var bombSpace : number;
 declare var boltSpace : number;
 declare var rocketSpace : number;
@@ -52,9 +53,6 @@ declare var accProp : number;
 declare var jerkProp : number;
 declare var dirProp : number;
 
-declare var equipTypeProp : number;
-declare var equipDirProp : number;
-
 declare var keysProp : number;
 declare var healthProp : number;
 
@@ -73,7 +71,7 @@ declare var solidAttribute : number;
 declare var attachedAttribute : number;
 declare var deadAttribute : number;
 
-declare var modelByteAttribute : number;
+declare var typeByteAttribute : number;
 declare var healthByteAttribute : number;
 declare var juiceByteAttribute : number;
 

@@ -166,22 +166,6 @@ export class RenderObject extends RenderMesh {
 		return new THREE.Vector2(1, 0);
 	}
 
-	hasWeaponType() : boolean { return this._msg.has(equipTypeProp); }
-	weaponType() : number {
-		if (this.hasWeaponType()) {
-			return this._msg.get(equipTypeProp);
-		}
-		return 0;
-	}
-
-	hasWeaponDir() : boolean { return this._msg.has(equipDirProp); }
-	weaponDir() : THREE.Vector2 {
-		if (this.hasWeaponDir()) {
-			return new THREE.Vector2(this._msg.get(equipDirProp).X, this._msg.get(equipDirProp).Y);
-		}
-		return new THREE.Vector2(1, 0);
-	}
-
 	hasOwner() : boolean { return this._msg.has(ownerProp); }
 	owner() : SpacedId {
 		if (this.hasOwner()) {

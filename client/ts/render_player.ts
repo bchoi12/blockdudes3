@@ -5,7 +5,7 @@ import { loader, Model } from './loader.js'
 import { SceneComponentType } from './scene_component.js'
 import { RenderAnimatedObject } from './render_animated_object.js'
 import { RenderCustom } from './render_custom.js'
-import { RenderWeapon} from './render_weapon.js'
+import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
 import { MathUtil, Util } from './util.js'
 
@@ -22,19 +22,15 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private readonly _cloudMaterial = new THREE.MeshStandardMaterial( {color: 0xdddddd , transparent: true, opacity: 0.7} );
 	private readonly _pointsMaterial = new THREE.PointsMaterial( { color: 0x000000, size: 0.2} );
 
-	private _weaponType : number;
-	private _lastGrounded : boolean;
-
 	private _playerMesh : THREE.Object3D;
-	private _weapon : RenderWeapon;
 	private _arm : THREE.Object3D;
 	private _armOrigin : THREE.Vector3;
 
+	private _weapon : RenderWeapon;
+	private _lastGrounded : boolean;
+
 	constructor(space : number, id : number) {
 		super(space, id);
-
-		this._weaponType = 0;
-		this._weapon = new RenderWeapon();
 
 		this._lastGrounded = false;
 	}
@@ -53,13 +49,10 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._playerMesh = this.mesh().getObjectByName("mesh");
 		// Model origin is at feet.
 		this._playerMesh.position.y -= this.dim().y / 2;
+		this._playerMesh.rotation.y = Math.PI / 2 + this._rotationOffset;
 
 		this._arm = this.mesh().getObjectByName("armR");
 		this._armOrigin = this._arm.position.clone();
-		this._playerMesh.rotation.y = Math.PI / 2 + this._rotationOffset;
-		this._weapon.onMeshLoad(() => {
-			this._arm.add(this._weapon.mesh());
-		});
 
 		for (const action in PlayerAction) {
 			this.initializeClip(PlayerAction[action]);
@@ -75,22 +68,13 @@ export class RenderPlayer extends RenderAnimatedObject {
 			return;
 		}
 
-		if (this.hasWeaponType()) {
-			const weaponType = this.weaponType();
-			if (this._weaponType != weaponType) {
-				this._weaponType = weaponType;
-				const model = loader.getWeaponModel(weaponType);
-				this.setWeapon(model);
-			}
-		}
-
 		const pos = this.pos();
 		const dim = this.dim();
 		const vel = this.vel();
 		const acc = this.acc();
 
 		this.setDir(this.dir());
-		this.setWeaponDir(this.weaponDir());
+		this.setWeaponDir(Util.defined(this._weapon) ? this._weapon.dir() : this.dir());
 
 		if (this._arm.position.lengthSq() > 0) {
 			let armOffset = this._armOrigin.clone().sub(this._arm.position);
@@ -130,24 +114,33 @@ export class RenderPlayer extends RenderAnimatedObject {
 		}
 	}
 
-	weaponPos() : THREE.Vector3 {
-		if (!Util.defined(this._weapon) || !this._weapon.hasMesh() || !this.hasMesh()) {
-			const pos = this.pos();
-			return new THREE.Vector3(pos.x, pos.y, 0);
+	setWeapon(weapon : RenderWeapon) : void {
+		if (Util.defined(this._weapon)) {
+			this._arm.remove(this._weapon.mesh());
 		}
 
-		const pos = this.mesh().position.clone();
-		pos.y += this._arm.position.y;
-		pos.y += this._weapon.mesh().position.y;
-		pos.y -= this.dim().y / 2;
-		return pos;
+		this._weapon = weapon;
+		if (this.hasMesh()) {
+			this._arm.add(weapon.mesh());
+
+			weapon.mesh().rotation.x = Math.PI / 2;
+			weapon.mesh().scale.z = -1;
+		}
 	}
 
-	setWeapon(model : Model) {
-		if (this._weapon.hasMesh() && this.hasMesh()) {
-			this._arm.remove(this._weapon.mesh())
+	weaponType() : number {
+		return Util.defined(this._weapon) ? this._weapon.weaponType() : 0;
+	}
+
+	shootingOrigin() : THREE.Vector3 {
+		if (!Util.defined(this._weapon)) {
+			return this.pos3();
 		}
-		this._weapon.setModel(model);
+
+		const pos3 = this.mesh().position.clone();
+		pos3.y += this._arm.position.y;
+		pos3.y -= this.dim().y / 2;
+		return pos3;
 	}
 
 	shoot() : void {

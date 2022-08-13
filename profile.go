@@ -452,6 +452,13 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 			collisionFlag.X = 0
 		} else if Abs(relativeVel.Y) < zeroVelEpsilon && Abs(relativeVel.X) > zeroVelEpsilon {
 			collisionFlag.Y = 0
+		} else if Abs(relativeVel.X) < zeroVelEpsilon && Abs(relativeVel.Y) < zeroVelEpsilon {
+			// somehow stopped inside the object
+			if Abs(posAdj.X) >= Abs(posAdj.Y) {
+				collisionFlag.X = 0
+			} else {
+				collisionFlag.Y = 0
+			}
 		}
 	}
 

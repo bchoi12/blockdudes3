@@ -1,47 +1,50 @@
 package main
 
 type Association struct {
-	owner *State
+	owner SpacedId
+	ownerFlag Flag
 }
 
 func NewAssociation() Association {
 	return Association {
-		owner: NewBlankState(InvalidId()),
+		owner: InvalidId(),
+		ownerFlag: NewFlag(),
 	}
 }
 
 func (a Association) GetOwner() SpacedId {
-	return a.owner.Peek().(SpacedId)
+	return a.owner
 }
 
 func (a Association) HasOwner() bool {
-	return a.owner.Has()
+	return a.ownerFlag.Has()
 }
 
 func (a *Association) SetOwner(owner SpacedId) {
-	a.owner.Set(owner)
+	a.owner = owner
+	a.ownerFlag.Set(true)
 }
 
 func (a Association) GetInitData() Data {
 	data := NewData()
-	if a.owner.Has() {
-		data.Set(ownerProp, a.owner.Peek())
+	if a.ownerFlag.Has() {
+		data.Set(ownerProp, a.owner)
 	}
 	return data
 }
 
 func (a Association) GetData() Data {
 	data := NewData()
-	if owner, ok := a.owner.Pop(); ok {
-		data.Set(ownerProp, owner)
+	if val, ok:= a.ownerFlag.Pop(); ok && val {
+		data.Set(ownerProp, a.owner)
 	}
 	return data
 }
 
 func (a Association) GetUpdates() Data {
 	updates := NewData()
-	if owner, ok := a.owner.GetOnce(); ok {
-		updates.Set(ownerProp, owner)
+	if val, ok := a.ownerFlag.GetOnce(); ok && val {
+		updates.Set(ownerProp, a.owner)
 	}
 	return updates
 }

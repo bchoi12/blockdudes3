@@ -57,6 +57,7 @@ func setGlobals() {
 
 	js.Global().Set("playerSpace", int(playerSpace))
 	js.Global().Set("wallSpace", int(wallSpace))
+	js.Global().Set("weaponSpace", int(weaponSpace))
 	js.Global().Set("bombSpace", int(bombSpace))
 	js.Global().Set("boltSpace", int(boltSpace))
 	js.Global().Set("rocketSpace", int(rocketSpace))
@@ -82,8 +83,6 @@ func setGlobals() {
 	js.Global().Set("accProp", int(accProp))
 	js.Global().Set("jerkProp", int(jerkProp))
 	js.Global().Set("dirProp", int(dirProp))
-	js.Global().Set("equipTypeProp", int(equipTypeProp))
-	js.Global().Set("equipDirProp", int(equipDirProp))
 
 	js.Global().Set("keysProp", int(keysProp))
 	js.Global().Set("healthProp", int(healthProp))
@@ -101,7 +100,7 @@ func setGlobals() {
 	js.Global().Set("attachedAttribute", int(attachedAttribute))
 	js.Global().Set("deadAttribute", int(deadAttribute))
 
-	js.Global().Set("modelByteAttribute", int(modelByteAttribute))
+	js.Global().Set("typeByteAttribute", int(typeByteAttribute))
 	js.Global().Set("healthByteAttribute", int(healthByteAttribute))
 	js.Global().Set("juiceByteAttribute", int(juiceByteAttribute))
 
@@ -346,10 +345,6 @@ func getData(data js.Value) Data {
 
 	if prop, ok = getPropData(data, dirProp); ok {
 		d.Set(dirProp, parseVec2(prop))
-	}
-
-	if prop, ok = getPropData(data, equipDirProp); ok {
-		d.Set(equipDirProp, parseVec2(prop))
 	}
 
 	return d

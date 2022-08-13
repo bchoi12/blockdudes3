@@ -12,13 +12,13 @@ export class RenderPickup extends RenderObject {
 	}
 
 	override ready() : boolean {
-		return super.ready() && this.hasWeaponType();
+		return super.ready() && this.hasByteAttribute(typeByteAttribute);
 	}
 
 	override initialize() : void {
 		super.initialize();
 
-		const model = loader.getWeaponModel(this.weaponType());
+		const model = loader.getWeaponModel(this.byteAttribute(typeByteAttribute));
 		loader.load(model, (mesh) => {
 			this.setMesh(mesh);
 		});

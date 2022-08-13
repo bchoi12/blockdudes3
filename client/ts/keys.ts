@@ -75,8 +75,8 @@ export class Keys {
 
    		const mouse = renderer.getMouseWorld();
    		const player : RenderPlayer = game.sceneMap().getAsAny(playerSpace, game.id());
-   		const weaponPos = player.weaponPos();
-   		let dir = new THREE.Vector2(mouse.x - weaponPos.x, mouse.y - weaponPos.y);
+   		const shootingOrigin = player.shootingOrigin();
+   		let dir = new THREE.Vector2(mouse.x - shootingOrigin.x, mouse.y - shootingOrigin.y);
    		dir.normalize();
 
    		return {X: dir.x, Y: dir.y};

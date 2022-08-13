@@ -159,6 +159,8 @@ class Game {
 						renderObj = new RenderPlayer(space, id);
 					} else if (space === explosionSpace) {
 						renderObj = new RenderExplosion(space, id);
+					} else if (space === weaponSpace) {
+						renderObj = new RenderWeapon(space, id);
 					} else if (space === boltSpace) {
 						renderObj = new RenderBolt(space, id);
 					} else if (space === rocketSpace) {
@@ -246,11 +248,12 @@ class Game {
 		if (!this.hasId()) return;
 		if (!this.sceneMap().has(playerSpace, this.id())) return;
 
-		const player = this.sceneMap().get(playerSpace, this.id());
+		const player : RenderPlayer = this.sceneMap().getAsAny(playerSpace, this.id());
 
 		const playerPos = player.pos();
 		renderer.setCameraAnchor(new THREE.Vector3(playerPos.x, playerPos.y, 0));
 
+		// TODO: clean up
 		if (player.weaponType() === sniperWeapon) {
 			const panEnabled = renderer.cameraController().panEnabled();
 			if (!panEnabled && this._keys.keyDown(altMouseClick)) {

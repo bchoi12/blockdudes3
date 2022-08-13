@@ -9,6 +9,7 @@ var wasmIgnoreByteAttributes = map[ByteAttributeType]bool {
 	healthByteAttribute: true,
 }
 
+// TODO: use flag
 type Attribute struct {
 	changed map[AttributeType]*State
 	attributes map[AttributeType]bool

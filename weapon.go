@@ -13,162 +13,135 @@ const (
 	starWeapon
 )
 
-// TODO: this should just be an object
-type Weapon interface {
-	GetOwner() SpacedId
+type Weapon struct {
+	BaseObject
+	Keys
+	shotOffset Vec2
 
-	Pos() Vec2
-	SetPos(pos Vec2)
-	Dir() Vec2
-	SetDir(dir Vec2)
-	
-	SetOffset(offset Vec2)
-	GetShotOrigin() Vec2
+	jetpack int
+	dashTimer Timer
 
-	GetWeaponType() WeaponType
-	SetWeaponType(weaponType WeaponType)
-	SetTrigger(triggerType TriggerType, trigger *Trigger)
-	PressTrigger(trigger TriggerType, pressed bool)
-	UpdateState(grid *Grid, now time.Time) bool
-
-	GetInitData() Data
-	GetData() Data
-	GetUpdates() Data
-	SetData(data Data)
-}
-
-type BaseWeapon struct {
-	owner SpacedId
-	pos, dir, offset Vec2
-
-	weaponType *State
 	triggers map[TriggerType]*Trigger
 	uniqueShots map[SpaceType]IdType
 }
 
-func NewBaseWeapon(owner SpacedId) *BaseWeapon {
-	bw := &BaseWeapon {
-		owner: owner,
-		pos: NewVec2(0, 0),
-		dir: NewVec2(1, 0),
-		offset: NewVec2(0, 0),
+func NewWeapon(init Init) *Weapon {
+	w := &Weapon {
+		BaseObject: NewBaseObject(NewCircle(init)),
+		Keys: NewKeys(),
+		shotOffset: NewVec2(0, 0),
 
-		weaponType: NewBlankState(unknownWeapon),
+		jetpack: 80,
+		dashTimer: NewTimer(1500 * time.Millisecond),
+	
 		triggers: make(map[TriggerType]*Trigger),
 		uniqueShots: make(map[SpaceType]IdType),
 	}
-	return bw
+	return w
 }
 
-func (bw BaseWeapon) GetOwner() SpacedId { return bw.owner }
-func (bw BaseWeapon) Pos() Vec2 { return bw.pos } 
-func (bw *BaseWeapon) SetPos(pos Vec2) { bw.pos = pos } 
-func (bw BaseWeapon) Dir() Vec2 { return bw.dir } 
-func (bw *BaseWeapon) SetDir(dir Vec2) { bw.dir = dir } 
-
-func (bw *BaseWeapon) SetOffset(offset Vec2) { bw.offset = offset }
-func (bw BaseWeapon) GetShotOrigin() Vec2 {
-	origin := bw.Pos()
-	offset := bw.offset
-	offset.Rotate(bw.Dir().Angle())
-	origin.Add(offset, 1.0)
+func (w *Weapon) SetShotOffset(shotOffset Vec2) { w.shotOffset = shotOffset }
+func (w Weapon) GetShotOrigin() Vec2 {
+	origin := w.Pos()
+	shotOffset := w.shotOffset
+	shotOffset.Rotate(w.Dir().Angle())
+	origin.Add(shotOffset, 1.0)
 	return origin
 }
 
-func (bw BaseWeapon) GetWeaponType() WeaponType { return bw.weaponType.Peek().(WeaponType) }
-
-func (bw *BaseWeapon) SetWeaponType(weaponType WeaponType) {
+func (w Weapon) GetWeaponType() WeaponType {
+	typeByte, ok := w.GetByteAttribute(typeByteAttribute)
+	if !ok {
+		return unknownWeapon
+	}
+	return WeaponType(typeByte)
+}
+func (w *Weapon) SetWeaponType(weaponType WeaponType) {
 	if isWasm {
 		return
 	}
 
-	if bw.weaponType.Peek().(WeaponType) == weaponType {
+	if weaponType, ok := w.GetByteAttribute(typeByteAttribute); ok && weaponType == uint8(weaponType) {
 		return
 	}
 
 	switch weaponType {
 	case uziWeapon:
-		bw.triggers[primaryTrigger] = NewTrigger(bw, boltSpace)
-		bw.triggers[secondaryTrigger] = NewTrigger(bw, grapplingHookSpace)
-		bw.SetOffset(NewVec2(0.3, 0))
+		w.triggers[primaryTrigger] = NewTrigger(w, boltSpace)
+		w.triggers[secondaryTrigger] = NewTrigger(w, grapplingHookSpace)
+		w.SetShotOffset(NewVec2(0.3, 0))
 	case bazookaWeapon:
-		bw.triggers[primaryTrigger] = NewTrigger(bw, rocketSpace)
-		delete(bw.triggers, secondaryTrigger)
-		bw.SetOffset(NewVec2(0.3, 0))
+		w.triggers[primaryTrigger] = NewTrigger(w, rocketSpace)
+		delete(w.triggers, secondaryTrigger)
+		w.SetShotOffset(NewVec2(0.3, 0))
 	case sniperWeapon:
-		bw.triggers[primaryTrigger] = NewTrigger(bw, boltSpace)
-		bw.triggers[primaryTrigger].SetMaxAmmo(1)
-		bw.triggers[primaryTrigger].SetProjectileSize(NewVec2(0.6, 0.2))
-		bw.triggers[primaryTrigger].SetProjectileVel(45)
-		bw.triggers[primaryTrigger].SetReloadTime(2 * time.Second)
-		bw.triggers[primaryTrigger].Reload()
+		w.triggers[primaryTrigger] = NewTrigger(w, boltSpace)
+		w.triggers[primaryTrigger].SetMaxAmmo(1)
+		w.triggers[primaryTrigger].SetProjectileSize(NewVec2(0.6, 0.2))
+		w.triggers[primaryTrigger].SetProjectileVel(45)
+		w.triggers[primaryTrigger].SetReloadTime(2 * time.Second)
+		w.triggers[primaryTrigger].Reload()
 
-		delete(bw.triggers, secondaryTrigger)
-		bw.SetOffset(NewVec2(0.6, 0))
+		delete(w.triggers, secondaryTrigger)
+		w.SetShotOffset(NewVec2(0.6, 0))
 	case starWeapon:
-		bw.triggers[primaryTrigger] = NewTrigger(bw, starSpace)
-		delete(bw.triggers, secondaryTrigger)
-		bw.SetOffset(NewVec2(0.1, 0))
+		w.triggers[primaryTrigger] = NewTrigger(w, starSpace)
+		delete(w.triggers, secondaryTrigger)
+		w.SetShotOffset(NewVec2(0.1, 0))
 	default:
 		Debug("Unknown weapon type! %d", weaponType)
 		return
 	}
 
-	bw.weaponType.Set(weaponType)
+	w.SetByteAttribute(typeByteAttribute, uint8(weaponType))
 }
 
-func (bw *BaseWeapon) SetTrigger(triggerType TriggerType, trigger *Trigger) {
-	bw.triggers[triggerType] = trigger
+func (w *Weapon) SetTrigger(triggerType TriggerType, trigger *Trigger) {
+	w.triggers[triggerType] = trigger
 }
 
-func (bw *BaseWeapon) PressTrigger(triggerType TriggerType, pressed bool) {
-	if trigger, ok := bw.triggers[triggerType]; ok {
+func (w *Weapon) PressTrigger(triggerType TriggerType, pressed bool) {
+	if trigger, ok := w.triggers[triggerType]; ok {
 		trigger.SetPressed(pressed)
 	}
 }
 
-func (bw *BaseWeapon) UpdateState(grid *Grid, now time.Time) bool {
-	updated := false
-	for _, trigger := range(bw.triggers) {
-		if trigger.UpdateState(grid, now) {
-			updated = true
+func (w *Weapon) Grounded() {
+	w.jetpack = 80
+}
+
+func (w *Weapon) UpdateState(grid *Grid, now time.Time) bool {
+	w.PrepareUpdate(now)
+	w.BaseObject.UpdateState(grid, now)
+
+	player := grid.Get(w.GetOwner())
+	if player != nil {
+		if w.KeyDown(altMouseClick) {
+			weaponType := w.GetWeaponType()
+			if weaponType == bazookaWeapon && w.jetpack > 0 {
+				jet := NewVec2(FSign(player.Dir().X) * -player.Dir().Y, 1)
+				scale := 0.3 + 0.6 * Clamp(0, 1 - player.Vel().Y, 1) 
+				jet.Scale(scale)
+				player.AddForce(jet)
+				w.jetpack -= 1
+			} else if weaponType == starWeapon && !w.dashTimer.On() {
+				dash := w.Dir()
+				dash.Scale(4 * jumpVel)
+				player.SetVel(dash)
+				w.dashTimer.Start()
+			}
 		}
 	}
-	return updated
+
+	for _, trigger := range(w.triggers) {
+		trigger.UpdateState(grid, now)
+	}
+	return true
 }
 
-func (bw BaseWeapon) GetInitData() Data {
-	data := NewData()
-	if bw.weaponType.Has() {
-		data.Set(equipTypeProp, bw.weaponType.Peek())
-	}
-	return data
-}
-
-func (bw BaseWeapon) GetData() Data {
-	data := NewData()
-	if weaponType, ok := bw.weaponType.Pop(); ok {
-		data.Set(equipTypeProp, weaponType)
-	}
-	return data
-}
-
-func (bw BaseWeapon) GetUpdates() Data {
-	updates := NewData()
-
-	if weaponType, ok := bw.weaponType.GetOnce(); ok {
-		updates.Set(equipTypeProp, weaponType)
-	}
-
-	return updates
-}
-
-func (bw *BaseWeapon) SetData(data Data) {
-	if data.Size() == 0 {
-		return
-	}
-
-	if data.Has(equipTypeProp) {
-		bw.SetWeaponType(WeaponType(data.Get(equipTypeProp).(int)))
-	}
+func (w *Weapon) UpdateKeys(keyMsg KeyMsg) {
+	w.Keys.UpdateKeys(keyMsg)
+	w.PressTrigger(primaryTrigger, w.KeyDown(mouseClick))
+	w.PressTrigger(secondaryTrigger, w.KeyDown(altMouseClick))
+	w.SetDir(keyMsg.D)
 }

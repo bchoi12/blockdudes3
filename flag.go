@@ -10,6 +10,7 @@ type Flag struct {
 	ttl int
 }
 
+// TODO: needs to be pointer
 func NewFlag() Flag {
 	return Flag {
 		flag: NewOptional(),

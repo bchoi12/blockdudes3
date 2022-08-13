@@ -33,24 +33,22 @@ const (
 	jumpDuration time.Duration = 300 * time.Millisecond
 	jumpGraceDuration time.Duration = 100 * time.Millisecond
 	knockbackDuration time.Duration = 150 * time.Millisecond
-	dashCooldown time.Duration = 1000 * time.Millisecond
 
 	bodySubProfile ProfileKey = 1
+	bodySubProfileOffsetY = 0.22
 )
 
 type Player struct {
 	BaseObject
 	Keys
-	weapon Weapon
+	weapon *Weapon
 
 	canJump bool
 	canDoubleJump bool
-	jetpack int
 
 	jumpTimer Timer
 	jumpGraceTimer Timer
 	knockbackTimer Timer
-	dashTimer Timer
 	deathTimer Timer
 }
 
@@ -64,7 +62,7 @@ func NewPlayer(init Init) *Player {
 
 	rotPoly := NewRotPoly(init, points)
 	subProfile := NewSubProfile(rotPoly)
-	subProfile.SetOffset(NewVec2(0, 0.22))
+	subProfile.SetOffset(NewVec2(0, bodySubProfileOffsetY))
 	profile.AddSubProfile(bodySubProfile, subProfile)
 
 	overlapOptions := NewColliderOptions()
@@ -75,70 +73,36 @@ func NewPlayer(init Init) *Player {
 	snapOptions.SetSpaces(true, wallSpace)
 	profile.SetSnapOptions(snapOptions)
 
-	weapon := NewBaseWeapon(init.GetSpacedId())
-	weapon.SetWeaponType(uziWeapon)
-
 	player := &Player {
 		BaseObject: NewBaseObject(profile),
 		Keys: NewKeys(),
-		weapon: weapon,
+		weapon: nil,
 
 		canJump: false,
 		canDoubleJump: true,
-		jetpack: 80,
 
 		jumpTimer: NewTimer(jumpDuration),
 		jumpGraceTimer: NewTimer(jumpGraceDuration),
 		knockbackTimer: NewTimer(knockbackDuration),
-		dashTimer: NewTimer(1500 * time.Millisecond),
 		deathTimer: NewTimer(1 * time.Second),
 	}
 	player.Respawn()
 	return player
 }
 
-func (p Player) GetInitData() Data {
-	data := NewData()
-	data.Merge(p.BaseObject.GetInitData())
-	data.Merge(p.weapon.GetInitData())
-	return data
-}
-
 func (p Player) GetData() Data {
-	data := NewData()
-	data.Merge(p.BaseObject.GetData())
-	data.Merge(p.weapon.GetData())
-
-	data.Set(dirProp, p.Dir())
-	data.Set(equipDirProp, p.weapon.Dir())
+	data := p.BaseObject.GetData()
 	data.Set(keysProp, p.GetKeys())
-
 	return data
-}
-
-func (p Player) GetUpdates() Data {
-	updates := NewData()
-	updates.Merge(p.BaseObject.GetUpdates())
-	updates.Merge(p.weapon.GetUpdates())
-	return updates
 }
 
 func (p *Player) SetData(data Data) {
 	if data.Size() == 0 {
 		return
 	}
-
 	p.BaseObject.SetData(data)
-	p.weapon.SetData(data)
-
 	if data.Has(keysProp) {
 		p.SetKeys(data.Get(keysProp).(map[KeyType]bool))
-	}
-	if data.Has(dirProp) {
-		p.SetDir(data.Get(dirProp).(Vec2))
-	}
-	if data.Has(equipDirProp) {
-		p.weapon.SetDir(data.Get(equipDirProp).(Vec2))
 	}
 }
 
@@ -204,7 +168,10 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		p.jumpGraceTimer.Start()
 		p.canJump = true
 		p.canDoubleJump = true
-		p.jetpack = 80
+
+		if p.weapon != nil {
+			p.weapon.Grounded()
+		}
 	}
 
 
@@ -244,23 +211,6 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 			vel.Y = jumpVel
 			p.canDoubleJump = false
 			p.jumpTimer.Start()
-		}
-	}
-
-	if p.KeyDown(altMouseClick) {
-		weaponType := p.weapon.GetWeaponType()
-		if weaponType == bazookaWeapon && p.jetpack > 0 {
-			jet := NewVec2(FSign(p.Dir().X) * -p.Dir().Y, 1)
-			scale := 0.3 + 0.6 * Clamp(0, 1 - vel.Y, 1) 
-			jet.Scale(scale)
-			p.AddForce(jet)
-			p.jetpack -= 1
-		} else if weaponType == starWeapon && !p.dashTimer.On() {
-			dash := p.Dir()
-			dash.Scale(4 * jumpVel)
-			vel.X = dash.X
-			vel.Y = dash.Y
-			p.dashTimer.Start()
 		}
 	}
 
@@ -311,13 +261,6 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 
 func (p *Player) Postprocess(grid *Grid, now time.Time) {
 	p.BaseObject.Postprocess(grid, now)
-
-	p.weapon.SetPos(p.GetSubProfile(bodySubProfile).Pos())
-	// TODO: add grace period for shooting?
-	p.weapon.PressTrigger(primaryTrigger, p.KeyDown(mouseClick))
-	p.weapon.PressTrigger(secondaryTrigger, p.KeyDown(altMouseClick))
-	p.weapon.UpdateState(grid, now)
-
 	p.Keys.SaveKeys()
 }
 
@@ -335,8 +278,21 @@ func (p *Player) checkCollisions(grid *Grid) {
 		collider := PopObject(&colliders)
 		switch object := collider.(type) {
 		case *Pickup:
-			if p.KeyDown(interactKey) {
+			if !isWasm && p.KeyDown(interactKey) {
+				if p.weapon != nil {
+					if p.weapon.GetWeaponType() == object.GetWeaponType() {
+						break
+					}
+
+					grid.Delete(p.weapon.GetSpacedId())
+				}
+
+				weapon := grid.New(NewObjectInit(grid.NextSpacedId(weaponSpace), p.Pos(), p.Dim()))
+				grid.Upsert(weapon)
+				p.weapon = weapon.(*Weapon)
+				p.weapon.AddConnection(p.GetSpacedId(), NewOffsetConnection(NewVec2(0, bodySubProfileOffsetY)))
 				p.weapon.SetWeaponType(object.GetWeaponType())
+				p.weapon.SetOwner(p.GetSpacedId())
 			}
 		}
 	}
@@ -344,9 +300,9 @@ func (p *Player) checkCollisions(grid *Grid) {
 
 func (p *Player) UpdateKeys(keyMsg KeyMsg) {
 	p.Keys.UpdateKeys(keyMsg)
-
-	weaponDir := keyMsg.D
-	p.weapon.SetDir(weaponDir)
+	if p.weapon != nil {
+		p.weapon.UpdateKeys(keyMsg)
+	}
 
 	// Don't turn around right at dir.X = 0
 	// Note: any changes here should also be done in the frontend

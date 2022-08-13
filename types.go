@@ -44,6 +44,7 @@ const (
 	unknownSpace SpaceType = iota
 	playerSpace
 	wallSpace
+	weaponSpace
 	bombSpace
 	boltSpace
 	rocketSpace
@@ -73,10 +74,6 @@ const (
 	jerkProp
 	dirProp
 
-	// TODO: deprecate
-	equipTypeProp
-	equipDirProp
-
 	keysProp
 	healthProp
 	ownerProp
@@ -104,7 +101,7 @@ type ByteAttributeType uint8
 const (
 	unknownByteAttribute ByteAttributeType = iota
 
-	modelByteAttribute
+	typeByteAttribute
 	healthByteAttribute
 	juiceByteAttribute
 )

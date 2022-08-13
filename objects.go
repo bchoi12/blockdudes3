@@ -50,30 +50,24 @@ func (b *Bomb) UpdateState(grid *Grid, now time.Time) bool {
 
 type Pickup struct {
 	BaseObject
-
-	weaponType WeaponType
 }
 
 func NewPickup(init Init) *Pickup {
 	profile := NewRec2(init)
 	pickup := &Pickup {
 		BaseObject: NewBaseObject(profile),
-		weaponType: unknownWeapon,
 	}
-
 	return pickup
 }
 
 func (p *Pickup) SetWeaponType(weaponType WeaponType) {
-	p.weaponType = weaponType
+	p.SetByteAttribute(typeByteAttribute, uint8(weaponType))
 }
 
 func (p Pickup) GetWeaponType() WeaponType {
-	return p.weaponType
-}
-
-func (p Pickup) GetInitData() Data {
-	data := p.BaseObject.GetInitData()
-	data.Set(equipTypeProp, p.weaponType)
-	return data
+	typeByte, ok := p.GetByteAttribute(typeByteAttribute)
+	if !ok {
+		return unknownWeapon
+	}
+	return WeaponType(typeByte)
 }
