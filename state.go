@@ -4,7 +4,7 @@ const (
 	stateDefaultTTL int = 3
 )
 
-// TODO: change to Flag & remove interface? OR new flag class
+// TODO: deprecate in favor of flag
 type State struct {
 	state interface{}
 	changed bool

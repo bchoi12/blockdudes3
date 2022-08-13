@@ -227,6 +227,23 @@ func (g *Grid) GetObjectInitData() ObjectPropMap {
 		}
 		objects[object.GetSpace()][object.GetId()] = data.Props()
 	}
+
+	for space, spacedPropMap := range(g.gameState.GetObjectInitProps()) {
+		if _, ok := objects[space]; !ok {
+			objects[space] = make(SpacedPropMap)
+		}
+		for id, propMap := range(spacedPropMap) {
+			if _, ok := objects[space][id]; !ok {
+				objects[space][id] = propMap
+				continue
+			}
+
+			for prop, data := range(propMap) {
+				objects[space][id][prop] = data
+			}
+		}
+	}
+
 	return objects
 }
 
@@ -274,16 +291,28 @@ func (g *Grid) GetObjectUpdates() ObjectPropMap {
 			g.deleteObject(object.GetSpacedId())
 		}
 	}
+
+	for space, spacedPropMap := range(g.gameState.GetObjectPropUpdates()) {
+		if _, ok := objects[space]; !ok {
+			objects[space] = make(SpacedPropMap)
+		}
+		for id, propMap := range(spacedPropMap) {
+			if _, ok := objects[space][id]; !ok {
+				objects[space][id] = propMap
+				continue
+			}
+
+			for prop, data := range(propMap) {
+				objects[space][id][prop] = data
+			}
+		}
+	}
+
 	return objects
 }
 
 func (g *Grid) IncrementScore(sid SpacedId, prop Prop, delta int) {
 	g.gameState.IncrementScore(sid, prop, delta)
-}
-
-// TODO: just combine this with updates
-func (g *Grid) GetGameUpdates() PropMap {
-	return g.gameState.GetUpdates().Props()
 }
 
 func (g *Grid) NextId(space SpaceType) IdType {

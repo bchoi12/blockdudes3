@@ -38,6 +38,7 @@ type Weapon interface {
 }
 
 type BaseWeapon struct {
+	BaseObject
 	owner SpacedId
 	pos, dir, offset Vec2
 

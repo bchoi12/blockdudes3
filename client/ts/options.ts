@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+import { Util } from './util.js'
+
 class Options {
 	public fullClientPrediction : boolean;
 	public pointerLock : boolean;
@@ -21,8 +23,8 @@ class Options {
 		this.fullClientPrediction = true;
 		this.pointerLock = true;
 		this.enableShadows = true;
-		this.enableEffects = true;
-		this.enableDynamicLighting = true;
+		this.enableEffects = !Util.isDev();
+		this.enableDynamicLighting = !Util.isDev();
 		this.rendererScale = 0.66;
 
 		this.extrapolateMs = 100;

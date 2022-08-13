@@ -124,8 +124,7 @@ func (g *Game) createGameStateMsg() GameStateMsg {
 
 func (g *Game) createGameUpdateMsg() (GameStateMsg, bool) {
 	updates := g.grid.GetObjectUpdates()
-	gameUpdates := g.grid.GetGameUpdates()
-	if len(updates) == 0 && len(gameUpdates) == 0 {
+	if len(updates) == 0 {
 		return GameStateMsg{}, false
 	}	
 
@@ -136,9 +135,6 @@ func (g *Game) createGameUpdateMsg() (GameStateMsg, bool) {
 
 	if len(updates) > 0 {
 		msg.Os = updates
-	}
-	if len(gameUpdates) > 0 {
-		msg.G = gameUpdates
 	}
 	return msg, true
 }

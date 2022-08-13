@@ -175,7 +175,6 @@ type GameStateMsg struct {
 	T MessageType
 	S SeqNumType
 	Os ObjectPropMap
-	G PropMap
 }
 
 type PlayerInitMsg struct {

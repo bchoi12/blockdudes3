@@ -120,12 +120,6 @@ class Game {
 			}
 		}
 
-		if (Util.defined(msg.G)) {
-			if (msg.G.hasOwnProperty(objectStatesProp)) {
-				this.parseObjectPropMap(msg.G[objectStatesProp], seqNum);
-			}
-		}
-
 		if (Util.defined(msg.Os)) {
 			this.parseObjectPropMap(msg.Os, seqNum);
 		}
@@ -158,7 +152,6 @@ class Game {
 					} else if (space === pickupSpace) {
 						renderObj = new RenderPickup(space, id);
 					} else {
-						// TODO: add bomb
 						console.error("Unable to construct object for type " + space);
 						continue;
 					}

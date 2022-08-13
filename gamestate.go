@@ -7,6 +7,12 @@ type GameState struct {
 	objectStates map[SpacedId]StatePropMap
 }
 
+var gameStateExternalProps = map[Prop]bool {
+	deletedProp: true,
+	killProp: true,
+	deathProp: true,
+}
+
 func NewGameState() GameState {
 	return GameState {
 		gameState: make(StatePropMap),
@@ -31,10 +37,14 @@ func (gs *GameState) RegisterId(sid SpacedId) {
 }
 
 func (gs GameState) ValidProp(prop Prop) bool {
-	return prop != initializedProp
+	external, ok := gameStateExternalProps[prop]
+	return ok && external
 }
 
 func (gs *GameState) IncrementScore(sid SpacedId, prop Prop, delta int) {
+	if !gs.HasId(sid) {
+		return
+	}
 	if sid.GetSpace() != playerSpace {
 		Debug("Skipping setting score for non-player %+v", sid)
 		return
@@ -78,10 +88,12 @@ func (gs *GameState) SetObjectState(sid SpacedId, prop Prop, data interface{}) {
 	gs.objectStates[sid][prop].Set(data)
 }
 
-func (gs GameState) GetInitData() Data {
-	data := NewData()
-
+func (gs GameState) GetObjectInitProps() ObjectPropMap {
 	objectStates := make(ObjectPropMap)
+	if isWasm {
+		return objectStates
+	}
+
 	for sid, states := range(gs.objectStates) {
 		for prop, state := range(states) {
 			if gs.ValidProp(prop) && state.Has() {
@@ -95,18 +107,16 @@ func (gs GameState) GetInitData() Data {
 			}
 		}
 	}
-
-	if len(objectStates) > 0 {
-		data.Set(objectStatesProp, objectStates)
-	}
 	
-	return data
+	return objectStates
 }
 
-func (gs GameState) GetUpdates() Data {
-	updates := NewData()
-
+func (gs GameState) GetObjectPropUpdates() ObjectPropMap {
 	objectStates := make(ObjectPropMap)
+	if isWasm {
+		return objectStates
+	}
+
 	for sid, states := range(gs.objectStates) {
 		for prop, state := range(states) {
 			if !gs.ValidProp(prop) {
@@ -123,9 +133,5 @@ func (gs GameState) GetUpdates() Data {
 			}
 		}
 	}
-	if len(objectStates) > 0 {
-		updates.Set(objectStatesProp, objectStates)
-	}
-
-	return updates
+	return objectStates
 }

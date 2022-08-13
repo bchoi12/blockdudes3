@@ -148,12 +148,14 @@ func (p Player) Dead() bool {
 
 func (p Player) UpdateScore(g *Grid) {
 	sid := p.Health.GetLastDamageId(lastDamageTime)
-
 	g.IncrementScore(p.GetSpacedId(), deathProp, 1)
 
 	if sid.Invalid() {
+		Debug("Invalid ID")
 		return
 	}
+
+	Debug("Increment for %+v")
 	g.IncrementScore(sid, killProp, 1)
 }
 
