@@ -221,11 +221,20 @@ class Game {
 			return;
 		}
 
-		let player = this.sceneMap().get(playerSpace, this.id());
+		let player : RenderPlayer = this.sceneMap().getAsAny(playerSpace, this.id());
 		wasmSetData(playerSpace, this.id(), player.data());
 		this.updateKeys();
 		player.setData(JSON.parse(wasmGetData(playerSpace, this.id())));
 		player.update();
+
+		if (player.hasWeapon()) {
+			let weapon = player.weapon();
+			const data = JSON.parse(wasmGetData(weapon.space(), weapon.id()));
+			if (Util.defined(data)) {
+				weapon.setData(data);
+				weapon.update();
+			}
+		}
 	}
 
 	private initLevel(msg : { [k: string]: any }) : void {

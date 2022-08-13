@@ -2,7 +2,7 @@ package main
 
 type Association struct {
 	owner SpacedId
-	ownerFlag Flag
+	ownerFlag *Flag
 }
 
 func NewAssociation() Association {

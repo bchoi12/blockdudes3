@@ -54,7 +54,6 @@ declare var jerkProp : number;
 declare var dirProp : number;
 
 declare var keysProp : number;
-declare var healthProp : number;
 
 declare var ownerProp : number;
 declare var targetProp : number;

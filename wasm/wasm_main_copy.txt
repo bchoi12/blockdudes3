@@ -83,10 +83,7 @@ func setGlobals() {
 	js.Global().Set("accProp", int(accProp))
 	js.Global().Set("jerkProp", int(jerkProp))
 	js.Global().Set("dirProp", int(dirProp))
-
 	js.Global().Set("keysProp", int(keysProp))
-	js.Global().Set("healthProp", int(healthProp))
-
 	js.Global().Set("ownerProp", int(ownerProp))
 	js.Global().Set("targetProp", int(targetProp))
 	js.Global().Set("hitsProp", int(hitsProp))

@@ -106,7 +106,7 @@ func (w *Weapon) PressTrigger(triggerType TriggerType, pressed bool) {
 	}
 }
 
-func (w *Weapon) Grounded() {
+func (w *Weapon) OnGrounded() {
 	w.jetpack = 80
 }
 
@@ -137,6 +137,12 @@ func (w *Weapon) UpdateState(grid *Grid, now time.Time) bool {
 		trigger.UpdateState(grid, now)
 	}
 	return true
+}
+
+func (w *Weapon) OnDelete(grid *Grid) {
+	for _, trigger := range(w.triggers) {
+		trigger.DeleteTrackedProjectiles(grid)
+	}
 }
 
 func (w *Weapon) UpdateKeys(keyMsg KeyMsg) {

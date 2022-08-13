@@ -6,6 +6,7 @@ var wasmIgnoreAttributes = map[AttributeType]bool {
 }
 
 var wasmIgnoreByteAttributes = map[ByteAttributeType]bool {
+	typeByteAttribute: true,
 	healthByteAttribute: true,
 }
 

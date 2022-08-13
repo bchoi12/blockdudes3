@@ -74,7 +74,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 		const acc = this.acc();
 
 		this.setDir(this.dir());
-		this.setWeaponDir(Util.defined(this._weapon) ? this._weapon.dir() : this.dir());
+		this.setWeaponDir(this.hasWeapon() ? this._weapon.dir() : this.dir());
 
 		if (this._arm.position.lengthSq() > 0) {
 			let armOffset = this._armOrigin.clone().sub(this._arm.position);
@@ -115,7 +115,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	}
 
 	setWeapon(weapon : RenderWeapon) : void {
-		if (Util.defined(this._weapon)) {
+		if (this.hasWeapon()) {
 			this._arm.remove(this._weapon.mesh());
 		}
 
@@ -128,12 +128,12 @@ export class RenderPlayer extends RenderAnimatedObject {
 		}
 	}
 
-	weaponType() : number {
-		return Util.defined(this._weapon) ? this._weapon.weaponType() : 0;
-	}
+	weapon() : RenderWeapon { return this._weapon; }
+	hasWeapon() : boolean { return Util.defined(this._weapon); }
+	weaponType() : number { return this.hasWeapon() ? this._weapon.weaponType() : 0; }
 
 	shootingOrigin() : THREE.Vector3 {
-		if (!Util.defined(this._weapon)) {
+		if (!this.hasMesh()) {
 			return this.pos3();
 		}
 

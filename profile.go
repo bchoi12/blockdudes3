@@ -64,7 +64,7 @@ type Profile interface {
 type BaseProfile struct {
 	Init
 	pos, vel, acc, jerk, dir, dim Vec2
-	posFlag, velFlag, accFlag, jerkFlag, dirFlag, dimFlag Flag
+	posFlag, velFlag, accFlag, jerkFlag, dirFlag, dimFlag *Flag
 	forces []Vec2
 
 	subProfiles map[ProfileKey]SubProfile

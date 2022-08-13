@@ -10,9 +10,8 @@ type Flag struct {
 	ttl int
 }
 
-// TODO: needs to be pointer
-func NewFlag() Flag {
-	return Flag {
+func NewFlag() *Flag {
+	return &Flag {
 		flag: NewOptional(),
 		changed: false,
 		ttl: 0,

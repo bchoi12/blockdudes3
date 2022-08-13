@@ -64,7 +64,6 @@ const (
 
 	attributesProp
 	byteAttributesProp
-
 	// TODO: colorProp
 
 	dimProp
@@ -75,7 +74,6 @@ const (
 	dirProp
 
 	keysProp
-	healthProp
 	ownerProp
 	targetProp
 	hitsProp

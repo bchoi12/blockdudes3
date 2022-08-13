@@ -144,9 +144,7 @@ func (t *Trigger) UpdateState(grid *Grid, now time.Time) bool {
 
 	if t.ProjectileDeleteOnRelease() {
 		if !t.Pressed() {
-			for sid, _ := range(t.currentProjectiles) {
-				grid.Delete(sid)
-			}
+			t.DeleteTrackedProjectiles(grid)
 			t.Reload()
 			t.state = readyTriggerState
 			return true
@@ -220,5 +218,11 @@ func (t *Trigger) Shoot(grid *Grid, now time.Time) {
 
 	if t.ProjectileLimit() > 0 {
 		t.currentProjectiles[projectile.GetSpacedId()] = true
+	}
+}
+
+func (t *Trigger) DeleteTrackedProjectiles(grid *Grid) {
+	for sid, _ := range(t.currentProjectiles) {
+		grid.Delete(sid)
 	}
 }

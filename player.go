@@ -170,7 +170,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		p.canDoubleJump = true
 
 		if p.weapon != nil {
-			p.weapon.Grounded()
+			p.weapon.OnGrounded()
 		}
 	}
 
