@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { options } from './options.js'
-import { Util } from './util.js'
+import { LogUtil, Util } from './util.js'
 
 enum OverwriteMethod {
 	UNKNOWN = 0,
@@ -36,6 +36,11 @@ export class Message {
 	}
 
 	setData(msg : { [k: string]: any }, seqNum? : number) {
+		if (!Util.defined(msg)) {
+			LogUtil.d("Null msg!");
+			return;
+		}
+
 		this.sanitizeData(msg);
 
 		if (Util.defined(seqNum)) {

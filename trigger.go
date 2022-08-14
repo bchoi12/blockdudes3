@@ -20,6 +20,7 @@ const (
 	secondaryTrigger
 )
 
+// TODO: rename launcher?
 type Trigger struct {
 	weapon *Weapon
 

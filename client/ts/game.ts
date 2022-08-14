@@ -225,8 +225,6 @@ class Game {
 		wasmSetData(playerSpace, this.id(), player.data());
 		this.updateKeys();
 		player.setData(JSON.parse(wasmGetData(playerSpace, this.id())));
-		player.update();
-
 		if (player.hasWeapon()) {
 			let weapon = player.weapon();
 			const data = JSON.parse(wasmGetData(weapon.space(), weapon.id()));
@@ -235,6 +233,7 @@ class Game {
 				weapon.update();
 			}
 		}
+		player.update();
 	}
 
 	private initLevel(msg : { [k: string]: any }) : void {
