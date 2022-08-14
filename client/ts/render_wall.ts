@@ -10,6 +10,10 @@ export class RenderWall extends RenderObject {
 		super(space, id);
 	}
 
+	override ready() : boolean {
+		return super.ready() && this.hasAttributes();
+	}
+
 	override initialize() : void {
 		super.initialize();
 

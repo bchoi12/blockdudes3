@@ -153,15 +153,8 @@ func (p *Projectile) Hit(collider Object) {
 }
 
 func (p *Projectile) GetInitData() Data {
-	data := NewData()
-	data.Merge(p.BaseObject.GetInitData())
+	data := p.BaseObject.GetInitData()
 	data.Set(velProp, p.Vel())
-	return data
-}
-
-func (p *Projectile) GetData() Data {
-	data := NewData()
-	data.Merge(p.BaseObject.GetData())
 	return data
 }
 

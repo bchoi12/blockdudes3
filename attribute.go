@@ -159,7 +159,6 @@ func (a Attribute) GetUpdates() Data {
 }
 
 func (a *Attribute) SetData(data Data) {
-	// Note: ignored attributes are already filtered when doing parsing
 	if data.Has(attributesProp) {
 		a.attributes = data.Get(attributesProp).(map[AttributeType]bool)
 	}

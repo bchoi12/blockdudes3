@@ -66,11 +66,3 @@ func (w *Wall) UpdateState(grid *Grid, now time.Time) bool {
 	w.GetProfile().SetPos(pos)
 	return true
 }
-
-func (w *Wall) GetData() Data {
-	if (w.Vel().IsZero()) {
-		return NewData()
-	}
-
-	return w.BaseObject.GetData()
-}
