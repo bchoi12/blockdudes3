@@ -6,7 +6,7 @@ import (
 
 const (
 	floatEpsilon float64 = 1e-8
-	approxEpsilon float64 = 1e-5
+	approxEpsilon float64 = 1e-6
 )
 
 type Line struct {
@@ -185,8 +185,12 @@ func (v Vec2) IsZero() bool {
 	return Abs(v.X) < floatEpsilon && Abs(v.Y) < floatEpsilon
 }
 
+func (v Vec2) ApproxEq(other Vec2) bool {
+	return Abs(v.X - other.X) < approxEpsilon && Abs(v.Y - other.Y) < approxEpsilon
+}
+
 func (v Vec2) ApproxUnit() bool {
-	return Abs(v.LenSquared() - 1) <  approxEpsilon
+	return Abs(v.LenSquared() - 1) < approxEpsilon
 }
 
 func (v Vec2) Len() float64 {

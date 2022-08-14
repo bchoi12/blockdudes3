@@ -99,11 +99,19 @@ func NewBaseProfile(init Init) BaseProfile {
 
 func (bp BaseProfile) Dim() Vec2 { return bp.dim }
 func (bp *BaseProfile) SetDim(dim Vec2) {
+	if bp.dim.ApproxEq(dim) {
+		return
+	}
+
 	bp.dim = dim
 	bp.dimFlag.Reset(true)
 }
 func (bp BaseProfile) Pos() Vec2 { return bp.pos }
 func (bp *BaseProfile) SetPos(pos Vec2) {
+	if bp.pos.ApproxEq(pos) {
+		return
+	}
+
 	bp.pos = pos
 	for _, sp := range(bp.subProfiles) {
 		sp.SetPos(pos)
@@ -112,7 +120,7 @@ func (bp *BaseProfile) SetPos(pos Vec2) {
 }
 func (bp BaseProfile) Vel() Vec2 { return bp.vel }
 func (bp *BaseProfile) SetVel(vel Vec2) {
-	if bp.vel.IsZero() && vel.IsZero() {
+	if bp.vel.ApproxEq(vel) {
 		return
 	}
 
@@ -125,7 +133,7 @@ func (bp *BaseProfile) SetVel(vel Vec2) {
 
 func (bp BaseProfile) Acc() Vec2 { return bp.acc }
 func (bp *BaseProfile) SetAcc(acc Vec2) {
-	if bp.acc.IsZero() && acc.IsZero() {
+	if bp.acc.ApproxEq(acc) {
 		return
 	}
 
@@ -137,9 +145,10 @@ func (bp *BaseProfile) SetAcc(acc Vec2) {
 }
 func (bp BaseProfile) Jerk() Vec2 { return bp.jerk }
 func (bp *BaseProfile) SetJerk(jerk Vec2) {
-	if bp.jerk.IsZero() && jerk.IsZero() {
+	if bp.jerk.ApproxEq(jerk) {
 		return
 	}
+
 	bp.jerk = jerk
 	for _, sp := range(bp.subProfiles) {
 		sp.SetJerk(jerk)
@@ -149,6 +158,10 @@ func (bp *BaseProfile) SetJerk(jerk Vec2) {
 
 func (bp BaseProfile) Dir() Vec2 { return bp.dir }
 func (bp *BaseProfile) SetDir(dir Vec2) {
+	if bp.dir.ApproxEq(dir) {
+		return
+	}
+
 	bp.dir = dir
 	for _, sp := range(bp.subProfiles) {
 		sp.SetDir(dir)
@@ -193,19 +206,19 @@ func (bp *BaseProfile) Stop() {
 
 func (bp BaseProfile) GetData() Data {
 	data := NewData()
-	if bp.posFlag.Has() {
+	if flag, ok := bp.posFlag.Pop(); ok && flag {
 		data.Set(posProp, bp.Pos())
 	}
-	if bp.velFlag.Has() {
+	if flag, ok := bp.velFlag.Pop(); ok && flag {
 		data.Set(velProp, bp.Vel())
 	}
-	if bp.accFlag.Has() {
+	if flag, ok := bp.accFlag.Pop(); ok && flag {
 		data.Set(accProp, bp.Acc())
 	}
-	if bp.jerkFlag.Has() {
+	if flag, ok := bp.jerkFlag.Pop(); ok && flag {
 		data.Set(jerkProp, bp.Jerk())
 	}
-	if bp.dirFlag.Has() {
+	if flag, ok := bp.dirFlag.Pop(); ok && flag {
 		data.Set(dirProp, bp.Dir())
 	}
 	if flag, ok := bp.dimFlag.Pop(); ok && flag {
@@ -224,6 +237,21 @@ func (bp BaseProfile) GetInitData() Data {
 
 func (bp BaseProfile) GetUpdates() Data {
 	data := NewData()
+	if flag, ok := bp.posFlag.GetOnce(); ok && flag {
+		data.Set(posProp, bp.Pos())
+	}
+	if flag, ok := bp.velFlag.GetOnce(); ok && flag {
+		data.Set(velProp, bp.Vel())
+	}
+	if flag, ok := bp.accFlag.GetOnce(); ok && flag {
+		data.Set(accProp, bp.Acc())
+	}
+	if flag, ok := bp.jerkFlag.GetOnce(); ok && flag {
+		data.Set(jerkProp, bp.Jerk())
+	}
+	if flag, ok := bp.dirFlag.GetOnce(); ok && flag {
+		data.Set(dirProp, bp.Dir())
+	}
 	if flag, ok := bp.dimFlag.GetOnce(); ok && flag {
 		data.Set(dimProp, bp.dim)
 	}
@@ -240,24 +268,16 @@ func (bp *BaseProfile) SetData(data Data) {
 	}
 	if data.Has(velProp) {
 		bp.SetVel(data.Get(velProp).(Vec2))
-	} else {
-		bp.SetVel(NewVec2(0, 0))
 	}
 	if data.Has(accProp) {
 		bp.SetAcc(data.Get(accProp).(Vec2))
-	} else {
-		bp.SetAcc(NewVec2(0, 0))
 	}
 	if data.Has(jerkProp) {
 		bp.SetJerk(data.Get(jerkProp).(Vec2))
-	} else {
-		bp.SetJerk(NewVec2(0, 0))
 	}
-
 	if data.Has(dirProp) {
 		bp.SetDir(data.Get(dirProp).(Vec2))
 	}
-
 	if data.Has(dimProp) {
 		bp.SetDim(data.Get(dimProp).(Vec2))
 	}

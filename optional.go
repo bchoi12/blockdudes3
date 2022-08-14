@@ -5,8 +5,8 @@ type Optional struct {
 	value bool
 }
 
-func NewOptional() Optional {
-	return Optional {
+func NewOptional() *Optional {
+	return &Optional {
 		has: false,
 		value: false,
 	}

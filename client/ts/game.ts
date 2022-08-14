@@ -125,7 +125,7 @@ class Game {
 		}, frameMillis);
 
 		this.setState(GameState.GAME);
-		LogUtil.d("Initialize player with id " + this._id);
+		LogUtil.d("Initializing player with id " + this._id);
 	}
 
 	private updateGameState(msg : { [k: string]: any }) : void {

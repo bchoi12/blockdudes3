@@ -14,7 +14,7 @@ enum OverwriteMethod {
 }
 
 export class Message {
-	private readonly _weightedExtrapolateProps : Set<number> = new Set<number>([posProp, velProp, accProp]);
+	private readonly _extrapolateProps : Set<number> = new Set<number>([posProp, velProp, accProp]);
 	private readonly _mapProps : Map<number, OverwriteMethod> = new Map<number, OverwriteMethod>([
 		[attributesProp, OverwriteMethod.MERGE_AND_REPLACE],
 		[byteAttributesProp, OverwriteMethod.MERGE_AND_REPLACE],
@@ -41,22 +41,11 @@ export class Message {
 			return;
 		}
 
-		this.sanitizeData(msg);
-
 		if (Util.defined(seqNum)) {
 			this._lastSeqNum = Math.max(seqNum, this._lastSeqNum);
-
-			// Copied from profile.go
-			if (this._data.has(velProp) && !msg.hasOwnProperty(velProp)) {
-				this._data.set(velProp, {X: 0, Y: 0});
-			}
-			if (this._data.has(accProp) && !msg.hasOwnProperty(accProp)) {
-				this._data.set(accProp, {X: 0, Y: 0});
-			}
-			if (this._data.has(jerkProp) && !msg.hasOwnProperty(jerkProp)) {
-				this._data.set(jerkProp, {X: 0, Y: 0});
-			}
 		}
+
+		this.sanitizeData(msg);
 
 		const millisElapsed = Date.now() - this._lastUpdate;
 		const weight = Math.min(millisElapsed / (options.extrapolateMs), 1) * options.extrapolateWeight;
@@ -65,7 +54,7 @@ export class Message {
 			const prop = Number(stringProp);
 
 			if (!Util.defined(seqNum)) {
-				if (this._weightedExtrapolateProps.has(prop) && this._data.has(prop)) {
+				if (this._extrapolateProps.has(prop) && this._data.has(prop)) {
 					this._data.set(prop, this.extrapolateVec2(this.get(prop), data, weight));
 				} else {
 					this._data.set(prop, data);
@@ -146,12 +135,12 @@ export class Message {
 	}
 
 	private extrapolateVec2(current : any, next : any, weight : number) : any {
-		if ((next.X - current.X) * (next.X - current.X) + (next.Y - current.Y) * (next.Y - current.Y) > 1) {
-			return current;
+		if (weight > 1) {
+			return next;
 		}
 		return {
 			X: current.X * (1 - weight) + next.X * weight,
-			Y: current.Y * (1 - weight) + next.Y * weight
+			Y: current.Y * (1 - weight) + next.Y * weight,
 		};
 	}
 }

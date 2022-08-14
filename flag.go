@@ -5,7 +5,7 @@ const (
 )
 
 type Flag struct {
-	flag Optional
+	flag *Optional
 	changed bool
 	ttl int
 }

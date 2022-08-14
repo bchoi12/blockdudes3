@@ -68,6 +68,7 @@ class Loader {
 	}
 
 	private preload() : void {
+		// TODO: revisit loading everything, this could be smarter
 		this._paths.forEach((path, model) => {
 			this.load(Model[model], () => {});
 		});
