@@ -206,19 +206,19 @@ func (bp *BaseProfile) Stop() {
 
 func (bp BaseProfile) GetData() Data {
 	data := NewData()
-	if flag, ok := bp.posFlag.Pop(); ok && flag {
+	if bp.posFlag.Has() {
 		data.Set(posProp, bp.Pos())
 	}
-	if flag, ok := bp.velFlag.Pop(); ok && flag {
+	if bp.velFlag.Has() {
 		data.Set(velProp, bp.Vel())
 	}
-	if flag, ok := bp.accFlag.Pop(); ok && flag {
+	if bp.accFlag.Has() {
 		data.Set(accProp, bp.Acc())
 	}
-	if flag, ok := bp.jerkFlag.Pop(); ok && flag {
+	if bp.jerkFlag.Has() {
 		data.Set(jerkProp, bp.Jerk())
 	}
-	if flag, ok := bp.dirFlag.Pop(); ok && flag {
+	if bp.dirFlag.Has() {
 		data.Set(dirProp, bp.Dir())
 	}
 	if flag, ok := bp.dimFlag.Pop(); ok && flag {
@@ -237,21 +237,6 @@ func (bp BaseProfile) GetInitData() Data {
 
 func (bp BaseProfile) GetUpdates() Data {
 	data := NewData()
-	if flag, ok := bp.posFlag.GetOnce(); ok && flag {
-		data.Set(posProp, bp.Pos())
-	}
-	if flag, ok := bp.velFlag.GetOnce(); ok && flag {
-		data.Set(velProp, bp.Vel())
-	}
-	if flag, ok := bp.accFlag.GetOnce(); ok && flag {
-		data.Set(accProp, bp.Acc())
-	}
-	if flag, ok := bp.jerkFlag.GetOnce(); ok && flag {
-		data.Set(jerkProp, bp.Jerk())
-	}
-	if flag, ok := bp.dirFlag.GetOnce(); ok && flag {
-		data.Set(dirProp, bp.Dir())
-	}
 	if flag, ok := bp.dimFlag.GetOnce(); ok && flag {
 		data.Set(dimProp, bp.dim)
 	}
@@ -443,12 +428,12 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 	posAdj := bp.PosAdjustment(other)
 	ignored := bp.getIgnored()
 
-	if _, ok := ignored[other.GetSpacedId()]; ok {
-		result.SetIgnored(true)
+	if !bp.GetSnapOptions().Evaluate(other) || posAdj.Area() <= 0 {
 		return result
 	}
 
-	if !bp.GetSnapOptions().Evaluate(other) || posAdj.Area() <= 0 {
+	if _, ok := ignored[other.GetSpacedId()]; ok {
+		result.SetIgnored(true)
 		return result
 	}
 
@@ -512,7 +497,6 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 			collisionFlag.Y = 0
 		}
 	}
-
 	// Have overlap, but no pos adjustment for some reason.
 	if collisionFlag.IsZero() {
 		if other.HasAttribute(platformAttribute) {

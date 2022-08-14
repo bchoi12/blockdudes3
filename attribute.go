@@ -160,10 +160,17 @@ func (a Attribute) GetUpdates() Data {
 
 func (a *Attribute) SetData(data Data) {
 	if data.Has(attributesProp) {
-		a.attributes = data.Get(attributesProp).(map[AttributeType]bool)
+		newAttributes := data.Get(attributesProp).(map[AttributeType]bool)
+
+		for attribute, val := range(newAttributes) {
+			a.attributes[attribute] = val
+		}
 	}
 
 	if data.Has(byteAttributesProp) {
-		a.byteAttributes = data.Get(byteAttributesProp).(map[ByteAttributeType]uint8)
+		newByteAttributes := data.Get(byteAttributesProp).(map[ByteAttributeType]uint8)
+		for byteAttribute, val := range(newByteAttributes) {
+			a.byteAttributes[byteAttribute] = val
+		}
 	}
 }

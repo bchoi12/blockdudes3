@@ -66,6 +66,7 @@ export class Message {
 		}
 	}
 
+	dataDEBUG() : any { return this._data; }
 	data() : { [k: string]: any } { return Object.fromEntries(this._data); }
 	has(prop : number) : boolean { return this._data.has(prop); }
 	lastSeqNum() : number { return this._lastSeqNum; }
@@ -107,11 +108,11 @@ export class Message {
 				}
 				
 				let num = value;
-				if (typeof value === 'boolean') {
+				if (typeof value == 'boolean') {
 					num = value ? 1 : 0;
 				}
 
-				if (map.get(key) === num) {
+				if (map.has(key) && map.get(key) === num) {
 					continue;
 				}
 
