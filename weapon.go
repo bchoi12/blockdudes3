@@ -21,8 +21,13 @@ type Weapon struct {
 	jetpack int
 	dashTimer Timer
 
-	triggers map[TriggerType]*Trigger
-	uniqueShots map[SpaceType]IdType
+	parts map[KeyType]WeaponPart
+}
+
+type WeaponPart interface {
+	SetPressed(pressed bool)
+	UpdateState(grid *Grid, now time.Time)
+	OnDelete(grid *Grid)
 }
 
 func NewWeapon(init Init) *Weapon {
@@ -34,8 +39,7 @@ func NewWeapon(init Init) *Weapon {
 		jetpack: 80,
 		dashTimer: NewTimer(1500 * time.Millisecond),
 	
-		triggers: make(map[TriggerType]*Trigger),
-		uniqueShots: make(map[SpaceType]IdType),
+		parts: make(map[KeyType]WeaponPart),
 	}
 	return w
 }
@@ -61,32 +65,36 @@ func (w *Weapon) SetWeaponType(weaponType WeaponType) {
 		return
 	}
 
-	if weaponType, ok := w.GetByteAttribute(typeByteAttribute); ok && weaponType == uint8(weaponType) {
+	if currentType, ok := w.GetByteAttribute(typeByteAttribute); ok && currentType == uint8(weaponType) {
 		return
 	}
 
 	switch weaponType {
+	case unknownWeapon:
+		delete(w.parts, mouseClick)
+		delete(w.parts, altMouseClick)
 	case uziWeapon:
-		w.triggers[primaryTrigger] = NewTrigger(w, boltSpace)
-		w.triggers[secondaryTrigger] = NewTrigger(w, grapplingHookSpace)
+		w.parts[mouseClick] = NewTrigger(w, pelletSpace)
+		w.parts[altMouseClick] = NewTrigger(w, grapplingHookSpace)
 		w.SetShotOffset(NewVec2(0.3, 0))
 	case bazookaWeapon:
-		w.triggers[primaryTrigger] = NewTrigger(w, rocketSpace)
-		delete(w.triggers, secondaryTrigger)
+		w.parts[mouseClick] = NewTrigger(w, rocketSpace)
+		delete(w.parts, altMouseClick)
 		w.SetShotOffset(NewVec2(0.3, 0))
 	case sniperWeapon:
-		w.triggers[primaryTrigger] = NewTrigger(w, boltSpace)
-		w.triggers[primaryTrigger].SetMaxAmmo(1)
-		w.triggers[primaryTrigger].SetProjectileSize(NewVec2(0.6, 0.2))
-		w.triggers[primaryTrigger].SetProjectileVel(45)
-		w.triggers[primaryTrigger].SetReloadTime(2 * time.Second)
-		w.triggers[primaryTrigger].Reload()
+		trigger := NewTrigger(w, boltSpace)
+		trigger.SetMaxAmmo(1)
+		trigger.SetProjectileSize(NewVec2(0.6, 0.2))
+		trigger.SetProjectileVel(45)
+		trigger.SetReloadTime(2 * time.Second)
+		trigger.Reload()
 
-		delete(w.triggers, secondaryTrigger)
+		w.parts[mouseClick] = trigger
+		delete(w.parts, altMouseClick)
 		w.SetShotOffset(NewVec2(0.6, 0))
 	case starWeapon:
-		w.triggers[primaryTrigger] = NewTrigger(w, starSpace)
-		delete(w.triggers, secondaryTrigger)
+		w.parts[mouseClick] = NewTrigger(w, starSpace)
+		delete(w.parts, altMouseClick)
 		w.SetShotOffset(NewVec2(0.1, 0))
 	default:
 		Debug("Unknown weapon type! %d", weaponType)
@@ -94,16 +102,6 @@ func (w *Weapon) SetWeaponType(weaponType WeaponType) {
 	}
 
 	w.SetByteAttribute(typeByteAttribute, uint8(weaponType))
-}
-
-func (w *Weapon) SetTrigger(triggerType TriggerType, trigger *Trigger) {
-	w.triggers[triggerType] = trigger
-}
-
-func (w *Weapon) PressTrigger(triggerType TriggerType, pressed bool) {
-	if trigger, ok := w.triggers[triggerType]; ok {
-		trigger.SetPressed(pressed)
-	}
 }
 
 func (w *Weapon) OnGrounded() {
@@ -133,21 +131,23 @@ func (w *Weapon) UpdateState(grid *Grid, now time.Time) bool {
 		}
 	}
 
-	for _, trigger := range(w.triggers) {
-		trigger.UpdateState(grid, now)
+	for _, part := range(w.parts) {
+		part.UpdateState(grid, now)
 	}
 	return true
 }
 
 func (w *Weapon) OnDelete(grid *Grid) {
-	for _, trigger := range(w.triggers) {
-		trigger.DeleteTrackedProjectiles(grid)
+	for _, part := range(w.parts) {
+		part.OnDelete(grid)
 	}
 }
 
 func (w *Weapon) UpdateKeys(keyMsg KeyMsg) {
 	w.Keys.UpdateKeys(keyMsg)
-	w.PressTrigger(primaryTrigger, w.KeyDown(mouseClick))
-	w.PressTrigger(secondaryTrigger, w.KeyDown(altMouseClick))
+
+	for key, part := range(w.parts) {
+		part.SetPressed(w.KeyDown(key))
+	}
 	w.SetDir(keyMsg.D)
 }

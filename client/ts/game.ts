@@ -8,10 +8,11 @@ import { RenderBolt } from './render_bolt.js'
 import { RenderExplosion } from './render_explosion.js'
 import { RenderGrapplingHook } from './render_grappling_hook.js'
 import { RenderObject } from './render_object.js'
-import { RenderStar } from './render_star.js'
+import { RenderPellet } from './render_pellet.js'
 import { RenderPickup } from './render_pickup.js'
 import { RenderPlayer } from './render_player.js'
 import { RenderRocket } from './render_rocket.js'
+import { RenderStar } from './render_star.js'
 import { RenderWall } from './render_wall.js'
 import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
@@ -161,6 +162,8 @@ class Game {
 						renderObj = new RenderExplosion(space, id);
 					} else if (space === weaponSpace) {
 						renderObj = new RenderWeapon(space, id);
+					} else if (space === pelletSpace) {
+						renderObj = new RenderPellet(space, id);
 					} else if (space === boltSpace) {
 						renderObj = new RenderBolt(space, id);
 					} else if (space === rocketSpace) {
@@ -228,8 +231,10 @@ class Game {
 		player.update();
 
 		// TODO: this is sort of hacky
-		const weaponDir = this._keys.weaponDir();
-		player.setWeaponDir(new THREE.Vector2(weaponDir.X, weaponDir.Y));
+		if (player.hasWeapon()) {
+			const weaponDir = this._keys.weaponDir();
+			player.setWeaponDir(new THREE.Vector2(weaponDir.X, weaponDir.Y));
+		}
 	}
 
 	private initLevel(msg : { [k: string]: any }) : void {

@@ -46,6 +46,7 @@ const (
 	wallSpace
 	weaponSpace
 	bombSpace
+	pelletSpace
 	boltSpace
 	rocketSpace
 	starSpace

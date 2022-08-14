@@ -115,22 +115,24 @@ export class RenderPlayer extends RenderAnimatedObject {
 	}
 
 	setWeapon(weapon : RenderWeapon) : void {
-		if (this.hasWeapon()) {
-			this._arm.remove(this._weapon.mesh());
+		if (!this.hasMesh()) {
+			return;
 		}
-
 		this._weapon = weapon;
-		if (this.hasMesh()) {
-			this._arm.add(weapon.mesh());
 
-			weapon.mesh().rotation.x = Math.PI / 2;
-			weapon.mesh().scale.z = -1;
-		}
+		this._arm.add(this._weapon.mesh());
+		this._weapon.mesh().rotation.x = Math.PI / 2;
+		this._weapon.mesh().scale.z = -1;
 	}
 
 	weapon() : RenderWeapon { return this._weapon; }
-	hasWeapon() : boolean { return Util.defined(this._weapon); }
+	hasWeapon() : boolean { return Util.defined(this._weapon) && this._weapon.weaponType() !== 0; }
 	weaponType() : number { return this.hasWeapon() ? this._weapon.weaponType() : 0; }
+	removeWeaponMesh() : void {
+		if (this.hasWeapon()) {
+			this._arm.remove(this._weapon.mesh());
+		}
+	}
 
 	shootingOrigin() : THREE.Vector3 {
 		if (!this.hasMesh()) {

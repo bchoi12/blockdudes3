@@ -133,7 +133,7 @@ export class SceneMap {
 		const map = this.getMap(space);
 		if (map.has(id)) {
 			map.get(id).delete();
-			this._scene.remove(map.get(id).mesh());
+			this.removeMesh(map.get(id).mesh());
 			map.delete(id);
 
 			if (!this._deleted.has(space)) {
@@ -141,6 +141,10 @@ export class SceneMap {
 			}
 			this._deleted.get(space).add(id);
 		}
+	}
+
+	removeMesh(object : THREE.Object3D) : void {
+		this._scene.remove(object);
 	}
 
 	clear(space : number) : void {

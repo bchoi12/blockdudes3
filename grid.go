@@ -65,6 +65,8 @@ func (g *Grid) New(init Init) Object {
 		return NewWeapon(init)
 	case bombSpace:
 		return NewBomb(init)
+	case pelletSpace:
+		return NewPellet(init)
 	case boltSpace:
 		return NewBolt(init)
 	case rocketSpace:

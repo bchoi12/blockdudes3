@@ -264,6 +264,12 @@ func (p *Player) Postprocess(grid *Grid, now time.Time) {
 	p.Keys.SaveKeys()
 }
 
+func (p *Player) OnDelete(grid *Grid) {
+	if p.weapon != nil {
+		grid.Delete(p.weapon.GetSpacedId())
+	}
+}
+
 func (p *Player) checkCollisions(grid *Grid) {
 	colliders := grid.GetColliders(p)
 	snapResults := p.Snap(colliders)
@@ -279,20 +285,15 @@ func (p *Player) checkCollisions(grid *Grid) {
 		switch object := collider.(type) {
 		case *Pickup:
 			if !isWasm && p.KeyDown(interactKey) {
-				if p.weapon != nil {
-					if p.weapon.GetWeaponType() == object.GetWeaponType() {
-						break
-					}
-
-					grid.Delete(p.weapon.GetSpacedId())
+				if p.weapon == nil {
+					weapon := grid.New(NewObjectInit(grid.NextSpacedId(weaponSpace), p.Pos(), p.Dim()))
+					grid.Upsert(weapon)
+					p.weapon = weapon.(*Weapon)
+					p.weapon.AddConnection(p.GetSpacedId(), NewOffsetConnection(NewVec2(0, bodySubProfileOffsetY)))
+					p.weapon.SetOwner(p.GetSpacedId())
 				}
 
-				weapon := grid.New(NewObjectInit(grid.NextSpacedId(weaponSpace), p.Pos(), p.Dim()))
-				grid.Upsert(weapon)
-				p.weapon = weapon.(*Weapon)
-				p.weapon.AddConnection(p.GetSpacedId(), NewOffsetConnection(NewVec2(0, bodySubProfileOffsetY)))
 				p.weapon.SetWeaponType(object.GetWeaponType())
-				p.weapon.SetOwner(p.GetSpacedId())
 			}
 		}
 	}

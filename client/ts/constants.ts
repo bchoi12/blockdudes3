@@ -28,6 +28,7 @@ declare var playerSpace : number;
 declare var wallSpace : number;
 declare var weaponSpace : number;
 declare var bombSpace : number;
+declare var pelletSpace : number;
 declare var boltSpace : number;
 declare var rocketSpace : number;
 declare var starSpace : number;

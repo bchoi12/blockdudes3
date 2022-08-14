@@ -122,10 +122,7 @@ func (a *Attachment) Postprocess(grid *Grid, now time.Time) {
 			pos := parent.Pos()
 			pos.Add(connection.GetOffset(), 1.0)
 			child.SetPos(pos)
-
 			child.SetVel(parent.Vel())
-			child.SetAcc(parent.Acc())
-			child.SetJerk(parent.Jerk())
 			grid.Upsert(child)
 		}
 

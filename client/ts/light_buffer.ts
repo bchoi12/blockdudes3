@@ -6,7 +6,7 @@ import { RingBuffer } from './ring_buffer.js'
 
 export class LightBuffer {
 
-	private readonly _bufferSize : number = 5;
+	private readonly _bufferSize : number = 10;
 
 	private _spotLights : RingBuffer<THREE.SpotLight>;
 	private _pointLights : RingBuffer<THREE.PointLight>;

@@ -7,12 +7,16 @@ import { Util } from './util.js'
 
 export class RenderWeapon extends RenderObject {
 
+	private _weaponType : number;
+
 	private _player : RenderPlayer;
 	private _attached : boolean;
 
 	constructor(space : number, id : number) {
 		super(space, id);
 
+		this._weaponType = 0;
+		this._player = null;
 		this._attached = false;
 	}
 
@@ -23,9 +27,8 @@ export class RenderWeapon extends RenderObject {
 	override initialize() : void {
 		super.initialize();
 
-		loader.load(loader.getWeaponModel(this.weaponType()), (mesh : THREE.Mesh) => {
-			this.setMesh(mesh);
-		});
+		this._weaponType = this.byteAttribute(typeByteAttribute);
+		this.loadMesh();
 	}
 
 	override setMesh(mesh : THREE.Object3D) : void {
@@ -44,6 +47,11 @@ export class RenderWeapon extends RenderObject {
 	override update() : void {
 		super.update();
 
+		if (this._weaponType !== this.byteAttribute(typeByteAttribute)) {
+			this._weaponType = this.byteAttribute(typeByteAttribute);
+			this.loadMesh();
+		}
+
 		if (!this.hasMesh()) {
 			return;
 		}
@@ -57,5 +65,21 @@ export class RenderWeapon extends RenderObject {
 
 	weaponType() : number {
 		return this.byteAttribute(typeByteAttribute);
+	}
+
+	private loadMesh() {
+		if (this.weaponType() === 0) {
+			if (Util.defined(this._player)) {
+				this._player.removeWeaponMesh();
+			}
+			return;
+		}
+
+		loader.load(loader.getWeaponModel(this.weaponType()), (mesh : THREE.Mesh) => {
+			if (Util.defined(this._player)) {
+				this._player.removeWeaponMesh();
+			}
+			this.setMesh(mesh);
+		});
 	}
 }

@@ -4,6 +4,19 @@ import (
 	"time"
 )
 
+type Pellet struct {
+	Projectile
+}
+
+func NewPellet(init Init) *Pellet {
+	pellet := &Pellet {
+		Projectile: NewProjectile(NewCircleObject(init)),
+	}
+	pellet.SetTTL(800 * time.Millisecond)
+	pellet.SetDamage(10)
+	return pellet
+}
+
 type Bolt struct {
 	Projectile
 }

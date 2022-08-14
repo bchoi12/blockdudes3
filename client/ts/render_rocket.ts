@@ -42,17 +42,6 @@ export class RenderRocket extends RenderProjectile {
 	override setMesh(mesh : THREE.Object3D) : void {
 		super.setMesh(mesh);
 		mesh.rotation.y = Math.PI / 2;
-
-		/*
-		this._light = game.sceneMap().getPointLight();
-
-		if (Util.defined(this._light)) {
-			this._light.color = new THREE.Color(0xFF0000);
-			this._light.intensity = 3.0;
-			this._light.distance = 6.0;
-			mesh.add(this._light);
-		}
-		*/
 	}
 
 	override update() : void {

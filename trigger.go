@@ -67,10 +67,16 @@ func NewTrigger(weapon *Weapon, space SpaceType) *Trigger {
 	}
 
 	switch space {
-	case boltSpace:
+	case pelletSpace:
 		t.SetMaxAmmo(1)
 		t.SetAmmoReloadTime(100 * time.Millisecond)
 		t.SetReloadTime(120 * time.Millisecond)
+		t.SetProjectileSize(NewVec2(0.2, 0.2))
+		t.SetProjectileVel(30)
+	case boltSpace:
+		t.SetMaxAmmo(3)
+		t.SetAmmoReloadTime(100 * time.Millisecond)
+		t.SetReloadTime(400 * time.Millisecond)
 		t.SetProjectileSize(NewVec2(0.22, 0.1))
 		t.SetProjectileVel(30)
 	case rocketSpace:
@@ -131,41 +137,40 @@ func (t *Trigger) SetProjectileLimit(limit int) { t.projectileLimit = limit }
 
 func (t *Trigger) Reload() { t.ammo = t.maxAmmo }
 
-func (t *Trigger) UpdateState(grid *Grid, now time.Time) bool {
+func (t *Trigger) UpdateState(grid *Grid, now time.Time) {
 	if t.Ammo() > 0 && (t.Pressed() || t.Ammo() < t.MaxAmmo()) {
 		if t.ammoTimer.On() {
 			t.state = rotatingAmmoTriggerState
-			return true
+			return
 		}
 
 		t.state = shootingTriggerState
 		t.Shoot(grid, now)
-		return true
+		return
 	}
 
 	if t.ProjectileDeleteOnRelease() {
 		if !t.Pressed() {
-			t.DeleteTrackedProjectiles(grid)
+			t.deleteTrackedProjectiles(grid)
 			t.Reload()
 			t.state = readyTriggerState
-			return true
+			return
 		} else {
 			t.state = rotatingAmmoTriggerState
-			return true
+			return
 		}
 	} else if t.Ammo() == 0 {
 		if t.reloadTimer.On() {
 			t.state = reloadingTriggerState
-			return true
+			return
 		} else {
 			t.Reload()
 			t.state = readyTriggerState
-			return true
+			return
 		}
 	}
 
 	t.state = readyTriggerState
-	return true
 }
 
 func (t *Trigger) Shoot(grid *Grid, now time.Time) {
@@ -222,7 +227,11 @@ func (t *Trigger) Shoot(grid *Grid, now time.Time) {
 	}
 }
 
-func (t *Trigger) DeleteTrackedProjectiles(grid *Grid) {
+func (t *Trigger) OnDelete(grid *Grid) {
+	t.deleteTrackedProjectiles(grid)
+}
+
+func (t *Trigger) deleteTrackedProjectiles(grid *Grid) {
 	for sid, _ := range(t.currentProjectiles) {
 		grid.Delete(sid)
 	}
