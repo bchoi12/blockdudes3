@@ -55,9 +55,9 @@ export class Keys {
 	keyDown(key : number) : boolean { return this._keys.has(key); }
 	keyReleased(key : number) : boolean { return !this._keys.has(key) && this._lastKeys.has(key); }
 
-	private dir() : any {
+	dir() : any {
 		if (!game.sceneMap().has(playerSpace, game.id())) {
-			return new THREE.Vector2(1, 0);
+			return {X: 1, Y: 0};
 		}
 
    		const mouse = renderer.getMouseWorld();
@@ -68,9 +68,9 @@ export class Keys {
 
    		return {X: dir.x, Y: dir.y};
 	}
-	private weaponDir() : any {
+	weaponDir() : any {
 		if (!game.sceneMap().has(playerSpace, game.id())) {
-			return new THREE.Vector2(1, 0);
+			return {X: 1, Y: 0};
 		}
 
    		const mouse = renderer.getMouseWorld();

@@ -33,7 +33,7 @@ func (t *Timer) Start() {
 
 func (t Timer) On() bool {
 	elapsed := t.Elapsed()
-	return 0 < elapsed && elapsed < t.duration
+	return 0 <= elapsed && elapsed < t.duration
 }
 
 func (t Timer) Elapsed() time.Duration {

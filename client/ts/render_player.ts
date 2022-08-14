@@ -143,6 +143,13 @@ export class RenderPlayer extends RenderAnimatedObject {
 		return pos3;
 	}
 
+	setWeaponDir(weaponDir : THREE.Vector2) {
+		if (!this.hasMesh()) {
+			return;
+		}
+		this._arm.rotation.x = weaponDir.angle() * Math.sign(-this.mesh().scale.x) + (this.mesh().scale.x < 0 ? Math.PI / 2 : 3 * Math.PI / 2);	
+	}
+
 	shoot() : void {
 		if (!this.hasMesh()) {
 			return;
@@ -175,12 +182,5 @@ export class RenderPlayer extends RenderAnimatedObject {
 				this.mesh().scale.x = MathUtil.signPos(dir.x);
 			}
 		}
-	}
-
-	private setWeaponDir(weaponDir : THREE.Vector2) {
-		if (!this.hasMesh()) {
-			return;
-		}
-		this._arm.rotation.x = weaponDir.angle() * Math.sign(-this.mesh().scale.x) + (this.mesh().scale.x < 0 ? Math.PI / 2 : 3 * Math.PI / 2);	
 	}
 }

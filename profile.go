@@ -423,12 +423,12 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 	posAdj := bp.PosAdjustment(other)
 	ignored := bp.getIgnored()
 
-	if !bp.GetSnapOptions().Evaluate(other) || posAdj.Area() <= 0 {
+	if _, ok := ignored[other.GetSpacedId()]; ok {
+		result.SetIgnored(true)
 		return result
 	}
 
-	if _, ok := ignored[other.GetSpacedId()]; ok {
-		result.SetIgnored(true)
+	if !bp.GetSnapOptions().Evaluate(other) || posAdj.Area() <= 0 {
 		return result
 	}
 
