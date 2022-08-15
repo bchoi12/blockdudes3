@@ -8,6 +8,7 @@ import { Util } from './util.js'
 
 export class RenderBolt extends RenderProjectile {
 	private readonly _material = new THREE.MeshStandardMaterial( {color: 0x47def5 });
+	private readonly _tailMaterial = new THREE.MeshStandardMaterial( {color: 0xffd663 });
 
 	private _light : THREE.PointLight;
 
@@ -21,6 +22,9 @@ export class RenderBolt extends RenderProjectile {
 
 		const dim = this.dim();
 		const mesh = new THREE.Mesh(new THREE.BoxGeometry(dim.x, dim.y, 0.2), this._material);
+		const tail = new THREE.Mesh(new THREE.BoxGeometry(dim.x * 0.3, dim.y, 0.2), this._tailMaterial);
+		tail.position.x = -0.65 * dim.x
+		mesh.add(tail);
 		this.setMesh(mesh);
 	}
 

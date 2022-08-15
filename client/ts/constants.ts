@@ -64,16 +64,17 @@ declare var scoreProp : number;
 declare var killProp : number;
 declare var deathProp : number;
 
+declare var solidAttribute : number;
 declare var stairAttribute : number;
 declare var platformAttribute : number;
-declare var groundedAttribute : number;
-declare var solidAttribute : number;
 declare var attachedAttribute : number;
+declare var chargingAttribute : number;
+declare var chargedAttribute : number;
+declare var groundedAttribute : number;
 declare var deadAttribute : number;
 
 declare var typeByteAttribute : number;
 declare var healthByteAttribute : number;
-declare var juiceByteAttribute : number;
 
 declare var upKey : number;
 declare var downKey : number;

@@ -168,10 +168,6 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		p.jumpGraceTimer.Start()
 		p.canJump = true
 		p.canDoubleJump = true
-
-		if p.weapon != nil {
-			p.weapon.OnGrounded()
-		}
 	}
 
 

@@ -87,12 +87,14 @@ type AttributeType uint8
 const (
 	unknownAttribute AttributeType = iota
 
+	solidAttribute
 	stairAttribute
 	platformAttribute
 
-	solidAttribute
-	groundedAttribute
 	attachedAttribute
+	chargingAttribute
+	chargedAttribute
+	groundedAttribute
 	deadAttribute
 )
 
@@ -102,7 +104,6 @@ const (
 
 	typeByteAttribute
 	healthByteAttribute
-	juiceByteAttribute
 )
 
 type LevelIdType uint8

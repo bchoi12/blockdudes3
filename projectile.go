@@ -68,6 +68,8 @@ func (p *Projectile) SetSticky(sticky bool) {
 	p.sticky = sticky
 }
 
+func (p *Projectile) Charge() {}
+
 func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 	ts := p.PrepareUpdate(now)
 	p.BaseObject.UpdateState(grid, now)

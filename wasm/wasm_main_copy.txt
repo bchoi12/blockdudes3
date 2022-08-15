@@ -91,16 +91,18 @@ func setGlobals() {
 	js.Global().Set("killProp", int(killProp))
 	js.Global().Set("deathProp", int(deathProp))
 
+	js.Global().Set("solidAttribute", int(solidAttribute))
 	js.Global().Set("stairAttribute", int(stairAttribute))
 	js.Global().Set("platformAttribute", int(platformAttribute))
-	js.Global().Set("groundedAttribute", int(groundedAttribute))
-	js.Global().Set("solidAttribute", int(solidAttribute))
+
 	js.Global().Set("attachedAttribute", int(attachedAttribute))
+	js.Global().Set("chargingAttribute", int(chargingAttribute))
+	js.Global().Set("chargedAttribute", int(chargedAttribute))
+	js.Global().Set("groundedAttribute", int(groundedAttribute))
 	js.Global().Set("deadAttribute", int(deadAttribute))
 
 	js.Global().Set("typeByteAttribute", int(typeByteAttribute))
 	js.Global().Set("healthByteAttribute", int(healthByteAttribute))
-	js.Global().Set("juiceByteAttribute", int(juiceByteAttribute))
 
 	js.Global().Set("upKey", int(upKey))
 	js.Global().Set("downKey", int(downKey))
