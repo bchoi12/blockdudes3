@@ -25,6 +25,11 @@ export class LoginHandler implements InterfaceHandler {
 
 			const room = Html.trimmedValue(Html.inputElm(Html.inputRoom));
 			const name = Html.trimmedValue(Html.inputElm(Html.inputName));
+
+			if (room.length === 0 || name.length === 0) {
+				return;
+			}
+
 			connection.connect(room, name, () => {}, () => {
 				ui.changeInputMode(InputMode.GAME);
 			});

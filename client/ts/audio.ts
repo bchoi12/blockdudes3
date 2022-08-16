@@ -26,6 +26,10 @@ export class Audio {
 	}
 
 	playSound(sound : Sound, dist : THREE.Vector2) : void {
+		if (!document.hasFocus()) {
+			return;
+		}
+
 		const howl = this._sounds.get(sound);
 
 		const id = howl.play();
@@ -38,6 +42,10 @@ export class Audio {
 	}
 
 	playSound3D(sound : Sound, dist : THREE.Vector3) : void {
+		if (!document.hasFocus()) {
+			return;
+		}
+
 		const howl = this._sounds.get(sound);
 		if (dist.lengthSq() <= 50) {
 			howl.volume(1);
