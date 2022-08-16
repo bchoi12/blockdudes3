@@ -17,6 +17,7 @@ export class Decoration extends SceneComponent {
 		this._groups = new Array();
 
 		// random buildings in back
+		/*
 		{
 			const wall = new THREE.Mesh(new THREE.BoxGeometry(10, 18, 6), new THREE.MeshStandardMaterial({color : 0x1a1a1a }));
 			wall.position.x = 10;
@@ -44,6 +45,7 @@ export class Decoration extends SceneComponent {
 			wall.receiveShadow = false;
 			this._scene.add(wall);
 		}
+		*/
 	}
 
 	override update() : void {
