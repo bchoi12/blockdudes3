@@ -38,16 +38,12 @@ func (t Timer) On() bool {
 
 func (t Timer) Elapsed() time.Duration {
 	elapsed := time.Now().Sub(t.started.Add(t.delay))
-
-	if elapsed < 0 {
-		return 0
-	}
 	return elapsed
 }
 
 
 func (t Timer) Lerp(min float64, max float64) float64 {
-	ts := float64(t.Elapsed() / t.duration)
+	ts := Max(float64(t.Elapsed()), 0) / float64(t.duration)
 
 	return min + ts * (max - min)
 }

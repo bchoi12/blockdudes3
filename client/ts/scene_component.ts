@@ -73,6 +73,8 @@ export abstract class SceneComponent {
 		});
 	}
 
+	initLevel() : void {}
+
 	private nextId() : number {
 		this._nextId++;
 		return this._nextId - 1;

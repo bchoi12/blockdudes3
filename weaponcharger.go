@@ -43,6 +43,7 @@ func (wc *WeaponCharger) UpdateState(grid *Grid, now time.Time) {
 	if !wc.pressed {
 		wc.state = readyPartState
 		wc.weapon.RemoveAttribute(chargingAttribute)
+		wc.weapon.RemoveAttribute(chargedAttribute)
 		return
 	}
 

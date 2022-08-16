@@ -11,6 +11,7 @@ import (
 
 const (
 	isWasm bool = true
+	wasmVersion int = 1
 )
 
 type WasmStats struct {
@@ -31,6 +32,7 @@ func main() {
 
 func setGlobals() {
 	js.Global().Set("frameMillis", frameMillis)
+	js.Global().Set("wasmVersion", wasmVersion)
 
 	js.Global().Set("pingType", int(pingType))
 	js.Global().Set("candidateType", int(candidateType))

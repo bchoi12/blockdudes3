@@ -23,8 +23,8 @@ class Options {
 		this.fullClientPrediction = true;
 		this.pointerLock = true;
 		this.enableShadows = true;
-		this.enableEffects = !Util.isDev();
-		this.enableDynamicLighting = !Util.isDev();
+		this.enableEffects = true; // !Util.isDev();
+		this.enableDynamicLighting = true; // !Util.isDev();
 		this.rendererScale = 0.66;
 
 		this.extrapolateMs = 100;

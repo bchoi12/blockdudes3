@@ -21,11 +21,17 @@ document.addEventListener('DOMContentLoaded', (event) => {
 	WebAssembly.instantiateStreaming(fetch("./game.wasm"), go.importObject).then((result) => {
 		go.run(result.instance);
 
+		Html.displayNone(Html.elm("wasm-check"));
+
+		// TODO: ErrorHandler ui component
+		if (!Util.defined(wasmVersion) || wasmVersion !== 1) {
+			ui.print("Your game is outdated. Please refresh to download the latest stuff");
+			return;
+		}
+
 		connection.setup();
 		ui.setup();
 		game.setup();
 		ui.changeInputMode(InputMode.LOGIN);
-
-		Html.displayNone(Html.elm("wasm-check"));
 	});
 });

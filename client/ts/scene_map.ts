@@ -85,8 +85,8 @@ export class SceneMap {
 		});
 	}
 
-	getSpotLight() : THREE.SpotLight { return this._lightBuffer.getSpotLight(); }
 	getPointLight() : THREE.PointLight { return this._lightBuffer.getPointLight(); }
+	returnPointLight(light : THREE.PointLight) : void { this._lightBuffer.returnPointLight(light); }
 
 	getMap(space : number) : Map<number, RenderObject> {
 		if (!this._renders.has(space)) {
@@ -172,5 +172,9 @@ export class SceneMap {
 			return;
 		}
 		object.setData(msg, seqNum);
+	}
+
+	initLevel() : void {
+		this.getComponent(SceneComponentType.DECORATION).initLevel();
 	}
 }

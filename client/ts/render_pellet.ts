@@ -25,10 +25,7 @@ export class RenderPellet extends RenderProjectile {
 
 	override delete() : void {
 		super.delete();
-
-		if (Util.defined(this._light)) {
-			this._light.intensity = 0;
-		}
+		game.sceneMap().returnPointLight(this._light);
 	}
 
 	override setMesh(mesh : THREE.Object3D) {
@@ -37,7 +34,6 @@ export class RenderPellet extends RenderProjectile {
 		renderer.addBloom(mesh);
 
 		this._light = game.sceneMap().getPointLight();
-
 		if (Util.defined(this._light)) {
 			this._light.color = new THREE.Color(0xffffa6);
 			this._light.intensity = 1.0;

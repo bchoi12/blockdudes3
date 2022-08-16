@@ -14,8 +14,47 @@ export class Decoration extends SceneComponent {
 
 	constructor() {
 		super();
-
 		this._groups = new Array();
+
+		// random buildings in back
+		{
+			const wall = new THREE.Mesh(new THREE.BoxGeometry(10, 18, 6), new THREE.MeshStandardMaterial({color : 0x1a1a1a }));
+			wall.position.x = 10;
+			wall.position.y = 3;
+			wall.position.z = -15;
+			wall.castShadow = false;
+			wall.receiveShadow = false;
+			this._scene.add(wall);
+		}
+		{
+			const wall = new THREE.Mesh(new THREE.BoxGeometry(8, 22, 6), new THREE.MeshStandardMaterial({color : 0x333333 }));
+			wall.position.x = 22;
+			wall.position.y = 5;
+			wall.position.z = -15;
+			wall.castShadow = false;
+			wall.receiveShadow = false;
+			this._scene.add(wall);
+		}
+		{
+			const wall = new THREE.Mesh(new THREE.BoxGeometry(14, 16, 10), new THREE.MeshStandardMaterial({color : 0x222222 }));
+			wall.position.x = 35;
+			wall.position.y = 2;
+			wall.position.z = -17;
+			wall.castShadow = false;
+			wall.receiveShadow = false;
+			this._scene.add(wall);
+		}
+	}
+
+	override update() : void {
+		super.update();
+
+		this._groups.forEach((group) => {
+			group.update();
+		});
+	}
+
+	override initLevel() : void {
 		const group = this.newGroup(new THREE.Box2(new THREE.Vector2(14, 4), new THREE.Vector2(30, 9.5)));
 		{
 			const wall = new THREE.Mesh(new THREE.BoxGeometry(2, 5.5, 0.5), this._frontMaterial);
@@ -59,14 +98,6 @@ export class Decoration extends SceneComponent {
 		let light2 = new THREE.PointLight(0x6666ff, 4, 10);
 		light2.position.set(26, 6.25, 1);
 		this._scene.add(light2);
-	}
-
-	override update() : void {
-		super.update();
-
-		this._groups.forEach((group) => {
-			group.update();
-		});
 	}
 
 	private newGroup(box : THREE.Box2) : ForegroundGroup {

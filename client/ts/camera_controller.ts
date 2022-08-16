@@ -20,7 +20,7 @@ export class CameraController {
 	constructor(aspect : number) {
 		this._camera = new THREE.PerspectiveCamera(20, aspect, 0.1, 1000);
 		this._target = new THREE.Vector3();
-		this._anchor = new THREE.Vector3();
+		this._anchor = new THREE.Vector3(22, 10, 0);
 
 		this._pan = new THREE.Vector3();
 		this._panTimer = new Timer(this._panTiming);

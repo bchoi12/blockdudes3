@@ -2,50 +2,64 @@ import * as THREE from 'three'
 
 import { options } from './options.js'
 import { renderer } from './renderer.js'
-import { RingBuffer } from './ring_buffer.js'
+import { Util } from './util.js'
 
 export class LightBuffer {
 
-	private readonly _bufferSize : number = 10;
+	private readonly _bufferSize : number = 20;
 
-	private _spotLights : RingBuffer<THREE.SpotLight>;
-	private _pointLights : RingBuffer<THREE.PointLight>;
+	private _scene : THREE.Scene;
+	private _pointLights : Set<THREE.PointLight>;
 
 	constructor(scene : THREE.Scene) {
-		this._spotLights = new RingBuffer<THREE.SpotLight>();
-		this._pointLights = new RingBuffer<THREE.PointLight>();
+		this._scene = scene;
+		this._pointLights = new Set<THREE.PointLight>();
 
 		for (let i = 0; i < this._bufferSize; ++i) {
-			let spotLight = new THREE.SpotLight(0xFFFFFF, 1, 1, 1);
-			this._spotLights.push(spotLight);
-			scene.add(spotLight);
-
 			let pointLight = new THREE.PointLight(0xFFFFFF, 1, 1);
-			this._pointLights.push(pointLight);
+			this._pointLights.add(pointLight);
 			scene.add(pointLight);
 		}
 		renderer.compile(scene);
 
-		this._spotLights.asArray().forEach((light) => {
-			light.intensity = 0;
-		});
-		this._pointLights.asArray().forEach((light) => {
+		this._pointLights.forEach((light) => {
 			light.intensity = 0;
 		})
+		renderer.compile(scene);
 	}
 
-	getSpotLight() : THREE.SpotLight {
+	hasPointLight() : boolean {
 		if (!options.enableDynamicLighting) {
-			return null;
+			return false;
 		}
-		return this._spotLights.getNext();
+		if (this._pointLights.size == 0) {
+			return false;
+		}
+		return true;
 	}
 
 	getPointLight() : THREE.PointLight {
-		if (!options.enableDynamicLighting) {
+		if (!this.hasPointLight()) {
 			return null;
 		}
-		return this._pointLights.getNext();
+		for (let light of this._pointLights) {
+		    this._pointLights.delete(light);
+		    return light;
+		}
+		return null;
 	}
 
+	returnPointLight(light : THREE.PointLight) {
+		if (!Util.defined(light)) {
+			return;
+		}
+
+		light.removeFromParent();
+		light.intensity = 0;
+
+		// Hack to prevent lag from destroying light
+		this._scene.add(light);
+		this._pointLights.add(light);
+		
+	}
 }
