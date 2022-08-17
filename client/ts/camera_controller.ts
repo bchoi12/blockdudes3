@@ -5,6 +5,7 @@ import { Timer } from './timer.js'
 import { MathUtil } from './util.js'
 
 export class CameraController {
+	private readonly _horizontalFov = 43;
 	private readonly _cameraOffset = new THREE.Vector3(0, 1.2, 30.0);
 	private readonly _lookAtOffset = new THREE.Vector3(0, 0.5, 0);
 	private readonly _panTiming = 250; // ms
@@ -76,6 +77,9 @@ export class CameraController {
 
 	setAspect(aspect : number) {
 		this._camera.aspect = aspect;
+		this._camera.fov = Math.atan(Math.tan(this._horizontalFov * Math.PI / 360) / this._camera.aspect) * 360 / Math.PI;
 		this._camera.updateProjectionMatrix();
 	}
+
+
 }
