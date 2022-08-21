@@ -134,7 +134,7 @@ func (p *Player) Respawn() {
 	p.SetAcc(NewVec2(0, 0))
 }
 
-func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
+func (p *Player) UpdateState(grid *Grid, now time.Time) {
 	ts := p.PrepareUpdate(now)
 	p.BaseObject.UpdateState(grid, now)
 
@@ -210,12 +210,6 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		}
 	}
 
-	p.SetVel(vel)
-	if force := p.ApplyForces(); force.LenSquared() > knockbackForceSquared {
-		p.knockbackTimer.Start()
-	}
-	vel = p.Vel()
-
 	// Friction
 	if grounded {
 		if Sign(acc.X) != Sign(vel.X) {
@@ -246,13 +240,16 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) bool {
 		vel.Scale(maxSpeed)
 	}
 	p.SetVel(vel)
+	if force := p.ApplyForces(); force.LenSquared() > knockbackForceSquared {
+		p.knockbackTimer.Start()
+	}
 
 	// Move
 	pos.Add(p.Vel(), ts)
+	pos.Add(p.ExtVel(), ts)
 	p.SetPos(pos)
 	p.checkCollisions(grid)
-
-	return true
+	grid.Upsert(p)
 }
 
 func (p *Player) Postprocess(grid *Grid, now time.Time) {

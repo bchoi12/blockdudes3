@@ -9,6 +9,7 @@ type Booster struct {
 	state PartStateType
 	pressed bool
 
+	canBoost bool
 	timer Timer
 }
 
@@ -18,7 +19,8 @@ func NewBooster(weapon *Weapon) *Booster {
 		state: unknownPartState,
 		pressed: false,
 
-		timer: NewTimer(1200 * time.Millisecond),
+		canBoost: true,
+		timer: NewTimer(200 * time.Millisecond),
 	}
 }
 
@@ -36,7 +38,12 @@ func (b *Booster) UpdateState(grid *Grid, now time.Time) {
 		return
 	}
 
-	if b.timer.On() {
+	grounded := player.HasAttribute(groundedAttribute)
+	if grounded {
+		b.canBoost = true
+	}
+
+	if !b.canBoost || b.timer.On() {
 		b.state = rechargingPartState
 		return
 	}
@@ -46,9 +53,16 @@ func (b *Booster) UpdateState(grid *Grid, now time.Time) {
 		return
 	}
 
+	if grounded {
+		return
+	}
+
 	dash := b.weapon.Dir()
 	dash.Scale(4 * jumpVel)
-	player.SetVel(dash)
+	player.Stop()
+	player.AddForce(dash)
+
+	b.canBoost = false
 	b.timer.Start()
 }
 

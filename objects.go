@@ -26,13 +26,13 @@ func NewBomb(init Init) *Bomb {
 	return bomb
 }
 
-func (b *Bomb) UpdateState(grid *Grid, now time.Time) bool {
+func (b *Bomb) UpdateState(grid *Grid, now time.Time) {
+	if isWasm {
+		return
+	}
+
 	b.PrepareUpdate(now)
 	b.BaseObject.UpdateState(grid, now)
-
-	if isWasm {
-		return true
-	}
 
 	if b.Expired() {
 		pos := b.Pos()
@@ -45,7 +45,6 @@ func (b *Bomb) UpdateState(grid *Grid, now time.Time) bool {
 		grid.Upsert(explosion)
 		grid.Delete(b.GetSpacedId())
 	}
-	return true
 }
 
 type Pickup struct {

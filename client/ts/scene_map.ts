@@ -25,7 +25,9 @@ export class SceneMap {
 		this.reset();
 	}
 
-	scene() : THREE.Scene { return this._scene; }
+	setup() : void {
+		this._lightBuffer = new LightBuffer(this._scene);
+	}
 
 	reset() : void {
 		this._scene = new THREE.Scene();
@@ -37,9 +39,9 @@ export class SceneMap {
 		this.addComponent(SceneComponentType.WEATHER, new Weather());
 		this.addComponent(SceneComponentType.PARTICLES, new Particles());
 		this.addComponent(SceneComponentType.DECORATION, new Decoration());
-
-		this._lightBuffer = new LightBuffer(this._scene);
 	}
+
+	scene() : THREE.Scene { return this._scene; }
 
 	addComponent(type : SceneComponentType, component : SceneComponent) : void {
 		this._components.set(type, component);
@@ -155,11 +157,15 @@ export class SceneMap {
 		map.clear();
 	}
 
-	clearObjects() : void {
+	clearAll() : void {
 		this._renders.forEach((render, space) => {
-			if (space != playerSpace) {
-				this.clear(space);
-			}
+			this.clear(space);
+		});
+		this._deleted.forEach((deleted, space) => {
+			this._deleted.delete(space);
+		});
+		this._components.forEach((component, type) => {
+			component.reset();
 		});
 	}
 

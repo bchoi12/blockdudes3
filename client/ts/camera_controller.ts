@@ -80,6 +80,4 @@ export class CameraController {
 		this._camera.fov = Math.atan(Math.tan(this._horizontalFov * Math.PI / 360) / this._camera.aspect) * 360 / Math.PI;
 		this._camera.updateProjectionMatrix();
 	}
-
-
 }

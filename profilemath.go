@@ -38,6 +38,7 @@ func (ir *IntersectResults) Merge(other IntersectResults) {
 
 type CollideResult struct {
 	hit bool
+	stop bool
 	ignored bool
 	posAdjustment Vec2
 	force Vec2
@@ -46,6 +47,7 @@ type CollideResult struct {
 func NewCollideResult() CollideResult {
 	return CollideResult {
 		hit: false,
+		stop: false,
 		ignored: false,
 		posAdjustment: NewVec2(0, 0),
 		force: NewVec2(0, 0),
@@ -63,6 +65,7 @@ func (cr *CollideResult) SetForce(force Vec2) { cr.force = force }
 
 func (cr *CollideResult) Merge(other CollideResult) {
 	cr.hit = cr.hit || other.hit
+	cr.stop = cr.stop || other.stop
 	cr.ignored = cr.ignored && other.ignored
 
 	posAdj := &cr.posAdjustment

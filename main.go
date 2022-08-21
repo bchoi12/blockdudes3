@@ -5,18 +5,19 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
 const (
-	newClient string = "/newclient/"
+	clientEndpoint string = "/bd3/"
 )
 
 var upgrader = websocket.Upgrader{}
 
 func main() {
-	http.HandleFunc(newClient, newClientHandler)
+	http.HandleFunc(clientEndpoint, clientEndpointHandler)
 	serveFiles("/")
 
 	port := os.Getenv("PORT")
@@ -31,37 +32,46 @@ func main() {
 	}
 }
 
-func newClientHandler(w http.ResponseWriter, r *http.Request) {
-	stuff := strings.Split(r.URL.Path[len(newClient):], "&")
-	if len(stuff) != 2 {
-		log.Printf("Malformed request: %s", r.URL.Path)
+func clientEndpointHandler(w http.ResponseWriter, r *http.Request) {
+	params := strings.Split(r.URL.Path[len(clientEndpoint):], "&")
+	vars := make(map[string]string)
+	for _, param := range(params) {
+		pair := strings.Split(param, "=")
+		if len(pair) != 2 {
+			log.Printf("Malformed request: ", r.URL.Path)
+			return
+		}
+
+		vars[pair[0]] = strings.TrimSpace(pair[1])
+	}
+
+	room, roomOk := vars["room"]
+	if !roomOk {
+		log.Printf("Missing room!")
 		return
 	}
-
-	const (
-		roomPrefix string = "room="
-		namePrefix string = "name="
-	)
-	var room string
-	var name string
-	for _, param := range stuff {
-		if strings.HasPrefix(param, roomPrefix) {
-			room = strings.TrimPrefix(param, roomPrefix)
-		} else if strings.HasPrefix(param, namePrefix) {
-			name = strings.TrimPrefix(param, namePrefix)
-		}
-	}
-
-	room = strings.TrimSpace(room)
 	if len(room) < 4 || len(room) > 10 {
 		log.Printf("Room %s should be 4-10 chars long", room)
 		return
 	}
 
-	name = strings.TrimSpace(name)
+	name, nameOk := vars["name"]
+	if !nameOk {
+		log.Printf("Missing name!")
+		return
+	}
 	if len(name) == 0 || len(name) > 16 {
 		log.Printf("Name %s should be 1-16 chars long", name)
 		return
+	}
+
+	id, idOk := vars["id"]
+	if idOk {
+		_, err := strconv.Atoi(id)
+		if err != nil {
+			log.Printf("Invalid ID: ", err)
+			return
+		}
 	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)
@@ -72,6 +82,5 @@ func newClientHandler(w http.ResponseWriter, r *http.Request) {
 	
 	// Try to keep the socket alive?
 	ws.SetReadDeadline(time.Time{})
-
-	NewRoom(room, name, ws)
+	CreateOrJoinRoom(vars, ws)
 }

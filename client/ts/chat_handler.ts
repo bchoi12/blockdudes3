@@ -56,6 +56,20 @@ export class ChatHandler implements InterfaceHandler {
 		this._chatElm.scrollTop = this._chatElm.scrollHeight;
 	}
 
+	private command(message : string) {
+		// TODO: protect some of these with isDev() checks
+		switch (message.toLowerCase()) {
+		case "/dc":
+			connection.disconnect();
+			break;
+		case "/dcwebrtc":
+			connection.disconnectWebRTC();
+			break;
+		default:
+			ui.print("Unknown command: " + message);
+		}
+	}
+
 	private chatKeyPressed() : void {
 		if (ui.inputMode() === InputMode.GAME) {
 			ui.changeInputMode(InputMode.CHAT);
@@ -64,23 +78,32 @@ export class ChatHandler implements InterfaceHandler {
 			return;
 		}
 
-		if (Html.trimmedValue(this._messageInputElm).length == 0) {
+		const message = Html.trimmedValue(this._messageInputElm);
+		if (message.length == 0) {
+			ui.changeInputMode(InputMode.GAME);
+			return;
+		}
+
+		if (message.startsWith("/")) {
+			this.command(message);
+			this._messageInputElm.value = "";
 			ui.changeInputMode(InputMode.GAME);
 			return;
 		}
 
 		if (!connection.ready()) {
 			ui.print("Unable to send message, not connected to server!")
+			return;
 		}
 
-		const message = {
+		const chatMsg = {
 			T: chatType,
 			Chat: {
-				M: Html.trimmedValue(this._messageInputElm),
+				M: message,
 			}
 		};
 
-		if (connection.send(message)) {
+		if (connection.send(chatMsg)) {
 			this._messageInputElm.value = "";
 			ui.changeInputMode(InputMode.GAME);
 		} else {

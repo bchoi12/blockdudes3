@@ -54,19 +54,20 @@ func (e *Explosion) Hit(object Object, now time.Time) {
 	object.AddForce(force)
 }
 
-func (e *Explosion) UpdateState(grid *Grid, now time.Time) bool {
+func (e *Explosion) UpdateState(grid *Grid, now time.Time) {
 	e.PrepareUpdate(now)
 
 	if isWasm {
-		return true
+		return
 	}
 
 	if e.Expired() {
 		grid.Delete(e.GetSpacedId())
+		return
 	}
 
 	if e.activeFrames <= 0 {
-		return true
+		return
 	}
 	
 	e.activeFrames -= 1
@@ -75,5 +76,5 @@ func (e *Explosion) UpdateState(grid *Grid, now time.Time) bool {
 		object := PopObject(&colliders)
 		e.Hit(object, now)
 	}
-	return true
+	grid.Upsert(e)
 }

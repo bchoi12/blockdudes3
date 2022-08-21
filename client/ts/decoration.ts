@@ -11,10 +11,12 @@ export class Decoration extends SceneComponent {
 	private readonly _backMaterial = new THREE.MeshStandardMaterial( {color: 0x444444, shadowSide: THREE.FrontSide } );
 
 	private _groups : Array<ForegroundGroup>;
+	private _miscObjects : Array<THREE.Object3D>;
 
 	constructor() {
 		super();
 		this._groups = new Array();
+		this._miscObjects = new Array();
 
 		// random buildings in back
 		/*
@@ -96,10 +98,22 @@ export class Decoration extends SceneComponent {
 		let light = new THREE.PointLight(0xff6666, 4, 10);
 		light.position.set(18, 6.25, 1);
 		this._scene.add(light);
+		this._miscObjects.push(light);
 
 		let light2 = new THREE.PointLight(0x6666ff, 4, 10);
 		light2.position.set(26, 6.25, 1);
 		this._scene.add(light2);
+		this._miscObjects.push(light);
+	}
+
+	override reset() : void {
+		this._groups.forEach((group) => {
+			this._scene.remove(group.scene());
+		})
+
+		this._miscObjects.forEach((object) => {
+			this._scene.remove(object);
+		});
 	}
 
 	private newGroup(box : THREE.Box2) : ForegroundGroup {

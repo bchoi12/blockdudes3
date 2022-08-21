@@ -89,13 +89,13 @@ func (w *Weapon) SetWeaponType(weaponType WeaponType) {
 	w.SetByteAttribute(typeByteAttribute, uint8(weaponType))
 }
 
-func (w *Weapon) UpdateState(grid *Grid, now time.Time) bool {
+func (w *Weapon) UpdateState(grid *Grid, now time.Time) {
 	w.PrepareUpdate(now)
 	w.BaseObject.UpdateState(grid, now)
 	for _, part := range(w.parts) {
 		part.UpdateState(grid, now)
 	}
-	return true
+	grid.Upsert(w)
 }
 
 func (w *Weapon) OnDelete(grid *Grid) {

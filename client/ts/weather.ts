@@ -21,10 +21,10 @@ export class Weather extends SceneComponent {
 		super();
 
 		this._cloudMaterials = new Array<THREE.Material>();
-		this._cloudMaterials.push(this.newCloudMaterial(0xeeeeee, MathUtil.randomRange(0.5, 0.6)));
-		this._cloudMaterials.push(this.newCloudMaterial(0xe4e4e4, MathUtil.randomRange(0.6, 0.7)));
-		this._cloudMaterials.push(this.newCloudMaterial(0xe0e0e0, MathUtil.randomRange(0.6, 0.7)));
-		this._cloudMaterials.push(this.newCloudMaterial(0xd2d2d2, MathUtil.randomRange(0.7, 0.8)));
+		this._cloudMaterials.push(this.newCloudMaterial(0xeeeeee, MathUtil.randomRange(0.3, 0.5)));
+		this._cloudMaterials.push(this.newCloudMaterial(0xe4e4e4, MathUtil.randomRange(0.3, 0.5)));
+		this._cloudMaterials.push(this.newCloudMaterial(0xe0e0e0, MathUtil.randomRange(0.3, 0.5)));
+		this._cloudMaterials.push(this.newCloudMaterial(0xd2d2d2, MathUtil.randomRange(0.4, 0.6)));
 
 		for (let x = -5; x < 25; x += MathUtil.randomRange(6, 9)) {
 			let cloud = new RenderCustom();

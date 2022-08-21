@@ -100,21 +100,17 @@ func NewGrapplingHook(init Init) *GrapplingHook {
 	return hook
 }
 
-func (h *GrapplingHook) UpdateState(grid *Grid, now time.Time) bool {
-	updateResult := h.Projectile.UpdateState(grid, now)
+func (h *GrapplingHook) UpdateState(grid *Grid, now time.Time) {
+	h.Projectile.UpdateState(grid, now)
 
 	if !h.HasAttribute(attachedAttribute) {
-		return updateResult
-	}
-
-	if h.connected {
-		return updateResult
+		return
 	}
 
 	player := grid.Get(h.GetOwner())
-	if player == nil && !isWasm {
+	if player == nil || player.HasAttribute(deadAttribute) {
 		grid.Delete(h.GetSpacedId())
-		return true
+		return
 	}
 
 	if player != nil && !h.connected {
@@ -123,10 +119,8 @@ func (h *GrapplingHook) UpdateState(grid *Grid, now time.Time) bool {
 		connection := NewAttractConnection(h.attractFactor)
 		connection.SetDistance(Min(1, h.Offset(player).Len() / 4))
 		player.AddConnection(h.GetSpacedId(), connection)
-		return true
+		grid.Upsert(h)	
 	}
-
-	return updateResult
 }
 
 func (h *GrapplingHook) OnDelete(grid *Grid) {

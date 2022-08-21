@@ -43,18 +43,29 @@ class Connection {
 		this.addHandler(candidateType, (msg : any) => { this.addIceCandidate(msg); });
 	}
 
-	id() : number { return Util.defined(this._id) ? this._id : -1; }
+	hasId() : boolean { return Util.defined(this._id) && this._id >= 0; }
+	id() : number { return this.hasId() ? this._id : -1; }
 	wsConnecting() : boolean { return Util.defined(this._ws) && (this._ws.readyState === 0 || this._ws.readyState === 1); }
 	wsReady() : boolean { return Util.defined(this._ws) && this._ws.readyState === 1; }
 	dcConnecting() : boolean { return Util.defined(this._dc) && (this._dc.readyState === "connecting" || this._dc.readyState === "open"); }
 	dcReady() : boolean { return Util.defined(this._dc) && this._dc.readyState === "open"; }
 	ready() : boolean { return Util.defined(this._id) && this.wsReady() && this.dcReady(); }
 
-	connect(room : string, name : string, socketSuccess : () => void, dcSuccess : () => void) : void {
+	connect(vars : Map<string, string>, socketSuccess : () => void, dcSuccess : () => void) : void {
 		const prefix = Util.isDev() ? "ws://" : "wss://"
-		const endpoint = prefix + window.location.host + "/newclient/room=" + room + "&name=" + name;
+		let endpoint = prefix + window.location.host + "/bd3/"
+		for (const [key, value] of vars) {
+			endpoint += key + "=" + value + "&";
+		}
+		if (endpoint.endsWith("&")) {
+			endpoint = endpoint.slice(0, -1);
+		}
+
 		this.initWebSocket(endpoint, socketSuccess, dcSuccess);
 	}
+
+	disconnect() : void { this._ws.close(); }
+	disconnectWebRTC() : void { this._wrtc.close(); }
 
 	addHandler(type : number, handler : MessageHandler) : boolean {
 		// TODO: do we ever want to delete handlers? maybe they should be unique to a class
@@ -177,7 +188,7 @@ class Connection {
 		this._candidates = new Array<RTCIceCandidate>();
 
 		this._wrtc.onconnectionstatechange = (event) => {
-			console.log("WebRTC connection state changed: " + this._wrtc.connectionState);
+			LogUtil.d("WebRTC connection state changed: " + this._wrtc.connectionState);
 		};
 
 		this._wrtc.onicecandidate = (event) => {
@@ -194,7 +205,8 @@ class Connection {
 		this._wrtc.ondatachannel = (event) => {
 			console.log("Successfully created data channel");
 			this._dc = event.channel;
-			this._dc.onmessage = (event) => { this.handlePayload(event.data); }	
+			this._dc.onmessage = (event) => { this.handlePayload(event.data); }
+			this._dc.onclose = (event) => { this._ws.close(); }
 			dcSuccess();
 		};
 	}

@@ -27,6 +27,9 @@ type Profile interface {
 	Dir() Vec2
 	SetDir(dir Vec2)
 
+	ExtVel() Vec2
+	SetExtVel(extVel Vec2)
+	TotalVel() Vec2
 	AddForce(force Vec2)
 	ApplyForces() Vec2
 	Stop()
@@ -65,6 +68,7 @@ type BaseProfile struct {
 	Init
 	pos, vel, acc, jerk, dir, dim Vec2
 	posFlag, velFlag, accFlag, jerkFlag, dirFlag, dimFlag *Flag
+	extVel Vec2
 	forces []Vec2
 
 	subProfiles map[ProfileKey]SubProfile
@@ -87,6 +91,7 @@ func NewBaseProfile(init Init) BaseProfile {
 		dirFlag: NewFlag(),
 		dim: init.Dim(),
 		dimFlag: NewFlag(),
+		extVel: NewVec2(0, 0),
 		forces: make([]Vec2, 0),
 
 		subProfiles: make(map[ProfileKey]SubProfile),
@@ -167,6 +172,23 @@ func (bp *BaseProfile) SetDir(dir Vec2) {
 		sp.SetDir(dir)
 	}
 	bp.dirFlag.Reset(true)
+}
+
+func (bp BaseProfile) ExtVel() Vec2 { return bp.extVel }
+func (bp *BaseProfile) SetExtVel(extVel Vec2) {
+	if bp.extVel.ApproxEq(extVel) {
+		return
+	}
+
+	bp.extVel = extVel
+	for _, sp := range(bp.subProfiles) {
+		sp.SetDir(extVel)
+	}
+}
+func (bp BaseProfile) TotalVel() Vec2 {
+	tvel := bp.Vel()
+	tvel.Add(bp.ExtVel(), 1.0)
+	return tvel
 }
 
 func (bp *BaseProfile) AddForce(force Vec2) {
@@ -374,6 +396,7 @@ func (bp *BaseProfile) SetSnapOptions(options ColliderOptions) {
 func (bp *BaseProfile) Snap(nearbyObjects ObjectHeap) SnapResults {
 	results := NewSnapResults()
 	ignored := make(map[SpacedId]bool)
+
 	for len(nearbyObjects) > 0 {
 		object := PopObject(&nearbyObjects)	
 		collideResult := bp.snapObject(object)
@@ -389,15 +412,6 @@ func (bp *BaseProfile) Snap(nearbyObjects ObjectHeap) SnapResults {
 	}
 
 	if results.snap {
-		if results.posAdjustment.Y > 0 {
-			force := results.force
-			if force.Y > 0 {
-				// Upward force already accounted for by position adjustment
-				force.Y = 0
-			}
-			bp.AddForce(force)
-		}
-
 		vel := bp.Vel()
 		if results.posAdjustment.X > 0 {
 			vel.X = Max(0, vel.X)
@@ -409,7 +423,18 @@ func (bp *BaseProfile) Snap(nearbyObjects ObjectHeap) SnapResults {
 		} else if results.posAdjustment.Y < 0 {
 			vel.Y = Min(0, vel.Y)
 		}
+
+		force := results.force
+		extVel := results.force
+		if force.Y < 0 {
+			extVel.Y = 0
+			force.X = 0
+			bp.AddForce(force)
+		}
+		bp.SetExtVel(extVel)
 		bp.SetVel(vel)
+	} else {
+		bp.SetExtVel(NewVec2(0, 0))
 	}
 
 	bp.updateIgnored(ignored)
@@ -439,7 +464,7 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 
 	// Figure out collision direction
 	// relativePos := NewVec2(bp.Pos().X - other.Pos().X, bp.Pos().Y - other.Pos().Y)
-	relativeVel := NewVec2(bp.Vel().X - other.Vel().X, bp.Vel().Y - other.Vel().Y)
+	relativeVel := NewVec2(bp.TotalVel().X - other.TotalVel().X, bp.TotalVel().Y - other.TotalVel().Y)
 	collisionFlag := NewVec2(1, 1)
 
 	// Check for tiny collisions that we can ignore
@@ -497,6 +522,15 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 			collisionFlag.Y = 0
 		}
 	}
+
+	if bp.GetSpace() == other.GetSpace() {
+		if collisionFlag.Y != 0 {
+			if posAdj.Y < 0 {
+				collisionFlag.Y = 0
+			}
+		}
+	}
+
 	// Have overlap, but no pos adjustment for some reason.
 	if collisionFlag.IsZero() {
 		if other.HasAttribute(platformAttribute) {
@@ -514,9 +548,7 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 
 	result.SetHit(true)
 	result.SetPosAdjustment(posAdj)
-	if posAdj.Y > 0 {
-		result.SetForce(other.Vel())
-	}
+	result.SetForce(other.Vel())
 	return result
 }
 

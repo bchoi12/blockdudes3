@@ -63,9 +63,9 @@ export abstract class SceneComponent {
 		});
 	}
 
-	scene() : THREE.Scene {
-		return this._scene;
-	}
+	scene() : THREE.Scene { return this._scene; }
+
+	reset() : void {}
 
 	update() : void {
 		this._customObjects.forEach((custom, id) => {

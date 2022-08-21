@@ -117,24 +117,36 @@ func setGlobals() {
 }
 
 func setGameAPI() {
+	reset()
+
+	js.Global().Set("wasmReset", Reset())
+	js.Global().Set("wasmAdd", Add())
+	js.Global().Set("wasmHas", Has())
+	js.Global().Set("wasmDelete", Delete())
+	js.Global().Set("wasmUpdateKeys", UpdateKeys())
+	js.Global().Set("wasmGetData", GetData())
+	js.Global().Set("wasmSetData", SetData())
+	js.Global().Set("wasmLoadLevel", LoadLevel())
+	js.Global().Set("wasmUpdateState", UpdateState())
+	js.Global().Set("wasmGetStats", GetStats())
+}
+
+func Reset() js.Func {  
+    return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+    	reset()
+		return nil
+    })
+}
+
+func reset() {
 	game = NewGame()
 	wasmStats = &WasmStats{
 		setDataCalls: 0,
 		setDataTime: time.Now(),
 	}
-
-	js.Global().Set("wasmAdd", Add(game))
-	js.Global().Set("wasmHas", Has(game))
-	js.Global().Set("wasmDelete", Delete(game))
-	js.Global().Set("wasmUpdateKeys", UpdateKeys(game))
-	js.Global().Set("wasmGetData", GetData(game))
-	js.Global().Set("wasmSetData", SetData(game))
-	js.Global().Set("wasmLoadLevel", LoadLevel(game))
-	js.Global().Set("wasmUpdateState", UpdateState(game))
-	js.Global().Set("wasmGetStats", GetStats(wasmStats))
 }
 
-func Add(g *Game) js.Func {  
+func Add() js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		if len(args) != 3 {
 			fmt.Println("Add: Expected 3 argument(s), got ", len(args))
@@ -145,7 +157,7 @@ func Add(g *Game) js.Func {
 		id := IdType(args[1].Int())
 		init := NewInit(Id(space, id))
 
-		object := g.add(init)
+		object := game.Add(init)
 		if object == nil {
 			fmt.Println("Add: failed to create object ", space, id)
 			return nil
@@ -157,7 +169,7 @@ func Add(g *Game) js.Func {
     })
 }
 
-func Has(g *Game) js.Func {  
+func Has() js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		if len(args) != 2 {
 			fmt.Println("Has: Expected 2 argument(s), got ", len(args))
@@ -167,11 +179,11 @@ func Has(g *Game) js.Func {
 		space := SpaceType(args[0].Int())
 		id := IdType(args[1].Int())
 
-		return g.has(Id(space, id))
+		return game.Has(Id(space, id))
     })
 }
 
-func Delete(g *Game) js.Func {  
+func Delete() js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		if len(args) != 2 {
 			fmt.Println("Delete: Expected 2 argument(s), got ", len(args))
@@ -180,13 +192,13 @@ func Delete(g *Game) js.Func {
 
 		space := SpaceType(args[0].Int())
 		id := IdType(args[1].Int())
-		g.delete(Id(space, id))
+		game.Delete(Id(space, id))
 
 		return nil
     })
 }
 
-func UpdateKeys(g *Game) js.Func {  
+func UpdateKeys() js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		if len(args) != 2 {
 			fmt.Println("UpdateKeys: Expected 2 argument(s), got ", len(args))
@@ -194,7 +206,7 @@ func UpdateKeys(g *Game) js.Func {
 		}
 
 		id := IdType(args[0].Int())
-		if !g.has(Id(playerSpace, id)) {
+		if !game.Has(Id(playerSpace, id)) {
 			fmt.Println("UpdateKeys: Player does not exist: ", id)
 			return nil
 		}
@@ -206,12 +218,12 @@ func UpdateKeys(g *Game) js.Func {
 			D: parseVec2(args[1].Get("D")),
 		}
 
-		g.processKeyMsg(id, keyMsg)
+		game.ProcessKeyMsg(id, keyMsg)
 		return nil
     })
 }
 
-func GetData(g *Game) js.Func {  
+func GetData() js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		if len(args) != 2 {
 			fmt.Println("GetData: Expected 2 argument(s), got ", len(args))
@@ -220,11 +232,11 @@ func GetData(g *Game) js.Func {
 
 		space := SpaceType(args[0].Int())
 		id := IdType(args[1].Int())
-		if !g.has(Id(space, id)) {
+		if !game.Has(Id(space, id)) {
 			fmt.Println("GetData: Object does not exist: ", space, id)
 			return nil
 		}
-		data := g.getData(Id(space, id)).Props()
+		data := game.GetData(Id(space, id)).Props()
 		b, err := json.Marshal(data)
 		if err != nil {
 			fmt.Println("GetData: ", err)
@@ -234,7 +246,7 @@ func GetData(g *Game) js.Func {
     })
 }
 
-func SetData(g *Game) js.Func {  
+func SetData() js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		if len(args) != 3 {
 			fmt.Println("SetData: Expected 3 argument(s), got ", len(args))
@@ -245,7 +257,7 @@ func SetData(g *Game) js.Func {
 
 		space := SpaceType(args[0].Int())
 		id := IdType(args[1].Int())
-		if !g.has(Id(space, id)) {
+		if !game.Has(Id(space, id)) {
 			return nil
 		}
 
@@ -254,12 +266,12 @@ func SetData(g *Game) js.Func {
 			return nil
 		}
 
-		g.setData(Id(space, id), data)
+		game.SetData(Id(space, id), data)
 		return nil
     })
 }
 
-func LoadLevel(g *Game) js.Func {  
+func LoadLevel() js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		if len(args) != 1 {
 			fmt.Println("LoadLevel: Expected 1 argument(s), got ", len(args))
@@ -267,9 +279,9 @@ func LoadLevel(g *Game) js.Func {
 		}
 
 		level := LevelIdType(args[0].Int())
-		g.loadLevel(level)
+		game.loadLevel(level)
 
-		objects := g.createObjectInitMsg()
+		objects := game.createObjectInitMsg()
 		b, err := json.Marshal(objects)
 		if err != nil {
 			fmt.Println("LoadLevel: ", err)
@@ -279,10 +291,10 @@ func LoadLevel(g *Game) js.Func {
 	})
 }
 
-func UpdateState(g *Game) js.Func {  
+func UpdateState() js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		g.updateState()
-		state := g.createGameStateMsg()
+		game.UpdateState()
+		state := game.createGameStateMsg()
 		b, err := json.Marshal(state)
 		if err != nil {
 			fmt.Println("UpdateState: ", err)
@@ -292,20 +304,20 @@ func UpdateState(g *Game) js.Func {
     })
 }
 
-func GetStats(s *WasmStats) js.Func {  
+func GetStats() js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
     	now := time.Now()
 
     	var sb strings.Builder
     	{
-    		dur := now.Sub(s.setDataTime)
+    		dur := now.Sub(wasmStats.setDataTime)
     		if dur > 0 {
-    			setData := float64(s.setDataCalls) / (float64(dur) / float64(time.Second))
+    			setData := float64(wasmStats.setDataCalls) / (float64(dur) / float64(time.Second))
     			sb.WriteString(fmt.Sprintf("%.0f", setData))
     		}
 
-    		s.setDataCalls = 0
-    		s.setDataTime = time.Now()
+    		wasmStats.setDataCalls = 0
+    		wasmStats.setDataTime = time.Now()
     	}
 
     	return sb.String()

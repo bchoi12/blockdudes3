@@ -40,6 +40,13 @@ export namespace LogUtil {
 			console.log(msg)
 		}
 	}
+
+	export function w(msg : any) : void {
+		if (dev) {
+			console.error(msg);
+		}
+	}
+
 	export function e(msg : any) : void {
 		console.error(msg);
 	}

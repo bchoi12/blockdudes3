@@ -32,7 +32,7 @@ func NewChat() *Chat {
 	}
 }
 
-func (c *Chat) processChatMsg(client *Client, msg ChatMsg) ChatMsg {
+func (c *Chat) ProcessChatMsg(client *Client, msg ChatMsg) ChatMsg {
 	newMsg := c.replacer.Replace(msg.M)
 	if len(newMsg) > maxChatMsgLength {
 		newMsg = newMsg[:maxChatMsgLength]

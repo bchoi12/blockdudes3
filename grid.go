@@ -152,7 +152,10 @@ func (g *Grid) deleteObject(sid SpacedId) {
 	}
 	g.deleteCoords(sid)
 	delete(g.objects, sid)
-	delete(g.spacedObjects[sid.GetSpace()], sid.GetId())
+
+	if _, ok := g.spacedObjects[sid.GetSpace()]; ok {
+		delete(g.spacedObjects[sid.GetSpace()], sid.GetId())
+	}
 }
 
 func (g *Grid) Update(now time.Time) {
@@ -164,23 +167,17 @@ func (g *Grid) Update(now time.Time) {
 		if object.GetSpace() == playerSpace {
 			continue
 		}
-		g.updateObject(object, now)
+		object.UpdateState(g, now)
 	}
 
 	// Map iteration is random
 	for _, object := range(g.GetObjects(playerSpace)) {
-		g.updateObject(object, now)
+		object.UpdateState(g, now)
 	}
 }
 
 func (g *Grid) updateObject(object Object, now time.Time) {
-	updated := object.UpdateState(g, now)
-	if updated {
-		// Update location in the grid
-		if g.Has(object.GetSpacedId()) {
-			g.Upsert(object)
-		}
-	}
+	object.UpdateState(g, now)
 }
 
 func (g *Grid) Postprocess(now time.Time) {

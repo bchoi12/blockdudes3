@@ -19,7 +19,7 @@ func NewGame() *Game {
 	return game
 }
 
-func (g *Game) add(init Init) Object {
+func (g *Game) Add(init Init) Object {
 	object := g.grid.New(init)
 	if object != nil {
 		g.grid.Upsert(object)
@@ -27,15 +27,15 @@ func (g *Game) add(init Init) Object {
 	return object
 }
 
-func (g *Game) has(sid SpacedId) bool {
+func (g *Game) Has(sid SpacedId) bool {
 	return g.grid.Has(sid)
 }
 
-func (g *Game) delete(sid SpacedId) {
+func (g *Game) Delete(sid SpacedId) {
 	g.grid.Delete(sid)
 }
 
-func (g *Game) getData(sid SpacedId) Data {
+func (g *Game) GetData(sid SpacedId) Data {
 	if !isWasm {
 		panic("getData called outside of WASM")
 	}
@@ -43,7 +43,7 @@ func (g *Game) getData(sid SpacedId) Data {
 	return g.grid.Get(sid).GetData()
 }
 
-func (g *Game) setData(sid SpacedId, data Data) {
+func (g *Game) SetData(sid SpacedId, data Data) {
 	if !isWasm {
 		panic("setData called outside of WASM")
 	}
@@ -53,7 +53,7 @@ func (g *Game) setData(sid SpacedId, data Data) {
 	g.grid.Upsert(object)
 }
 
-func (g *Game) processKeyMsg(id IdType, keyMsg KeyMsg) {
+func (g *Game) ProcessKeyMsg(id IdType, keyMsg KeyMsg) {
 	if !g.grid.Has(Id(playerSpace, id)) {
 		return
 	}
@@ -61,7 +61,7 @@ func (g *Game) processKeyMsg(id IdType, keyMsg KeyMsg) {
 	player.UpdateKeys(keyMsg)
 }
 
-func (g *Game) updateState() {
+func (g *Game) UpdateState() {
 	now := time.Now()
 	g.grid.Update(now)
 	g.grid.Postprocess(now)

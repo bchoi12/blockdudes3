@@ -10,6 +10,12 @@ import (
 	"sync"
 )
 
+// Incoming client message to parse
+type IncomingMsg struct {
+	b []byte
+	client *Client
+}
+
 type Client struct {
 	room *Room
 	ws *websocket.Conn
@@ -22,20 +28,18 @@ type Client struct {
 	voice bool
 }
 
-func NewClient(room* Room, ws *websocket.Conn, name string) *Client {
+func NewClient(room* Room, ws *websocket.Conn, name string, id IdType) *Client {
 	client := &Client {
 		room: room,
 		ws: ws,
 		wrtc: nil,
 		dc: nil,
 
-		id: room.nextClientId,
+		id: id,
 		name: name,
 		voice: false,
 	}
 	go client.run()
-
-	room.nextClientId += 1
 	return client
 }
 
@@ -96,6 +100,16 @@ func (c *Client) SendBytesUDP(b []byte) error {
 		return errors.New("Data channel not initialized")
 	}
 	return c.dc.Send(b)
+}
+
+func (c *Client) Close() {
+	if c.dc != nil {
+		c.dc.Close()
+	}
+	if c.wrtc != nil {
+		c.wrtc.Close()
+	}
+	c.ws.Close()
 }
 
 func (c *Client) InitWebRTC(onSuccess func()) error {

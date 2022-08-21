@@ -39,11 +39,12 @@ func (w *Wall) SetYBounds(ymin float64, ymax float64) {
 	w.ymax = ymax
 }
 
-func (w *Wall) UpdateState(grid *Grid, now time.Time) bool {
+func (w *Wall) UpdateState(grid *Grid, now time.Time) {
 	if w.Vel().IsZero() {
-		return false
+		return
 	}
 
+	w.BaseObject.UpdateState(grid, now)
 	ts := w.PrepareUpdate(now)
 	pos := w.Pos()
 	vel := w.Vel()
@@ -64,5 +65,5 @@ func (w *Wall) UpdateState(grid *Grid, now time.Time) bool {
 	pos.Add(vel, ts)
 	w.GetProfile().SetVel(vel)
 	w.GetProfile().SetPos(pos)
-	return true
+	grid.Upsert(w)
 }

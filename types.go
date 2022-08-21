@@ -9,6 +9,18 @@ const (
 	frameTime time.Duration = 16 * time.Millisecond
 )
 
+// Parsed message, only one struct will be set
+type Msg struct {
+	T MessageType
+	Ping PingMsg
+	JSON interface{}
+	JSONPeer JSONPeerMsg
+	Chat ChatMsg
+	Key KeyMsg
+	Join ClientMsg
+	Left ClientMsg
+}
+
 type MessageType uint8
 type SeqNumType uint32
 const (

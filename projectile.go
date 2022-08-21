@@ -70,7 +70,7 @@ func (p *Projectile) SetSticky(sticky bool) {
 
 func (p *Projectile) Charge() {}
 
-func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
+func (p *Projectile) UpdateState(grid *Grid, now time.Time) {
 	ts := p.PrepareUpdate(now)
 	p.BaseObject.UpdateState(grid, now)
 
@@ -94,17 +94,13 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 	p.SetPos(pos)
 
 	if isWasm {
-		return true
+		grid.Upsert(p)
+		return
 	}
 
-	if p.Expired() {
+	if p.Expired() || (p.collider != nil && !p.sticky) {
 		p.SelfDestruct(grid)
-		return true
-	}
-
-	if p.collider != nil && !p.sticky {
-		p.SelfDestruct(grid)
-		return true
+		return
 	}
 
 	colliders := grid.GetColliders(p)
@@ -114,7 +110,7 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) bool {
 		p.Stick(result)
 		p.Collide(object, grid)
 	}
-	return true
+	grid.Upsert(p)
 }
 
 func (p *Projectile) Collide(collider Object, grid *Grid) {

@@ -38,28 +38,33 @@ class Game {
 	private _keys : Keys;
 	private _keySeqNum : number;
 	private _lastSeqNum : number;
+	private _lastStateUpdate : number;
 
 	private _numObjectsAdded : number;
 	private _numObjectsUpdated : number;
 
 	constructor() {
-		this.reset();
-	}
-
-	reset() : void {
 		this._id = -1;
 		this._state = GameState.PAUSED;
-
 		this._sceneMap = new SceneMap();
+
 		this._keys = new Keys();
 		this._keySeqNum = 0;
 		this._lastSeqNum = 0;
+		this._lastStateUpdate = Date.now();
 
 		this._numObjectsAdded = 0;
 		this._numObjectsUpdated = 0;
 	}
 
+	reset() : void {
+		wasmReset();
+		this._sceneMap.clearAll();
+	}
+
 	setup() : void {
+		this._sceneMap.setup();
+
 		connection.addHandler(objectDataType, (msg : { [k: string]: any }) => { this.updateGameState(msg); });
 		connection.addHandler(objectUpdateType, (msg : { [k: string]: any }) => { this.updateGameState(msg); });
 		connection.addHandler(playerInitType, (msg : { [k: string]: any }) => { this.initPlayer(msg); });
@@ -108,6 +113,7 @@ class Game {
 			const id = Number(stringId);
 
 			if (this.sceneMap().has(playerSpace, id) || this.sceneMap().deleted(playerSpace, id)) {
+				LogUtil.w("Scene map already contains initialized or deleted player!");
 				return;
 			}
 			this.sceneMap().add(playerSpace, id, new RenderPlayer(playerSpace, id));
@@ -115,7 +121,7 @@ class Game {
 		}
 
 		connection.addSender(keyType, () => {
-			if (this.state() !== GameState.GAME) return;
+			if (this.state() !== GameState.GAME || !connection.ready()) return;
 
 			this._keySeqNum++;
 			const msg = this._keys.keyMsg(this._keySeqNum);
@@ -135,6 +141,7 @@ class Game {
 			if (seqNum <= this._lastSeqNum) {
 				return;
 			}  else {
+				this._lastStateUpdate = Date.now();
 				this._lastSeqNum = seqNum;
 			}
 		}
@@ -200,6 +207,9 @@ class Game {
 		if (!options.fullClientPrediction) {
 			return;
 		}
+		if (Date.now() - this._lastStateUpdate <= 10) {
+			return;
+		}
 
 		this.sceneMap().snapshotWasm();
 		const state = JSON.parse(wasmUpdateState());
@@ -238,7 +248,7 @@ class Game {
 	}
 
 	private initLevel(msg : { [k: string]: any }) : void {
-		this.sceneMap().clearObjects();
+		LogUtil.d("Loading level " + msg.L);
 
 		const level = JSON.parse(wasmLoadLevel(msg.L));
 		for (const [stringSpace, objects] of Object.entries(level.Os) as [string, any]) {

@@ -73,14 +73,13 @@ class UI {
 	getKeysAsArray() : Array<number> { return Array.from(this._inputHandler.keys()); }
 	getClientName(id : number) : string { return this._clientHandler.displayName(id); }
 
-	// TODO: add something better for disconnect
 	disconnected() : void {
-		game.reset();
-		renderer.reset();
 		this.changeInputMode(InputMode.LOGIN);
 		this.print("Error: disconnected from server.")
 	}
-	print(message : string) : void { this._chatHandler.print(message); }
+	print(message : string) : void {
+		this._chatHandler.print(message);
+	}
 
 	changeInputMode(inputMode : InputMode) : void {
 		this._mode = inputMode;

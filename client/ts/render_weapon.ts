@@ -52,13 +52,9 @@ export class RenderWeapon extends RenderObject {
 		super.setMesh(mesh);
 
 		this._shotOrigin = this.mesh().getObjectByName(this._shotLocation).position.clone();
-		this.tryInitLight();
+		this._attached = false;
 
-		if (this.owner().space() === playerSpace) {
-			this._player = game.sceneMap().getAsAny(playerSpace, this.owner().id());
-			this._player.setWeapon(this);
-			this._attached = true;
-		} else {
+		if (this.owner().space() !== playerSpace) {
 			let weaponMesh = this.mesh().getObjectByName("mesh");
 			weaponMesh.rotation.y = Math.PI / 2;
 		}
@@ -74,6 +70,15 @@ export class RenderWeapon extends RenderObject {
 
 		if (!this.hasMesh()) {
 			return;
+		}
+
+		if (!this._attached) {
+			this._player = game.sceneMap().getAsAny(playerSpace, this.owner().id());
+			
+			if (Util.defined(this._player)) {
+				this._player.setWeapon(this);
+				this._attached = true;			
+			}
 		}
 
 		if (!Util.defined(this._chargeLight)) {

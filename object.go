@@ -33,7 +33,7 @@ type Object interface {
 	GetByteAttribute(attribute ByteAttributeType) (uint8, bool)
 
 	Preprocess(grid *Grid, now time.Time)
-	UpdateState(grid *Grid, now time.Time) bool
+	UpdateState(grid *Grid, now time.Time)
 	Postprocess(grid *Grid, now time.Time)
 	OnDelete(grid *Grid)
 }
@@ -83,8 +83,7 @@ func (o *BaseObject) Preprocess(grid *Grid, now time.Time) {
 	o.Attachment.Preprocess(grid, now)
 }
 
-func (o *BaseObject) UpdateState(grid *Grid, now time.Time) bool {
-	return false
+func (o *BaseObject) UpdateState(grid *Grid, now time.Time) {
 }
 
 func (o *BaseObject) Postprocess(grid *Grid, now time.Time) {

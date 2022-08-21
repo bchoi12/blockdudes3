@@ -3,30 +3,13 @@ package main
 import (
 	"github.com/gorilla/websocket"
 	"log"
+	"strconv"
 	"time"
 )
 
 const (
 	isWasm bool = false
 )
-
-// Incoming client message to parse
-type IncomingMsg struct {
-	b []byte
-	client *Client
-}
-
-// Parsed message, only one struct will be set
-type Msg struct {
-	T MessageType
-	Ping PingMsg
-	JSON interface{}
-	JSONPeer JSONPeerMsg
-	Chat ChatMsg
-	Key KeyMsg
-	Join ClientMsg
-	Left ClientMsg
-}
 
 type Room struct {
 	id string
@@ -39,6 +22,7 @@ type Room struct {
 	initQueue []*Client
 	unregister chan *Client
 	unregisterQueue []*Client
+	deleteTimer Timer
 
 	game *Game
 	ticker *time.Ticker
@@ -52,7 +36,8 @@ type Room struct {
 }
 
 var rooms = make(map[string]*Room)
-func NewRoom(roomName string, clientName string, ws *websocket.Conn) {
+func CreateOrJoinRoom(vars map[string]string, ws *websocket.Conn) {
+	roomName := vars["room"]
 	_, roomExists := rooms[roomName]
 
 	if !roomExists {
@@ -67,6 +52,7 @@ func NewRoom(roomName string, clientName string, ws *websocket.Conn) {
 			initQueue: make([]*Client, 0),
 			unregister: make(chan *Client),
 			unregisterQueue: make([]*Client, 0),
+			deleteTimer: NewTimer(30 * time.Second),
 
 			game: NewGame(),
 			ticker: time.NewTicker(frameTime),
@@ -84,8 +70,23 @@ func NewRoom(roomName string, clientName string, ws *websocket.Conn) {
 		go rooms[roomName].run()
 	}
 
-	client := NewClient(rooms[roomName], ws, clientName)
-	rooms[roomName].register <- client
+	r := rooms[roomName]
+	clientId := r.nextClientId
+	if stringId, idOk := vars["id"]; idOk {
+		intId, err := strconv.Atoi(stringId)
+		if err == nil {
+			id := IdType(intId)
+			if _, ok := r.clients[id]; !ok && id < r.nextClientId {
+				clientId = id
+			}
+		}
+	}
+
+	client := NewClient(r, ws, vars["name"], clientId)
+	if clientId >= r.nextClientId {
+		r.nextClientId = clientId + 1
+	}
+	r.register <- client
 }
 
 func (r *Room) run() {
@@ -105,17 +106,16 @@ func (r *Room) run() {
 		case imsg := <-r.incoming:
 			r.incomingQueue = append(r.incomingQueue, imsg)
 		case _ = <-r.ticker.C:
-			if len(r.clients) == 0 {
-				continue
-			}
-			r.game.updateState()
+			r.game.UpdateState()
 			r.sendGameState()
 			r.gameTicks += 1
 		case _ = <-r.statTicker.C:
 			if len(r.clients) == 0 {
 				continue
 			}
-			log.Printf("FPS: %d", r.gameTicks)
+			if r.gameTicks < 60 {
+				log.Printf("Slow FPS: %d", r.gameTicks)
+			}
 			r.gameTicks = 0
 		default:
 			if len(r.registerQueue) > 0 {
@@ -143,10 +143,20 @@ func (r *Room) run() {
 					r.unregisterClient(client)
 				}
 				r.unregisterQueue = r.unregisterQueue[:0]
+			}
 
-				if len(r.clients) == 0 {
+			if len(r.clients) == 0 {
+				if !r.deleteTimer.Started() {
+					log.Printf("Starting timer to delete room %s", r.id)
+					r.deleteTimer.Start()
+				}
+
+				if r.deleteTimer.Finished() {
 					return
 				}
+			} else if r.deleteTimer.Started() {
+				log.Printf("Stopping deletion of room %s due to reconnect", r.id)
+				r.deleteTimer.Stop()
 			}
 
 			if len(r.incomingQueue) > 0 {
@@ -191,7 +201,12 @@ func (r *Room) initClient(client *Client) error {
 		return err
 	}
 
-	r.game.add(NewObjectInit(Id(playerSpace, client.id), NewVec2(5, 5), NewVec2(0.8, 1.44)))
+	playerId := Id(playerSpace, client.id)
+	if !r.game.Has(playerId) {
+		r.game.Add(NewObjectInit(playerId, NewVec2(5, 5), NewVec2(0.8, 1.44)))
+	} else {
+		log.Printf("%s reconnected and player already exists", client.GetDisplayName())
+	}
 	playerInitMsg := r.game.createPlayerInitMsg(client.id)
 	err = client.Send(&playerInitMsg)
 	if err != nil {
@@ -213,18 +228,24 @@ func (r *Room) initClient(client *Client) error {
 }
 
 func (r *Room) unregisterClient(client *Client) error {
-	client.ws.Close()
-	if client.dc != nil {
-		client.dc.Close()
-	}
-
+	client.Close()
 	if _, ok := r.clients[client.id]; ok {
 		err := r.updateClients(leftType, client)
 		if err != nil {
 			return err
 		}
-		r.game.delete(Id(playerSpace, client.id))
 		delete(r.clients, client.id)
+
+		playerId := Id(playerSpace, client.id)
+		time.AfterFunc(20 * time.Second, func() {
+			if r == nil {
+				return
+			}
+			if _, ok := r.clients[playerId.GetId()]; !ok {
+				r.game.Delete(Id(playerSpace, client.id))
+			}
+		})	
+		
 	}
 	log.Printf("Unregistering client %s, total=%d", client.GetDisplayName(), len(r.clients))
 
@@ -254,10 +275,10 @@ func (r* Room) processMsg(msg Msg, c* Client) error {
 	case voiceAnswerType:
 		err = r.forwardVoiceMessage(msg.T, c, msg.JSONPeer)
 	case chatType:
-		outMsg := r.chat.processChatMsg(c, msg.Chat)
+		outMsg := r.chat.ProcessChatMsg(c, msg.Chat)
 		r.send(&outMsg)
 	case keyType:
-		r.game.processKeyMsg(c.id, msg.Key)
+		r.game.ProcessKeyMsg(c.id, msg.Key)
 	default:
 		log.Printf("Unknown message type %d", msg.T)
 	}
