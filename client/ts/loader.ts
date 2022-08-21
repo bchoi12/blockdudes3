@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import { LogUtil, Util } from './util.js'
@@ -18,18 +19,28 @@ export enum Model {
 	ROCKET = "ROCKET",
 }
 
+export enum Typeface {
+	UNKNOWN = "",
+	HELVETIKER_BOLD = "HELVETIKER_BOLD",
+	HELVETIKER_REGULAR = "HELVETIKER_REGULAR",
+}
+
 class Loader {
 	private readonly _modelPrefix = "./model/";
+	private readonly _fontPrefix = "./typeface/";
 
 	private _loader : GLTFLoader;
-	private _cache : Map<Model, any>;
 	private _paths : Map<Model, string>;
+
+	private _fontLoader : FontLoader;
+	private _fontPaths : Map<Typeface, string>
 
 	constructor() {
 		this._loader = new GLTFLoader();
-		this._cache = new Map<Model, any>();
-
 		this._paths = new Map<Model, string>();
+
+		this._fontLoader = new FontLoader();
+		this._fontPaths = new Map<Typeface, string>();
 
 		for (const model in Model) {
 			if (model.length === 0) {
@@ -39,11 +50,19 @@ class Loader {
 			this._paths.set(Model[model], this._modelPrefix + model.toLowerCase() + ".glb");
 		}
 		this.preload();
+
+		for (const typeface in Typeface) {
+			if (typeface.length === 0) {
+				continue;
+			}
+
+			this._fontPaths.set(Typeface[typeface], this._fontPrefix + typeface.toLowerCase() + ".typeface.json");
+		}
 	}
 
 	load(model : Model, cb : (any) => void) : void {
-		if (!this._paths.has(model) || !Util.defined(this._paths.get(model))) {
-			LogUtil.d("Tried to cache unknown model " + model);
+		if (!this._paths.has(model)) {
+			LogUtil.d("Tried to load unknown model " + model);
 			return;
 		}
 
@@ -65,6 +84,17 @@ class Loader {
 				return Model.STAR_GUN;
 		}
 		return Model.UNKNOWN;
+	}
+
+	loadFont(typeface : Typeface, cb : (any) => void) : void {
+		if (!this._fontPaths.has(typeface)) {
+			LogUtil.d("Tried to load unknown typeface " + typeface);
+			return;
+		}
+
+		this._fontLoader.load(this._fontPaths.get(typeface), (font) => {
+			cb(font);
+		});
 	}
 
 	private preload() : void {

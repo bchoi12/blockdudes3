@@ -71,13 +71,13 @@ type Prop uint8
 const (
 	unknownProp Prop = iota
 
-	objectStatesProp
 	initializedProp
 	deletedProp
 
 	attributesProp
 	byteAttributesProp
-	// TODO: colorProp
+	colorProp
+	nameProp
 
 	dimProp
 	posProp

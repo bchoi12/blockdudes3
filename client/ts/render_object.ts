@@ -119,6 +119,21 @@ export class RenderObject extends RenderMesh {
 		return 0;
 	}
 
+	hasColor() : boolean { return this._msg.has(colorProp); }
+	color() : number {
+		if (this.hasColor()) {
+			return this._msg.get(colorProp);
+		}
+		return 0;
+	}
+
+	hasName() : boolean { return this._msg.has(nameProp); }
+	name() : string {
+		if (this.hasName()) {
+			return this._msg.get(nameProp);
+		}
+		return "";
+	}
 
 	hasDim() : boolean { return this._msg.has(dimProp); }
 	dim() : THREE.Vector2 {

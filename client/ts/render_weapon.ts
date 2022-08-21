@@ -131,9 +131,9 @@ export class RenderWeapon extends RenderObject {
 
 		if (!Util.defined(this._chargeLight)) {
 			this._chargeLight = game.sceneMap().getPointLight();
-			this._chargeLight.color = new THREE.Color(0x47def5);
 		}
 		if (Util.defined(this._chargeLight)) {
+			this._chargeLight.color = new THREE.Color(0x47def5);
 			this._chargeLight.position.copy(this._shotOrigin);
 			this.mesh().add(this._chargeLight);
 		}

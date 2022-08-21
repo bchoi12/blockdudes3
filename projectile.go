@@ -4,16 +4,22 @@ import (
 	"time"
 )
 
+type ExplosionOptions struct {
+	explode bool
+	size Vec2
+	color int
+}
+
 type Projectile struct {
 	BaseObject
 	hits []*Hit
 
 	damage int
 	maxSpeed float64
-	explode bool
-	explosionSize Vec2
 	sticky bool
 	collider Object
+
+	explosionOptions ExplosionOptions
 }
 
 func NewProjectile(object BaseObject) Projectile {
@@ -23,10 +29,12 @@ func NewProjectile(object BaseObject) Projectile {
 
 		damage: 0,
 		maxSpeed: 100,
-		explode: false,
-		explosionSize: NewVec2(4, 4),
 		sticky: false,
 		collider: nil,
+
+		explosionOptions: ExplosionOptions{
+			explode: false,
+		},
 	}
 
 	overlapOptions := NewColliderOptions()
@@ -56,12 +64,8 @@ func (p *Projectile) SetMaxSpeed(maxSpeed float64) {
 	p.maxSpeed = maxSpeed
 }
 
-func (p *Projectile) SetExplode(explode bool) {
-	p.explode = explode
-}
-
-func (p *Projectile) SetExplosionSize(size Vec2) {
-	p.explosionSize = size
+func (p *Projectile) SetExplosionOptions(options ExplosionOptions) {
+	p.explosionOptions = options
 }
 
 func (p *Projectile) SetSticky(sticky bool) {
@@ -131,9 +135,11 @@ func (p *Projectile) SelfDestruct(grid *Grid) {
 	if p.collider != nil {
 		p.Hit(p.collider)
 	}
-	if p.explode {
-		init := NewObjectInit(grid.NextSpacedId(explosionSpace), p.Pos(), p.explosionSize)	
-		grid.Upsert(NewExplosion(init))
+	if p.explosionOptions.explode {
+		init := NewObjectInit(grid.NextSpacedId(explosionSpace), p.Pos(), p.explosionOptions.size)	
+		explosion := NewExplosion(init)
+		explosion.SetInitProp(colorProp, p.explosionOptions.color)
+		grid.Upsert(explosion)
 	}
 	grid.Delete(p.GetSpacedId())	
 }

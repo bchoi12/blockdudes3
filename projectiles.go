@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand"
 	"time"
 )
 
@@ -44,8 +45,11 @@ func (b *Bolt) AddAttribute(attribute AttributeType) {
 	if attribute == chargedAttribute {
 		b.SetTTL(1600 * time.Millisecond)
 		b.SetDamage(80)
-		b.SetExplode(true)
-		b.SetExplosionSize(NewVec2(5, 5))
+		b.SetExplosionOptions(ExplosionOptions {
+			explode: true,
+			size: NewVec2(5, 5),
+			color: 0x47def5,
+		})
 	}
 }
 
@@ -59,10 +63,16 @@ func NewRocket(init Init) *Rocket {
 	}
 	rocket.SetMaxSpeed(80)
 	rocket.SetTTL(1 * time.Second)
-	rocket.SetExplode(true)
+	rocket.SetExplosionOptions(ExplosionOptions {
+		explode: true,
+		size: NewVec2(4, 4),
+		color: 0xbb4444,
+	})
 	rocket.SetDamage(50)
 	return rocket
 }
+
+var starColors = [...]int {0xAD07DB, 0xc306d1, 0xed0505, 0xed8805, 0x020f9e, 0x5805ab}
 
 type Star struct {
 	Projectile
@@ -72,11 +82,19 @@ func NewStar(init Init) *Star {
 	star := &Star {
 		Projectile: NewProjectile(NewCircleObject(init)),
 	}
+
+	rand.Seed(time.Now().UnixMilli())
+	color := starColors[rand.Intn(len(starColors))]
+
 	star.SetTTL(1 * time.Second)
-	star.SetExplode(true)
+	star.SetExplosionOptions(ExplosionOptions {
+		explode: true,
+		size: NewVec2(1, 1),
+		color: color,
+	})
 	star.SetDamage(25)
 	star.SetSticky(true)
-	star.SetExplosionSize(NewVec2(1, 1))
+	star.SetInitProp(colorProp, color)
 	return star
 }
 
@@ -94,7 +112,6 @@ func NewGrapplingHook(init Init) *GrapplingHook {
 	}
 
 	hook.SetTTL(800 * time.Millisecond)
-	hook.SetExplode(false)
 	hook.SetDamage(0)
 	hook.SetSticky(true)
 	return hook

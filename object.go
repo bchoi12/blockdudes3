@@ -21,6 +21,8 @@ type Object interface {
 	
 	GetProfile() Profile
 
+	SetInitProp(prop Prop, value interface{})
+
 	GetOwner() SpacedId
 	SetOwner(sid SpacedId)
 
@@ -43,6 +45,7 @@ type Object interface {
 
 type BaseObject struct {
 	Profile
+	InitProps
 	Association
 	Health
 	Expiration
@@ -55,6 +58,7 @@ type BaseObject struct {
 func NewBaseObject(profile Profile) BaseObject {
 	object := BaseObject {
 		Profile: profile,
+		InitProps: NewInitProps(),
 		Association: NewAssociation(),
 		Health: NewHealth(),
 		Expiration: NewExpiration(),
@@ -112,6 +116,7 @@ func (o BaseObject) GetInitData() Data {
 	data.Merge(o.Profile.GetInitData())
 	data.Merge(o.Association.GetInitData())
 	data.Merge(o.Attribute.GetInitData())
+	data.Merge(o.InitProps.GetInitData())
 	return data
 }
 

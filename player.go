@@ -86,6 +86,8 @@ func NewPlayer(init Init) *Player {
 		knockbackTimer: NewTimer(knockbackDuration),
 		deathTimer: NewTimer(1 * time.Second),
 	}
+
+	player.SetByteAttribute(typeByteAttribute, uint8(init.GetId() % 2))
 	player.Respawn()
 	return player
 }

@@ -6,9 +6,6 @@ import { RenderObject } from './render_object.js'
 import { renderer } from './renderer.js'
 
 export class RenderExplosion extends RenderObject {
-
-	private readonly _material = new THREE.MeshStandardMaterial( {color: 0xbb4444 } );
-
 	private _exploded : boolean;
 	private _scale : number;
 
@@ -19,15 +16,14 @@ export class RenderExplosion extends RenderObject {
 		this._scale = 1;
 	}
 
+	override ready() : boolean {
+		return super.ready() && this.hasColor();
+	}
+
 	override initialize() : void {
 		super.initialize();
-		const mesh = new THREE.Mesh(new THREE.SphereGeometry(this.dim().x / 2, 12, 8), this._material);
-
-		if (this.dim().x >= 5) {
-			mesh.material.color = new THREE.Color(0x47def5);
-		} else if (this.dim().x <= 1) {
-			mesh.material.color = new THREE.Color(0xEFA8F6);
-		}
+		const material = new THREE.MeshStandardMaterial({color: this.color() });
+		const mesh = new THREE.Mesh(new THREE.SphereGeometry(this.dim().x / 2, 12, 8), material);
 
 		this.setMesh(mesh);
 	}

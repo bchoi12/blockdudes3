@@ -35,6 +35,7 @@ export class RenderBolt extends RenderProjectile {
 
 	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
+		super.addTrail(this._tailMaterial, 1);
 
 		renderer.addBloom(mesh);
 

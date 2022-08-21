@@ -20,6 +20,7 @@ func NewExplosion(init Init) *Explosion {
 	overlapOptions.SetSpaces(true, playerSpace)
 	explosion.SetOverlapOptions(overlapOptions)
 	explosion.SetTTL(300 * time.Millisecond)
+	explosion.SetInitProp(colorProp, 0xFFFFFF)
 	return explosion
 }
 

@@ -74,12 +74,14 @@ func setGlobals() {
 	js.Global().Set("sniperWeapon", int(sniperWeapon))
 	js.Global().Set("starWeapon", int(starWeapon))
 
-	js.Global().Set("objectStatesProp", int(objectStatesProp))
 	js.Global().Set("initializedProp", int(initializedProp))
 	js.Global().Set("deletedProp", int(deletedProp))
 
 	js.Global().Set("attributesProp", int(attributesProp))
 	js.Global().Set("byteAttributesProp", int(byteAttributesProp))
+	js.Global().Set("colorProp", int(colorProp))
+	js.Global().Set("nameProp", int(nameProp))
+
 	js.Global().Set("dimProp", int(dimProp))
 	js.Global().Set("posProp", int(posProp))
 	js.Global().Set("velProp", int(velProp))

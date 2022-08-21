@@ -1,7 +1,9 @@
 import * as THREE from 'three';
+import { Gyroscope } from 'three/examples/jsm/misc/Gyroscope.js'
 
 import { Sound } from './audio.js'
 import { game } from './game.js'
+import { PrismGeometry } from './prism_geometry.js'
 import { RenderObject } from './render_object.js'
 import { RenderPlayer } from './render_player.js'
 import { renderer } from './renderer.js'
@@ -9,8 +11,20 @@ import { Util } from './util.js'
 
 export class RenderProjectile extends RenderObject {
 	private readonly _positionZ = 0.5;
+	private readonly _trailGeometry = new PrismGeometry([
+		new THREE.Vector2(0, 0.5),
+		new THREE.Vector2(-1, 0.25),
+		new THREE.Vector2(-2, 0.08),
+		new THREE.Vector2(-5, 0),
+		new THREE.Vector2(-2, -0.08),
+		new THREE.Vector2(-1, -0.25),
+		new THREE.Vector2(0, -0.5),
+	], 0.1);
 
 	private _sound : Sound;
+
+	private _trail : THREE.Object3D;
+	private _trailScalingFactor : number;
 
 	constructor(space : number, id : number) {
 		super(space, id);
@@ -21,7 +35,7 @@ export class RenderProjectile extends RenderObject {
 	}
 
 	override ready() : boolean {
-		return super.ready() && this.hasOwner();
+		return super.ready() && this.hasOwner() && this.hasDir();
 	}
 
 	override setMesh(mesh : THREE.Object3D) : void {
@@ -53,6 +67,26 @@ export class RenderProjectile extends RenderObject {
 		if (this.mesh().position.z > 0) {
 			this.mesh().position.z -= 2 * this.timestep();
 		}
+
+		if (Util.defined(this._trail)) {
+			if (this.vel().lengthSq() == 0 || this.attribute(attachedAttribute)) {
+				this._trail.scale.x = 0;
+			} else {
+				this._trail.rotation.z = this.dir().angle();
+				this._trail.scale.x += this._trailScalingFactor * this.timestep()
+			}
+		}
+	}
+
+	addTrail(material : THREE.Material, scalingFactor : number) : void {
+		let gyro = new Gyroscope();
+		this._trail = new THREE.Mesh(this._trailGeometry, material);
+		this._trail.scale.y = 0.8 * this.dim().y;
+		this._trail.scale.x = 0.2;
+		gyro.add(this._trail);
+		this.mesh().add(gyro);
+
+		this._trailScalingFactor = scalingFactor;
 	}
 }
 

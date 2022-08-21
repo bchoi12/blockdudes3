@@ -1,7 +1,8 @@
 import * as THREE from 'three'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 
 import { game } from './game.js'
-import { loader, Model } from './loader.js'
+import { loader, Model, Typeface } from './loader.js'
 import { SceneComponentType } from './scene_component.js'
 import { RenderAnimatedObject } from './render_animated_object.js'
 import { RenderCustom } from './render_custom.js'
@@ -22,6 +23,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private readonly _cloudMaterial = new THREE.MeshStandardMaterial( {color: 0xdddddd , transparent: true, opacity: 0.7} );
 	private readonly _pointsMaterial = new THREE.PointsMaterial( { color: 0x000000, size: 0.2} );
 
+	private _name : THREE.Object3D;
 	private _playerMesh : THREE.Object3D;
 	private _arm : THREE.Object3D;
 	private _armOrigin : THREE.Vector3;
@@ -35,11 +37,32 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._lastGrounded = false;
 	}
 
+	override ready() : boolean {
+		return super.ready()&& this.hasByteAttribute(typeByteAttribute) && this.hasName() && this.hasColor();
+	}
+
 	override initialize() : void {
 		super.initialize();
 
-		loader.load(this.id() % 2 == 0 ? Model.CHICKEN : Model.DUCK, (mesh : THREE.Mesh) => {
+		loader.load(this.byteAttribute(typeByteAttribute) == 0 ? Model.CHICKEN : Model.DUCK, (mesh : THREE.Mesh) => {
 			this.setMesh(mesh);
+
+			loader.loadFont(Typeface.HELVETIKER_REGULAR, (font) => {
+				const text = new TextGeometry(this.name(), {
+						font: font,
+						size: 0.2,
+						height: 0.05,
+						curveSegments: 6,
+					});
+
+				this._name = new THREE.Mesh(text, new THREE.MeshStandardMaterial({color : this.color() }));
+				let size = new THREE.Vector3();
+				const bbox = new THREE.Box3().setFromObject(this._name);
+				bbox.getSize(size);
+				this._name.position.x = -size.x/2;
+				this._name.position.y = 1.1;
+				mesh.add(this._name);
+			});
 		});
 	}
 
@@ -149,7 +172,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 		if (!this.hasMesh()) {
 			return;
 		}
-		this._arm.rotation.x = weaponDir.angle() * Math.sign(-this.mesh().scale.x) + (this.mesh().scale.x < 0 ? Math.PI / 2 : 3 * Math.PI / 2);	
+		this._arm.rotation.x = weaponDir.angle() * Math.sign(-this._playerMesh.scale.z) + (this._playerMesh.scale.z < 0 ? Math.PI / 2 : 3 * Math.PI / 2);	
 	}
 
 	shoot() : void {
@@ -174,14 +197,14 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		if (this.attribute(deadAttribute)) {
 			neck.rotation.x = 0;
-			this.mesh().rotation.z = MathUtil.signPos(this.mesh().scale.x) * Math.PI / 2;
+			this.mesh().rotation.z = MathUtil.signPos(this._playerMesh.scale.z) * Math.PI / 2;
 			return;
 		} else {
 			this.mesh().rotation.z = 0;
 			neck.rotation.x = dir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI : 0);
 
-			if (MathUtil.signPos(dir.x) != MathUtil.signPos(this.mesh().scale.x)) {
-				this.mesh().scale.x = MathUtil.signPos(dir.x);
+			if (MathUtil.signPos(dir.x) != MathUtil.signPos(this._playerMesh.scale.z)) {
+				this._playerMesh.scale.z = MathUtil.signPos(dir.x);
 			}
 		}
 	}

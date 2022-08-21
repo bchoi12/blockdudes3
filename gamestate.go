@@ -1,6 +1,6 @@
 package main
 
-type ScoreType uint8
+type ScoreType uint16
 type StatePropMap map[Prop]*State
 type GameState struct {
 	gameState StatePropMap

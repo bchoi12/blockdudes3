@@ -42,12 +42,14 @@ declare var bazookaWeapon : number;
 declare var sniperWeapon : number;
 declare var starWeapon : number;
 
-declare var objectStatesProp : number;
 declare var initializedProp : number;
 declare var deletedProp : number;
 
 declare var attributesProp : number;
 declare var byteAttributesProp : number;
+declare var colorProp : number;
+declare var nameProp : number;
+
 declare var dimProp : number;
 declare var posProp : number;
 declare var velProp : number;
@@ -61,7 +63,6 @@ declare var ownerProp : number;
 declare var targetProp : number;
 declare var hitsProp : number;
 
-declare var scoreProp : number;
 declare var killProp : number;
 declare var deathProp : number;
 
