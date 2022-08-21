@@ -11,6 +11,7 @@ export class RenderObject extends RenderMesh {
 	private _id : number;
 	private _msg : Message;
 	private _initialized : boolean;
+	private _initializeTime : number;
 
 	private _timestep : number;
 	private _lastUpdate : number;
@@ -44,6 +45,7 @@ export class RenderObject extends RenderMesh {
 	msg() : Message { return this._msg; }
 	data() : { [k: string]: any } { return this._msg.data(); }
 
+	initializeTime() : number { return this._initializeTime; }
 	timestep() : number { return this._timestep; }
 	ready() : boolean { return this._msg.has(posProp) && this._msg.has(dimProp); }
 	initialized() : boolean { return this._initialized; }
@@ -58,6 +60,7 @@ export class RenderObject extends RenderMesh {
 		wasmAdd(this.space(), this.id(), this.data());
 		this._wasmLastSeqNum = this.msg().lastSeqNum();
 		this._initialized = true;
+		this._initializeTime = Date.now();
 	}
 
 	setData(msg : { [k: string]: any }, seqNum? : number) : void {

@@ -153,6 +153,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	weaponType() : number { return this.hasWeapon() ? this._weapon.weaponType() : 0; }
 	removeWeaponMesh() : void {
 		if (this.hasWeapon()) {
+			this._weapon.delete();
 			this._arm.remove(this._weapon.mesh());
 		}
 	}

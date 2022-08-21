@@ -81,15 +81,22 @@ class Renderer {
 	addOutline(object : THREE.Object3D) : void { this._effects.addOutline(object); }
 	removeOutline(object : THREE.Object3D) : void { this._effects.removeOutline(object); }
 
-	playSystemSound(sound : Sound) : void { this._audio.playSystemSound(sound); }
-	playSound(sound : Sound, pos : THREE.Vector2) : void {
+	playSystemSound(sound : Sound) : number { return this._audio.playSystemSound(sound); }
+	playSound(sound : Sound, pos : THREE.Vector2) : number {
 		const dist = new THREE.Vector2(pos.x - this._cameraController.anchor().x, pos.y - this._cameraController.anchor().y);
-		this._audio.playSound(sound, dist);
+		return this._audio.playSound(sound, dist);
 	}
-	playSound3D(sound : Sound, pos : THREE.Vector3) : void {
+	playSound3D(sound : Sound, pos : THREE.Vector3) : number {
 		const dist = pos.clone();
 		dist.sub(this._cameraController.anchor());
-		this._audio.playSound3D(sound, dist);
+		return this._audio.playSound3D(sound, dist);
+	}
+	adjustSoundPos(sound : Sound, id : number, pos : THREE.Vector2) : void {
+		const dist = new THREE.Vector2(pos.x - this._cameraController.anchor().x, pos.y - this._cameraController.anchor().y);
+		return this._audio.adjustSoundDist(sound, dist, id);
+	}
+	stopSound(sound : Sound, id : number) : void {
+		this._audio.stopSound(sound, id);
 	}
 
 	setMouseFromPixels(mouse : THREE.Vector2) : void { this._mousePixels = mouse.clone(); }

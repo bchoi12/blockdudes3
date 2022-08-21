@@ -10,6 +10,8 @@ class Options {
 	public enableDynamicLighting : boolean;
 	public rendererScale : number;
 
+	public soundEffectVolume : number;
+
 	public extrapolateMs : number;
 	public extrapolateWeight : number;
 
@@ -26,6 +28,8 @@ class Options {
 		this.enableEffects = true; // !Util.isDev();
 		this.enableDynamicLighting = true; // !Util.isDev();
 		this.rendererScale = 0.66;
+
+		this.soundEffectVolume = 0.5;
 
 		this.extrapolateMs = 100;
 		this.extrapolateWeight = 0.5;

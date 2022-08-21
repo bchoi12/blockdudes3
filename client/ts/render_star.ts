@@ -40,7 +40,7 @@ export class RenderStar extends RenderProjectile {
 
 	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
-		super.addTrail(new THREE.MeshStandardMaterial({color: this.color(), transparent: true, opacity: 0.7}), 0.3);
+		super.addTrail(new THREE.MeshStandardMaterial({color: this.color(), transparent: true, opacity: 0.7}), 0.5);
 	}
 
 	override update() : void {

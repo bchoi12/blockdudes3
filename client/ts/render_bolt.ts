@@ -10,15 +10,21 @@ export class RenderBolt extends RenderProjectile {
 	private readonly _material = new THREE.MeshStandardMaterial( {color: 0x47def5 });
 	private readonly _tailMaterial = new THREE.MeshStandardMaterial( {color: 0xffd663 });
 
+	private _soundId : number;
 	private _light : THREE.PointLight;
 
 	constructor(space : number, id : number) {
 		super(space, id);
-		this.setSound(Sound.PEW);
 	}
 
 	override initialize() : void {
 		super.initialize();
+
+		if (this.attribute(chargedAttribute)) {
+			this._soundId = renderer.playSound(Sound.TOM_SCREAM, this.pos());
+		} else {
+			renderer.playSound(Sound.LASER, this.pos());
+		}
 
 		const dim = this.dim();
 		const mesh = new THREE.Mesh(new THREE.BoxGeometry(dim.x, dim.y, 0.2), this._material);
@@ -31,6 +37,10 @@ export class RenderBolt extends RenderProjectile {
 	override delete() : void {
 		super.delete();
 		game.sceneMap().returnPointLight(this._light);
+
+		if (Util.defined(this._soundId)) {
+			renderer.stopSound(Sound.TOM_SCREAM, this._soundId);
+		}
 	}
 
 	override setMesh(mesh : THREE.Object3D) {
@@ -59,6 +69,10 @@ export class RenderBolt extends RenderProjectile {
 
 		if (!this.hasMesh()) {
 			return;
+		}
+
+		if (Util.defined(this._soundId)) {
+			renderer.adjustSoundPos(Sound.TOM_SCREAM, this._soundId, this.pos());
 		}
 
 		this.mesh().rotation.z = this.dir().angle();

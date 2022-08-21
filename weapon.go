@@ -92,6 +92,14 @@ func (w *Weapon) SetWeaponType(weaponType WeaponType) {
 func (w *Weapon) UpdateState(grid *Grid, now time.Time) {
 	w.PrepareUpdate(now)
 	w.BaseObject.UpdateState(grid, now)
+
+	player := grid.Get(w.GetOwner())
+	if player != nil && player.HasAttribute(deadAttribute) {
+		for _, part := range(w.parts) {
+			part.SetPressed(false)
+		}
+	}
+
 	for _, part := range(w.parts) {
 		part.UpdateState(grid, now)
 	}

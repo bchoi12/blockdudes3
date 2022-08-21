@@ -6,13 +6,11 @@ import { RenderObject } from './render_object.js'
 import { renderer } from './renderer.js'
 
 export class RenderExplosion extends RenderObject {
-	private _exploded : boolean;
 	private _scale : number;
 
 	constructor(space : number, id : number) {
 		super(space, id);
 
-		this._exploded = false;
 		this._scale = 1;
 	}
 
@@ -24,6 +22,8 @@ export class RenderExplosion extends RenderObject {
 		super.initialize();
 		const material = new THREE.MeshStandardMaterial({color: this.color() });
 		const mesh = new THREE.Mesh(new THREE.SphereGeometry(this.dim().x / 2, 12, 8), material);
+
+		renderer.playSound(this.dim().x >= 3 ? Sound.EXPLOSION : Sound.SMALL_EXPLOSION, this.pos());
 
 		this.setMesh(mesh);
 	}
@@ -48,11 +48,6 @@ export class RenderExplosion extends RenderObject {
 		if (this._scale < 1) {
 			this._scale = Math.min(this._scale + this.timestep() * 12, 1);
 			this.scale(this._scale);
-		}
-
-		if (!this._exploded) {
-			renderer.playSound(Sound.EXPLOSION, this.pos());
-			this._exploded = true;
 		}
 	}
 

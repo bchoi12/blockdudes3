@@ -14,6 +14,7 @@ export class RenderPellet extends RenderProjectile {
 
 	constructor(space : number, id : number) {
 		super(space, id);
+		this.setSound(Sound.PEW);
 	}
 
 	override initialize() : void {
@@ -32,7 +33,7 @@ export class RenderPellet extends RenderProjectile {
 
 	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
-		super.addTrail(this._trailMaterial, 0.5);
+		super.addTrail(this._trailMaterial, 0.7);
 
 		renderer.addBloom(mesh);
 

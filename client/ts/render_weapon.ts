@@ -46,6 +46,7 @@ export class RenderWeapon extends RenderObject {
 		super.delete();
 
 		game.sceneMap().returnPointLight(this._chargeLight);
+		this._chargeLight = null;
 	}
 
 	override setMesh(mesh : THREE.Object3D) : void {

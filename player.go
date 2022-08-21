@@ -27,12 +27,12 @@ const (
 	jumpVel = 10.0
 
 	friction = 0.4
-	knockbackFriction = 0.9
+	knockbackFriction = 1.0
 	airResistance = 0.9
 
 	jumpDuration time.Duration = 300 * time.Millisecond
 	jumpGraceDuration time.Duration = 100 * time.Millisecond
-	knockbackDuration time.Duration = 150 * time.Millisecond
+	knockbackDuration time.Duration = 600 * time.Millisecond
 
 	bodySubProfile ProfileKey = 1
 	bodySubProfileOffsetY = 0.22
@@ -303,6 +303,10 @@ func (p *Player) UpdateKeys(keyMsg KeyMsg) {
 	p.Keys.UpdateKeys(keyMsg)
 	if p.weapon != nil {
 		p.weapon.UpdateKeys(keyMsg)
+	}
+
+	if p.HasAttribute(deadAttribute) {
+		return
 	}
 
 	// Don't turn around right at dir.X = 0

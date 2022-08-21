@@ -30,10 +30,6 @@ export class RenderProjectile extends RenderObject {
 		super(space, id);
 	}
 
-	protected setSound(sound : Sound) {
-		this._sound = sound;
-	}
-
 	override ready() : boolean {
 		return super.ready() && this.hasOwner() && this.hasDir();
 	}
@@ -69,20 +65,25 @@ export class RenderProjectile extends RenderObject {
 		}
 
 		if (Util.defined(this._trail)) {
+			this._trail.rotation.z = this.dir().angle();
+
 			if (this.vel().lengthSq() == 0 || this.attribute(attachedAttribute)) {
 				this._trail.scale.x = 0;
-			} else {
-				this._trail.rotation.z = this.dir().angle();
+			} else if (Date.now() - this.initializeTime() > 30) {
 				this._trail.scale.x += this._trailScalingFactor * this.timestep()
 			}
 		}
 	}
 
-	addTrail(material : THREE.Material, scalingFactor : number) : void {
+	protected setSound(sound : Sound) {
+		this._sound = sound;
+	}
+
+	protected addTrail(material : THREE.Material, scalingFactor : number) : void {
 		let gyro = new Gyroscope();
 		this._trail = new THREE.Mesh(this._trailGeometry, material);
 		this._trail.scale.y = 0.8 * this.dim().y;
-		this._trail.scale.x = 0.2;
+		this._trail.scale.x = 0.05;
 		gyro.add(this._trail);
 		this.mesh().add(gyro);
 
