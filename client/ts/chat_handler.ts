@@ -31,6 +31,8 @@ export class ChatHandler implements InterfaceHandler {
 		});
 	}
 
+	reset() : void {}
+
 	changeInputMode(mode : InputMode) : void {
 		if (mode === InputMode.CHAT) {
 			Html.notSlightlyOpaque(this._chatElm);

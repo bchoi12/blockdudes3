@@ -138,6 +138,11 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) {
 	ts := p.PrepareUpdate(now)
 	p.BaseObject.UpdateState(grid, now)
 
+	if p.Expired() {
+		grid.Delete(p.GetSpacedId())
+		return
+	}
+
 	// Handle health stuff
 	if p.Pos().Y < -5 {
 		p.Die()

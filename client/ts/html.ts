@@ -1,11 +1,12 @@
 export namespace Html {
 
-	// TODO: remove div/input/form from var name
 	export const divGame = "div-game";
 
 	export const divLogin = "div-login";
+	export const legendLogin = "legend-login";
 	export const inputName = "input-name";
 	export const inputRoom = "input-room";
+	export const loginInfo = "login-info";
 	export const formLogin = "form-login";
 	export const buttonLogin = "button-login";
 

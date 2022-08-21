@@ -68,12 +68,20 @@ class UI {
 		});
 	}
 
+	reset() : void {
+		this._handlers.forEach((handler) => {
+			handler.reset();
+		});
+	}
+
 	inputMode() : InputMode { return this._mode; }
 	getKeys() : Set<number> { return this._inputHandler.keys(); }
 	getKeysAsArray() : Array<number> { return Array.from(this._inputHandler.keys()); }
+	hasClient(id : number) : boolean { return this._clientHandler.hasClient(id); }
 	getClientName(id : number) : string { return this._clientHandler.displayName(id); }
 
 	disconnected() : void {
+		game.setState(GameState.PAUSED);
 		this.changeInputMode(InputMode.LOGIN);
 		this.print("Error: disconnected from server.")
 	}

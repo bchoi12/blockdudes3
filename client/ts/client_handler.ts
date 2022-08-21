@@ -52,7 +52,6 @@ export class ClientHandler implements InterfaceHandler {
 	}
 
 	setup() : void {
- 		connection.addHandler(initType, (msg : { [k: string]: any }) => { this.updateClients(msg); });
  		connection.addHandler(joinType, (msg : { [k: string]: any }) => { this.updateClients(msg); });
 		connection.addHandler(leftType, (msg : { [k: string]: any }) => { this.updateClients(msg); });
 		connection.addHandler(joinVoiceType, (msg : { [k: string]: any }) => { this.updateVoice(msg); });
@@ -67,11 +66,17 @@ export class ClientHandler implements InterfaceHandler {
 		};
 	}
 
+	reset() : void {
+		this._clients.forEach((client, id) => {
+			this._clientsElm.removeChild(client.elm());
+			this._clients.delete(id);
+		});
+	}
+
 	changeInputMode(mode : InputMode) : void {}
 
-	displayName(id : number) : string {
-		return this._clients.has(id) ? this._clients.get(id).displayName() : "Unknown";
-	}
+	hasClient(id : number) : boolean { return this._clients.has(id); }
+	displayName(id : number) : string { return this.hasClient(id) ? this._clients.get(id).displayName() : "Unknown"; }
 
 	private toggleVoice() : void {
 		if (!connection.ready()) {
@@ -108,10 +113,6 @@ export class ClientHandler implements InterfaceHandler {
 	}
 
 	private updateClients(msg : { [k: string]: any }) : void {
-		if (msg.T === initType) {
-			this.removeAllClients();
-		}
-
 		if (this._clients.size === 0) {
 			for (let [stringId, client] of Object.entries(msg.Clients) as [string, any]) {
 				this.addClient(new ClientWrapper(client.Id, client.Name));
@@ -136,13 +137,6 @@ export class ClientHandler implements InterfaceHandler {
 
 		this._clientsElm.removeChild(client.elm());
 		this._clients.delete(id);
-	}
-
-	private removeAllClients() : void {
-		this._clients.forEach((client, id) => {
-			this._clientsElm.removeChild(client.elm());
-			this._clients.delete(id);
-		});
 	}
 
 	private voiceEnabled() : boolean {

@@ -22,6 +22,7 @@ type Room struct {
 	initQueue []*Client
 	unregister chan *Client
 	unregisterQueue []*Client
+
 	deleteTimer Timer
 
 	game *Game
@@ -205,6 +206,8 @@ func (r *Room) initClient(client *Client) error {
 	if !r.game.Has(playerId) {
 		r.game.Add(NewObjectInit(playerId, NewVec2(5, 5), NewVec2(0.8, 1.44)))
 	} else {
+		player := r.game.Get(playerId)
+		player.RemoveTTL()
 		log.Printf("%s reconnected and player already exists", client.GetDisplayName())
 	}
 	playerInitMsg := r.game.createPlayerInitMsg(client.id)
@@ -236,16 +239,10 @@ func (r *Room) unregisterClient(client *Client) error {
 		}
 		delete(r.clients, client.id)
 
-		playerId := Id(playerSpace, client.id)
-		time.AfterFunc(20 * time.Second, func() {
-			if r == nil {
-				return
-			}
-			if _, ok := r.clients[playerId.GetId()]; !ok {
-				r.game.Delete(Id(playerSpace, client.id))
-			}
-		})	
-		
+		player := r.game.Get(Id(playerSpace, client.id))
+		if player != nil {
+			player.SetTTL(20 * time.Second)
+		}
 	}
 	log.Printf("Unregistering client %s, total=%d", client.GetDisplayName(), len(r.clients))
 

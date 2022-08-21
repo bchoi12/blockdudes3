@@ -27,7 +27,11 @@ func (g *Game) Add(init Init) Object {
 	return object
 }
 
-func (g *Game) Has(sid SpacedId) bool {
+func (g Game) Get(sid SpacedId) Object {
+	return g.grid.Get(sid)
+}
+
+func (g Game) Has(sid SpacedId) bool {
 	return g.grid.Has(sid)
 }
 

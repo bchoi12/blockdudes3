@@ -18,6 +18,8 @@ export class StatsHandler implements InterfaceHandler {
 		this.updateStats();
 	}
 
+	reset() : void {}
+
 	changeInputMode(mode : InputMode) : void {}
 
 	private updateStats() {

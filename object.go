@@ -26,6 +26,9 @@ type Object interface {
 
 	AddConnection(parent SpacedId, connection Connection)
 
+	SetTTL(duration time.Duration)
+	RemoveTTL()
+
 	AddAttribute(attribute AttributeType)
 	RemoveAttribute(attribute AttributeType)
 	HasAttribute(attribute AttributeType) bool

@@ -8,7 +8,7 @@ import { ui, InputMode } from './ui.js'
 declare var Go: any;
 
 document.addEventListener('DOMContentLoaded', (event) => {
-	Html.displayNone(Html.elm("js-check"));
+	Html.elm(Html.loginInfo).textContent = "Loading game instance..."
 	game.startRender();
 
 	if (Util.isDev()) {
@@ -20,8 +20,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 	const go = new Go();
 	WebAssembly.instantiateStreaming(fetch("./game.wasm"), go.importObject).then((result) => {
 		go.run(result.instance);
-
-		Html.displayNone(Html.elm("wasm-check"));
+		Html.elm(Html.loginInfo).textContent = ""
 
 		// TODO: ErrorHandler ui component
 		if (!Util.defined(wasmVersion) || wasmVersion !== 1) {

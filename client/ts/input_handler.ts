@@ -77,6 +77,8 @@ export class InputHandler implements InterfaceHandler {
 		});
 	}
 
+	reset() : void {}
+
 	changeInputMode(mode : InputMode) : void {
 		if (mode === InputMode.GAME) {
 			this.pointerLock();

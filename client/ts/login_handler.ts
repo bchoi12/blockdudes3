@@ -9,22 +9,30 @@ import { Util } from './util.js'
 export class LoginHandler implements InterfaceHandler {
 
 	private _loginElm : HTMLElement;
-	private _gameElm : HTMLElement;
+	private _legendElm : HTMLElement;
+	private _loginInfoElm : HTMLElement;
 	private _roomInputElm : HTMLInputElement;
 	private _nameInputElm : HTMLInputElement;
+	private _buttonElm : HTMLInputElement;
+	private _gameElm : HTMLElement;
 
 	private _room : string;
 	private _name : string;
 
 	private _enabled : boolean;
+	private _reconnect : boolean;
 
 	constructor() {
 		this._loginElm = Html.elm(Html.divLogin);
-		this._gameElm = Html.elm(Html.divGame);
+		this._legendElm = Html.elm(Html.legendLogin);
+		this._loginInfoElm = Html.elm(Html.loginInfo);
 		this._roomInputElm = Html.inputElm(Html.inputRoom);
 		this._nameInputElm = Html.inputElm(Html.inputName);
+		this._gameElm = Html.elm(Html.divGame);
+		this._buttonElm = Html.inputElm(Html.buttonLogin);
 
 		this._enabled = false;
+		this._reconnect = false;
 	}
 
 	setup() : void {
@@ -42,17 +50,28 @@ export class LoginHandler implements InterfaceHandler {
 			let vars = new Map([["room", room], ["name", name]]);
 			if (connection.hasId()) {
 				vars.set("id", "" + connection.id());
-				game.reset();
-				renderer.reset();
 			}
 
-			connection.connect(vars, () => {}, () => {
+			connection.connect(vars, () => {
+				if (this._reconnect) {
+					ui.reset();
+					game.reset();
+					renderer.reset();
+				}
+			}, () => {
+				ui.changeInputMode(InputMode.GAME);
+
+				this._reconnect = true;
 				this._room = room;
 				this._name = name;
-				ui.changeInputMode(InputMode.GAME);
+				this._loginInfoElm.textContent = "Lost connection to server"
+				this._legendElm.textContent = "Reconnect";
+				this._buttonElm.value = "Reconnect";
 			});
 		};
 	}
+
+	reset() : void {}
 
 	changeInputMode(mode : InputMode) : void {
 		if (mode === InputMode.LOGIN) {
@@ -69,7 +88,7 @@ export class LoginHandler implements InterfaceHandler {
 			}
 
 			// TODO: this shouldn't be needed if we move loading text out of login form.
-			Html.elm(Html.buttonLogin).style.display = "block";
+			this._buttonElm.style.display = "block";
 		} else if (mode === InputMode.GAME) {
 			this._enabled = false;
 			Html.displayNone(this._loginElm);

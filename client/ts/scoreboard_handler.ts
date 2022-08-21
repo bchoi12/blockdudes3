@@ -34,6 +34,12 @@ export class ScoreboardHandler implements InterfaceHandler {
 		});
 	}
 
+	reset() : void {
+		this._scores.forEach((score, id) => {
+			this._scoreboardElm.removeChild(score.elm());
+		});
+	}
+
 	changeInputMode(mode : InputMode) : void {}
 
 	private updateScoreboard() : void {
@@ -41,6 +47,9 @@ export class ScoreboardHandler implements InterfaceHandler {
 
 		players.forEach((player, id) => {
 			if (!this._scores.has(id)) {
+				if (!ui.hasClient(id)) {
+					return;
+				}
 				const scoreComponent = new ScoreWrapper(id);
 				this._scoreboardElm.append(scoreComponent.elm());
 				this._scores.set(id, scoreComponent);

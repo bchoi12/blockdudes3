@@ -36,6 +36,8 @@ export class PauseHandler implements InterfaceHandler {
 		}
 	}
 
+	reset() : void {}
+
 	changeInputMode(mode : InputMode) : void {
 		if (mode === InputMode.PAUSE) {
 			Html.displayBlock(this._pauseElm);
