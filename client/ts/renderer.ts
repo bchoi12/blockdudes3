@@ -50,8 +50,8 @@ class Renderer {
 	}
 
 	reset() : void {
+		this._renderer.shadowMap.enabled = options.enableShadows;
 		if (options.enableShadows) {
-			this._renderer.shadowMap.enabled = true;
 			this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		}
 		

@@ -136,6 +136,8 @@ export class Message {
 	}
 
 	private extrapolateVec2(current : any, next : any, weight : number) : any {
+		// TODO: for position, check that next ~= current
+
 		if (weight > 1) {
 			return next;
 		}

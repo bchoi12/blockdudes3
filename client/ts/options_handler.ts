@@ -36,6 +36,7 @@ export class OptionsHandler implements InterfaceHandler {
 		this._clientPredictionInputElm.checked = options.enableClientPrediction;
 		this._pointerLockInputElm.checked = options.enablePointerLock;
 		this._shadowsInputElm.checked = options.enableShadows;
+		this._effectsInputElm.checked = options.enableEffects;
 		this._dynamicLightingInputElm.checked = options.enableDynamicLighting;
 		this._rendererScaleInputElm.value = "" + options.rendererScale * 100;
 		this._multisamplingInputElm.value = "" + options.rendererMultisampling;

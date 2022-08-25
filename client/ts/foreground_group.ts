@@ -7,7 +7,7 @@ import { renderer } from './renderer.js'
 export class ForegroundGroup {
 	private readonly _maxOpacity = 1.0;
 	private readonly _minOpacity = 0.1;
-	private readonly _opacityChange = 2.0;
+	private readonly _opacityChange = 3.0;
 	
 	private _scene : THREE.Scene;
 	private _materials : Set<THREE.Material>;
