@@ -136,7 +136,7 @@ func (p *Projectile) SelfDestruct(grid *Grid) {
 		p.Hit(p.collider)
 	}
 	if p.explosionOptions.explode {
-		init := NewObjectInit(grid.NextSpacedId(explosionSpace), p.Pos(), p.explosionOptions.size)	
+		init := NewInit(grid.NextSpacedId(explosionSpace), p.Pos(), p.explosionOptions.size)	
 		explosion := NewExplosion(init)
 		explosion.SetInitProp(colorProp, p.explosionOptions.color)
 		grid.Upsert(explosion)

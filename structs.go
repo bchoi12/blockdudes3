@@ -9,6 +9,24 @@ const (
 	approxEpsilon float64 = 1e-6
 )
 
+type Pair struct {
+	A float64
+	B float64
+}
+
+func NewPair(a float64, b float64) Pair {
+	return Pair {
+		A: a,
+		B: b,
+	}
+}
+
+func (p *Pair) Swap() { 
+	tmp := p.A
+	p.A = p.B
+	p.B = tmp
+}
+
 type Line struct {
 	O Vec2 // origin
 	R Vec2 // ray
@@ -191,6 +209,14 @@ func (v Vec2) ApproxEq(other Vec2) bool {
 
 func (v Vec2) ApproxUnit() bool {
 	return Abs(v.LenSquared() - 1) < approxEpsilon
+}
+
+func (v Vec2) Distance(other Vec2) float64 {
+	return math.Sqrt(v.DistanceSquared(other))
+}
+
+func (v Vec2) DistanceSquared(other Vec2) float64 {
+	return (v.X - other.X) * (v.X - other.X) + (v.Y - other.Y) * (v.Y - other.Y)
 }
 
 func (v Vec2) Len() float64 {

@@ -11,9 +11,9 @@ export class Weather extends SceneComponent {
 	// TODO: shuffle these numbers and just iterate through them
 	private readonly _cloudLengths : Array<number> = [6, 6.5, 7, 7.5];
 	private readonly _cloudHeights : Array<number> = [0.6, 0.7, 0.8];
-	private readonly _cloudDepths : Array<number> = [4, 5, 6];
+	private readonly _cloudDepths : Array<number> = [3, 3.5, 4];
 	private readonly _cloudYs : Array<number> = [2, 4, 5, 6, 8, 10];
-	private readonly _cloudZs : Array<number> = [-12, -9, 6];
+	private readonly _cloudZs : Array<number> = [-12, -9, 9];
 
 	private _cloudMaterials : Array<THREE.Material>;
 
@@ -26,7 +26,7 @@ export class Weather extends SceneComponent {
 		this._cloudMaterials.push(this.newCloudMaterial(0xe0e0e0, MathUtil.randomRange(0.3, 0.5)));
 		this._cloudMaterials.push(this.newCloudMaterial(0xd2d2d2, MathUtil.randomRange(0.4, 0.6)));
 
-		for (let x = -5; x < 25; x += MathUtil.randomRange(6, 9)) {
+		for (let x = -15; x < 40; x += MathUtil.randomRange(9, 12)) {
 			let cloud = new RenderCustom();
 			cloud.setMesh(this.newCloudMesh(x));
 
@@ -34,7 +34,7 @@ export class Weather extends SceneComponent {
 			const updateCloud = (ts : number) => {
 				cloud.mesh().position.x += speed * ts;
 				if (cloud.mesh().position.x > 40) {
-					cloud.mesh().position.x = 0;
+					cloud.mesh().position.x = -15;
 				}
 			};
 			cloud.setUpdate(updateCloud);

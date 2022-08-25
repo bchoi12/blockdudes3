@@ -146,7 +146,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) {
 	}
 
 	// Handle health stuff
-	if p.Pos().Y < -5 {
+	if p.Pos().Y < -7 {
 		p.Die()
 	}
 
@@ -286,7 +286,7 @@ func (p *Player) checkCollisions(grid *Grid) {
 		case *Pickup:
 			if !isWasm && p.KeyDown(interactKey) {
 				if p.weapon == nil {
-					weapon := grid.New(NewObjectInit(grid.NextSpacedId(weaponSpace), p.Pos(), p.Dim()))
+					weapon := grid.New(NewInit(grid.NextSpacedId(weaponSpace), p.Pos(), p.Dim()))
 					grid.Upsert(weapon)
 					p.weapon = weapon.(*Weapon)
 					p.weapon.AddConnection(p.GetSpacedId(), NewOffsetConnection(NewVec2(0, bodySubProfileOffsetY)))

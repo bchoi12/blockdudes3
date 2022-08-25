@@ -67,9 +67,13 @@ func (a *Attachment) AddConnection(parent SpacedId, connection Connection) {
 }
 
 func (a *Attachment) Preprocess(grid *Grid, now time.Time) {
+	child := grid.Get(a.sid)
+	if child == nil {
+		return
+	}
+
 	for parentId, connection := range(a.GetConnections()) {
 		parent := grid.Get(parentId)
-		child := grid.Get(a.sid)
 
 		if parent == nil || child == nil {
 			a.RemoveConnection(parentId)
@@ -105,9 +109,10 @@ func (a *Attachment) Preprocess(grid *Grid, now time.Time) {
 
 func (a *Attachment) Postprocess(grid *Grid, now time.Time) {
 	// TODO: refactor so code is not duplicated
+	// TODO: remove connection if parent object is a block?
+	child := grid.Get(a.sid)
 	for parentId, connection := range(a.GetConnections()) {
 		parent := grid.Get(parentId)
-		child := grid.Get(a.sid)
 
 		if parent == nil || child == nil {
 			a.RemoveConnection(parentId)

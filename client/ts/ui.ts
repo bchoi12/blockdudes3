@@ -10,6 +10,7 @@ import { InputHandler } from './input_handler.js'
 import { InterfaceHandler } from './interface_handler.js'
 import { LoginHandler } from './login_handler.js'
 import { options } from './options.js'
+import { OptionsHandler } from './options_handler.js'
 import { PauseHandler } from './pause_handler.js'
 import { renderer } from './renderer.js'
 import { ScoreboardHandler } from './scoreboard_handler.js'
@@ -32,6 +33,7 @@ class UI {
 	private _clientHandler : ClientHandler;
 	private _inputHandler : InputHandler;
 	private _loginHandler : LoginHandler;
+	private _optionsHandler : OptionsHandler;
 	private _pauseHandler : PauseHandler;
 	private _scoreboardHandler : ScoreboardHandler;
 	private _statsHandler : StatsHandler;
@@ -51,6 +53,9 @@ class UI {
 
 		this._loginHandler = new LoginHandler();
 		this._handlers.push(this._loginHandler);
+
+		this._optionsHandler = new OptionsHandler();
+		this._handlers.push(this._optionsHandler);
 
 		this._pauseHandler = new PauseHandler();
 		this._handlers.push(this._pauseHandler);

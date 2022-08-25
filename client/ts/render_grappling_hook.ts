@@ -7,14 +7,14 @@ import { RenderProjectile } from './render_projectile.js'
 import { MathUtil } from './util.js'
 
 export class RenderGrapplingHook extends RenderProjectile {
-	private readonly _prismGeometry = new PrismGeometry([
+	private readonly _prismGeometry = new PrismGeometry(new THREE.Shape([
 		new THREE.Vector2(-0.06, 0),
 		new THREE.Vector2(-0.1, 0),
 		new THREE.Vector2(0, 0.2),
 		new THREE.Vector2(0.1, 0),
 		new THREE.Vector2(0.06, 0),
 		new THREE.Vector2(0, 0.06),
-	], 0.2);
+	]), 0.2);
 
 	private _ropeGeometry : THREE.BufferGeometry;
 

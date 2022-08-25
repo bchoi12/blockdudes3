@@ -59,6 +59,8 @@ func (g *Grid) New(init Init) Object {
 	switch init.GetSpace() {
 	case playerSpace:
 		return NewPlayer(init)
+	case blockSpace:
+		return NewBlock(init)
 	case wallSpace:
 		return NewWall(init)
 	case weaponSpace:
@@ -126,6 +128,11 @@ func (g *Grid) Upsert(object Object) {
 }
 
 func (g *Grid) insert(sid SpacedId, object Object) {
+	if sid.Invalid() {
+		Debug("Invalid ID: %+v", sid)
+		return
+	}
+
 	g.objects[sid] = object
 	g.gameState.RegisterId(sid)
 	g.spacedObjects[sid.GetSpace()][sid.GetId()] = object
@@ -195,11 +202,19 @@ func (g *Grid) Delete(sid SpacedId) {
 }
 
 func (g *Grid) Has(sid SpacedId) bool {
+	if sid.Invalid() {
+		return false
+	}
+
 	_, ok := g.objects[sid]
 	return ok
 }
 
 func (g *Grid) Get(sid SpacedId) Object {
+	if sid.Invalid() {
+		return nil
+	}
+
 	if _, ok := g.spacedObjects[sid.GetSpace()]; !ok {
 		return nil
 	}
@@ -313,6 +328,10 @@ func (g *Grid) GetObjectUpdates() ObjectPropMap {
 }
 
 func (g *Grid) IncrementScore(sid SpacedId, prop Prop, delta int) {
+	if sid.Invalid() {
+		return
+	}
+	
 	g.gameState.IncrementScore(sid, prop, delta)
 }
 

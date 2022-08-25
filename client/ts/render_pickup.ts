@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { EffectType } from './effects.js'
 import { Model, loader } from './loader.js'
 import { options } from './options.js'
 import { RenderObject } from './render_object.js'
@@ -34,7 +35,7 @@ export class RenderPickup extends RenderObject {
 			mesh.receiveShadow = true;
 		}
 
-		renderer.addOutline(mesh.getObjectByName("mesh"));
+		renderer.setEffect(EffectType.OUTLINE, true, mesh.getObjectByName("mesh"));
 	}
 
 	override update() : void {

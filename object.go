@@ -21,6 +21,7 @@ type Object interface {
 	
 	GetProfile() Profile
 
+	HasInitProp(prop Prop) bool
 	SetInitProp(prop Prop, value interface{})
 
 	GetOwner() SpacedId

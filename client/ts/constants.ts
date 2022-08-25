@@ -26,6 +26,7 @@ declare var playerInitType : number;
 declare var levelInitType : number;
 
 declare var playerSpace : number;
+declare var blockSpace : number;
 declare var wallSpace : number;
 declare var weaponSpace : number;
 declare var bombSpace : number;
@@ -49,6 +50,9 @@ declare var attributesProp : number;
 declare var byteAttributesProp : number;
 declare var colorProp : number;
 declare var nameProp : number;
+declare var thicknessProp : number;
+declare var dimZProp : number;
+declare var posZProp : number;
 
 declare var dimProp : number;
 declare var posProp : number;

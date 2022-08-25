@@ -39,7 +39,7 @@ func (b *Bomb) UpdateState(grid *Grid, now time.Time) {
 		dim := b.Dim()
 		dim.Scale(3.6)
 
-		init := NewObjectInit(grid.NextSpacedId(explosionSpace), pos, dim)
+		init := NewInit(grid.NextSpacedId(explosionSpace), pos, dim)
 		explosion := NewExplosion(init)
 		
 		grid.Upsert(explosion)

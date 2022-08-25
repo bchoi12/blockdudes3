@@ -6,12 +6,12 @@ import { RenderProjectile } from './render_projectile.js'
 import { MathUtil } from './util.js'
 
 export class RenderStar extends RenderProjectile {
-	private readonly _prismGeometry = new PrismGeometry([
+	private readonly _prismGeometry = new PrismGeometry(new THREE.Shape([
 		new THREE.Vector2(0, 0),
 		new THREE.Vector2(-0.1, 0),
 		new THREE.Vector2(-0.1, 0.2),
 		new THREE.Vector2(0, 0.1),
-	], 0.2);
+	]), 0.2);
 
 	constructor(space : number, id : number) {
 		super(space, id);

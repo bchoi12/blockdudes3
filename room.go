@@ -67,7 +67,7 @@ func CreateOrJoinRoom(vars map[string]string, ws *websocket.Conn) {
 		}
 		log.Printf("Created new room %s", roomName)
 
-		rooms[roomName].game.loadLevel(testLevel)
+		rooms[roomName].game.LoadLevel(testLevel)
 		go rooms[roomName].run()
 	}
 
@@ -204,7 +204,7 @@ func (r *Room) initClient(client *Client) error {
 
 	playerId := Id(playerSpace, client.id)
 	if !r.game.Has(playerId) {
-		player := r.game.Add(NewObjectInit(playerId, NewVec2(5, 5), NewVec2(0.8, 1.44)))
+		player := r.game.Add(NewInit(playerId, NewVec2(5, 5), NewVec2(0.8, 1.44)))
 		player.SetInitProp(colorProp, 0)
 		player.SetInitProp(nameProp, client.GetDisplayName())
 	} else {

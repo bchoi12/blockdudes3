@@ -4,16 +4,22 @@ import (
 	"time"
 )
 
+const (
+	frameMillis int = 16
+	frameTime time.Duration = 16 * time.Millisecond
+)
+
 type Game struct {
 	grid *Grid
-	level LevelIdType
+	level *Level
 	seqNum SeqNumType
 }
 
 func NewGame() *Game {
+	grid := NewGrid(4, 4)
 	game := &Game {
-		grid: NewGrid(4, 4),
-		level: unknownLevel,
+		grid: grid,
+		level: NewLevel(grid),
 		seqNum: 0,
 	}
 	return game
@@ -57,6 +63,10 @@ func (g *Game) SetData(sid SpacedId, data Data) {
 	g.grid.Upsert(object)
 }
 
+func (g *Game) LoadLevel(id LevelIdType) {
+	g.level.LoadLevel(id)
+}
+
 func (g *Game) ProcessKeyMsg(id IdType, keyMsg KeyMsg) {
 	if !g.grid.Has(Id(playerSpace, id)) {
 		return
@@ -89,7 +99,7 @@ func (g* Game) createPlayerInitMsg(id IdType) PlayerInitMsg {
 func (g *Game) createLevelInitMsg() LevelInitMsg {
 	return LevelInitMsg{
 		T: levelInitType,
-		L: g.level,
+		L: g.level.GetId(),
 	}
 }
 

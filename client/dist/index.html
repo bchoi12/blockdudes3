@@ -23,7 +23,7 @@
 			<div id="div-canvas" class="no-select">	
 				<canvas id="canvas-game" width="800" height="600" oncontextmenu="return false;">Sorry but your browser is not supported.</canvas>
 			</div>
-			<div id="div-overlays">
+			<div id="div-overlays" oncontextmenu="return false;">
 				<div id="div-stats" class="no-select spaced"></div>
 				<div id="div-chat" class="no-select slightly-opaque spaced"></div>
 				<div id="div-message" class="no-select spaced">
@@ -37,7 +37,31 @@
 				</div>
 				<div id="div-pause">
 					<fieldset id="fieldset-clients" class="spaced">
-						<legend>Players</legend>
+						<legend id="legend-clients">Players</legend>
+					</fieldset>
+					<fieldset id="fieldset-options" class="spaced">
+						<legend id="legend-options">Options</legend>
+						<div class="option">
+							<input type="checkbox" id="input-client-prediction"><label>Enable client prediction</label>
+						</div>
+						<div class="option">
+							<input type="checkbox" id="input-pointer-lock"><label>Enable pointer lock</label>
+						</div>
+						<div class="option">
+							<input type="checkbox" id="input-shadows"><label>Enable shadows</label>
+						</div>
+						<div class="option">
+							<input type="checkbox" id="input-effects"><label>Enable effects</label>
+						</div>
+						<div class="option">
+							<input type="checkbox" id="input-dynamic-lighting"><label>Enable dynamic lighting</label>
+						</div>
+						<div class="option">
+							<input type="range" id="input-renderer-scale" min="50" max="100" value="66"><label>Renderer scale</label>
+						</div>
+						<div class="option">
+							<input type="range" id="input-multisampling" min="0" max="8" value="4"><label>Multisampling</label>
+						</div>
 					</fieldset>
 					<span class="no-select"><br><b>Paused</b><br><br>Click to continue<br><br></span>
 					<button id="button-voice">voice</button>

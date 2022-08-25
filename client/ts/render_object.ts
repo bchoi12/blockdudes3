@@ -138,12 +138,42 @@ export class RenderObject extends RenderMesh {
 		return "";
 	}
 
+	hasThickness() : boolean { return this._msg.has(thicknessProp); }
+	thickness() : number {
+		if (this.hasThickness()) {
+			return this._msg.get(thicknessProp);
+		}
+		return 0;
+	}
+
+	hasDimZ() : boolean { return this._msg.has(dimZProp); }
+	dimZ() : number {
+		if (this.hasDimZ()) {
+			return this._msg.get(dimZProp);
+		}
+		return 0;
+	}
+
+	hasPosZ() : boolean { return this._msg.has(posZProp); }
+	posZ() : number {
+		if (this.hasPosZ()) {
+			return this._msg.get(posZProp);
+		}
+		return 0;
+	}
+
 	hasDim() : boolean { return this._msg.has(dimProp); }
 	dim() : THREE.Vector2 {
 		if (this.hasDim()) {
 			return new THREE.Vector2(this._msg.get(dimProp).X, this._msg.get(dimProp).Y);
 		}
 		return new THREE.Vector2();
+	}
+	dim3() : THREE.Vector3 {
+		if (this.hasDim()) {
+			return new THREE.Vector3(this._msg.get(dimProp).X, this._msg.get(dimProp).Y, this.dimZ());
+		}
+		return new THREE.Vector3();
 	}
 
 	hasPos() : boolean { return this._msg.has(posProp); }
@@ -155,7 +185,7 @@ export class RenderObject extends RenderMesh {
 	}
 	pos3() : THREE.Vector3 {
 		if (this.hasPos()) {
-			return new THREE.Vector3(this._msg.get(posProp).X, this._msg.get(posProp).Y, this.hasMesh() ? this.mesh().position.z : 0);
+			return new THREE.Vector3(this._msg.get(posProp).X, this._msg.get(posProp).Y, this.posZ());
 		}
 		return new THREE.Vector3();
 	}

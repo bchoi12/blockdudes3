@@ -1,5 +1,36 @@
 package main
 
+type Prop uint8
+const (
+	unknownProp Prop = iota
+
+	initializedProp
+	deletedProp
+
+	attributesProp
+	byteAttributesProp
+	colorProp
+	nameProp
+	thicknessProp
+	dimZProp
+	posZProp
+
+	dimProp
+	posProp
+	velProp
+	accProp
+	jerkProp
+	dirProp
+
+	keysProp
+	ownerProp
+	targetProp
+	hitsProp
+
+	killProp
+	deathProp
+)
+
 type PropMap map[Prop]interface{}
 type ValidProps map[Prop]bool
 

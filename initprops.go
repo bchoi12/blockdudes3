@@ -10,6 +10,11 @@ func NewInitProps() InitProps {
 	}
 }
 
+func (ip InitProps) HasInitProp(prop Prop) bool {
+	_, ok := ip.props[prop]
+	return ok
+}
+
 func (ip* InitProps) SetInitProp(prop Prop, value interface{}) {
 	ip.props[prop] = value
 }

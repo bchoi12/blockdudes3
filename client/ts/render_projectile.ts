@@ -11,7 +11,7 @@ import { Util } from './util.js'
 
 export class RenderProjectile extends RenderObject {
 	private readonly _positionZ = 0.5;
-	private readonly _trailGeometry = new PrismGeometry([
+	private readonly _trailGeometry = new PrismGeometry(new THREE.Shape([
 		new THREE.Vector2(0, 0.5),
 		new THREE.Vector2(-1, 0.25),
 		new THREE.Vector2(-2, 0.08),
@@ -19,7 +19,7 @@ export class RenderProjectile extends RenderObject {
 		new THREE.Vector2(-2, -0.08),
 		new THREE.Vector2(-1, -0.25),
 		new THREE.Vector2(0, -0.5),
-	], 0.1);
+	]), 0.1);
 
 	private _sound : Sound;
 
@@ -82,7 +82,7 @@ export class RenderProjectile extends RenderObject {
 	protected addTrail(material : THREE.Material, scalingFactor : number) : void {
 		let gyro = new Gyroscope();
 		this._trail = new THREE.Mesh(this._trailGeometry, material);
-		this._trail.scale.y = 0.8 * this.dim().y;
+		this._trail.scale.y = this.dim().y;
 		this._trail.scale.x = 0.05;
 		gyro.add(this._trail);
 		this.mesh().add(gyro);

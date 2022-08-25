@@ -1,11 +1,30 @@
 package main
 
+type IdType uint16
+type SpaceType uint8
+const (
+	unknownSpace SpaceType = iota
+	playerSpace
+	blockSpace
+	wallSpace
+	weaponSpace
+	bombSpace
+	pelletSpace
+	boltSpace
+	rocketSpace
+	starSpace
+	grapplingHookSpace
+	explosionSpace
+	pickupSpace
+)
+
 type SpacedId struct {
 	S SpaceType
 	Id IdType
 }
 
 type SpacedIdMethods interface {
+	SetId(id IdType)
 	GetId() IdType
 	GetSpace() SpaceType
 	GetSpacedId() SpacedId
@@ -25,6 +44,10 @@ func InvalidId() SpacedId {
 	}
 }
 
+func (sid *SpacedId) SetId(id IdType) {
+	sid.Id = id
+}
+
 func (sid SpacedId) GetId() IdType {
 	return sid.Id
 }
@@ -41,12 +64,24 @@ func (sid SpacedId) Invalid() bool {
 	return sid.GetSpace() == 0
 }
 
+type CenterType uint8
+const (
+	unknownCenter CenterType = iota
+	defaultCenter
+	rightCenter
+	topRightCenter
+	topCenter
+	topLeftCenter
+	leftCenter
+	bottomLeftCenter
+	bottomCenter
+	bottomRightCenter
+)
+
 type Init struct {
 	SpacedId
 
-	hasPos bool
 	pos Vec2
-	hasDim bool
 	dim Vec2
 }
 
@@ -59,21 +94,34 @@ type InitMethods interface {
 	GetInitData() Data
 }
 
-func NewInit(sid SpacedId) Init {
+func NewInit(sid SpacedId, pos Vec2, dim Vec2) Init {
 	return Init {
 		SpacedId: sid,
-		hasPos: false,
-		hasDim: false,
+		pos: pos,
+		dim: dim,
 	}
 }
 
-func NewObjectInit(sid SpacedId, pos Vec2, dim Vec2) Init {
-	init := NewInit(sid)
-	init.pos = pos
-	init.hasPos = true
-	init.dim = dim
-	init.hasDim = true
-	return init
+func NewInitC(sid SpacedId, pos Vec2, dim Vec2, center CenterType) Init {
+	switch center {
+	case rightCenter:
+		return NewInit(sid, NewVec2(pos.X - dim.X/2, pos.Y), dim)
+	case topRightCenter:
+		return NewInit(sid, NewVec2(pos.X - dim.X/2, pos.Y - dim.Y/2), dim)
+	case topCenter:
+		return NewInit(sid, NewVec2(pos.X, pos.Y - dim.Y/2), dim)
+	case topLeftCenter:
+		return NewInit(sid, NewVec2(pos.X + dim.X/2, pos.Y - dim.Y/2), dim)
+	case leftCenter:
+		return NewInit(sid, NewVec2(pos.X + dim.X/2, pos.Y), dim)
+	case bottomLeftCenter:
+		return NewInit(sid, NewVec2(pos.X + dim.X/2, pos.Y + dim.Y/2), dim)
+	case bottomCenter:
+		return NewInit(sid, NewVec2(pos.X, pos.Y + dim.Y/2), dim)
+	case bottomRightCenter:
+		return NewInit(sid, NewVec2(pos.X - dim.X/2, pos.Y + dim.Y/2), dim)
+	}
+	return NewInit(sid, pos, dim)
 }
 
 func (i Init) Pos() Vec2 {
@@ -86,11 +134,7 @@ func (i Init) Dim() Vec2 {
 
 func (i Init) GetInitData() Data {
 	data := NewData()
-	if i.hasPos {
-		data.Set(posProp, i.pos)
-	}
-	if i.hasDim {
-		data.Set(dimProp, i.dim)
-	}
+	data.Set(posProp, i.pos)
+	data.Set(dimProp, i.dim)
 	return data
 }

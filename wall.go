@@ -7,6 +7,10 @@ import (
 type Wall struct {
 	BaseObject
 
+	speed float64
+	waypointIndex int
+	waypoints []Vec2 
+
 	xBounded bool
 	xmin float64
 	xmax float64
@@ -20,50 +24,52 @@ func NewWall(init Init) *Wall {
 	profile := NewRec2(init)
 	wall := &Wall {
 		BaseObject: NewBaseObject(profile),
-		xBounded: false,
-		yBounded: false,
+		speed: 0,
+		waypointIndex: 0,
+		waypoints: make([]Vec2, 0),
 	}
 	wall.AddAttribute(solidAttribute)
 	return wall
 }
 
-func (w *Wall) SetXBounds(xmin float64, xmax float64) {
-	w.xBounded = true
-	w.xmin = xmin
-	w.xmax = xmax
+func (w *Wall) SetSpeed(speed float64) {
+	w.speed = speed
 }
 
-func (w *Wall) SetYBounds(ymin float64, ymax float64) {
-	w.yBounded = true
-	w.ymin = ymin
-	w.ymax = ymax
+func (w *Wall) AddWaypoint(waypoint Vec2) {
+	w.waypoints = append(w.waypoints, waypoint)
 }
 
 func (w *Wall) UpdateState(grid *Grid, now time.Time) {
-	if w.Vel().IsZero() {
+	w.BaseObject.UpdateState(grid, now)
+	if w.speed <= 0 || len(w.waypoints) == 0 {
 		return
 	}
 
-	w.BaseObject.UpdateState(grid, now)
 	ts := w.PrepareUpdate(now)
 	pos := w.Pos()
-	vel := w.Vel()
-	if w.xBounded {
-		if pos.X >= w.xmax && vel.X > 0 {
-			vel.X = -Abs(vel.X)
-		} else if pos.X <= w.xmin && vel.X < 0 {
-			vel.X = Abs(vel.X)
-		} 
+	nextPoint := w.waypoints[w.waypointIndex]
+
+	offset := nextPoint
+	offset.Sub(pos, 1.0)
+	vel := offset
+	vel.Normalize()
+	if ts > 0 && w.speed * ts > offset.Len() {
+		vel.Scale(offset.Len() / ts)
+	} else {
+		vel.Scale(w.speed)
 	}
-	if w.yBounded {
-		if pos.Y >= w.ymax && vel.Y > 0 {
-			vel.Y = -Abs(vel.Y)
-		} else if pos.Y <= w.ymin && vel.Y < 0 {
-			vel.Y = Abs(vel.Y)
-		} 	
-	}
+	w.SetVel(vel)
+
 	pos.Add(vel, ts)
-	w.GetProfile().SetVel(vel)
-	w.GetProfile().SetPos(pos)
+	w.SetPos(pos)
+
+	if pos.DistanceSquared(nextPoint) <= 1e-4 {
+		w.waypointIndex += 1
+
+		if w.waypointIndex >= len(w.waypoints) {
+			w.waypointIndex = 0
+		}
+	}
 	grid.Upsert(w)
 }

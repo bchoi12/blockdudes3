@@ -11,7 +11,7 @@ import (
 
 const (
 	isWasm bool = true
-	wasmVersion int = 1
+	wasmVersion int = 2
 )
 
 type WasmStats struct {
@@ -58,6 +58,7 @@ func setGlobals() {
 	js.Global().Set("levelInitType", int(levelInitType))
 
 	js.Global().Set("playerSpace", int(playerSpace))
+	js.Global().Set("blockSpace", int(blockSpace))
 	js.Global().Set("wallSpace", int(wallSpace))
 	js.Global().Set("weaponSpace", int(weaponSpace))
 	js.Global().Set("bombSpace", int(bombSpace))
@@ -81,6 +82,9 @@ func setGlobals() {
 	js.Global().Set("byteAttributesProp", int(byteAttributesProp))
 	js.Global().Set("colorProp", int(colorProp))
 	js.Global().Set("nameProp", int(nameProp))
+	js.Global().Set("thicknessProp", int(thicknessProp))
+	js.Global().Set("dimZProp", int(dimZProp))
+	js.Global().Set("posZProp", int(posZProp))
 
 	js.Global().Set("dimProp", int(dimProp))
 	js.Global().Set("posProp", int(posProp))
@@ -157,15 +161,15 @@ func Add() js.Func {
 
 		space := SpaceType(args[0].Int())
 		id := IdType(args[1].Int())
-		init := NewInit(Id(space, id))
+		data := getData(args[2])
 
+		init := NewInit(Id(space, id), data.Get(posProp).(Vec2), data.Get(dimProp).(Vec2))
 		object := game.Add(init)
 		if object == nil {
 			fmt.Println("Add: failed to create object ", space, id)
 			return nil
 		}
 
-		data := getData(args[2])
 		object.SetData(data)
 		return nil
     })
@@ -281,7 +285,7 @@ func LoadLevel() js.Func {
 		}
 
 		level := LevelIdType(args[0].Int())
-		game.loadLevel(level)
+		game.LoadLevel(level)
 
 		objects := game.createObjectInitMsg()
 		b, err := json.Marshal(objects)

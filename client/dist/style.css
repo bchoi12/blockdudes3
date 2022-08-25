@@ -129,6 +129,9 @@ fieldset legend {
 	text-align: left;
 }
 
+.option {
+	font-size: 0.6em;
+}
 
 #cursor {
 	position: absolute;

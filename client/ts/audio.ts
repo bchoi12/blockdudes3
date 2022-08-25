@@ -18,7 +18,7 @@ export enum SystemSound {
 }
 
 export class Audio {
-	private readonly _distThresholdSq : number = 50;
+	private readonly _distThresholdSq : number = 80;
 
 	private _sounds : Map<Sound, Howl>;
 
@@ -27,7 +27,7 @@ export class Audio {
 		this.registerSound(Sound.PEW, "./sound/pew.wav");
 		this.registerSound(Sound.LASER ,"./sound/laser.wav");
 		this.registerSound(Sound.ROCKET, "./sound/rocket.wav");
-		this.registerSound(Sound.SMALL_EXPLOSION, "./sound/small_explosion.wav");
+		this.registerSound(Sound.SMALL_EXPLOSION, "./sound/explosion.wav");
 		this.registerSound(Sound.EXPLOSION, "./sound/explosion.wav");
 		this.registerSound(Sound.TOM_SCREAM, "./sound/tom_scream.mp3");
 	}

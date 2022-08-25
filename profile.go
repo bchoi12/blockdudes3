@@ -228,6 +228,18 @@ func (bp *BaseProfile) Stop() {
 
 func (bp BaseProfile) GetData() Data {
 	data := NewData()
+
+	if bp.dirFlag.Has() {
+		data.Set(dirProp, bp.Dir())
+	}
+	if flag, ok := bp.dimFlag.Pop(); ok && flag {
+		data.Set(dimProp, bp.Dim())
+	}
+
+	if !bp.velFlag.Has() {
+		return data
+	}
+
 	if bp.posFlag.Has() {
 		data.Set(posProp, bp.Pos())
 	}
@@ -239,12 +251,6 @@ func (bp BaseProfile) GetData() Data {
 	}
 	if bp.jerkFlag.Has() {
 		data.Set(jerkProp, bp.Jerk())
-	}
-	if bp.dirFlag.Has() {
-		data.Set(dirProp, bp.Dir())
-	}
-	if flag, ok := bp.dimFlag.Pop(); ok && flag {
-		data.Set(dimProp, bp.Dim())
 	}
 
 	return data

@@ -2,10 +2,11 @@ import * as THREE from 'three'
 
 import { Audio, Sound } from './audio.js'
 import { CameraController } from './camera_controller.js'
-import { Effects } from './effects.js'
+import { Effects, EffectType } from './effects.js'
 import { game } from './game.js'
 import { Html } from './html.js'
 import { options } from './options.js'
+import { Util } from './util.js'
 
 class Renderer {
 	private readonly _elmRenderer = "canvas-game";
@@ -54,7 +55,9 @@ class Renderer {
 			this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		}
 		
-		this._effects = new Effects(this._renderer);
+		if (!Util.defined(this._effects)) {
+			this._effects = new Effects(this._renderer);
+		}
 		this.resizeCanvas();
 	}
 
@@ -76,10 +79,7 @@ class Renderer {
 	cameraTarget() : THREE.Vector3 { return this._cameraController.target(); }
 	setCameraAnchor(anchor : THREE.Vector3) : void { this._cameraController.setAnchor(anchor); }
 
-	addBloom(object : THREE.Object3D) : void { this._effects.addBloom(object); }
-	removeBloom(object : THREE.Object3D) : void { this._effects.removeBloom(object); }
-	addOutline(object : THREE.Object3D) : void { this._effects.addOutline(object); }
-	removeOutline(object : THREE.Object3D) : void { this._effects.removeOutline(object); }
+	setEffect(effect : EffectType, enabled : boolean, object : THREE.Object3D) : void { this._effects.setEffect(effect, enabled, object); }
 
 	playSystemSound(sound : Sound) : number { return this._audio.playSystemSound(sound); }
 	playSound(sound : Sound, pos : THREE.Vector2) : number {

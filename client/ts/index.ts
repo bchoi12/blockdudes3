@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 		Html.elm(Html.loginInfo).textContent = ""
 
 		// TODO: ErrorHandler ui component
-		if (!Util.defined(wasmVersion) || wasmVersion !== 1) {
+		if (!Util.defined(wasmVersion) || wasmVersion !== 2) {
 			ui.print("Your game is outdated. Please refresh to download the latest stuff");
 			return;
 		}

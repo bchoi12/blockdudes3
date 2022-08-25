@@ -184,7 +184,7 @@ export class InputHandler implements InterfaceHandler {
 	}
 
 	private pointerLock() : void {
-		if (options.pointerLock) {
+		if (options.enablePointerLock) {
 			renderer.elm().requestPointerLock();
 		}
 	}

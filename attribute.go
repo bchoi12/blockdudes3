@@ -1,5 +1,28 @@
 package main
 
+type AttributeType uint8
+const (
+	unknownAttribute AttributeType = iota
+
+	solidAttribute
+	stairAttribute
+	platformAttribute
+
+	attachedAttribute
+	chargingAttribute
+	chargedAttribute
+	groundedAttribute
+	deadAttribute
+)
+
+type ByteAttributeType uint8
+const (
+	unknownByteAttribute ByteAttributeType = iota
+
+	typeByteAttribute
+	healthByteAttribute
+)
+
 var wasmIgnoreAttributes = map[AttributeType]bool {
 	groundedAttribute: true,
 	deadAttribute: true,

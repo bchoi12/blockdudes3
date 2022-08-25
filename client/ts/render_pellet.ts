@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { EffectType } from './effects.js'
 import { Sound } from './audio.js'
 import { game } from './game.js'
 import { RenderProjectile } from './render_projectile.js'
@@ -35,7 +36,7 @@ export class RenderPellet extends RenderProjectile {
 		super.setMesh(mesh);
 		super.addTrail(this._trailMaterial, 0.7);
 
-		renderer.addBloom(mesh);
+		renderer.setEffect(EffectType.BLOOM, true, mesh);
 
 		this._light = game.sceneMap().getPointLight();
 		if (Util.defined(this._light)) {

@@ -13,21 +13,30 @@ import {
 import { options } from './options.js'
 import { Util } from './util.js'
 
+export enum EffectType {
+	UNKNOWN = 0,
+	MAIN = 1,
+	BLOOM = 2,
+	OUTLINE = 3,
+}
+
 export class Effects {
 
 	private _initialized : boolean;
 	private _composer : EffectComposer;
-
-	private _bloomSelection : Selection;
-	private _outlineSelection : Selection;
+	private _selections : Map<EffectType, Selection>;
 
 	constructor(renderer : THREE.WebGLRenderer) {
 		this._initialized = false;
 		this._composer = new EffectComposer(renderer);
+		this._selections = new Map<EffectType, Selection>();
 	}
 
 	render(scene : THREE.Scene, camera : THREE.Camera) : void {
 		if (!this._initialized) {
+			let mainPass = new RenderPass(scene, camera);
+			this._selections.set(EffectType.MAIN, mainPass.selection);
+
 			let selectiveBloom = new SelectiveBloomEffect(scene, camera, {
 				blendFunction: BlendFunction.ADD,
 				luminanceThreshold: 0.4,
@@ -35,7 +44,7 @@ export class Effects {
 				intensity: 1.0,
 			});
 			selectiveBloom.ignoreBackground = true;
-			this._bloomSelection = selectiveBloom.selection;
+			this._selections.set(EffectType.BLOOM, selectiveBloom.selection);
 
 			let outline = new OutlineEffect(scene, camera, {
 				blendFunction: BlendFunction.SCREEN,
@@ -47,61 +56,37 @@ export class Effects {
 				blur: true,
 				xRay: false,
 			});
-			this._outlineSelection = outline.selection;
+			this._selections.set(EffectType.OUTLINE, outline.selection);
 
-			// TODO: add foreground pass before outline so bloom still works
-			this._composer.addPass(new RenderPass(scene, camera));
+			this._composer.addPass(mainPass);
 			this._composer.addPass(new EffectPass(camera, selectiveBloom));
 			this._composer.addPass(new EffectPass(camera, outline));
-			this._composer.multisampling = 4;
 
+			this.setMultisampling(options.rendererMultisampling);
 			this._initialized = true;
 		}
 
 		this._composer.render();
 	}
 
-	addBloom(object : THREE.Object3D) : void {
-		if (!options.enableEffects) {
-			return;
-		}
-		if (!Util.defined(this._bloomSelection)) {
-			console.error("Attempting to add object bloom before effects initialization.")
-			return;
-		}
-		this._bloomSelection.add(object);
+	setMultisampling(multisampling : number) : void {
+		this._composer.multisampling = multisampling;
 	}
 
-	removeBloom(object : THREE.Object3D) : void {
+	setEffect(effect : EffectType, enabled : boolean, object : THREE.Object3D) {
 		if (!options.enableEffects) {
 			return;
 		}
-		if (!Util.defined(this._bloomSelection)) {
-			console.error("Attempting to remove object bloom before effects initialization.")
-			return;
-		}
-		this._bloomSelection.delete(object);
-	}
 
-	addOutline(object : THREE.Object3D) : void {
-		if (!options.enableEffects) {
+		if (!this._selections.has(effect)) {
+			console.error("Attempting to modify uninitialized effect " + effect);
 			return;
 		}
-		if (!Util.defined(this._outlineSelection)) {
-			console.error("Attempting to add object outline before effects initialization.")
-			return;
-		}
-		this._outlineSelection.add(object);
-	}
 
-	removeOutline(object : THREE.Object3D) : void {
-		if (!options.enableEffects) {
-			return;
+		if (enabled) {
+			this._selections.get(effect).add(object);
+		} else {
+			this._selections.get(effect).delete(object);
 		}
-		if (!Util.defined(this._outlineSelection)) {
-			console.error("Attempting to remove object outline before effects initialization.")
-			return;
-		}
-		this._outlineSelection.delete(object);
 	}
 }

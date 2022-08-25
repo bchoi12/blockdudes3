@@ -186,7 +186,7 @@ func (l *Launcher) Shoot(grid *Grid, now time.Time) {
 		size = l.chargedSize
 	}
 
-	init := NewObjectInit(grid.NextSpacedId(l.space), l.weapon.GetShotOrigin(), size)
+	init := NewInit(grid.NextSpacedId(l.space), l.weapon.GetShotOrigin(), size)
 	projectile := grid.New(init)
 	projectile.SetOwner(l.weapon.GetOwner())
 	projectile.SetDir(l.weapon.Dir())

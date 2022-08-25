@@ -75,7 +75,7 @@ func (w *Weapon) SetWeaponType(weaponType WeaponType) {
 		w.SetShotOffset(NewVec2(0.3, 0))
 	case sniperWeapon:
 		w.parts[mouseClick] = NewLauncher(w, boltSpace)
-		w.parts[altMouseClick] = NewWeaponCharger(w, 1500 * time.Millisecond)
+		w.parts[altMouseClick] = NewWeaponCharger(w, 1250 * time.Millisecond)
 		w.SetShotOffset(NewVec2(0.6, 0))
 	case starWeapon:
 		w.parts[mouseClick] = NewLauncher(w, starSpace)

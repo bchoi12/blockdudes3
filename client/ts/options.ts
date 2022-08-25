@@ -3,12 +3,13 @@ import * as THREE from 'three';
 import { Util } from './util.js'
 
 class Options {
-	public fullClientPrediction : boolean;
-	public pointerLock : boolean;
+	public enableClientPrediction : boolean;
+	public enablePointerLock : boolean;
 	public enableShadows : boolean;
 	public enableEffects : boolean;
 	public enableDynamicLighting : boolean;
 	public rendererScale : number;
+	public rendererMultisampling : number;
 
 	public soundEffectVolume : number;
 
@@ -22,12 +23,13 @@ class Options {
 	constructor() {
 		THREE.Cache.enabled = true;
 
-		this.fullClientPrediction = true;
-		this.pointerLock = true;
+		this.enableClientPrediction = true;
+		this.enablePointerLock = true;
 		this.enableShadows = true;
-		this.enableEffects = true; // !Util.isDev();
-		this.enableDynamicLighting = true; // !Util.isDev();
-		this.rendererScale = 0.66;
+		this.enableEffects = true;
+		this.enableDynamicLighting = true;
+		this.rendererScale = 0.7;
+		this.rendererMultisampling = 2;
 
 		this.soundEffectVolume = 0.5;
 

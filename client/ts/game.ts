@@ -4,6 +4,7 @@ import { connection } from './connection.js'
 import { Keys } from './keys.js'
 import { Model, loader } from './loader.js'
 import { options } from './options.js'
+import { RenderBlock } from './render_block.js'
 import { RenderBolt } from './render_bolt.js'
 import { RenderExplosion } from './render_explosion.js'
 import { RenderGrapplingHook } from './render_grappling_hook.js'
@@ -165,6 +166,10 @@ class Game {
 					let renderObj;
 					if (space === playerSpace) {
 						renderObj = new RenderPlayer(space, id);
+					} else if (space === blockSpace) {
+						renderObj = new RenderBlock(space, id);
+					} else if (space === wallSpace) {
+						renderObj = new RenderWall(space, id);
 					} else if (space === explosionSpace) {
 						renderObj = new RenderExplosion(space, id);
 					} else if (space === weaponSpace) {
@@ -181,7 +186,7 @@ class Game {
 						renderObj = new RenderGrapplingHook(space, id);
 					} else if (space === pickupSpace) {
 						renderObj = new RenderPickup(space, id);
-					} else {
+					}else {
 						console.error("Unable to construct object for type " + space);
 						continue;
 					}
@@ -204,7 +209,7 @@ class Game {
 	}
 
 	private extrapolateState() {
-		if (!options.fullClientPrediction) {
+		if (!options.enableClientPrediction) {
 			return;
 		}
 		if (Date.now() - this._lastStateUpdate <= 10) {

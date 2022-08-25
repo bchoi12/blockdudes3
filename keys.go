@@ -1,5 +1,22 @@
 package main
 
+// Can't get this to work with uint8 for some reason
+type KeyType uint16
+const (
+	unknownKey KeyType = iota
+	
+	upKey
+	downKey
+	leftKey
+	rightKey
+
+	jumpKey
+	interactKey
+
+	mouseClick
+	altMouseClick
+)
+
 type Keys struct {
 	enabled bool
 	keys map[KeyType]bool
