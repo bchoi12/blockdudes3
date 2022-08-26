@@ -72,6 +72,10 @@ func (l Line) Origin() Vec2 {
 	return l.O
 }
 
+func (l Line) Ray() Vec2 {
+	return l.R
+}
+
 func (l Line) Endpoint() Vec2 {
 	return l.Point(1.0)
 }

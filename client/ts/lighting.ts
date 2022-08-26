@@ -7,6 +7,7 @@ import { Sky } from 'three/examples/jsm/objects/Sky.js'
 
 export class Lighting extends SceneComponent {
 
+	// TODO: tweak these values
 	private readonly _shadowMapWidth = 1440;
 	private readonly _shadowMapHeight = 1024;
 	private readonly _shadowBias = -0.00018;

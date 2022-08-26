@@ -55,7 +55,7 @@ export class Message {
 
 			if (!Util.defined(seqNum)) {
 				if (this._extrapolateProps.has(prop) && this._data.has(prop)) {
-					this._data.set(prop, this.extrapolateVec2(this.get(prop), data, weight));
+					this._data.set(prop, this.extrapolateVec2(prop, data, weight));
 				} else {
 					this._data.set(prop, data);
 				}
@@ -135,8 +135,15 @@ export class Message {
 		});
 	}
 
-	private extrapolateVec2(current : any, next : any, weight : number) : any {
-		// TODO: for position, check that next ~= current
+	private extrapolateVec2(prop : number, next : any, weight : number) : any {
+		let current = this.get(prop);
+
+		if (prop === posProp) {
+			const diff = Math.abs(current.X - next.X) + Math.abs(current.Y - next.Y);
+			if (diff > 0.8) {
+				return current;
+			}
+		}
 
 		if (weight > 1) {
 			return next;

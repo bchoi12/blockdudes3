@@ -7,7 +7,6 @@ export enum Sound {
 	PEW,
 	LASER,
 	ROCKET,
-	SMALL_EXPLOSION,
 	EXPLOSION,
 
 	TOM_SCREAM,
@@ -27,7 +26,6 @@ export class Audio {
 		this.registerSound(Sound.PEW, "./sound/pew.wav");
 		this.registerSound(Sound.LASER ,"./sound/laser.wav");
 		this.registerSound(Sound.ROCKET, "./sound/rocket.wav");
-		this.registerSound(Sound.SMALL_EXPLOSION, "./sound/explosion.wav");
 		this.registerSound(Sound.EXPLOSION, "./sound/explosion.wav");
 		this.registerSound(Sound.TOM_SCREAM, "./sound/tom_scream.mp3");
 	}

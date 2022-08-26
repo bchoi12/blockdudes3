@@ -1,5 +1,9 @@
 package main
 
+import (
+	"math"
+)
+
 type Circle struct {
 	BaseProfile
 }
@@ -34,10 +38,39 @@ func (c Circle) Contains(point Vec2) ContainResults {
 	return results
 }
 
-func (c Circle) Intersects(line Line) IntersectResults {
-	results := c.BaseProfile.Intersects(line)
+func (circ Circle) Intersects(line Line) IntersectResults {
+	results := circ.BaseProfile.Intersects(line)
 
-	// TODO: circle intersects line
+	d := line.Ray()
+	f := line.Origin()
+	f.Sub(circ.Pos(), 1.0)
+
+	a := d.Dot(d)
+	b := 2 * f.Dot(d)
+	c := f.Dot(f) - circ.RadiusSqr()
+
+	discriminant := b * b - 4 * a * c
+
+	// No intersection
+	if discriminant < 0 {
+		return results
+	}
+
+	discriminant = math.Sqrt(discriminant)
+	t1 := (-b - discriminant) / (2 * a)
+
+  	if t1 >= 0 && t1 <= 1 {
+  		results.hit = true
+  		results.t = t1
+  		return results
+  	}
+
+  	t2 := (-b + discriminant) / (2 * a)
+  	if t2 >= 0 && t2 <= 1 {
+  		results.hit = true
+  		results.t = t2
+  		return results
+  	}
 	return results
 }
 

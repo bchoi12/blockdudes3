@@ -60,6 +60,12 @@ export class RenderProjectile extends RenderObject {
 			return;
 		}
 
+		const stopped = this.vel().lengthSq() == 0 || this.attribute(attachedAttribute);
+
+		if (stopped) {
+			this.mesh().position.z = 0;
+		}
+
 		if (this.mesh().position.z > 0) {
 			this.mesh().position.z -= 2 * this.timestep();
 		}
@@ -67,7 +73,7 @@ export class RenderProjectile extends RenderObject {
 		if (Util.defined(this._trail)) {
 			this._trail.rotation.z = this.dir().angle();
 
-			if (this.vel().lengthSq() == 0 || this.attribute(attachedAttribute)) {
+			if (stopped) {
 				this._trail.scale.x = 0;
 			} else if (Date.now() - this.initializeTime() > 30) {
 				this._trail.scale.x += this._trailScalingFactor * this.timestep()

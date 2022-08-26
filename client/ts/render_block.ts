@@ -40,7 +40,7 @@ export class RenderBlock extends RenderObject {
 		this._bbox = new THREE.Box2(new THREE.Vector2(pos.x - dim.x/2, pos.y - dim.y/2), new THREE.Vector2(pos.x + dim.x/2, pos.y + dim.y/2));
 
 		let backWall = new THREE.Mesh(new THREE.BoxGeometry(dim.x, dim.y, thickness), this._backMaterial);
-		backWall.position.z = -this.dimZ() / 2 + thickness / 2;
+		backWall.position.z = pos.z + -this.dimZ() / 2 + thickness / 2;
 		if (options.enableShadows) {
 			backWall.castShadow = true;
 			backWall.receiveShadow = true;
@@ -48,32 +48,39 @@ export class RenderBlock extends RenderObject {
 		this._scene.add(backWall);
 
 		let wallBuilder = new WallBuilder(this.dim(), thickness, this._frontMaterial);
-		wallBuilder.addHole(
-			new THREE.Path([
-				wallBuilder.posFromPercent(0.14, 0),
-				wallBuilder.posFromPercent(0.28, 0),
-				wallBuilder.posFromPercent(0.28, 1),
-				wallBuilder.posFromPercent(0.14, 1),
-		]));
 
-		wallBuilder.addHole(
-			new THREE.Path([
-				wallBuilder.posFromPercent(0.43, 0),
-				wallBuilder.posFromPercent(0.57, 0),
-				wallBuilder.posFromPercent(0.57, 1),
-				wallBuilder.posFromPercent(0.43, 1),
-		]));
+		if (Math.random() <= 0.5) {
+			for (let i = 1; i <= 5; i += 2) {
+				wallBuilder.addHole(
+					new THREE.Path([
+						wallBuilder.posFromPercent(i / 7, 0),
+						wallBuilder.posFromPercent((i + 1) / 7, 0),
+						wallBuilder.posFromPercent((i + 1) / 7, 1),
+						wallBuilder.posFromPercent(i / 7, 1),
+				]));
+			}
+		} else {
+			for (let i = 1; i <= 5; i += 2) {
+				wallBuilder.addHole(
+					new THREE.Path([
+						wallBuilder.posFromPercent(i / 7, .05),
+						wallBuilder.posFromPercent((i + 1) / 7, .05),
+						wallBuilder.posFromPercent((i + 1) / 7, .45),
+						wallBuilder.posFromPercent(i / 7, .45),
+				]));
 
-		wallBuilder.addHole(
-			new THREE.Path([
-				wallBuilder.posFromPercent(0.7, 0),
-				wallBuilder.posFromPercent(0.85, 0),
-				wallBuilder.posFromPercent(0.85, 1),
-				wallBuilder.posFromPercent(0.7, 1),
-		]));
+				wallBuilder.addHole(
+					new THREE.Path([
+						wallBuilder.posFromPercent(i / 7, .55),
+						wallBuilder.posFromPercent((i + 1) / 7, .55),
+						wallBuilder.posFromPercent((i + 1) / 7, .95),
+						wallBuilder.posFromPercent(i / 7, .95),
+				]));
+			}
+		}
 
 		let wall = wallBuilder.build();
-		wall.position.z = this.dimZ() / 2 - thickness;
+		wall.position.z = pos.z + this.dimZ() / 2 - thickness;
 		this._foreground.add(wall);
 		this._scene.add(this._foreground.scene());
 
