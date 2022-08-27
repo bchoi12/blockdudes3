@@ -213,7 +213,7 @@ class Game {
 	}
 
 	private extrapolateState() {
-		if (!options.enableClientPrediction) {
+		if (options.extrapolateWeight <= 0) {
 			return;
 		}
 		if (Date.now() - this._lastStateUpdate <= 10) {

@@ -42,9 +42,6 @@
 					<fieldset id="fieldset-options" class="spaced">
 						<legend id="legend-options">Options</legend>
 						<div class="option">
-							<input type="checkbox" id="input-client-prediction"><label for="input-client-prediction">Enable client prediction (recommended)</label>
-						</div>
-						<div class="option">
 							<input type="checkbox" id="input-pointer-lock"><label for="input-pointer-lock">Enable pointer lock (recommended)</label>
 						</div>
 						<div class="option">
@@ -57,7 +54,13 @@
 							<input type="checkbox" id="input-dynamic-lighting"><label for="input-dynamic-lighting">Enable dynamic lighting</label>
 						</div>
 						<div class="option">
-							<input type="range" id="input-renderer-scale" min="50" max="100" value="66"><label for="input-renderer-scale">Resolution</label>
+							<input type="range" id="input-extrapolation" min="0" max="100" value="50"><label for="input-extrapolation">Extrapolation</label>
+						</div>
+						<div class="option">
+							<input type="range" id="input-sound-volume" min="0" max="100" value="50"><label for="input-sound-volume">Sound volume</label>
+						</div>
+						<div class="option">
+							<input type="range" id="input-renderer-scale" min="50" max="100" value="100"><label for="input-renderer-scale">Resolution</label>
 						</div>
 						<div class="option">
 							<input type="range" id="input-multisampling" min="0" max="8" value="4"><label for="input-multisampling">Multisampling (requires effects)</label>

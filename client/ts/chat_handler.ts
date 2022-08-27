@@ -4,6 +4,7 @@ import { game } from './game.js'
 import { Html } from './html.js'
 import { InterfaceHandler } from './interface_handler.js'
 import { options } from './options.js'
+import { SceneComponentType } from './scene_component.js'
 import { ui, InputMode } from './ui.js'
 import { Util } from './util.js'
 
@@ -76,6 +77,9 @@ export class ChatHandler implements InterfaceHandler {
 			if (pieces.length === 2) {
 				game.setTimeOfDay(Number(pieces[1]));
 			}
+			break;
+		case "/deletelights":
+			game.sceneMap().getComponent(SceneComponentType.DECORATION).reset();
 			break;
 		default:
 			ui.print("Unknown command: " + message);

@@ -24,11 +24,12 @@ export namespace Html {
 	export const buttonVoice = "button-voice";
 	export const fieldsetClients = "fieldset-clients";
 	export const fieldsetOptions = "fieldset-options";
-	export const inputClientPrediction = "input-client-prediction";
 	export const inputPointerLock = "input-pointer-lock";
 	export const inputShadows = "input-shadows";
 	export const inputEffects = "input-effects";
 	export const inputDynamicLighting = "input-dynamic-lighting";
+	export const inputExtrapolation = "input-extrapolation";
+	export const inputSoundVolume = "input-sound-volume";
 	export const inputRendererScale = "input-renderer-scale";
 	export const inputMultisampling = "input-multisampling";
 

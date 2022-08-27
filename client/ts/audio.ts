@@ -36,7 +36,7 @@ export class Audio {
 
 	playSystemSound(sound : Sound) : number {
 		const howl = this._sounds.get(sound);
-		howl.volume(options.soundEffectVolume);
+		howl.volume(options.soundVolume);
 		return howl.play();
 	}
 
@@ -78,9 +78,9 @@ export class Audio {
 		}
 
 		if (distSq <= this._distThresholdSq) {
-			howl.volume(options.soundEffectVolume, id);
+			howl.volume(options.soundVolume, id);
 		} else {
-			howl.volume(options.soundEffectVolume * this._distThresholdSq / distSq, id);
+			howl.volume(options.soundVolume * this._distThresholdSq / distSq, id);
 		}
 	}
 

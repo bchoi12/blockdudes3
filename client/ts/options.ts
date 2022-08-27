@@ -7,34 +7,30 @@ class Options {
 	public pauseKeyCode : number = 27;
 	public chatKeyCode : number = 13;
 
-	public enableClientPrediction : boolean;
 	public enablePointerLock : boolean;
 	public enableShadows : boolean;
 	public enableEffects : boolean;
 	public enableDynamicLighting : boolean;
+
 	public rendererScale : number;
 	public rendererMultisampling : number;
-
-	public soundEffectVolume : number;
-
-	public extrapolateMs : number;
+	public soundVolume : number;
 	public extrapolateWeight : number;
+	public extrapolateMs : number;
 
 	constructor() {
 		THREE.Cache.enabled = true;
 
-		this.enableClientPrediction = true;
 		this.enablePointerLock = true;
 		this.enableShadows = true;
 		this.enableEffects = true;
 		this.enableDynamicLighting = true;
+
 		this.rendererScale = 0.7;
 		this.rendererMultisampling = 2;
-
-		this.soundEffectVolume = 0.5;
-
-		this.extrapolateMs = 100;
+		this.soundVolume = 0.5;
 		this.extrapolateWeight = 0.5;
+		this.extrapolateMs = 100;
 
 		this.load();
 	}

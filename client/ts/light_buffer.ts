@@ -9,14 +9,17 @@ export class LightBuffer {
 	private readonly _bufferSize : number = 20;
 
 	private _scene : THREE.Scene;
+	private _allPointLights : Set<THREE.PointLight>;
 	private _pointLights : Set<THREE.PointLight>;
 
 	constructor(scene : THREE.Scene) {
 		this._scene = scene;
+		this._allPointLights = new Set<THREE.PointLight>();
 		this._pointLights = new Set<THREE.PointLight>();
 
 		for (let i = 0; i < this._bufferSize; ++i) {
 			let pointLight = new THREE.PointLight(0xFFFFFF, 1, 1);
+			this._allPointLights.add(pointLight);
 			this._pointLights.add(pointLight);
 			scene.add(pointLight);
 		}
@@ -42,14 +45,15 @@ export class LightBuffer {
 		if (!options.enableDynamicLighting) {
 			return null;
 		}
+
+		// Typically this happens due to lag, just reset the buffer here.
 		if (this._pointLights.size == 0) {
-			// TODO: create point light instead?
-			console.log("Ran out of point lights!");
-			return null;
+			for (let light of this._allPointLights) {
+				this.returnPointLight(light);
+			}
 		}
 		for (let light of this._pointLights) {
 		    this._pointLights.delete(light);
-		    LogUtil.d("Loaning point light, left: " + this._pointLights.size);
 		    return light;
 		}
 		return null;
