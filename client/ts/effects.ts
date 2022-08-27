@@ -39,9 +39,9 @@ export class Effects {
 
 			let selectiveBloom = new SelectiveBloomEffect(scene, camera, {
 				blendFunction: BlendFunction.ADD,
-				luminanceThreshold: 0.4,
-				luminanceSmoothing: 0.6,
-				intensity: 1.0,
+				luminanceThreshold: 0,
+				luminanceSmoothing: 0.025,
+				intensity: 1.5,
 			});
 			selectiveBloom.ignoreBackground = true;
 			this._selections.set(EffectType.BLOOM, selectiveBloom.selection);

@@ -3,6 +3,10 @@ import * as THREE from 'three';
 import { Util } from './util.js'
 
 class Options {
+	public scoreboardKeyCode : number = 192;
+	public pauseKeyCode : number = 27;
+	public chatKeyCode : number = 13;
+
 	public enableClientPrediction : boolean;
 	public enablePointerLock : boolean;
 	public enableShadows : boolean;
@@ -15,10 +19,6 @@ class Options {
 
 	public extrapolateMs : number;
 	public extrapolateWeight : number;
-
-	public scoreboardKeyCode : number = 192;
-	public pauseKeyCode : number = 27;
-	public chatKeyCode : number = 13;
 
 	constructor() {
 		THREE.Cache.enabled = true;

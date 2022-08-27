@@ -49,7 +49,7 @@ export class RenderExplosion extends RenderObject {
 		if (Util.defined(this._light)) {
 			this._light.color = new THREE.Color(this.color());
 			this._light.intensity = 6.0;
-			this._light.distance = Math.max(4, this.dim().x * 1.5);
+			this._light.distance = Math.max(4, this.dim().x * 2);
 			mesh.add(this._light);
 		}
 	}

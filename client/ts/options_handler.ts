@@ -7,6 +7,7 @@ import { renderer } from './renderer.js'
 export class OptionsHandler implements InterfaceHandler {
 
 	private _optionsElm : HTMLElement;
+
 	private _clientPredictionInputElm : HTMLInputElement;
 	private _pointerLockInputElm : HTMLInputElement;
 	private _shadowsInputElm : HTMLInputElement;
@@ -60,7 +61,6 @@ export class OptionsHandler implements InterfaceHandler {
 		this._rendererScaleInputElm.onchange = () => {
 			const scale = Math.min(1, Math.max(0.25, Number(this._rendererScaleInputElm.value) / 100));
 			options.rendererScale = scale;
-			console.log(scale);
 			renderer.reset();
 		};
 		this._multisamplingInputElm.onchange = () => {

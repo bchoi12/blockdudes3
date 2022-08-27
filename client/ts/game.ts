@@ -34,6 +34,7 @@ class Game {
 
 	private _id : number;
 	private _state : GameState;
+	private _timeOfDay : number;
 
 	private _sceneMap : SceneMap;
 	private _keys : Keys;
@@ -47,8 +48,9 @@ class Game {
 	constructor() {
 		this._id = -1;
 		this._state = GameState.PAUSED;
-		this._sceneMap = new SceneMap();
+		this._timeOfDay = 0;
 
+		this._sceneMap = new SceneMap();
 		this._keys = new Keys();
 		this._keySeqNum = 0;
 		this._lastSeqNum = 0;
@@ -75,11 +77,13 @@ class Game {
 	hasId() : boolean { return this._id >= 0; }
 	id() : number { return this._id; }
 	state() : GameState { return this._state; }
+	timeOfDay() : number { return this._timeOfDay; }
 	sceneMap() : SceneMap { return this._sceneMap; }
 	sceneComponent(type : SceneComponentType) : SceneComponent { return this._sceneMap.getComponent(type); }
 
 	startRender() : void { this.animate(); }
 	setState(state : GameState) { this._state = state; }
+	setTimeOfDay(timeOfDay : number) { this._timeOfDay = timeOfDay; }
 
 	flushAdded() : number {
 		const copy = this._numObjectsAdded;

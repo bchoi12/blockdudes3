@@ -1,5 +1,6 @@
 
 import { connection } from './connection.js'
+import { game } from './game.js'
 import { Html } from './html.js'
 import { InterfaceHandler } from './interface_handler.js'
 import { options } from './options.js'
@@ -59,13 +60,22 @@ export class ChatHandler implements InterfaceHandler {
 	}
 
 	private command(message : string) {
-		// TODO: protect some of these with isDev() checks
-		switch (message.toLowerCase()) {
+		const pieces = message.trim().split(" ");
+		if (pieces.length === 0) {
+			return;
+		}
+
+		switch (pieces[0].toLowerCase()) {
 		case "/dc":
 			connection.disconnect();
 			break;
 		case "/dcwebrtc":
 			connection.disconnectWebRTC();
+			break;
+		case "/t":
+			if (pieces.length === 2) {
+				game.setTimeOfDay(Number(pieces[1]));
+			}
 			break;
 		default:
 			ui.print("Unknown command: " + message);

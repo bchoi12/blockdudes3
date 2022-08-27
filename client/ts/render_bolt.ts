@@ -59,7 +59,7 @@ export class RenderBolt extends RenderProjectile {
 				this._light.distance = 10.0;
 			} else {
 				this._light.intensity = 2.0;
-				this._light.distance = 4.0;
+				this._light.distance = 6.0;
 			}
 			mesh.add(this._light);
 		}

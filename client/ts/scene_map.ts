@@ -55,6 +55,10 @@ export class SceneMap {
 		return this._components.get(type);
 	}
 
+	getComponentAsAny(type : SceneComponentType) : any {
+		return this.getComponent(type);
+	}
+
 	update() : void {
 		this._components.forEach((component, type) => {
 			component.update();
