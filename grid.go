@@ -364,21 +364,64 @@ func (g *Grid) GetManyObjects(spaces ...SpaceType) map[SpaceType]map[IdType]Obje
 	return objects
 }
 
+func (g *Grid) GetNearbyObjects(object Object) map[SpacedId]Object {
+	nearbyObjects := make(map[SpacedId]Object)
+
+	for _, coord := range(g.getCoords(object)) {
+		for sid, other := range(g.grid[coord]) {
+			if sid == object.GetSpacedId() {
+				continue
+			}
+			if !object.GetOverlapOptions().Evaluate(other) && !object.GetSnapOptions().Evaluate(other) {
+				continue
+			}
+			nearbyObjects[sid] = other
+		}
+	}
+	return nearbyObjects
+}
+
 func (g *Grid) GetColliders(object Object) ObjectHeap {
 	heap := make(ObjectHeap, 0)
 
-	for _, other := range(g.getNearbyObjects(object)) {
+	for _, other := range(g.GetNearbyObjects(object)) {
 		results := object.OverlapProfile(other.GetProfile())
 		if results.hit {
 			item := &ObjectItem {
 				object: other,
 			}
 			heap.Push(item)
-			heap.priority(item, results.GetPosAdjustment().Area())
+			heap.Priority(item, results.GetPosAdjustment().Area())
 		}
 	}
 	return heap
 }
+
+func (g *Grid) GetCollidersCheckLine(object Object, line Line) ObjectHeap {
+	heap := make(ObjectHeap, 0)
+
+	for _, other := range(g.GetNearbyObjects(object)) {
+		results := object.OverlapProfile(other.GetProfile())
+		if results.hit {
+			item := &ObjectItem {
+				object: other,
+			}
+			heap.Push(item)
+			heap.Priority(item, results.GetPosAdjustment().Area())
+			continue
+		}
+
+		if isect := other.GetProfile().Intersects(line); isect.hit {
+			item := &ObjectItem {
+				object: other,
+			}
+			heap.Push(item)
+			heap.Priority(item, 0)
+		}
+	}
+	return heap
+}
+
 
 func (g* Grid) getCoord(point Vec2) GridCoord {
 	cx := IntDown(point.X)
@@ -412,21 +455,4 @@ func (g* Grid) getCoords(object Object) []GridCoord {
 		}
 	}
 	return coords
-}
-
-func (g *Grid) getNearbyObjects(object Object) map[SpacedId]Object {
-	nearbyObjects := make(map[SpacedId]Object)
-
-	for _, coord := range(g.getCoords(object)) {
-		for sid, other := range(g.grid[coord]) {
-			if sid == object.GetSpacedId() {
-				continue
-			}
-			if !object.GetOverlapOptions().Evaluate(other) && !object.GetSnapOptions().Evaluate(other) {
-				continue
-			}
-			nearbyObjects[sid] = other
-		}
-	}
-	return nearbyObjects
 }

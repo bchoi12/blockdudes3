@@ -76,7 +76,7 @@ func (o *BaseObject) PrepareUpdate(now time.Time) float64 {
 		o.lastUpdateTime = now
 	}
 
-	return Max(0, ts)
+	return Max(0, Min(ts, 2 * float64(frameMillis)))
 }
 
 func (o BaseObject) GetProfile() Profile {

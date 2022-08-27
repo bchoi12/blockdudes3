@@ -47,7 +47,7 @@ func (oh *ObjectHeap) Pop() interface{} {
 	return item
 }
 
-func (oh *ObjectHeap) priority(item *ObjectItem,  priority float64) {
+func (oh *ObjectHeap) Priority(item *ObjectItem,  priority float64) {
 	item.priority = priority
 	heap.Fix(oh, item.index)
 }

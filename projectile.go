@@ -93,6 +93,10 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) {
 	}
 	p.SetVel(vel)
 
+	lastPos := p.Pos()
+	movement := p.Vel()
+	movement.Scale(ts)
+
 	pos := p.Pos()
 	pos.Add(p.Vel(), ts)
 	p.SetPos(pos)
@@ -107,7 +111,8 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) {
 		return
 	}
 
-	colliders := grid.GetColliders(p)
+	line := NewLine(lastPos, movement)
+	colliders := grid.GetCollidersCheckLine(p, line)
 	if len(colliders) > 0 {
 		object := PopObject(&colliders)
 		result := p.OverlapProfile(object.GetProfile())

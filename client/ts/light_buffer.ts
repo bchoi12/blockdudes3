@@ -2,7 +2,7 @@ import * as THREE from 'three'
 
 import { options } from './options.js'
 import { renderer } from './renderer.js'
-import { Util } from './util.js'
+import { LogUtil, Util } from './util.js'
 
 export class LightBuffer {
 
@@ -39,11 +39,17 @@ export class LightBuffer {
 	}
 
 	getPointLight() : THREE.PointLight {
-		if (!this.hasPointLight()) {
+		if (!options.enableDynamicLighting) {
+			return null;
+		}
+		if (this._pointLights.size == 0) {
+			// TODO: create point light instead?
+			console.log("Ran out of point lights!");
 			return null;
 		}
 		for (let light of this._pointLights) {
 		    this._pointLights.delete(light);
+		    LogUtil.d("Loaning point light, left: " + this._pointLights.size);
 		    return light;
 		}
 		return null;
