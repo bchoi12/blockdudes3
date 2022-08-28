@@ -32,10 +32,16 @@ class Renderer {
 		this._cameraController = new CameraController(this._canvas.offsetWidth / this._canvas.offsetHeight);
 		this._mousePixels = new THREE.Vector2(this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2);
 
+		window.onresize = () => { this.resize(); };
+		this.reset();
+	}
+
+	reset() : void {
 		this._renderer = new THREE.WebGLRenderer({
 			canvas: this._canvas,
 			powerPreference: "high-performance",
-			antialias: false,
+			precision: "lowp",
+			antialias: !options.enableEffects,
 			stencil: true,
 			depth: true,
 		});
@@ -44,26 +50,36 @@ class Renderer {
 		this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
 		this._renderer.toneMappingExposure = 1.0;
 
-		this.reset();
-
-		window.onresize = () => { this.resizeCanvas(); };
-	}
-
-	reset() : void {
 		this._renderer.shadowMap.enabled = options.enableShadows;
 		if (options.enableShadows) {
 			this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		}
-		
-		if (!Util.defined(this._effects)) {
-			this._effects = new Effects(this._renderer);
-		}
-		this.resizeCanvas();
+
+		this._effects = null;
+		this.resize();
+	}
+
+	resize() : void {
+		const width = window.innerWidth;
+		const height = window.innerHeight;
+
+		this._renderer.setSize(width * options.rendererScale , height * options.rendererScale);
+		this._renderer.setPixelRatio(window.devicePixelRatio);
+
+		this._canvas.style.width = width + "px";
+		this._canvas.style.height = height + "px";
+
+		this._cameraController.setAspect(width / height);
 	}
 
 	elm() : HTMLElement { return this._canvas; }
 	compile(scene : THREE.Scene) { this._renderer.compile(scene, this._cameraController.camera()); }
 	render() : void {
+		if (!Util.defined(this._effects)) {
+			this._effects = new Effects(this._renderer);
+			this.resize();
+		}
+
 		if (options.enableEffects) {
 			this._effects.render(game.sceneMap().scene(), this._cameraController.camera());
 		} else {
@@ -129,19 +145,6 @@ class Renderer {
 		setTimeout(() => {
 			this.updateFPS()
 		}, 1000);
-	}
-
-	private resizeCanvas() : void {
-		const width = window.innerWidth;
-		const height = window.innerHeight;
-
-		this._renderer.setSize(width * options.rendererScale , height * options.rendererScale);
-		this._renderer.setPixelRatio(window.devicePixelRatio);
-
-		this._canvas.style.width = width + "px";
-		this._canvas.style.height = height + "px";
-
-		this._cameraController.setAspect(width / height);
 	}
 }
 

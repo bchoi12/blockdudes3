@@ -60,6 +60,8 @@ func setGlobals() {
 	js.Global().Set("playerSpace", int(playerSpace))
 	js.Global().Set("blockSpace", int(blockSpace))
 	js.Global().Set("wallSpace", int(wallSpace))
+	js.Global().Set("lightSpace", int(lightSpace))
+	js.Global().Set("explosionSpace", int(explosionSpace))
 	js.Global().Set("weaponSpace", int(weaponSpace))
 	js.Global().Set("bombSpace", int(bombSpace))
 	js.Global().Set("pelletSpace", int(pelletSpace))
@@ -67,13 +69,7 @@ func setGlobals() {
 	js.Global().Set("rocketSpace", int(rocketSpace))
 	js.Global().Set("starSpace", int(starSpace))
 	js.Global().Set("grapplingHookSpace", int(grapplingHookSpace))
-	js.Global().Set("explosionSpace", int(explosionSpace))
 	js.Global().Set("pickupSpace", int(pickupSpace))
-
-	js.Global().Set("uziWeapon", int(uziWeapon))
-	js.Global().Set("bazookaWeapon", int(bazookaWeapon))
-	js.Global().Set("sniperWeapon", int(sniperWeapon))
-	js.Global().Set("starWeapon", int(starWeapon))
 
 	js.Global().Set("initializedProp", int(initializedProp))
 	js.Global().Set("deletedProp", int(deletedProp))
@@ -111,6 +107,16 @@ func setGlobals() {
 
 	js.Global().Set("typeByteAttribute", int(typeByteAttribute))
 	js.Global().Set("healthByteAttribute", int(healthByteAttribute))
+	js.Global().Set("juiceByteAttribute", int(juiceByteAttribute))
+
+	js.Global().Set("pointLight", int(pointLight))
+	js.Global().Set("spotLight", int(spotLight))
+	js.Global().Set("floorLight", int(floorLight))
+
+	js.Global().Set("uziWeapon", int(uziWeapon))
+	js.Global().Set("bazookaWeapon", int(bazookaWeapon))
+	js.Global().Set("sniperWeapon", int(sniperWeapon))
+	js.Global().Set("starWeapon", int(starWeapon))
 
 	js.Global().Set("upKey", int(upKey))
 	js.Global().Set("downKey", int(downKey))

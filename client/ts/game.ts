@@ -8,6 +8,7 @@ import { RenderBlock } from './render_block.js'
 import { RenderBolt } from './render_bolt.js'
 import { RenderExplosion } from './render_explosion.js'
 import { RenderGrapplingHook } from './render_grappling_hook.js'
+import { RenderLight } from './render_light.js'
 import { RenderObject } from './render_object.js'
 import { RenderPellet } from './render_pellet.js'
 import { RenderPickup } from './render_pickup.js'
@@ -176,6 +177,8 @@ class Game {
 						renderObj = new RenderWall(space, id);
 					} else if (space === explosionSpace) {
 						renderObj = new RenderExplosion(space, id);
+					} else if (space === lightSpace) {
+						renderObj = new RenderLight(space, id);
 					} else if (space === weaponSpace) {
 						renderObj = new RenderWeapon(space, id);
 					} else if (space === pelletSpace) {

@@ -10,7 +10,9 @@ import {
 	SelectiveBloomEffect,
 } from "postprocessing";
 
+import { game } from './game.js'
 import { options } from './options.js'
+import { renderer } from './renderer.js'
 import { Util } from './util.js'
 
 export enum EffectType {
@@ -22,55 +24,53 @@ export enum EffectType {
 
 export class Effects {
 
-	private _initialized : boolean;
+	private _webgl : THREE.WebGLRenderer;
 	private _composer : EffectComposer;
 	private _selections : Map<EffectType, Selection>;
 
-	constructor(renderer : THREE.WebGLRenderer) {
-		this._initialized = false;
-		this._composer = new EffectComposer(renderer);
+	constructor(webgl : THREE.WebGLRenderer) {
+		this._webgl = webgl;
+		this._composer = new EffectComposer(this._webgl);
 		this._selections = new Map<EffectType, Selection>();
+
+		let scene = game.sceneMap().scene();
+		let camera = renderer.cameraController().camera();
+
+		let mainPass = new RenderPass(scene, camera);
+		this._selections.set(EffectType.MAIN, mainPass.selection);
+
+		let selectiveBloom = new SelectiveBloomEffect(scene, camera, {
+			blendFunction: BlendFunction.ADD,
+			luminanceThreshold: 0,
+			luminanceSmoothing: 0.025,
+			intensity: 1.5,
+		});
+		selectiveBloom.ignoreBackground = true;
+		this._selections.set(EffectType.BLOOM, selectiveBloom.selection);
+
+		let outline = new OutlineEffect(scene, camera, {
+			blendFunction: BlendFunction.SCREEN,
+			edgeStrength: 3,
+			pulseSpeed: 0.0,
+			visibleEdgeColor: 0xFFFFFF,
+			hiddenEdgeColor: 0x777777,
+			resolutionScale: 1,
+			blur: true,
+			xRay: false,
+		});
+		this._selections.set(EffectType.OUTLINE, outline.selection);
+
+		this._composer.addPass(mainPass);
+		this._composer.addPass(new EffectPass(camera, selectiveBloom));
+		this._composer.addPass(new EffectPass(camera, outline));
 	}
 
 	render(scene : THREE.Scene, camera : THREE.Camera) : void {
-		if (!this._initialized) {
-			let mainPass = new RenderPass(scene, camera);
-			this._selections.set(EffectType.MAIN, mainPass.selection);
-
-			let selectiveBloom = new SelectiveBloomEffect(scene, camera, {
-				blendFunction: BlendFunction.ADD,
-				luminanceThreshold: 0,
-				luminanceSmoothing: 0.025,
-				intensity: 1.5,
-			});
-			selectiveBloom.ignoreBackground = true;
-			this._selections.set(EffectType.BLOOM, selectiveBloom.selection);
-
-			let outline = new OutlineEffect(scene, camera, {
-				blendFunction: BlendFunction.SCREEN,
-				edgeStrength: 3,
-				pulseSpeed: 0.0,
-				visibleEdgeColor: 0xFFFFFF,
-				hiddenEdgeColor: 0x777777,
-				resolutionScale: 1,
-				blur: true,
-				xRay: false,
-			});
-			this._selections.set(EffectType.OUTLINE, outline.selection);
-
-			this._composer.addPass(mainPass);
-			this._composer.addPass(new EffectPass(camera, selectiveBloom));
-			this._composer.addPass(new EffectPass(camera, outline));
-
-			this.setMultisampling(options.rendererMultisampling);
-			this._initialized = true;
+		if (this._composer.multisampling !== options.rendererMultisampling) {
+			this._composer.multisampling = options.rendererMultisampling;
 		}
-
+	
 		this._composer.render();
-	}
-
-	setMultisampling(multisampling : number) : void {
-		this._composer.multisampling = multisampling;
 	}
 
 	setEffect(effect : EffectType, enabled : boolean, object : THREE.Object3D) {

@@ -16,6 +16,7 @@ export class OptionsHandler implements InterfaceHandler {
 	private _extrapolationInputElm : HTMLInputElement;
 	private _soundVolumeInputElm : HTMLInputElement;
 	private _rendererScaleInputElm : HTMLInputElement;
+	private _multiSamplingElm : HTMLElement;
 	private _multisamplingInputElm : HTMLInputElement;
 
 	constructor() {
@@ -29,6 +30,7 @@ export class OptionsHandler implements InterfaceHandler {
 		this._extrapolationInputElm = Html.inputElm(Html.inputExtrapolation);
 		this._soundVolumeInputElm = Html.inputElm(Html.inputSoundVolume);
 		this._rendererScaleInputElm = Html.inputElm(Html.inputRendererScale);
+		this._multiSamplingElm = Html.elm(Html.optionsMultisampling);
 		this._multisamplingInputElm = Html.inputElm(Html.inputMultisampling);
 	}
 
@@ -37,7 +39,6 @@ export class OptionsHandler implements InterfaceHandler {
 			e.stopPropagation();
 		};
 
-		// TODO: make class
 		this._pointerLockInputElm.checked = options.enablePointerLock;
 		this._shadowsInputElm.checked = options.enableShadows;
 		this._effectsInputElm.checked = options.enableEffects;
@@ -48,6 +49,12 @@ export class OptionsHandler implements InterfaceHandler {
 		this._rendererScaleInputElm.value = "" + options.rendererScale * 100;
 		this._multisamplingInputElm.value = "" + options.rendererMultisampling;
 
+		if (options.enableEffects) {
+			this._multiSamplingElm.style.display = "block";
+		} else {
+			this._multiSamplingElm.style.display = "none";
+		}
+
 		this._pointerLockInputElm.onchange = () => {
 			options.enablePointerLock = this._pointerLockInputElm.checked;
 		};
@@ -57,6 +64,12 @@ export class OptionsHandler implements InterfaceHandler {
 		};
 		this._effectsInputElm.onchange = () => {
 			options.enableEffects = this._effectsInputElm.checked;
+			if (options.enableEffects) {
+				this._multiSamplingElm.style.display = "block";
+			} else {
+				this._multiSamplingElm.style.display = "none";
+			}
+			renderer.reset();
 		};
 		this._dynamicLightingInputElm.onchange = () => {
 			options.enableDynamicLighting = this._dynamicLightingInputElm.checked;
@@ -73,7 +86,7 @@ export class OptionsHandler implements InterfaceHandler {
 		this._rendererScaleInputElm.onchange = () => {
 			const scale = Math.min(1, Math.max(0.25, Number(this._rendererScaleInputElm.value) / 100));
 			options.rendererScale = scale;
-			renderer.reset();
+			renderer.resize();
 		};
 		this._multisamplingInputElm.onchange = () => {
 			const multisampling = Math.min(8, Math.max(0, Number(this._multisamplingInputElm.value)));

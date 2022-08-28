@@ -80,9 +80,13 @@ export class RenderObject extends RenderMesh {
 		}
 
 		let mesh = this.mesh();
-		const pos = this.pos();
+		const pos = this.pos3();
 		mesh.position.x = pos.x;
 		mesh.position.y = pos.y;
+
+		if (this.hasPosZ()) {
+			mesh.position.z = pos.z;
+		}
 
 		this._timestep = (Date.now() - this._lastUpdate) / 1000;
 		this._lastUpdate = Date.now();

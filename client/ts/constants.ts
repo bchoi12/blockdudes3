@@ -28,6 +28,8 @@ declare var levelInitType : number;
 declare var playerSpace : number;
 declare var blockSpace : number;
 declare var wallSpace : number;
+declare var lightSpace : number;
+declare var explosionSpace : number;
 declare var weaponSpace : number;
 declare var bombSpace : number;
 declare var pelletSpace : number;
@@ -35,13 +37,7 @@ declare var boltSpace : number;
 declare var rocketSpace : number;
 declare var starSpace : number;
 declare var grapplingHookSpace : number;
-declare var explosionSpace : number;
 declare var pickupSpace : number;
-
-declare var uziWeapon : number;
-declare var bazookaWeapon : number;
-declare var sniperWeapon : number;
-declare var starWeapon : number;
 
 declare var initializedProp : number;
 declare var deletedProp : number;
@@ -81,6 +77,16 @@ declare var deadAttribute : number;
 
 declare var typeByteAttribute : number;
 declare var healthByteAttribute : number;
+declare var juiceByteAttribute : number;
+
+declare var spotLight : number;
+declare var pointLight : number;
+declare var floorLight : number;
+
+declare var uziWeapon : number;
+declare var bazookaWeapon : number;
+declare var sniperWeapon : number;
+declare var starWeapon : number;
 
 declare var upKey : number;
 declare var downKey : number;

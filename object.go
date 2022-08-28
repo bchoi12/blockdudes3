@@ -70,6 +70,17 @@ func NewBaseObject(profile Profile) BaseObject {
 	return object
 }
 
+func NewRec2Object(init Init) BaseObject {
+	profile := NewRec2(init)
+	return NewBaseObject(profile)
+}
+
+func NewCircleObject(init Init) BaseObject {
+	profile := NewCircle(init)
+	return NewBaseObject(profile)
+}
+
+
 func (o *BaseObject) PrepareUpdate(now time.Time) float64 {
 	ts := GetTimestep(now, o.lastUpdateTime)
 	if ts >= 0 {

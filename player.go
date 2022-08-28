@@ -84,7 +84,7 @@ func NewPlayer(init Init) *Player {
 		jumpTimer: NewTimer(jumpDuration),
 		jumpGraceTimer: NewTimer(jumpGraceDuration),
 		knockbackTimer: NewTimer(knockbackDuration),
-		deathTimer: NewTimer(1 * time.Second),
+		deathTimer: NewTimer(2 * time.Second),
 	}
 
 	player.SetByteAttribute(typeByteAttribute, uint8(init.GetId() % 2))

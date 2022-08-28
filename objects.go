@@ -4,16 +4,6 @@ import (
 	"time"
 )
 
-func NewRec2Object(init Init) BaseObject {
-	profile := NewRec2(init)
-	return NewBaseObject(profile)
-}
-
-func NewCircleObject(init Init) BaseObject {
-	profile := NewCircle(init)
-	return NewBaseObject(profile)
-}
-
 type Bomb struct {
 	BaseObject
 }

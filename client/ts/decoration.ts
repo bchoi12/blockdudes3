@@ -19,43 +19,7 @@ export class Decoration extends SceneComponent {
 	}
 
 	override initLevel() : void {
-		{
-			let light = new THREE.PointLight(0xff6666, 4, 10);
-			light.position.set(18, 6.25, 1);
-			this._scene.add(light);
-			this._miscObjects.push(light);
-		}
 
-		{
-			let light = new THREE.PointLight(0x6666ff, 4, 10);
-			light.position.set(26, 6.25, 1);
-			this._scene.add(light);
-			this._miscObjects.push(light);
-		}
-
-		{
-			let light = new THREE.PointLight(0xeeeeee, 4, 10);
-			light.position.set(4, 2, 1);
-			this._scene.add(light);
-			this._miscObjects.push(light);
-		}
-
-		{
-			let light = new THREE.PointLight(0xAD07DB, 4, 10);
-			light.position.set(40, 1, 1);
-			this._scene.add(light);
-			this._miscObjects.push(light);
-		}
-
-		{
-			let light = new THREE.PointLight(0xc306d1, 4, 10);
-			light.position.set(56, 1, 1);
-			this._scene.add(light);
-			this._miscObjects.push(light);
-		}
-
-		// TODO: experiment to see if this removes some lag
-		renderer.compile(this._scene);
 	}
 
 	override reset() : void {

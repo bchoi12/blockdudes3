@@ -89,8 +89,15 @@ func (l *Level) loadTestLevel() {
 		}
 	}
 
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(4, 0), NewVec2(1.2, 1.2))))
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(4, 0), NewVec2(1.5, 1.2))))
 	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
+
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(4, 3), NewVec2(6, 6))))
+	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
+	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
+	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
+	g.GetLast(lightSpace).SetInitProp(posZProp, 1)
+	g.GetLast(lightSpace).SetDir(NewVec2(0, -1))
 
 	{
 		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(22, -10), NewVec2(20, 10), bottomCenter)
@@ -126,6 +133,21 @@ func (l *Level) loadTestLevel() {
 		}
 	}
 
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(17, 5), NewVec2(8, 8))))
+	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
+	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
+	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFF6666)
+	g.GetLast(lightSpace).SetInitProp(posZProp, 1)
+	g.GetLast(lightSpace).SetDir(NewVec2(0, -1))
+
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(27, 5), NewVec2(8, 8))))
+	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
+	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
+	g.GetLast(lightSpace).SetInitProp(colorProp, 0x6666FF)
+	g.GetLast(lightSpace).SetInitProp(posZProp, 1)
+	g.GetLast(lightSpace).SetDir(NewVec2(0, -1))
+
+
 	g.Upsert(g.New(l.createInitB(wallSpace, NewVec2(22, 0), NewVec2(2, 2))))
 	g.GetLast(wallSpace).AddAttribute(stairAttribute)
 	g.GetLast(wallSpace).SetInitProp(dimZProp, 4)
@@ -141,7 +163,7 @@ func (l *Level) loadTestLevel() {
 	g.Upsert(g.New(l.createInitBL(wallSpace, NewVec2(24, 0), NewVec2(1, 0.66))))
 	g.GetLast(wallSpace).AddAttribute(stairAttribute)
 	g.GetLast(wallSpace).SetInitProp(dimZProp, 4)
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(22, 2), NewVec2(1.2, 1.2))))
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(22, 2), NewVec2(1.5, 1.2))))
 	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(uziWeapon))
 
 	{
@@ -164,7 +186,7 @@ func (l *Level) loadTestLevel() {
 	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(22, 8), NewVec2(3, 0.2))))
 	g.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
 	g.GetLast(wallSpace).SetInitProp(dimZProp, 3)
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(22, 8.1), NewVec2(1.2, 1.2))))
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(22, 8.1), NewVec2(1.5, 1.2))))
 	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(bazookaWeapon))
 
 	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(22, 14), NewVec2(3, 0.2))))
@@ -206,10 +228,17 @@ func (l *Level) loadTestLevel() {
 		}
 	}
 
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(40, 1), NewVec2(6, 6))))
+	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
+	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
+	g.GetLast(lightSpace).SetInitProp(colorProp, 0xAD07DB)
+	g.GetLast(lightSpace).SetInitProp(posZProp, 1)
+	g.GetLast(lightSpace).SetDir(NewVec2(0, -1))
+
 	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(40, 4), NewVec2(3, 0.2))))
 	g.GetLast(wallSpace).AddAttribute(platformAttribute)
 	g.GetLast(wallSpace).SetInitProp(dimZProp, 4)
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(40, 2), NewVec2(1.2, 1.2))))
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(40, 2), NewVec2(1.5, 1.2))))
 	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(starWeapon))
 
 	{
@@ -243,11 +272,60 @@ func (l *Level) loadTestLevel() {
 		}
 	}
 
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(56, 1), NewVec2(6, 6))))
+	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
+	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
+	g.GetLast(lightSpace).SetInitProp(colorProp, 0xC306D1)
+	g.GetLast(lightSpace).SetInitProp(posZProp, 1)
+	g.GetLast(lightSpace).SetDir(NewVec2(0, -1))
+
 	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(48, -2.25), NewVec2(8, 0.5))))
 	g.GetLast(wallSpace).SetInitProp(dimZProp, 7)
 	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(48, 8), NewVec2(8, 0.2))))
 	g.GetLast(wallSpace).AddAttribute(platformAttribute)
 	g.GetLast(wallSpace).SetInitProp(dimZProp, 7)
+
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(46, -2), NewVec2(6, 6))))
+	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
+	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
+	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
+	g.GetLast(lightSpace).SetInitProp(posZProp, 2.5)
+	g.GetLast(lightSpace).SetDir(NewVec2(0, 1))
+
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(48, -2), NewVec2(6, 6))))
+	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
+	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
+	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
+	g.GetLast(lightSpace).SetInitProp(posZProp, 2.5)
+	g.GetLast(lightSpace).SetDir(NewVec2(0, 1))
+
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(50, -2), NewVec2(6, 6))))
+	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
+	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
+	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
+	g.GetLast(lightSpace).SetInitProp(posZProp, 2.5)
+	g.GetLast(lightSpace).SetDir(NewVec2(0, 1))
+
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(46, -2), NewVec2(6, 6))))
+	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
+	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
+	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
+	g.GetLast(lightSpace).SetInitProp(posZProp, -2.5)
+	g.GetLast(lightSpace).SetDir(NewVec2(0, 1))
+
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(48, -2), NewVec2(6, 6))))
+	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
+	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
+	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
+	g.GetLast(lightSpace).SetInitProp(posZProp, -2.5)
+	g.GetLast(lightSpace).SetDir(NewVec2(0, 1))
+
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(50, -2), NewVec2(6, 6))))
+	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
+	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
+	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
+	g.GetLast(lightSpace).SetInitProp(posZProp, -2.5)
+	g.GetLast(lightSpace).SetDir(NewVec2(0, 1))
 
 	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(56, 4), NewVec2(3, 0.2))))
 	g.GetLast(wallSpace).AddAttribute(platformAttribute)

@@ -7,6 +7,8 @@ const (
 	playerSpace
 	blockSpace
 	wallSpace
+	lightSpace
+	explosionSpace
 	weaponSpace
 	bombSpace
 	pelletSpace
@@ -14,7 +16,6 @@ const (
 	rocketSpace
 	starSpace
 	grapplingHookSpace
-	explosionSpace
 	pickupSpace
 )
 

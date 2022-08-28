@@ -20,7 +20,23 @@ const (
 	unknownByteAttribute ByteAttributeType = iota
 
 	typeByteAttribute
+
+	// TODO: not really attributes?
 	healthByteAttribute
+	juiceByteAttribute
+)
+
+type IntAttributeType uint8
+const (
+	unknownIntAttribute IntAttributeType = iota
+	colorIntAttribute
+)
+
+type FloatAttributeType uint8
+const (
+	unknownFloatAttributeType = iota
+	posZFloatAttribute
+	dimZFloatAttribute
 )
 
 var wasmIgnoreAttributes = map[AttributeType]bool {
@@ -29,25 +45,23 @@ var wasmIgnoreAttributes = map[AttributeType]bool {
 }
 
 var wasmIgnoreByteAttributes = map[ByteAttributeType]bool {
-	typeByteAttribute: true,
 	healthByteAttribute: true,
 }
 
-// TODO: use flag
 type Attribute struct {
-	changed map[AttributeType]*State
+	changed map[AttributeType]*Flag
 	attributes map[AttributeType]bool
 
-	byteChanged map[ByteAttributeType]*State
+	byteChanged map[ByteAttributeType]*Flag
 	byteAttributes map[ByteAttributeType]uint8
 }
 
 func NewAttribute() Attribute {
 	return Attribute {
-		changed: make(map[AttributeType]*State),
+		changed: make(map[AttributeType]*Flag),
 		attributes: make(map[AttributeType]bool),
 
-		byteChanged: make(map[ByteAttributeType]*State),
+		byteChanged: make(map[ByteAttributeType]*Flag),
 		byteAttributes: make(map[ByteAttributeType]uint8),
 	}
 }
@@ -58,10 +72,10 @@ func (a *Attribute) AddAttribute(attribute AttributeType) {
 	}
 
 	if _, ok := a.changed[attribute]; !ok {
-		a.changed[attribute] = NewState(true)
-	} else {
-		a.changed[attribute].Set(true)
+		a.changed[attribute] = NewFlag()
 	}
+
+	a.changed[attribute].Reset(true)
 	a.attributes[attribute] = true
 }
 
@@ -71,10 +85,10 @@ func (a *Attribute) SetByteAttribute(attribute ByteAttributeType, byte uint8) {
 	}
 
 	if _, ok := a.byteChanged[attribute]; !ok {
-		a.byteChanged[attribute] = NewState(true)
-	} else {
-		a.byteChanged[attribute].Refresh()
+		a.byteChanged[attribute] = NewFlag()
 	}
+
+	a.byteChanged[attribute].Reset(true)
 	a.byteAttributes[attribute] = byte
 }
 
@@ -84,10 +98,10 @@ func (a *Attribute) RemoveAttribute(attribute AttributeType) {
 	}
 
 	if _, ok := a.changed[attribute]; !ok {
-		a.changed[attribute] = NewState(false)
-	} else {
-		a.changed[attribute].Set(false)
+		a.changed[attribute] = NewFlag()
 	}
+	
+	a.changed[attribute].Reset(true)
 	a.attributes[attribute] = false
 }
 
@@ -116,23 +130,23 @@ func (a Attribute) GetInitData() Data {
 func (a Attribute) GetData() Data {
 	data := NewData()
 	newAttributes := make(map[AttributeType]bool)
-	for attribute, state := range(a.changed) {
+	for attribute, flag := range(a.changed) {
 		if isWasm && wasmIgnoreAttributes[attribute] {
 			continue
 		}
 
-		if _, ok := state.Pop(); ok {
+		if _, ok := flag.Pop(); ok {
 			newAttributes[attribute] = a.attributes[attribute]
 		}
 	}
 
 	newByteAttributes := make(map[ByteAttributeType]uint8)
-	for attribute, state := range(a.byteChanged) {
+	for attribute, flag := range(a.byteChanged) {
 		if isWasm && wasmIgnoreByteAttributes[attribute] {
 			continue
 		}
 
-		if _, ok := state.Pop(); ok {
+		if _, ok := flag.Pop(); ok {
 			newByteAttributes[attribute] = a.byteAttributes[attribute]
 		}
 	}	
@@ -151,23 +165,23 @@ func (a Attribute) GetUpdates() Data {
 	updates := NewData()
 
 	newAttributes := make(map[AttributeType]bool)
-	for attribute, state := range(a.changed) {
+	for attribute, flag := range(a.changed) {
 		if isWasm && wasmIgnoreAttributes[attribute] {
 			continue
 		}
 
-		if _, ok := state.GetOnce(); ok {
+		if _, ok := flag.GetOnce(); ok {
 			newAttributes[attribute] = a.attributes[attribute]
 		}
 	}
 
 	newByteAttributes := make(map[ByteAttributeType]uint8)
-	for attribute, state := range(a.byteChanged) {
+	for attribute, flag := range(a.byteChanged) {
 		if isWasm && wasmIgnoreByteAttributes[attribute] {
 			continue
 		}
 
-		if _, ok := state.GetOnce(); ok {
+		if _, ok := flag.GetOnce(); ok {
 			newByteAttributes[attribute] = a.byteAttributes[attribute]
 		}
 	}
