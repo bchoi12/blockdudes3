@@ -38,8 +38,8 @@ func NewProjectile(object BaseObject) Projectile {
 	}
 
 	overlapOptions := NewColliderOptions()
-	overlapOptions.SetSpaces(true, playerSpace, wallSpace)
-	overlapOptions.SetAttributes(true, solidAttribute)
+	overlapOptions.SetSpaces(playerSpace, wallSpace)
+	overlapOptions.SetAttributes(deadAttribute)
 	p.SetOverlapOptions(overlapOptions)
 
 	return p

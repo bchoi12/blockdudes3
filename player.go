@@ -66,11 +66,11 @@ func NewPlayer(init Init) *Player {
 	profile.AddSubProfile(bodySubProfile, subProfile)
 
 	overlapOptions := NewColliderOptions()
-	overlapOptions.SetSpaces(true, wallSpace, pickupSpace)
+	overlapOptions.SetSpaces(wallSpace, pickupSpace)
 	profile.SetOverlapOptions(overlapOptions)
 
 	snapOptions := NewColliderOptions()
-	snapOptions.SetSpaces(true, wallSpace)
+	snapOptions.SetSpaces(wallSpace)
 	profile.SetSnapOptions(snapOptions)
 
 	player := &Player {

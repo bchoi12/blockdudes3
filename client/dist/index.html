@@ -33,28 +33,31 @@
 					</form>
 				</div>
 				<div id="div-scoreboard">
-					SCOREBOARD
+					<div id="scoreboard-title">Scoreboard</div>
 				</div>
-				<div id="div-pause">
+			</div>
+			<div id="div-pause">
+				<div id="pause-title" class="bold">Paused</div>
+				<div id="div-menus">
 					<fieldset id="fieldset-clients" class="spaced">
 						<legend id="legend-clients">Players</legend>
 					</fieldset>
 					<fieldset id="fieldset-options" class="spaced">
 						<legend id="legend-options">Options</legend>
 						<div class="option">
-							<input type="checkbox" id="input-pointer-lock"><label for="input-pointer-lock">Enable pointer lock (recommended)</label>
+							<input type="checkbox" id="input-pointer-lock"><label for="input-pointer-lock">Enable in-game cursor</label>
 						</div>
 						<div class="option">
 							<input type="checkbox" id="input-shadows"><label for="input-shadows">Enable shadows</label>
 						</div>
 						<div class="option">
-							<input type="checkbox" id="input-effects"><label for="input-effects">Enable renderer effects</label>
+							<input type="checkbox" id="input-effects"><label for="input-effects">Enable special effects</label>
 						</div>
 						<div class="option">
-							<input type="checkbox" id="input-dynamic-lighting"><label for="input-dynamic-lighting">Enable dynamic lighting</label>
+							<input type="checkbox" id="input-dynamic-lighting"><label for="input-dynamic-lighting">Enable dynamic lighting effects</label>
 						</div>
 						<div class="option">
-							<input type="range" id="input-extrapolation" min="0" max="100" value="50"><label for="input-extrapolation">Extrapolation</label>
+							<input type="range" id="input-extrapolation" min="0" max="100" value="50"><label for="input-extrapolation">Client-side prediction</label>
 						</div>
 						<div class="option">
 							<input type="range" id="input-sound-volume" min="0" max="100" value="50"><label for="input-sound-volume">Sound volume</label>
@@ -66,9 +69,12 @@
 							<input type="range" id="input-multisampling" min="0" max="8" value="4"><label for="input-multisampling">Multisampling (requires effects)</label>
 						</div>
 					</fieldset>
-					<span class="no-select"><br><b>Paused</b><br><br>Click to continue<br><br></span>
-					<button id="button-voice">voice</button>
+					<fieldset id="fieldset-options" class="spaced">
+						<legend id="legend-keys">Keys</legend>
+						<div>Coming soon: key bindings</div>
+					</fieldset>
 				</div>
+				<div id="pause-continue" class="bold text-button">Continue</div>
 			</div>
 			<div id="div-login">
 				<fieldset id="fieldset-login">

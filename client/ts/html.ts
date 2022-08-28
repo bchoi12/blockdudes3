@@ -21,7 +21,6 @@ export namespace Html {
 	export const divScoreboard = "div-scoreboard";
 
 	export const divPause = "div-pause";
-	export const buttonVoice = "button-voice";
 	export const fieldsetClients = "fieldset-clients";
 	export const fieldsetOptions = "fieldset-options";
 	export const inputPointerLock = "input-pointer-lock";
@@ -32,6 +31,7 @@ export namespace Html {
 	export const inputSoundVolume = "input-sound-volume";
 	export const inputRendererScale = "input-renderer-scale";
 	export const inputMultisampling = "input-multisampling";
+	export const pauseContinue = "pause-continue";
 
 	export const cursor = "cursor";
 
@@ -42,6 +42,13 @@ export namespace Html {
 	export function span() : HTMLElement { return document.createElement("span"); }
 	export function br() : HTMLElement { return document.createElement("br"); }
 	export function audio() : HTMLAudioElement { return <HTMLAudioElement>document.createElement("audio"); }
+	export function button() : HTMLElement { return document.createElement("button"); }
+	export function icon() : HTMLElement { return document.createElement("i"); }
+	export function range() : HTMLInputElement {
+		let range = <HTMLInputElement>document.createElement("input");
+		range.type = "range";
+		return range;
+	}
 
 	export function hide(elm : HTMLElement) : void {
 		elm.style.visibility = "hidden";
@@ -53,8 +60,15 @@ export namespace Html {
 	export function displayNone(elm : HTMLElement) : void {
 		elm.style.display = "none";
 	}
+	export function displayFlex(elm : HTMLElement) : void {
+		elm.style.display = "flex";
+	}
 	export function displayBlock(elm : HTMLElement) : void {
 		elm.style.display = "block";
+	}
+
+	export function textButton(elm : HTMLElement) : void {
+		elm.classList.add("text-button");
 	}
 
 	export function bold(elm : HTMLElement) : void {
@@ -88,4 +102,10 @@ export class HtmlWrapper {
 	}
 
 	elm() : HTMLElement { return this._elm; }
+
+	removeChildren() : void {
+		while (this._elm.firstChild) {
+			this._elm.removeChild(this._elm.firstChild);
+		}
+	}
 }

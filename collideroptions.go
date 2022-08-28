@@ -14,46 +14,44 @@ func NewColliderOptions() ColliderOptions {
 	}
 }
 
+// If object ID is specified, evaluate or exclude. Otherwise continue
 func (co *ColliderOptions) SetIds(include bool, ids ...SpacedId) {
 	for _, id := range(ids) {
 		co.ids[id] = include
 	}
 }
 
-func (co *ColliderOptions) SetSpaces(include bool, spaces ...SpaceType) {
+// Skip evaluation if object space is not in the set of included spaces.
+func (co *ColliderOptions) SetSpaces(spaces ...SpaceType) {
 	for _, space := range(spaces) {
-		co.spaces[space] = include
+		co.spaces[space] = true
 	}
 }
 
-func (co *ColliderOptions) SetAttributes(include bool, attributes ...AttributeType) {
+// Skip evaluation if object has the specified attribute.
+func (co *ColliderOptions) SetAttributes(attributes ...AttributeType) {
 	for _, attribute := range(attributes) {
-		co.attributes[attribute] = true
+		co.attributes[attribute] = false
 	}
 }
 
 func (co ColliderOptions) Evaluate(object Object) bool {
-	if val, ok := co.ids[object.GetSpacedId()]; ok {
-		return val
+	if include, ok := co.ids[object.GetSpacedId()]; ok {
+		return include
 	}
 
-	if val, ok := co.spaces[object.GetSpace()]; ok {
-		return val
+	if include, ok := co.spaces[object.GetSpace()]; !ok || !include {
+		return false
+	}
+
+	if len(co.attributes) == 0 {
+		return true
 	}
 
 	for attribute, include := range(co.attributes) {
-		if include && object.HasAttribute(attribute) {
-			return true
-		}
-	}
-
-/*
-	for attribute, include := range(co.excludeAttributes) {
-		if !exclude && !object.HasAttribute(attribute) {
+		if !include && object.HasAttribute(attribute) {
 			return false
 		}
 	}
-*/
-
-	return false
+	return true
 }

@@ -17,7 +17,7 @@ func NewExplosion(init Init) *Explosion {
 		activeFrames: 3,
 	}
 	overlapOptions := NewColliderOptions()
-	overlapOptions.SetSpaces(true, playerSpace)
+	overlapOptions.SetSpaces(playerSpace)
 	explosion.SetOverlapOptions(overlapOptions)
 	explosion.SetTTL(300 * time.Millisecond)
 	explosion.SetInitProp(colorProp, 0xFFFFFF)

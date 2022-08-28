@@ -60,10 +60,9 @@ export class ClientHandler implements InterfaceHandler {
 		connection.addHandler(voiceAnswerType, (msg : { [k: string]: any }) => { this.processVoiceAnswer(msg); });
 		connection.addHandler(voiceCandidateType, (msg : { [k: string]: any }) => { this.processVoiceCandidate(msg); });
 
-		Html.elm(Html.buttonVoice).onclick = (e) => {
-			this.toggleVoice();
+		this._clientsElm.onclick = (e) => {
 			e.stopPropagation();
-		};
+		}
 	}
 
 	reset() : void {
@@ -74,11 +73,11 @@ export class ClientHandler implements InterfaceHandler {
 	}
 
 	changeInputMode(mode : InputMode) : void {}
-
 	hasClient(id : number) : boolean { return this._clients.has(id); }
 	displayName(id : number) : string { return this.hasClient(id) ? this._clients.get(id).displayName() : "Unknown"; }
+	voiceEnabled() : boolean { return this._voiceEnabled; }
 
-	private toggleVoice() : void {
+	toggleVoice() : void {
 		if (!connection.ready()) {
 			return;
 		}
@@ -90,22 +89,18 @@ export class ClientHandler implements InterfaceHandler {
 			    video: false,
 		    }).then((stream) => {
 		    	this._stream = stream;
-		      	this._stream.getTracks().forEach(track => track.enabled = true);
+		      	this._stream.getTracks().forEach((track) => { track.enabled = true; });
 				connection.send({ T: joinVoiceType });
 		    }).catch((e) => {
 		    	this._voiceEnabled = false;
 		    	LogUtil.e("Failed to enable voice chat: " + e);
 		    });
 		} else {
-	      	this._stream.getTracks().forEach(track => track.stop());
-			this._peerConnections.forEach((pc) => {
-				pc.close();
-			});
+	      	this._stream.getTracks().forEach((track) => { track.stop(); });
+			this._peerConnections.forEach((pc) => { pc.close(); });
 			this._peerConnections.clear();
 
-			this._clients.forEach((client) => {
-				client.disableVoiceControls();
-			});
+			this._clients.forEach((client) => { client.disableVoiceControls(); });
 
 			connection.send({ T: leftVoiceType });
 			this._voiceEnabled = false;
@@ -137,10 +132,6 @@ export class ClientHandler implements InterfaceHandler {
 
 		this._clientsElm.removeChild(client.elm());
 		this._clients.delete(id);
-	}
-
-	private voiceEnabled() : boolean {
-		return this._voiceEnabled;
 	}
 
 	private updateVoice(msg : { [k: string]: any }) : void {

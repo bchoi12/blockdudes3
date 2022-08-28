@@ -1,32 +1,25 @@
 import { connection } from './connection.js'
 import { Html, HtmlWrapper } from './html.js'
 import { Icon } from './icon.js'
+import { ui } from './ui.js'
 import { Util } from './util.js'
+import { VoiceWrapper } from './voice_wrapper.js'
 
 export class ClientWrapper extends HtmlWrapper {
 	private _id : number;
 	private _name : string;
-
-	private _iconsElm : HTMLElement;
-	private _voiceAudioElm : HTMLAudioElement;
-	private _hasVoiceControls : boolean;
+	private _voiceWrapper : VoiceWrapper;
 
 	constructor(id : number, name : string) {
-		super(Html.span());
+		super(Html.div());
 
 		this._id = id;
 		this._name = name;
 
 		this.elm().textContent = this.displayName();
 
-		this._iconsElm = Html.span();
-		if (this._id === connection.id()) {
-			this._iconsElm.append(Icon.person());
-		}
-		this.elm().append(this._iconsElm);
-		this.elm().append(Html.br());
-
-		this._hasVoiceControls = false;
+		this._voiceWrapper = new VoiceWrapper(id);
+		this.elm().append(this._voiceWrapper.elm());
 	}
 
 	id() : number { return this._id; }
@@ -34,23 +27,10 @@ export class ClientWrapper extends HtmlWrapper {
 	displayName() : string { return this._name + " #" + this._id; }
 
 	enableVoiceControls(stream : MediaStream) : void {
-		if (this._hasVoiceControls) {
-			return;
-		}
-
-		this._voiceAudioElm = Html.audio();
-		this._voiceAudioElm.autoplay = true;
-		this._voiceAudioElm.controls = true;
-		this._voiceAudioElm.srcObject = stream;
-		this.elm().append(this._voiceAudioElm);
-
-		this._hasVoiceControls = true;
+		this._voiceWrapper.enable(stream);
 	}
 
 	disableVoiceControls() : void {
-		this._hasVoiceControls = false;
-		if (Util.defined(this._voiceAudioElm)) {
-			this.elm().removeChild(this._voiceAudioElm);
-		}
+		this._voiceWrapper.disable();
 	}
 }

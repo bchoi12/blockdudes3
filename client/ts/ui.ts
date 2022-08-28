@@ -84,6 +84,7 @@ class UI {
 	getKeysAsArray() : Array<number> { return Array.from(this._inputHandler.keys()); }
 	hasClient(id : number) : boolean { return this._clientHandler.hasClient(id); }
 	getClientName(id : number) : string { return this._clientHandler.displayName(id); }
+	voiceEnabled() : boolean { return this._clientHandler.voiceEnabled(); }
 
 	disconnected() : void {
 		game.setState(GameState.PAUSED);
@@ -94,6 +95,7 @@ class UI {
 		this._chatHandler.print(message);
 	}
 
+	toggleVoice() : void { this._clientHandler.toggleVoice(); }
 	changeInputMode(inputMode : InputMode) : void {
 		this._mode = inputMode;
 		this._handlers.forEach((handler) => {

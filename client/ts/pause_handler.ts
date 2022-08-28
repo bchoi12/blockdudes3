@@ -5,9 +5,11 @@ import { ui, InputMode } from './ui.js'
 
 export class PauseHandler implements InterfaceHandler {
 	private _pauseElm : HTMLElement;
+	private _continueElm : HTMLElement;
 
 	constructor() {
 		this._pauseElm = Html.elm(Html.divPause);
+		this._continueElm = Html.elm(Html.pauseContinue);
 	}
 
 	setup() : void {
@@ -28,7 +30,7 @@ export class PauseHandler implements InterfaceHandler {
 			}
 		})
 
-		this._pauseElm.onclick = (e : any) => {
+		this._continueElm.onclick = (e : any) => {
 			if (ui.inputMode() !== InputMode.PAUSE) {
 				return;
 			}
