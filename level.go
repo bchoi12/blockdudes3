@@ -349,4 +349,42 @@ func (l *Level) loadTestLevel() {
 	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(56, 4), NewVec2(3, 0.2))))
 	g.GetLast(wallSpace).AddAttribute(platformAttribute)
 	g.GetLast(wallSpace).SetInitProp(dimZProp, 4)
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(80, -10), NewVec2(20, 14), bottomCenter)
+		block := NewBlock(init)
+		block.LoadTemplate(emptyBlockTemplate)
+		block.SetInitProp(dimZProp, 7)
+		block.SetThickness(0.5)
+		block.AddHorizontalBorder(1, NewPair(0, 1))
+		g.Upsert(block)
+		for _, object := range(block.GetObjects()) {
+			object.SetId(g.NextId(object.GetSpace()))
+			object.SetInitProp(dimZProp, 6)
+			g.Upsert(object)
+		}
+	}
+
+	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(80, 6), NewVec2(18, 0.2))))
+	g.GetLast(wallSpace).AddAttribute(platformAttribute)
+	g.GetLast(wallSpace).SetInitProp(dimZProp, 4)
+
+
+	for i := 0; i < 10; i++ {
+		g.Upsert(g.New(l.createInit(lightSpace, NewVec2(float64(71 + 2 * i), 4), NewVec2(0.3, 0.1))))
+		g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
+		g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
+		g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
+		g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+		g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
+		g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, -2.5)
+
+		g.Upsert(g.New(l.createInit(lightSpace, NewVec2(float64(71 + 2 * i), 4), NewVec2(0.3, 0.1))))
+		g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
+		g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
+		g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
+		g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+		g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
+		g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 2.5)
+	}
 }
