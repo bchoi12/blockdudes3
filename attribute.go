@@ -12,6 +12,7 @@ const (
 	chargingAttribute
 	chargedAttribute
 	groundedAttribute
+	doubleJumpAttribute
 	deadAttribute
 )
 
@@ -30,6 +31,7 @@ type IntAttributeType uint8
 const (
 	unknownIntAttribute IntAttributeType = iota
 	colorIntAttribute
+	secondaryColorIntAttribute
 )
 
 type FloatAttributeType uint8
@@ -37,9 +39,13 @@ const (
 	unknownFloatAttributeType = iota
 	posZFloatAttribute
 	dimZFloatAttribute
+	intensityFloatAttribute
+	distanceFloatAttribute
+	fovFloatAttribute
 )
 
 var wasmIgnoreAttributes = map[AttributeType]bool {
+	// TODO: try re-enabling grounded
 	groundedAttribute: true,
 	deadAttribute: true,
 }
@@ -48,12 +54,24 @@ var wasmIgnoreByteAttributes = map[ByteAttributeType]bool {
 	healthByteAttribute: true,
 }
 
+var wasmIgnoreIntAttributes = map[IntAttributeType]bool {
+}
+
+var wasmIgnoreFloatAttributes = map[FloatAttributeType]bool {
+}
+
 type Attribute struct {
 	changed map[AttributeType]*Flag
 	attributes map[AttributeType]bool
 
 	byteChanged map[ByteAttributeType]*Flag
 	byteAttributes map[ByteAttributeType]uint8
+
+	intChanged map[IntAttributeType]*Flag
+	intAttributes map[IntAttributeType]int
+
+	floatChanged map[FloatAttributeType]*Flag
+	floatAttributes map[FloatAttributeType]float64
 }
 
 func NewAttribute() Attribute {
@@ -63,6 +81,12 @@ func NewAttribute() Attribute {
 
 		byteChanged: make(map[ByteAttributeType]*Flag),
 		byteAttributes: make(map[ByteAttributeType]uint8),
+
+		intChanged: make(map[IntAttributeType]*Flag),
+		intAttributes: make(map[IntAttributeType]int),
+
+		floatChanged: make(map[FloatAttributeType]*Flag),
+		floatAttributes: make(map[FloatAttributeType]float64),
 	}
 }
 
@@ -92,6 +116,32 @@ func (a *Attribute) SetByteAttribute(attribute ByteAttributeType, byte uint8) {
 	a.byteAttributes[attribute] = byte
 }
 
+func (a *Attribute) SetIntAttribute(attribute IntAttributeType, int int) {
+	if value, ok := a.intAttributes[attribute]; ok && value == int {
+		return
+	}
+
+	if _, ok := a.intChanged[attribute]; !ok {
+		a.intChanged[attribute] = NewFlag()
+	}
+
+	a.intChanged[attribute].Reset(true)
+	a.intAttributes[attribute] = int
+}
+
+func (a *Attribute) SetFloatAttribute(attribute FloatAttributeType, float float64) {
+	if value, ok := a.floatAttributes[attribute]; ok && value == float {
+		return
+	}
+
+	if _, ok := a.floatChanged[attribute]; !ok {
+		a.floatChanged[attribute] = NewFlag()
+	}
+
+	a.floatChanged[attribute].Reset(true)
+	a.floatAttributes[attribute] = float
+}
+
 func (a *Attribute) RemoveAttribute(attribute AttributeType) {
 	if has, ok := a.attributes[attribute]; ok && !has {
 		return
@@ -115,6 +165,16 @@ func (a Attribute) GetByteAttribute(attribute ByteAttributeType) (uint8, bool) {
 	return byte, ok
 }
 
+func (a Attribute) GetIntAttribute(attribute IntAttributeType) (int, bool) {
+	int, ok := a.intAttributes[attribute]
+	return int, ok
+}
+
+func (a Attribute) GetFloatAttribute(attribute FloatAttributeType) (float64, bool) {
+	float, ok := a.floatAttributes[attribute]
+	return float, ok
+}
+
 func (a Attribute) GetInitData() Data {
 	data := NewData()
 
@@ -123,6 +183,12 @@ func (a Attribute) GetInitData() Data {
 	}
 	if len(a.byteAttributes) > 0 {
 		data.Set(byteAttributesProp, a.byteAttributes)
+	}
+	if len(a.intAttributes) > 0 {
+		data.Set(intAttributesProp, a.intAttributes)
+	}
+	if len(a.floatAttributes) > 0 {
+		data.Set(floatAttributesProp, a.floatAttributes)
 	}
 	return data
 }
@@ -149,13 +215,42 @@ func (a Attribute) GetData() Data {
 		if _, ok := flag.Pop(); ok {
 			newByteAttributes[attribute] = a.byteAttributes[attribute]
 		}
+	}
+
+	newIntAttributes := make(map[IntAttributeType]int)
+	for attribute, flag := range(a.intChanged) {
+		if isWasm && wasmIgnoreIntAttributes[attribute] {
+			continue
+		}
+
+		if _, ok := flag.Pop(); ok {
+			newIntAttributes[attribute] = a.intAttributes[attribute]
+		}
 	}	
+
+	newFloatAttributes := make(map[FloatAttributeType]float64)
+	for attribute, flag := range(a.floatChanged) {
+		if isWasm && wasmIgnoreFloatAttributes[attribute] {
+			continue
+		}
+
+		if _, ok := flag.Pop(); ok {
+			newFloatAttributes[attribute] = a.floatAttributes[attribute]
+		}
+	}	
+
 
 	if len(newAttributes) > 0 {
 		data.Set(attributesProp, newAttributes)
 	}
 	if len(newByteAttributes) > 0 {
 		data.Set(byteAttributesProp, newByteAttributes)
+	}
+	if len(newIntAttributes) > 0 {
+		data.Set(intAttributesProp, newIntAttributes)
+	}
+	if len(newFloatAttributes) > 0 {
+		data.Set(floatAttributesProp, newFloatAttributes)
 	}
 
 	return data
@@ -186,12 +281,41 @@ func (a Attribute) GetUpdates() Data {
 		}
 	}
 
+	newIntAttributes := make(map[IntAttributeType]int)
+	for attribute, flag := range(a.intChanged) {
+		if isWasm && wasmIgnoreIntAttributes[attribute] {
+			continue
+		}
+
+		if _, ok := flag.GetOnce(); ok {
+			newIntAttributes[attribute] = a.intAttributes[attribute]
+		}
+	}
+
+	newFloatAttributes := make(map[FloatAttributeType]float64)
+	for attribute, flag := range(a.floatChanged) {
+		if isWasm && wasmIgnoreFloatAttributes[attribute] {
+			continue
+		}
+
+		if _, ok := flag.GetOnce(); ok {
+			newFloatAttributes[attribute] = a.floatAttributes[attribute]
+		}
+	}
+
 	if len(newAttributes) > 0 {
 		updates.Set(attributesProp, newAttributes)
 	}
 	if len(newByteAttributes) > 0 {
 		updates.Set(byteAttributesProp, newByteAttributes)
 	}
+	if len(newIntAttributes) > 0 {
+		updates.Set(intAttributesProp, newIntAttributes)
+	}
+	if len(newFloatAttributes) > 0 {
+		updates.Set(floatAttributesProp, newFloatAttributes)
+	}
+
 	return updates
 }
 
@@ -208,6 +332,20 @@ func (a *Attribute) SetData(data Data) {
 		newByteAttributes := data.Get(byteAttributesProp).(map[ByteAttributeType]uint8)
 		for byteAttribute, val := range(newByteAttributes) {
 			a.byteAttributes[byteAttribute] = val
+		}
+	}
+
+	if data.Has(intAttributesProp) {
+		newIntAttributes := data.Get(intAttributesProp).(map[IntAttributeType]int)
+		for intAttribute, val := range(newIntAttributes) {
+			a.intAttributes[intAttribute] = val
+		}
+	}
+
+	if data.Has(floatAttributesProp) {
+		newFloatAttributes := data.Get(floatAttributesProp).(map[FloatAttributeType]float64)
+		for floatAttribute, val := range(newFloatAttributes) {
+			a.floatAttributes[floatAttribute] = val
 		}
 	}
 }

@@ -43,9 +43,6 @@ type Player struct {
 	Keys
 	weapon *Weapon
 
-	canJump bool
-	canDoubleJump bool
-
 	jumpTimer Timer
 	jumpGraceTimer Timer
 	knockbackTimer Timer
@@ -77,9 +74,6 @@ func NewPlayer(init Init) *Player {
 		BaseObject: NewBaseObject(profile),
 		Keys: NewKeys(),
 		weapon: nil,
-
-		canJump: false,
-		canDoubleJump: true,
 
 		jumpTimer: NewTimer(jumpDuration),
 		jumpGraceTimer: NewTimer(jumpGraceDuration),
@@ -128,7 +122,7 @@ func (p *Player) Respawn() {
 
 	p.SetHealth(100)
 	p.RemoveAttribute(groundedAttribute)
-	p.canDoubleJump = true
+	p.AddAttribute(doubleJumpAttribute)
 
 	rand.Seed(time.Now().Unix())
 	p.SetPos(NewVec2(float64(15 + rand.Intn(15)), 20))
@@ -173,8 +167,7 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) {
 
 	if grounded {
 		p.jumpGraceTimer.Start()
-		p.canJump = true
-		p.canDoubleJump = true
+		p.AddAttribute(doubleJumpAttribute)
 	}
 
 
@@ -206,13 +199,13 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) {
 
 	// Jump & double jump
 	if p.KeyDown(jumpKey) {
-		if p.canJump && p.jumpGraceTimer.On() {
-			p.canJump = false
+		if p.jumpGraceTimer.On() {
+			p.jumpGraceTimer.Stop()
 			vel.Y = Max(0, vel.Y) + jumpVel
 			p.jumpTimer.Start()
-		} else if p.KeyPressed(jumpKey) && p.canDoubleJump {
+		} else if p.KeyPressed(jumpKey) && p.HasAttribute(doubleJumpAttribute) {
 			vel.Y = jumpVel
-			p.canDoubleJump = false
+			p.RemoveAttribute(doubleJumpAttribute)
 			p.jumpTimer.Start()
 		}
 	}

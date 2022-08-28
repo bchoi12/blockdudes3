@@ -8,7 +8,7 @@ import { renderer } from './renderer.js'
 import { WallBuilder } from './wall_builder.js'
 
 export class RenderBlock extends RenderObject {
-	private readonly _backMaterial = new THREE.MeshStandardMaterial( {color: 0x444444, shadowSide: THREE.FrontSide } );
+	private readonly _backMaterial = new THREE.MeshStandardMaterial( {color: 0x444444 } );
 	private readonly _frontMaterial = new THREE.MeshStandardMaterial( {color: 0x444444, transparent: true });
 
 	private _bbox : THREE.Box2;
@@ -29,25 +29,13 @@ export class RenderBlock extends RenderObject {
 	override initialize() : void {
 		super.initialize();
 
-		if (this.byteAttribute(typeByteAttribute) === 2) {
-			return;
-		}
-
 		const dim = this.dim();
 		const pos = this.pos3();
 		const thickness = this.thickness();
 
 		this._bbox = new THREE.Box2(new THREE.Vector2(pos.x - dim.x/2, pos.y - dim.y/2), new THREE.Vector2(pos.x + dim.x/2, pos.y + dim.y/2));
 
-		let backWall = new THREE.Mesh(new THREE.BoxGeometry(dim.x, dim.y, thickness), this._backMaterial);
-		backWall.position.z = pos.z + -this.dimZ() / 2 + thickness / 2;
-		if (options.enableShadows) {
-			backWall.castShadow = true;
-			backWall.receiveShadow = true;
-		}
-		this._scene.add(backWall);
-
-		let wallBuilder = new WallBuilder(this.dim(), thickness, this._frontMaterial);
+		let wallBuilder = new WallBuilder(this.dim(), thickness);
 
 		if (Math.random() <= 0.5) {
 			for (let i = 1; i <= 5; i += 2) {
@@ -79,10 +67,20 @@ export class RenderBlock extends RenderObject {
 			}
 		}
 
-		let wall = wallBuilder.build();
+		let backWall = wallBuilder.build(this._backMaterial);
+		backWall.position.z = pos.z - this.dimZ() / 2 + thickness;
+		backWall.castShadow = false;
+		backWall.receiveShadow = options.enableShadows;
+		this._scene.add(backWall);
+
+		let wall = wallBuilder.build(this._frontMaterial);
 		wall.position.z = pos.z + this.dimZ() / 2 - thickness;
+		wall.castShadow = options.enableShadows;
+		wall.receiveShadow = options.enableShadows;
 		this._foreground.add(wall);
+	
 		this._scene.add(this._foreground.scene());
+		renderer.compile(this._scene);
 
  		this.setMesh(this._scene);
 	}

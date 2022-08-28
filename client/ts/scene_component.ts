@@ -7,7 +7,6 @@ export enum SceneComponentType {
 	LIGHTING = 1,
 	WEATHER = 2,
 	PARTICLES = 3,
-	DECORATION = 4,
 }
 
 export abstract class SceneComponent {
@@ -72,8 +71,6 @@ export abstract class SceneComponent {
 			custom.update();
 		});
 	}
-
-	initLevel() : void {}
 
 	private nextId() : number {
 		this._nextId++;

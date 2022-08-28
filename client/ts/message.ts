@@ -18,6 +18,8 @@ export class Message {
 	private readonly _mapProps : Map<number, OverwriteMethod> = new Map<number, OverwriteMethod>([
 		[attributesProp, OverwriteMethod.MERGE_AND_REPLACE],
 		[byteAttributesProp, OverwriteMethod.MERGE_AND_REPLACE],
+		[intAttributesProp, OverwriteMethod.MERGE_AND_REPLACE],
+		[floatAttributesProp, OverwriteMethod.MERGE_AND_REPLACE],
 		[keysProp, OverwriteMethod.REPLACE_ALL],
 	]);
 

@@ -37,7 +37,12 @@ type Object interface {
 	HasAttribute(attribute AttributeType) bool
 	SetByteAttribute(attribute ByteAttributeType, byte uint8)
 	GetByteAttribute(attribute ByteAttributeType) (uint8, bool)
+	SetIntAttribute(attribute IntAttributeType, int int)
+	GetIntAttribute(attribute IntAttributeType) (int, bool)
+	SetFloatAttribute(attribute FloatAttributeType, float float64)
+	GetFloatAttribute(attribute FloatAttributeType) (float64, bool)
 
+	// TODO: rename PreUpdate, Update, PostUpdate
 	Preprocess(grid *Grid, now time.Time)
 	UpdateState(grid *Grid, now time.Time)
 	Postprocess(grid *Grid, now time.Time)
@@ -79,7 +84,6 @@ func NewCircleObject(init Init) BaseObject {
 	profile := NewCircle(init)
 	return NewBaseObject(profile)
 }
-
 
 func (o *BaseObject) PrepareUpdate(now time.Time) float64 {
 	ts := GetTimestep(now, o.lastUpdateTime)

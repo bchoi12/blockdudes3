@@ -55,7 +55,10 @@ class Renderer {
 			this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		}
 
-		this._effects = null;
+		if (Util.defined(this._effects)) {
+			this._effects.reset(this._renderer);
+		}
+
 		this.resize();
 	}
 
@@ -63,8 +66,8 @@ class Renderer {
 		const width = window.innerWidth;
 		const height = window.innerHeight;
 
-		this._renderer.setSize(width * options.rendererScale , height * options.rendererScale);
-		this._renderer.setPixelRatio(window.devicePixelRatio);
+		this._renderer.setSize(width, height);
+		this._renderer.setPixelRatio(window.devicePixelRatio * options.rendererScale);
 
 		this._canvas.style.width = width + "px";
 		this._canvas.style.height = height + "px";
@@ -77,7 +80,6 @@ class Renderer {
 	render() : void {
 		if (!Util.defined(this._effects)) {
 			this._effects = new Effects(this._renderer);
-			this.resize();
 		}
 
 		if (options.enableEffects) {

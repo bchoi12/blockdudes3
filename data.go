@@ -9,8 +9,9 @@ const (
 
 	attributesProp
 	byteAttributesProp
+	intAttributesProp
+	floatAttributesProp
 	colorProp
-	nameProp
 	thicknessProp
 	dimZProp
 	posZProp
@@ -22,6 +23,7 @@ const (
 	jerkProp
 	dirProp
 
+	nameProp
 	keysProp
 	ownerProp
 	targetProp

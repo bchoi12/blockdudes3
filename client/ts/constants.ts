@@ -44,6 +44,8 @@ declare var deletedProp : number;
 
 declare var attributesProp : number;
 declare var byteAttributesProp : number;
+declare var intAttributesProp : number;
+declare var floatAttributesProp : number;
 declare var colorProp : number;
 declare var nameProp : number;
 declare var thicknessProp : number;
@@ -73,11 +75,21 @@ declare var attachedAttribute : number;
 declare var chargingAttribute : number;
 declare var chargedAttribute : number;
 declare var groundedAttribute : number;
+declare var doubleJumpAttribute : number;
 declare var deadAttribute : number;
 
 declare var typeByteAttribute : number;
 declare var healthByteAttribute : number;
 declare var juiceByteAttribute : number;
+
+declare var colorIntAttribute : number;
+declare var secondaryColorIntAttribute : number;
+
+declare var posZFloatAttribute : number;
+declare var dimZFloatAttribute : number;
+declare var intensityFloatAttribute : number;
+declare var distanceFloatAttribute : number;
+declare var fovFloatAttribute : number;
 
 declare var spotLight : number;
 declare var pointLight : number;

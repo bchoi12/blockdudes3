@@ -14,6 +14,7 @@ type Profile interface {
 	InitMethods
 	DataMethods
 
+	// TODO: support setting initPos, initDir, etc.
 	Pos() Vec2
 	SetPos(pos Vec2)
 	Dim() Vec2
@@ -569,16 +570,28 @@ func (bp *BaseProfile) Stick(result CollideResult) {
 
 	if Abs(vel.X) < zeroVelEpsilon {
 		posAdj.X = 0
-	} else if Abs(vel.Y) < zeroVelEpsilon {
+	}
+	if Abs(vel.Y) < zeroVelEpsilon {
 		posAdj.Y = 0
-	} else {
+	}
+
+	if !posAdj.IsZero() {
 		collisionTime := NewVec2(Abs(posAdj.X / vel.X), Abs(posAdj.Y / vel.Y))
 		if collisionTime.X < collisionTime.Y {
 			posAdj.Y = FSign(posAdj.Y) * Abs(vel.Y / vel.X * posAdj.X)		
 		} else {
 			posAdj.X = FSign(posAdj.X) * Abs(vel.X / vel.Y * posAdj.Y)
 		}
+
+		timeLimit := 2 * float64(frameMillis) / 1000
+		if collisionTime.X >= timeLimit {
+			posAdj.X = 0
+		}
+		if collisionTime.Y >= timeLimit {
+			posAdj.Y = 0
+		}
 	}
+
 	pos.X += posAdj.X
 	pos.Y += posAdj.Y
 

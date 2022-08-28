@@ -126,6 +126,36 @@ export class RenderObject extends RenderMesh {
 		return 0;
 	}
 
+	hasIntAttributes() : boolean { return this._msg.has(intAttributesProp); }
+	intAttributes() : Map<number, number> {
+		if (this.hasIntAttributes()) {
+			return this._msg.get(intAttributesProp);
+		}
+		return new Map<number, number>();
+	}
+	hasIntAttribute(attribute : number) : boolean { return this.hasIntAttributes() && this.intAttributes().has(attribute); }
+	intAttribute(attribute : number) : number {
+		if (this.hasIntAttribute(attribute)) {
+			return this.intAttributes().get(attribute);
+		}
+		return 0;
+	}
+
+	hasFloatAttributes() : boolean { return this._msg.has(floatAttributesProp); }
+	floatAttributes() : Map<number, number> {
+		if (this.hasFloatAttributes()) {
+			return this._msg.get(floatAttributesProp);
+		}
+		return new Map<number, number>();
+	}
+	hasFloatAttribute(attribute : number) : boolean { return this.hasFloatAttributes() && this.floatAttributes().has(attribute); }
+	floatAttribute(attribute : number) : number {
+		if (this.hasFloatAttribute(attribute)) {
+			return this.floatAttributes().get(attribute);
+		}
+		return 0;
+	}
+
 	hasColor() : boolean { return this._msg.has(colorProp); }
 	color() : number {
 		if (this.hasColor()) {
@@ -158,8 +188,11 @@ export class RenderObject extends RenderMesh {
 		return 0;
 	}
 
-	hasPosZ() : boolean { return this._msg.has(posZProp); }
+	hasPosZ() : boolean { return this.hasFloatAttribute(posZFloatAttribute) || this._msg.has(posZProp); }
 	posZ() : number {
+		if (this.hasFloatAttribute(posZFloatAttribute)) {
+			return this.floatAttribute(posZFloatAttribute);
+		}
 		if (this.hasPosZ()) {
 			return this._msg.get(posZProp);
 		}

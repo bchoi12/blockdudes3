@@ -9,6 +9,7 @@ type Booster struct {
 	state PartStateType
 	pressed bool
 
+	doubleJumpReset bool
 	canBoost bool
 	timer Timer
 }
@@ -19,6 +20,7 @@ func NewBooster(weapon *Weapon) *Booster {
 		state: unknownPartState,
 		pressed: false,
 
+		doubleJumpReset: true,
 		canBoost: true,
 		timer: NewTimer(200 * time.Millisecond),
 	}
@@ -41,11 +43,17 @@ func (b *Booster) UpdateState(grid *Grid, now time.Time) {
 	grounded := player.HasAttribute(groundedAttribute)
 	if grounded {
 		b.canBoost = true
+		b.doubleJumpReset = true
 	}
 
 	if !b.canBoost || b.timer.On() {
-		b.state = rechargingPartState
-		return
+		if b.doubleJumpReset && !grounded && !player.HasAttribute(doubleJumpAttribute) {
+			b.canBoost = true
+			b.doubleJumpReset = false
+		} else {
+			b.state = rechargingPartState
+			return
+		}
 	}
 
 	if !b.pressed {
@@ -58,7 +66,7 @@ func (b *Booster) UpdateState(grid *Grid, now time.Time) {
 	}
 
 	dash := b.weapon.Dir()
-	dash.Scale(4 * jumpVel)
+	dash.Scale(3 * jumpVel)
 	player.Stop()
 	player.AddForce(dash)
 

@@ -21,10 +21,11 @@ Game Engine
 
 Client
  * [TypeScript](https://www.typescriptlang.org/)
+ * [three.js](https://threejs.org/) for 3D rendering
+ * [pmndrs/postprocessing](https://github.com/pmndrs/postprocessing) for visual effects
  * [WebAssembly](https://webassembly.org/) for client-side prediction
  * Websocket for reliable communication
  * WebRTC for low latency communication and voice chat
  * [msgpack](https://msgpack.org/) for data compression
- * [three.js](https://threejs.org/) for 3D rendering
  * [Howler](https://howlerjs.com/) for audio
  * [webpack](https://webpack.js.org/) for bundling code

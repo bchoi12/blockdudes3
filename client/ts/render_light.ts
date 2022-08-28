@@ -12,9 +12,17 @@ export class RenderLight extends RenderObject {
 	}
 
 	override ready() : boolean {
-		let ready = super.ready() && this.hasColor() && this.hasByteAttribute(typeByteAttribute) && this.hasByteAttribute(juiceByteAttribute);
-		if (ready && (this.byteAttribute(typeByteAttribute) === spotLight || this.byteAttribute(typeByteAttribute) === floorLight)) {
-			ready = ready && this.hasDir();
+		let ready = super.ready()
+		ready = ready && this.hasByteAttribute(typeByteAttribute) && this.hasIntAttribute(colorIntAttribute)
+		ready = ready && this.hasFloatAttribute(intensityFloatAttribute) && this.hasFloatAttribute(distanceFloatAttribute);
+
+		if (!ready) {
+			return false;
+		}
+
+		const type = this.byteAttribute(typeByteAttribute);
+		if (type === spotLight || type === floorLight) {
+			ready = ready && this.hasFloatAttribute(fovFloatAttribute);
 		}
 		return ready;
 	}
@@ -23,34 +31,48 @@ export class RenderLight extends RenderObject {
 		super.initialize();
 
 		const dim = this.dim();
-		const dir = this.dir();
-		const intensity = this.byteAttribute(juiceByteAttribute) / 10;
+		const intensity = this.floatAttribute(intensityFloatAttribute);
+		const distance = this.floatAttribute(distanceFloatAttribute);
+		const fov = this.floatAttribute(fovFloatAttribute);
+		const color = this.intAttribute(colorIntAttribute);
+		const secondaryColor = this.hasIntAttribute(secondaryColorIntAttribute) ? this.intAttribute(secondaryColorIntAttribute) : 0x6b6b6b;
 
 		let scene = new THREE.Scene();
-		let light, bulb, lamp, target;
+		let light, target, bulb, lamp, wire;
 
 		switch (this.byteAttribute(typeByteAttribute)) {
 		case pointLight:
-			light = new THREE.PointLight(this.color(), intensity, dim.x);
+			light = new THREE.PointLight(color, intensity, distance);
 			break;
 		case spotLight:
-			light = new THREE.SpotLight(this.color(), intensity, dim.x, 0.4 * Math.PI);
-			light.position.y += 0.5;
+			light = new THREE.SpotLight(color, intensity, distance, fov);
 			target = new THREE.Object3D();
-			target.position.copy(new THREE.Vector3(dir.x, dir.y, 0));
-			bulb = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.1, 12), new THREE.MeshStandardMaterial({color: this.color()}));
+			target.position.copy(new THREE.Vector3(0, -1, 0));
+
+			const rad = dim.x / 3;
+			bulb = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, rad, 12), new THREE.MeshStandardMaterial({color: color }));
 			bulb.rotation.x = Math.PI / 2;
 
-			const height = 0.2;
-			lamp = new THREE.Mesh(new THREE.ConeGeometry(0.3, height, 8, 1), new THREE.MeshStandardMaterial({color: Math.max(0, this.color() - 0x888888) }));
+			const height = 0.6 * dim.x;
+			lamp = new THREE.Mesh(new THREE.ConeGeometry(dim.x, height, 8, 1), new THREE.MeshStandardMaterial({color: secondaryColor }));
 			lamp.position.y += height / 2;
+
+			let wireGeometry = new THREE.BufferGeometry();
+			const points = [
+				light.position,
+				new THREE.Vector3(0, dim.y / 2, 0),
+			];
+			wireGeometry.setFromPoints(points);
+
+			wire = new THREE.Line(wireGeometry, new THREE.LineBasicMaterial({color: 0x000000}));
+			wire.frustumCulled = false;
 			break;
 		case floorLight:
-			light = new THREE.SpotLight(this.color(), intensity, dim.x, 0.4 * Math.PI);
+			light = new THREE.SpotLight(color, intensity, distance, fov);
 			target = new THREE.Object3D();
-			target.position.copy(new THREE.Vector3(dir.x, dir.y, 0));
+			target.position.copy(new THREE.Vector3(0, 1, 0));
 
-			bulb = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 12), new THREE.MeshStandardMaterial({color: this.color()}));
+			bulb = new THREE.Mesh(new THREE.CylinderGeometry(dim.x / 2, dim.x / 2, dim.y, 12), new THREE.MeshStandardMaterial({color: color }));
 			break;
 		default:
 			LogUtil.w("Unknown light type: " + this.byteAttribute(typeByteAttribute));
@@ -75,6 +97,9 @@ export class RenderLight extends RenderObject {
 		}
 		if (Util.defined(lamp)) {
 			scene.add(lamp);
+		}
+		if (Util.defined(wire)) {
+			scene.add(wire);
 		}
 
 		this.setMesh(scene);

@@ -76,6 +76,8 @@ func setGlobals() {
 
 	js.Global().Set("attributesProp", int(attributesProp))
 	js.Global().Set("byteAttributesProp", int(byteAttributesProp))
+	js.Global().Set("intAttributesProp", int(intAttributesProp))
+	js.Global().Set("floatAttributesProp", int(floatAttributesProp))
 	js.Global().Set("colorProp", int(colorProp))
 	js.Global().Set("nameProp", int(nameProp))
 	js.Global().Set("thicknessProp", int(thicknessProp))
@@ -103,11 +105,21 @@ func setGlobals() {
 	js.Global().Set("chargingAttribute", int(chargingAttribute))
 	js.Global().Set("chargedAttribute", int(chargedAttribute))
 	js.Global().Set("groundedAttribute", int(groundedAttribute))
+	js.Global().Set("doubleJumpAttribute", int(doubleJumpAttribute))
 	js.Global().Set("deadAttribute", int(deadAttribute))
 
 	js.Global().Set("typeByteAttribute", int(typeByteAttribute))
 	js.Global().Set("healthByteAttribute", int(healthByteAttribute))
 	js.Global().Set("juiceByteAttribute", int(juiceByteAttribute))
+
+	js.Global().Set("colorIntAttribute", int(colorIntAttribute))
+	js.Global().Set("secondaryColorIntAttribute", int(secondaryColorIntAttribute))
+
+	js.Global().Set("posZFloatAttribute", int(posZFloatAttribute))
+	js.Global().Set("dimZFloatAttribute", int(dimZFloatAttribute))
+	js.Global().Set("intensityFloatAttribute", int(intensityFloatAttribute))
+	js.Global().Set("distanceFloatAttribute", int(distanceFloatAttribute))
+	js.Global().Set("fovFloatAttribute", int(fovFloatAttribute))
 
 	js.Global().Set("pointLight", int(pointLight))
 	js.Global().Set("spotLight", int(spotLight))

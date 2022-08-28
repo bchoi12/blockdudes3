@@ -91,7 +91,7 @@ export class ChatHandler implements InterfaceHandler {
 			}
 			break;
 		case "/deletelights":
-			game.sceneMap().getComponent(SceneComponentType.DECORATION).reset();
+			ui.print("TODO: support this")
 			break;
 		default:
 			ui.print("Unknown command: " + message);

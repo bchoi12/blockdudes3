@@ -44,9 +44,9 @@ export class OptionsHandler implements InterfaceHandler {
 		this._effectsInputElm.checked = options.enableEffects;
 		this._dynamicLightingInputElm.checked = options.enableDynamicLighting;
 
-		this._extrapolationInputElm.value = "" + options.extrapolateWeight * 100;
-		this._soundVolumeInputElm.value = "" + options.soundVolume * 100;
-		this._rendererScaleInputElm.value = "" + options.rendererScale * 100;
+		this._extrapolationInputElm.value = "" + options.extrapolateWeight;
+		this._soundVolumeInputElm.value = "" + options.soundVolume;
+		this._rendererScaleInputElm.value = "" + options.rendererScale;
 		this._multisamplingInputElm.value = "" + options.rendererMultisampling;
 
 		if (options.enableEffects) {
@@ -76,15 +76,15 @@ export class OptionsHandler implements InterfaceHandler {
 		};
 
 		this._extrapolationInputElm.onchange = () => {
-			const weight = Math.min(1, Math.max(0, Number(this._extrapolationInputElm.value) / 100));
+			const weight = Math.min(1, Math.max(0, Number(this._extrapolationInputElm.value)));
 			options.extrapolateWeight = weight;
 		};
 		this._soundVolumeInputElm.onchange = () => {
-			const volume = Math.min(1, Math.max(0, Number(this._soundVolumeInputElm.value) / 100));
+			const volume = Math.min(1, Math.max(0, Number(this._soundVolumeInputElm.value)));
 			options.soundVolume = volume;
 		};
 		this._rendererScaleInputElm.onchange = () => {
-			const scale = Math.min(1, Math.max(0.25, Number(this._rendererScaleInputElm.value) / 100));
+			const scale = Math.min(2, Math.max(0.25, Number(this._rendererScaleInputElm.value)));
 			options.rendererScale = scale;
 			renderer.resize();
 		};

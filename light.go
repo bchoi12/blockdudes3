@@ -13,6 +13,6 @@ type Light struct {
 
 func NewLight(init Init) *Light {
 	return &Light {
-		BaseObject: NewCircleObject(init),
+		BaseObject: NewRec2Object(init),
 	}
 }

@@ -54,7 +54,7 @@ func (j *Jetpack) UpdateState(grid *Grid, now time.Time) {
 
 	j.state = activePartState
 	jet := NewVec2(0 /* FSign(player.Dir().X) * -player.Dir().Y */, 1)
-	scale := Clamp(0.1, -0.5 * player.Vel().Y, 0.8) 
+	scale := Clamp(0.1, -0.5 * player.Vel().Y + 0.6, 1.0) 
 	jet.Scale(scale)
 	player.AddForce(jet)
 	j.juice -= 1

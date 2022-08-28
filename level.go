@@ -1,5 +1,9 @@
 package main
 
+import (
+	"math"
+)
+
 type LevelIdType uint8
 const (
 	unknownLevel LevelIdType = iota
@@ -52,6 +56,11 @@ func (l Level) createInitBR(space SpaceType, pos Vec2, dim Vec2) Init {
 	return l.createInit(space, centered, dim)
 }
 
+func (l Level) createInitT(space SpaceType, pos Vec2, dim Vec2) Init {
+	centered := NewVec2(pos.X, pos.Y - dim.Y/2)
+	return l.createInit(space, centered, dim)
+}
+
 // TODO: currently loading is done via WASM then sent redundantly over network & skipped
 func (l *Level) loadTestLevel() {
 	g := l.grid
@@ -92,12 +101,13 @@ func (l *Level) loadTestLevel() {
 	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(4, 0), NewVec2(1.5, 1.2))))
 	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
 
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(4, 3), NewVec2(6, 6))))
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(4, 3), NewVec2(0.3, 0.2))))
 	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
-	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
-	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
-	g.GetLast(lightSpace).SetInitProp(posZProp, 1)
-	g.GetLast(lightSpace).SetDir(NewVec2(0, -1))
+	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
+	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 1)
 
 	{
 		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(22, -10), NewVec2(20, 10), bottomCenter)
@@ -133,20 +143,21 @@ func (l *Level) loadTestLevel() {
 		}
 	}
 
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(17, 5), NewVec2(8, 8))))
+	g.Upsert(g.New(l.createInitT(lightSpace, NewVec2(17, 5), NewVec2(0.3, 0.5))))
 	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
-	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
-	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFF6666)
-	g.GetLast(lightSpace).SetInitProp(posZProp, 1)
-	g.GetLast(lightSpace).SetDir(NewVec2(0, -1))
+	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFF6666)
+	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 1)
 
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(27, 5), NewVec2(8, 8))))
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(27, 5), NewVec2(0.3, 0.5))))
 	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
-	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
-	g.GetLast(lightSpace).SetInitProp(colorProp, 0x6666FF)
-	g.GetLast(lightSpace).SetInitProp(posZProp, 1)
-	g.GetLast(lightSpace).SetDir(NewVec2(0, -1))
-
+	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0x6666FF)
+	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 1)
 
 	g.Upsert(g.New(l.createInitB(wallSpace, NewVec2(22, 0), NewVec2(2, 2))))
 	g.GetLast(wallSpace).AddAttribute(stairAttribute)
@@ -228,12 +239,13 @@ func (l *Level) loadTestLevel() {
 		}
 	}
 
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(40, 1), NewVec2(6, 6))))
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(40, 1), NewVec2(0.3, 0.2))))
 	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
-	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
-	g.GetLast(lightSpace).SetInitProp(colorProp, 0xAD07DB)
-	g.GetLast(lightSpace).SetInitProp(posZProp, 1)
-	g.GetLast(lightSpace).SetDir(NewVec2(0, -1))
+	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xAD07DB)
+	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 1)
 
 	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(40, 4), NewVec2(3, 0.2))))
 	g.GetLast(wallSpace).AddAttribute(platformAttribute)
@@ -272,12 +284,13 @@ func (l *Level) loadTestLevel() {
 		}
 	}
 
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(56, 1), NewVec2(6, 6))))
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(56, 1), NewVec2(0.3, 0.2))))
 	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
-	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
-	g.GetLast(lightSpace).SetInitProp(colorProp, 0xC306D1)
-	g.GetLast(lightSpace).SetInitProp(posZProp, 1)
-	g.GetLast(lightSpace).SetDir(NewVec2(0, -1))
+	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xC306D1)
+	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 1)
 
 	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(48, -2.25), NewVec2(8, 0.5))))
 	g.GetLast(wallSpace).SetInitProp(dimZProp, 7)
@@ -285,47 +298,53 @@ func (l *Level) loadTestLevel() {
 	g.GetLast(wallSpace).AddAttribute(platformAttribute)
 	g.GetLast(wallSpace).SetInitProp(dimZProp, 7)
 
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(46, -2), NewVec2(6, 6))))
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(46, -2), NewVec2(0.3, 0.1))))
 	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
-	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
-	g.GetLast(lightSpace).SetInitProp(posZProp, 2.5)
-	g.GetLast(lightSpace).SetDir(NewVec2(0, 1))
+	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
+	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
+	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 2.5)
 
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(48, -2), NewVec2(6, 6))))
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(48, -2), NewVec2(0.3, 0.1))))
 	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
-	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
-	g.GetLast(lightSpace).SetInitProp(posZProp, 2.5)
-	g.GetLast(lightSpace).SetDir(NewVec2(0, 1))
+	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
+	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
+	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 2.5)
 
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(50, -2), NewVec2(6, 6))))
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(50, -2), NewVec2(0.3, 0.1))))
 	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
-	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
-	g.GetLast(lightSpace).SetInitProp(posZProp, 2.5)
-	g.GetLast(lightSpace).SetDir(NewVec2(0, 1))
+	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
+	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
+	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 2.5)
 
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(46, -2), NewVec2(6, 6))))
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(46, -2), NewVec2(0.3, 0.1))))
 	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
-	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
-	g.GetLast(lightSpace).SetInitProp(posZProp, -2.5)
-	g.GetLast(lightSpace).SetDir(NewVec2(0, 1))
+	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
+	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
+	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, -2.5)
 
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(48, -2), NewVec2(6, 6))))
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(48, -2), NewVec2(0.3, 0.1))))
 	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
-	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
-	g.GetLast(lightSpace).SetInitProp(posZProp, -2.5)
-	g.GetLast(lightSpace).SetDir(NewVec2(0, 1))
+	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
+	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
+	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, -2.5)
 
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(50, -2), NewVec2(6, 6))))
+	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(50, -2), NewVec2(0.3, 0.1))))
 	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-	g.GetLast(lightSpace).SetByteAttribute(juiceByteAttribute, 60)
-	g.GetLast(lightSpace).SetInitProp(colorProp, 0xFFFFFF)
-	g.GetLast(lightSpace).SetInitProp(posZProp, -2.5)
-	g.GetLast(lightSpace).SetDir(NewVec2(0, 1))
+	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
+	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
+	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
+	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, -2.5)
 
 	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(56, 4), NewVec2(3, 0.2))))
 	g.GetLast(wallSpace).AddAttribute(platformAttribute)

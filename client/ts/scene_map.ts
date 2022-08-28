@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 
-import { Decoration } from './decoration.js'
 import { LightBuffer } from './light_buffer.js'
 import { Lighting } from './lighting.js'
 import { Particles } from './particles.js'
@@ -38,7 +37,6 @@ export class SceneMap {
 		this.addComponent(SceneComponentType.LIGHTING, new Lighting());
 		this.addComponent(SceneComponentType.WEATHER, new Weather());
 		this.addComponent(SceneComponentType.PARTICLES, new Particles());
-		this.addComponent(SceneComponentType.DECORATION, new Decoration());
 	}
 
 	scene() : THREE.Scene { return this._scene; }
@@ -182,9 +180,5 @@ export class SceneMap {
 			return;
 		}
 		object.setData(msg, seqNum);
-	}
-
-	initLevel() : void {
-		this.getComponent(SceneComponentType.DECORATION).initLevel();
 	}
 }

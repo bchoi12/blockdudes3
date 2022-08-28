@@ -6,13 +6,11 @@ export class WallBuilder {
 
 	private _dim : THREE.Vector2;
 	private _thickness : number;
-	private _baseMaterial : THREE.Material;
 	private _shape : THREE.Shape;
 
-	constructor(dim : THREE.Vector2, thickness : number, baseMaterial : THREE.Material) {
+	constructor(dim : THREE.Vector2, thickness : number) {
 		this._dim = dim;
 		this._thickness = thickness;
-		this._baseMaterial = baseMaterial;
 
 		this._shape = new THREE.Shape([
 			new THREE.Vector2(-dim.x/2, -dim.y/2),
@@ -32,7 +30,7 @@ export class WallBuilder {
 			-this._dim.y / 2 + this._thickness + y * (this._dim.y - 2 * this._thickness));
 	}
 
-	build() : THREE.Mesh {
-		return new THREE.Mesh(new PrismGeometry(this._shape, this._thickness), this._baseMaterial);
+	build(material : THREE.Material) : THREE.Mesh {
+		return new THREE.Mesh(new THREE.ShapeGeometry(this._shape), material);
 	}
 }

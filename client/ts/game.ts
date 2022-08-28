@@ -273,8 +273,6 @@ class Game {
 				this.sceneMap().setData(space, id, data, /*seqNum=*/0);
 			}
 		}
-
-		this.sceneMap().initLevel();
 	}
 
 	private updateCamera() : void {

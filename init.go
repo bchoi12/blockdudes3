@@ -89,9 +89,7 @@ type Init struct {
 type InitMethods interface {
 	SpacedIdMethods
 	Pos() Vec2
-	SetPos(pos Vec2)
 	Dim() Vec2
-	SetDim(dim Vec2)
 	GetInitData() Data
 }
 

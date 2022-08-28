@@ -24,20 +24,27 @@ export enum EffectType {
 
 export class Effects {
 
-	private _webgl : THREE.WebGLRenderer;
 	private _composer : EffectComposer;
 	private _selections : Map<EffectType, Selection>;
 
 	constructor(webgl : THREE.WebGLRenderer) {
-		this._webgl = webgl;
-		this._composer = new EffectComposer(this._webgl);
 		this._selections = new Map<EffectType, Selection>();
+
+		this.reset(webgl);
+	}
+
+	reset(webgl : THREE.WebGLRenderer) {
+		this._composer = new EffectComposer(webgl);
 
 		let scene = game.sceneMap().scene();
 		let camera = renderer.cameraController().camera();
 
 		let mainPass = new RenderPass(scene, camera);
-		this._selections.set(EffectType.MAIN, mainPass.selection);
+		if (this._selections.has(EffectType.MAIN)) {
+			mainPass.selection = this._selections.get(EffectType.MAIN);
+		} else {
+			this._selections.set(EffectType.MAIN, mainPass.selection);
+		}
 
 		let selectiveBloom = new SelectiveBloomEffect(scene, camera, {
 			blendFunction: BlendFunction.ADD,
@@ -46,7 +53,11 @@ export class Effects {
 			intensity: 1.5,
 		});
 		selectiveBloom.ignoreBackground = true;
-		this._selections.set(EffectType.BLOOM, selectiveBloom.selection);
+		if (this._selections.has(EffectType.BLOOM)) {
+			selectiveBloom.selection = this._selections.get(EffectType.BLOOM);
+		} else {
+			this._selections.set(EffectType.BLOOM, selectiveBloom.selection);
+		}
 
 		let outline = new OutlineEffect(scene, camera, {
 			blendFunction: BlendFunction.SCREEN,
@@ -58,7 +69,11 @@ export class Effects {
 			blur: true,
 			xRay: false,
 		});
-		this._selections.set(EffectType.OUTLINE, outline.selection);
+		if (this._selections.has(EffectType.OUTLINE)) {
+			outline.selection = this._selections.get(EffectType.OUTLINE);
+		} else {
+			this._selections.set(EffectType.OUTLINE, outline.selection);
+		}
 
 		this._composer.addPass(mainPass);
 		this._composer.addPass(new EffectPass(camera, selectiveBloom));
@@ -74,10 +89,6 @@ export class Effects {
 	}
 
 	setEffect(effect : EffectType, enabled : boolean, object : THREE.Object3D) {
-		if (!options.enableEffects) {
-			return;
-		}
-
 		if (!this._selections.has(effect)) {
 			console.error("Attempting to modify uninitialized effect " + effect);
 			return;

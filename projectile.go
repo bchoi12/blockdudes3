@@ -138,7 +138,7 @@ func (p *Projectile) Collide(collider Object, grid *Grid) {
 
 func (p *Projectile) SelfDestruct(grid *Grid) {
 	if p.collider != nil {
-		p.Hit(p.collider)
+		p.Hit(grid, p.collider)
 	}
 	if p.explosionOptions.explode {
 		init := NewInit(grid.NextSpacedId(explosionSpace), p.Pos(), p.explosionOptions.size)	
@@ -149,7 +149,7 @@ func (p *Projectile) SelfDestruct(grid *Grid) {
 	grid.Delete(p.GetSpacedId())	
 }
 
-func (p *Projectile) Hit(collider Object) {
+func (p *Projectile) Hit(grid *Grid, collider Object) {
 	hit := NewHit()
 	hit.SetTarget(collider.GetSpacedId())
 	hit.SetPos(p.Pos())
