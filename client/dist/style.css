@@ -162,10 +162,6 @@ fieldset legend {
 	padding: 0.2em;
 }
 
-.option:hover {
-	cursor: pointer;
-}
-
 #cursor {
 	position: absolute;
 	visibility: hidden;

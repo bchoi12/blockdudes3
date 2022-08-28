@@ -21,12 +21,12 @@ export class PauseHandler implements InterfaceHandler {
 		});
 
 		document.addEventListener("keydown", (e : any) => {
-			if (e.keyCode === options.pauseKeyCode) {
-				if (ui.inputMode() === InputMode.GAME) {
-					ui.changeInputMode(InputMode.PAUSE);
-				} else if (ui.inputMode() === InputMode.PAUSE) {
-					ui.changeInputMode(InputMode.GAME);
-				}
+			if (e.repeat || e.keyCode !== options.pauseKeyCode) return;
+
+			if (ui.inputMode() === InputMode.GAME) {
+				ui.changeInputMode(InputMode.PAUSE);
+			} else if (ui.inputMode() === InputMode.PAUSE) {
+				ui.changeInputMode(InputMode.GAME);
 			}
 		})
 

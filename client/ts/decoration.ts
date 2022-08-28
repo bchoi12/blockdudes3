@@ -53,6 +53,9 @@ export class Decoration extends SceneComponent {
 			this._scene.add(light);
 			this._miscObjects.push(light);
 		}
+
+		// TODO: experiment to see if this removes some lag
+		renderer.compile(this._scene);
 	}
 
 	override reset() : void {

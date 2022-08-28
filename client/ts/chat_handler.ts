@@ -24,6 +24,8 @@ export class ChatHandler implements InterfaceHandler {
 
 		connection.addHandler(chatType, (msg : { [k: string]: any }) => { this.chat(msg) })
 		document.addEventListener("keydown", (e : any) => {
+			if (e.repeat) return;
+
 			if (e.keyCode === options.chatKeyCode) {
 				this.chatKeyPressed();
 			}
@@ -41,13 +43,23 @@ export class ChatHandler implements InterfaceHandler {
 			Html.selectable(this._chatElm);
 			Html.displayBlock(this._messageElm);
 			this._chatElm.style.bottom = "2em";
+			this._chatElm.style.backgroundColor = "rgba(255, 255, 255, 0.6)";
 			this._messageInputElm.focus();
 		} else {
 			Html.slightlyOpaque(this._chatElm);
 			Html.unselectable(this._chatElm);
 			Html.displayNone(this._messageElm);
 			this._chatElm.style.bottom = "1em";
+			this._chatElm.style.backgroundColor = "";
 			this._messageInputElm.blur();
+		}
+
+		// TODO: this should go somewhere else
+		if (game.timeOfDay() >= 0.5) {
+			this._chatElm.style.color = "#f2f2f2";
+			this._chatElm.style.backgroundColor = "";
+		} else {
+			this._chatElm.style.color = "#000000";
 		}
 	}
 
@@ -128,6 +140,10 @@ export class ChatHandler implements InterfaceHandler {
 	}
 
 	private chat(msg : { [k: string]: any }) {
+		if (!ui.hasClient(msg.Id)) {
+			return;
+		}
+
 		const name = ui.getClientName(msg.Id);
 		const message = msg.M;
 
