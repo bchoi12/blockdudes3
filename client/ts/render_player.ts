@@ -20,7 +20,7 @@ enum PlayerAction {
 export class RenderPlayer extends RenderAnimatedObject {
 	private readonly _sqrtHalf = .70710678;
 	private readonly _rotationOffset = -0.1;
-	private readonly _cloudMaterial = new THREE.MeshStandardMaterial( {color: 0xdddddd , transparent: true, opacity: 0.7} );
+	private readonly _cloudMaterial = new THREE.MeshStandardMaterial( {color: 0xdddddd } );
 	private readonly _pointsMaterial = new THREE.PointsMaterial( { color: 0x000000, size: 0.2} );
 
 	private _name : THREE.Object3D;
@@ -110,6 +110,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this._lastGrounded = grounded;
 
 			// TODO: move this to particles?
+			// TODO: reuse the sphere
 			const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(0.3, 6, 6), this._cloudMaterial);
 			cloudMesh.position.x = pos.x;
 			cloudMesh.position.y = pos.y - dim.y / 2;

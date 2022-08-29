@@ -25,6 +25,8 @@ export enum EffectType {
 export class Effects {
 
 	private _composer : EffectComposer;
+	private _selectiveBloom : SelectiveBloomEffect;
+	private _outline : OutlineEffect;
 	private _selections : Map<EffectType, Selection>;
 
 	constructor(webgl : THREE.WebGLRenderer) {
@@ -46,51 +48,53 @@ export class Effects {
 			this._selections.set(EffectType.MAIN, mainPass.selection);
 		}
 
-		let selectiveBloom = new SelectiveBloomEffect(scene, camera, {
+		this._selectiveBloom = new SelectiveBloomEffect(scene, camera, {
 			blendFunction: BlendFunction.ADD,
 			luminanceThreshold: 0,
-			luminanceSmoothing: 0.025,
-			intensity: 1.5,
+			intensity: 1.2,
 		});
-		selectiveBloom.ignoreBackground = true;
+		this._selectiveBloom.ignoreBackground = true;
 		if (this._selections.has(EffectType.BLOOM)) {
-			selectiveBloom.selection = this._selections.get(EffectType.BLOOM);
+			this._selectiveBloom.selection = this._selections.get(EffectType.BLOOM);
 		} else {
-			this._selections.set(EffectType.BLOOM, selectiveBloom.selection);
+			this._selections.set(EffectType.BLOOM, this._selectiveBloom.selection);
 		}
 
-		let outline = new OutlineEffect(scene, camera, {
+		this._outline = new OutlineEffect(scene, camera, {
 			blendFunction: BlendFunction.SCREEN,
-			edgeStrength: 3,
-			pulseSpeed: 0.0,
+			edgeStrength: 2,
 			visibleEdgeColor: 0xFFFFFF,
-			hiddenEdgeColor: 0x777777,
-			resolutionScale: 1,
+			resolutionScale: 0.2,
 			blur: true,
 			xRay: false,
 		});
 		if (this._selections.has(EffectType.OUTLINE)) {
-			outline.selection = this._selections.get(EffectType.OUTLINE);
+			this._outline.selection = this._selections.get(EffectType.OUTLINE);
 		} else {
-			this._selections.set(EffectType.OUTLINE, outline.selection);
+			this._selections.set(EffectType.OUTLINE, this._outline.selection);
 		}
 
 		this._composer.addPass(mainPass);
-		this._composer.addPass(new EffectPass(camera, selectiveBloom));
-		this._composer.addPass(new EffectPass(camera, outline));
+		this._composer.addPass(new EffectPass(camera, this._selectiveBloom));
+		this._composer.addPass(new EffectPass(camera, this._outline));
 	}
 
 	render(scene : THREE.Scene, camera : THREE.Camera) : void {
 		if (this._composer.multisampling !== options.rendererMultisampling) {
 			this._composer.multisampling = options.rendererMultisampling;
 		}
-	
+		this._selectiveBloom.intensity = 1.2 + 6 * game.timeOfDay() * game.timeOfDay();
+
 		this._composer.render();
 	}
 
 	setEffect(effect : EffectType, enabled : boolean, object : THREE.Object3D) {
 		if (!this._selections.has(effect)) {
 			console.error("Attempting to modify uninitialized effect " + effect);
+			return;
+		}
+
+		if (!Util.defined(object)) {
 			return;
 		}
 

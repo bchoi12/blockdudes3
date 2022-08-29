@@ -22,7 +22,7 @@ export class ForegroundGroup {
 	}
 
 	scene() : THREE.Scene { return this._scene; }
-	setTransparent(transparent : boolean) : void { this._transparent = transparent; }
+	setTransparent(transparent : boolean) : void { this._transparent = transparent; /*this._scene.visible = !this._transparent;*/ }
 
 	add(mesh : THREE.Mesh) {
 		// @ts-ignore

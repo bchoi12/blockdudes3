@@ -23,11 +23,13 @@ export namespace Html {
 	export const divPause = "div-pause";
 	export const fieldsetClients = "fieldset-clients";
 	export const fieldsetOptions = "fieldset-options";
+	export const optionsAntialiasing = "options-antialiasing";
 	export const optionsMultisampling = "options-multisampling";
 	export const inputPointerLock = "input-pointer-lock";
 	export const inputShadows = "input-shadows";
 	export const inputEffects = "input-effects";
 	export const inputDynamicLighting = "input-dynamic-lighting";
+	export const inputAntialiasing = "input-antialiasing";
 	export const inputExtrapolation = "input-extrapolation";
 	export const inputSoundVolume = "input-sound-volume";
 	export const inputRendererScale = "input-renderer-scale";

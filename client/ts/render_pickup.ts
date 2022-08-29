@@ -25,6 +25,10 @@ export class RenderPickup extends RenderObject {
 		});
 	}
 
+	override delete() : void {
+		renderer.setEffect(EffectType.OUTLINE, false, this.mesh().getObjectByName("mesh"));
+	}
+
 	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
 

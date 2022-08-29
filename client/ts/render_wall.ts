@@ -24,7 +24,22 @@ export class RenderWall extends RenderObject {
 			mesh.receiveShadow = true;
 		}
 
+		mesh.position.copy(this.pos3());
+		mesh.matrixAutoUpdate = false;
+		mesh.updateMatrix();
 		this.setMesh(mesh);
+	}
+
+	override update() : void {
+		super.update();
+
+		if (!this.hasMesh()) {
+			return;
+		}
+
+		if (this.vel().lengthSq() > 0) {
+			this.mesh().updateMatrix();
+		}
 	}
 }
 

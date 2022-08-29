@@ -7,6 +7,8 @@ import { renderer } from './renderer.js'
 import { LogUtil, Util } from './util.js'
 
 export class RenderLight extends RenderObject {
+	private _bulb : THREE.Mesh;
+
 	constructor(space : number, id : number) {
 		super(space, id);
 	}
@@ -38,7 +40,7 @@ export class RenderLight extends RenderObject {
 		const secondaryColor = this.hasIntAttribute(secondaryColorIntAttribute) ? this.intAttribute(secondaryColorIntAttribute) : 0x6b6b6b;
 
 		let scene = new THREE.Scene();
-		let light, target, bulb, lamp, wire;
+		let light, target, lamp, wire;
 
 		switch (this.byteAttribute(typeByteAttribute)) {
 		case pointLight:
@@ -50,8 +52,8 @@ export class RenderLight extends RenderObject {
 			target.position.copy(new THREE.Vector3(0, -1, 0));
 
 			const rad = dim.x / 3;
-			bulb = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, rad, 12), new THREE.MeshStandardMaterial({color: color }));
-			bulb.rotation.x = Math.PI / 2;
+			this._bulb = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, rad, 12), new THREE.MeshStandardMaterial({color: color }));
+			this._bulb.rotation.x = Math.PI / 2;
 
 			const height = 0.6 * dim.x;
 			lamp = new THREE.Mesh(new THREE.ConeGeometry(dim.x, height, 8, 1), new THREE.MeshStandardMaterial({color: secondaryColor }));
@@ -72,7 +74,7 @@ export class RenderLight extends RenderObject {
 			target = new THREE.Object3D();
 			target.position.copy(new THREE.Vector3(0, 1, 0));
 
-			bulb = new THREE.Mesh(new THREE.CylinderGeometry(dim.x / 2, dim.x / 2, dim.y, 12), new THREE.MeshStandardMaterial({color: color }));
+			this._bulb = new THREE.Mesh(new THREE.CylinderGeometry(dim.x / 2, dim.x / 2, dim.y, 12), new THREE.MeshStandardMaterial({color: color }));
 			break;
 		default:
 			LogUtil.w("Unknown light type: " + this.byteAttribute(typeByteAttribute));
@@ -91,9 +93,9 @@ export class RenderLight extends RenderObject {
 			scene.add(light.target);
 		}
 
-		if (Util.defined(bulb)) {
-			renderer.setEffect(EffectType.BLOOM, true, bulb);
-			scene.add(bulb);
+		if (Util.defined(this._bulb)) {
+			renderer.setEffect(EffectType.BLOOM, true, this._bulb);
+			scene.add(this._bulb);
 		}
 		if (Util.defined(lamp)) {
 			scene.add(lamp);
@@ -103,6 +105,12 @@ export class RenderLight extends RenderObject {
 		}
 
 		this.setMesh(scene);
+	}
+
+	override delete() : void {
+		if (Util.defined(this._bulb)) {
+			renderer.setEffect(EffectType.BLOOM, false, this._bulb);
+		}
 	}
 }
 

@@ -1,3 +1,4 @@
+import * as THREE from 'three'
 
 import { connection } from './connection.js'
 import { game } from './game.js'
@@ -90,8 +91,17 @@ export class ChatHandler implements InterfaceHandler {
 				game.setTimeOfDay(Number(pieces[1]));
 			}
 			break;
-		case "/deletelights":
-			ui.print("TODO: support this")
+		case "/nolights":
+			game.sceneMap().clear(lightSpace);
+			break;
+		case "/nowalls":
+			game.sceneMap().clear(wallSpace);
+			break;
+		case "/noblocks":
+			game.sceneMap().clear(blockSpace);
+			break;
+		case "/green":
+			game.sceneMap().scene().overrideMaterial = new THREE.MeshBasicMaterial({ color: 0x00FF00 });
 			break;
 		default:
 			ui.print("Unknown command: " + message);

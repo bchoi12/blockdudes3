@@ -12,11 +12,13 @@ export class OptionsHandler implements InterfaceHandler {
 	private _shadowsInputElm : HTMLInputElement;
 	private _effectsInputElm : HTMLInputElement;
 	private _dynamicLightingInputElm : HTMLInputElement;
+	private _antialiasingElm : HTMLElement;
+	private _antialiasingInputElm : HTMLInputElement;
 
 	private _extrapolationInputElm : HTMLInputElement;
 	private _soundVolumeInputElm : HTMLInputElement;
 	private _rendererScaleInputElm : HTMLInputElement;
-	private _multiSamplingElm : HTMLElement;
+	private _multisamplingElm : HTMLElement;
 	private _multisamplingInputElm : HTMLInputElement;
 
 	constructor() {
@@ -26,11 +28,13 @@ export class OptionsHandler implements InterfaceHandler {
 		this._shadowsInputElm = Html.inputElm(Html.inputShadows);
 		this._effectsInputElm = Html.inputElm(Html.inputEffects);
 		this._dynamicLightingInputElm = Html.inputElm(Html.inputDynamicLighting);
+		this._antialiasingElm = Html.elm(Html.optionsAntialiasing);
+		this._antialiasingInputElm = Html.inputElm(Html.inputAntialiasing);
 
 		this._extrapolationInputElm = Html.inputElm(Html.inputExtrapolation);
 		this._soundVolumeInputElm = Html.inputElm(Html.inputSoundVolume);
 		this._rendererScaleInputElm = Html.inputElm(Html.inputRendererScale);
-		this._multiSamplingElm = Html.elm(Html.optionsMultisampling);
+		this._multisamplingElm = Html.elm(Html.optionsMultisampling);
 		this._multisamplingInputElm = Html.inputElm(Html.inputMultisampling);
 	}
 
@@ -43,17 +47,23 @@ export class OptionsHandler implements InterfaceHandler {
 		this._shadowsInputElm.checked = options.enableShadows;
 		this._effectsInputElm.checked = options.enableEffects;
 		this._dynamicLightingInputElm.checked = options.enableDynamicLighting;
+		this._antialiasingInputElm.checked = options.enableAntialiasing;
 
 		this._extrapolationInputElm.value = "" + options.extrapolateWeight;
 		this._soundVolumeInputElm.value = "" + options.soundVolume;
 		this._rendererScaleInputElm.value = "" + options.rendererScale;
 		this._multisamplingInputElm.value = "" + options.rendererMultisampling;
 
-		if (options.enableEffects) {
-			this._multiSamplingElm.style.display = "block";
-		} else {
-			this._multiSamplingElm.style.display = "none";
-		}
+		const toggleEffects = () => {
+			if (options.enableEffects) {
+				this._antialiasingElm.style.display = "none";
+				this._multisamplingElm.style.display = "block";
+			} else {
+				this._antialiasingElm.style.display = "block";
+				this._multisamplingElm.style.display = "none";
+			}
+		};
+		toggleEffects();
 
 		this._pointerLockInputElm.onchange = () => {
 			options.enablePointerLock = this._pointerLockInputElm.checked;
@@ -64,16 +74,17 @@ export class OptionsHandler implements InterfaceHandler {
 		};
 		this._effectsInputElm.onchange = () => {
 			options.enableEffects = this._effectsInputElm.checked;
-			if (options.enableEffects) {
-				this._multiSamplingElm.style.display = "block";
-			} else {
-				this._multiSamplingElm.style.display = "none";
-			}
+			toggleEffects();
 			renderer.reset();
 		};
 		this._dynamicLightingInputElm.onchange = () => {
 			options.enableDynamicLighting = this._dynamicLightingInputElm.checked;
 		};
+		this._antialiasingInputElm.onchange = () => {
+			options.enableAntialiasing = this._antialiasingInputElm.checked;
+			renderer.reset();
+		};
+
 
 		this._extrapolationInputElm.onchange = () => {
 			const weight = Math.min(1, Math.max(0, Number(this._extrapolationInputElm.value)));

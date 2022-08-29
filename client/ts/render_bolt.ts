@@ -38,6 +38,8 @@ export class RenderBolt extends RenderProjectile {
 	override delete() : void {
 		super.delete();
 		game.sceneMap().returnPointLight(this._light);
+		renderer.setEffect(EffectType.BLOOM, false, this.mesh());
+		renderer.setEffect(EffectType.BLOOM, false, super.getTrail());
 
 		if (Util.defined(this._soundId)) {
 			renderer.stopSound(Sound.TOM_SCREAM, this._soundId);
@@ -49,6 +51,7 @@ export class RenderBolt extends RenderProjectile {
 		super.addTrail(this._tailMaterial, 1);
 
 		renderer.setEffect(EffectType.BLOOM, true, mesh);
+		renderer.setEffect(EffectType.BLOOM, true, super.getTrail());
 
 		this._light = game.sceneMap().getPointLight();
 		if (Util.defined(this._light)) {

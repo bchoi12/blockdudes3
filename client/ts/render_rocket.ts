@@ -10,7 +10,7 @@ import { renderer } from './renderer.js'
 import { MathUtil, Util } from './util.js'
 
 export class RenderRocket extends RenderProjectile {
-	private readonly _smokeMaterial = new THREE.MeshStandardMaterial( {color: 0xbbbbbb , transparent: true, opacity: 0.5} );
+	private readonly _smokeMaterial = new THREE.MeshStandardMaterial( {color: 0xbbbbbb} );
 	private readonly _smokeInterval = 15;
 	private readonly _rotateZ = 8;
 
@@ -60,6 +60,7 @@ export class RenderRocket extends RenderProjectile {
 		projectile.rotation.z += this._rotateZ * this.timestep();
 
 		if (Date.now() - this._lastSmoke >= this._smokeInterval) {
+			// TODO: reuse SphereGeometry somehow
 			const smokeMesh = new THREE.Mesh(new THREE.SphereGeometry(MathUtil.randomRange(0.1, 0.2), 3, 3), this._smokeMaterial);
 			smokeMesh.position.x = pos.x - dim.x / 2 * dir.x + MathUtil.randomRange(-0.1, 0.1);
 			smokeMesh.position.y = pos.y - dim.y / 2 * dir.y + MathUtil.randomRange(-0.1, 0.1);

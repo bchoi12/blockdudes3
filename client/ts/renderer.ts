@@ -41,8 +41,8 @@ class Renderer {
 			canvas: this._canvas,
 			powerPreference: "high-performance",
 			precision: "lowp",
-			antialias: !options.enableEffects,
-			stencil: true,
+			antialias: !options.enableEffects && options.enableAntialiasing,
+			stencil: false,
 			depth: true,
 		});
 
@@ -55,10 +55,6 @@ class Renderer {
 			this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		}
 
-		if (Util.defined(this._effects)) {
-			this._effects.reset(this._renderer);
-		}
-
 		this.resize();
 	}
 
@@ -67,14 +63,19 @@ class Renderer {
 		const height = window.innerHeight;
 
 		this._renderer.setSize(width, height);
-		this._renderer.setPixelRatio(window.devicePixelRatio * options.rendererScale);
+		this._renderer.setPixelRatio(options.rendererScale);
 
 		this._canvas.style.width = width + "px";
 		this._canvas.style.height = height + "px";
 
 		this._cameraController.setAspect(width / height);
+
+		if (Util.defined(this._effects)) {
+			this._effects.reset(this._renderer);
+		}
 	}
 
+	info() : any { return this._renderer.info; }
 	elm() : HTMLElement { return this._canvas; }
 	compile(scene : THREE.Scene) { this._renderer.compile(scene, this._cameraController.camera()); }
 	render() : void {

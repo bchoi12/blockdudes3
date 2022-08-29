@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 import { connection } from './connection.js'
 import { Keys } from './keys.js'
@@ -43,7 +44,9 @@ class Game {
 	private _lastSeqNum : number;
 	private _lastStateUpdate : number;
 
+	private _stats : Stats;
 	private _numObjectsAdded : number;
+	private _numObjectsExtrapolated: number;
 	private _numObjectsUpdated : number;
 
 	constructor() {
@@ -57,7 +60,9 @@ class Game {
 		this._lastSeqNum = 0;
 		this._lastStateUpdate = Date.now();
 
+		this._stats = Stats();
 		this._numObjectsAdded = 0;
+		this._numObjectsExtrapolated = 0;
 		this._numObjectsUpdated = 0;
 	}
 
@@ -86,9 +91,19 @@ class Game {
 	setState(state : GameState) { this._state = state; }
 	setTimeOfDay(timeOfDay : number) { this._timeOfDay = timeOfDay; }
 
+	stats() : Stats {
+		return this._stats;
+	}
+
 	flushAdded() : number {
 		const copy = this._numObjectsAdded;
 		this._numObjectsAdded = 0;
+		return copy;
+	}
+
+	flushExtrapolated() : number {
+		const copy = this._numObjectsExtrapolated;
+		this._numObjectsExtrapolated = 0;
 		return copy;
 	}
 
@@ -99,6 +114,7 @@ class Game {
 	}
 
 	private animate() : void {
+		this._stats.begin();
 		if (this.state() === GameState.GAME) {
 			this._keys.snapshotKeys();
 			this.extrapolateState();
@@ -110,6 +126,7 @@ class Game {
 			this.extrapolatePlayer();
 		}
 		renderer.render();
+		this._stats.end();
 		requestAnimationFrame(() => { this.animate(); });
 	}
 
@@ -219,9 +236,6 @@ class Game {
 		if (options.extrapolateWeight <= 0) {
 			return;
 		}
-		if (Date.now() - this._lastStateUpdate <= 10) {
-			return;
-		}
 
 		this.sceneMap().snapshotWasm();
 		const state = JSON.parse(wasmUpdateState());
@@ -234,6 +248,7 @@ class Game {
 				}
 
 				this.sceneMap().setData(space, id, object);
+				this._numObjectsExtrapolated++;
 			}
 		}
 	}

@@ -11,6 +11,7 @@ class Options {
 	public enableShadows : boolean;
 	public enableEffects : boolean;
 	public enableDynamicLighting : boolean;
+	public enableAntialiasing : boolean;
 
 	public rendererScale : number;
 	public rendererMultisampling : number;
@@ -25,9 +26,10 @@ class Options {
 		this.enableShadows = true;
 		this.enableEffects = true;
 		this.enableDynamicLighting = true;
+		this.enableAntialiasing = false;
 
 		this.rendererScale = 0.7;
-		this.rendererMultisampling = 2;
+		this.rendererMultisampling = 0;
 		this.soundVolume = 0.5;
 		this.extrapolateWeight = 0.5;
 		this.extrapolateMs = 100;

@@ -20,12 +20,14 @@ export class Weather extends SceneComponent {
 	constructor() {
 		super();
 
+		// TODO: instancing
 		this._cloudMaterials = new Array<THREE.Material>();
 		this._cloudMaterials.push(this.newCloudMaterial(0xeeeeee, MathUtil.randomRange(0.3, 0.5)));
 		this._cloudMaterials.push(this.newCloudMaterial(0xe4e4e4, MathUtil.randomRange(0.3, 0.5)));
 		this._cloudMaterials.push(this.newCloudMaterial(0xe0e0e0, MathUtil.randomRange(0.3, 0.5)));
 		this._cloudMaterials.push(this.newCloudMaterial(0xd2d2d2, MathUtil.randomRange(0.4, 0.6)));
 
+/*
 		for (let x = -15; x < 40; x += MathUtil.randomRange(9, 12)) {
 			let cloud = new RenderCustom();
 			cloud.setMesh(this.newCloudMesh(x));
@@ -40,6 +42,7 @@ export class Weather extends SceneComponent {
 			cloud.setUpdate(updateCloud);
 			this.addCustom(cloud);
 		}
+*/
 	}
 
 	override update() : void {

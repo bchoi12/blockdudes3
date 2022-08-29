@@ -64,7 +64,6 @@ export class LightBuffer {
 			return;
 		}
 
-		light.removeFromParent();
 		light.intensity = 0;
 
 		// Hack to prevent lag from destroying light

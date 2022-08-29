@@ -76,7 +76,7 @@ export class RenderProjectile extends RenderObject {
 			if (stopped) {
 				this._trail.scale.x = 0;
 			} else if (Date.now() - this.initializeTime() > 30) {
-				this._trail.scale.x += this._trailScalingFactor * this.timestep()
+				this._trail.scale.x += Math.min(this._trailScalingFactor * this.timestep(), 0.15);
 			}
 		}
 	}
@@ -94,6 +94,10 @@ export class RenderProjectile extends RenderObject {
 		this.mesh().add(gyro);
 
 		this._trailScalingFactor = scalingFactor;
+	}
+
+	protected getTrail() : THREE.Object3D {
+		return this._trail;
 	}
 }
 

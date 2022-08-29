@@ -9,7 +9,7 @@ import { Util } from './util.js'
 
 export class RenderPellet extends RenderProjectile {
 	private readonly _material = new THREE.MeshStandardMaterial( {color: 0xdede1d });
-	private readonly _trailMaterial = new THREE.MeshStandardMaterial( {color: 0xdede1d, transparent: true, opacity: 0.7 });
+	private readonly _trailMaterial = new THREE.MeshStandardMaterial( {color: 0xdede1d });
 
 	private _light : THREE.PointLight;
 
@@ -29,6 +29,9 @@ export class RenderPellet extends RenderProjectile {
 
 	override delete() : void {
 		super.delete();
+
+		renderer.setEffect(EffectType.BLOOM, false, this.mesh());
+		renderer.setEffect(EffectType.BLOOM, false, super.getTrail());
 		game.sceneMap().returnPointLight(this._light);
 	}
 
@@ -37,6 +40,7 @@ export class RenderPellet extends RenderProjectile {
 		super.addTrail(this._trailMaterial, 0.7);
 
 		renderer.setEffect(EffectType.BLOOM, true, mesh);
+		renderer.setEffect(EffectType.BLOOM, true, super.getTrail());
 
 		this._light = game.sceneMap().getPointLight();
 		if (Util.defined(this._light)) {

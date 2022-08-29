@@ -30,6 +30,7 @@ export class SceneMap {
 
 	reset() : void {
 		this._scene = new THREE.Scene();
+
 		this._renders = new Map();
 		this._deleted = new Map();
 
@@ -66,6 +67,7 @@ export class SceneMap {
 			map.forEach((object, id) => {
 				if (object.deleted()) {
 					this.delete(space, id);
+					return;
 				}
 				if (!object.ready()) {
 					return;

@@ -41,7 +41,10 @@ export class InputHandler implements InterfaceHandler {
 		this.mapKey(38, jumpKey);
 		this.mapKey(69, interactKey);
 
+		// TODO: consolidate this between handlers somehow
 		document.addEventListener("keydown", (e : any) => {
+			if (e.repeat) return;
+
 			if (this._keyDownCallbacks.has(e.keyCode)) {
 				this._keyDownCallbacks.get(e.keyCode)(e);
 			}
