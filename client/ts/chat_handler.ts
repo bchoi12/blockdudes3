@@ -103,6 +103,9 @@ export class ChatHandler implements InterfaceHandler {
 		case "/green":
 			game.sceneMap().scene().overrideMaterial = new THREE.MeshBasicMaterial({ color: 0x00FF00 });
 			break;
+		case "/nogreen":
+			game.sceneMap().scene().overrideMaterial = null;
+			break;
 		default:
 			ui.print("Unknown command: " + message);
 		}

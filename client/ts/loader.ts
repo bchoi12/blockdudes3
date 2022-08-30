@@ -17,6 +17,8 @@ export enum Model {
 	STAR_GUN = "STAR_GUN",
 
 	ROCKET = "ROCKET",
+
+	TEST_BUILDING = "TEST_BUILDING",
 }
 
 export enum Typeface {
@@ -109,20 +111,17 @@ class Loader {
 			case Model.CHICKEN:
 			case Model.DUCK:
 				data.scene.animations = data.animations;
-				if (options.enableShadows) {
-					data.scene.getObjectByName("mesh").castShadow = true;
-					data.scene.getObjectByName("mesh").receiveShadow = true;
-				}
+				data.scene.getObjectByName("mesh").castShadow = options.enableShadows;
+				data.scene.getObjectByName("mesh").receiveShadow = options.enableShadows;
 				break;
 			case Model.UZI:
 			case Model.BAZOOKA:
 			case Model.SNIPER:
 			case Model.STAR_GUN:
 			case Model.ROCKET:
-				if (options.enableShadows) {
-					data.scene.getObjectByName("mesh").castShadow = true;
-					data.scene.getObjectByName("mesh").receiveShadow = true;
-				}
+			case Model.TEST_BUILDING:
+				data.scene.getObjectByName("mesh").castShadow = options.enableShadows;
+				data.scene.getObjectByName("mesh").receiveShadow = options.enableShadows;
 				break;
 			default:
 				LogUtil.d("Model " + model + " processing skipped.");

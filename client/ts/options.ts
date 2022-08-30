@@ -28,7 +28,7 @@ class Options {
 		this.enableDynamicLighting = true;
 		this.enableAntialiasing = false;
 
-		this.rendererScale = 0.7;
+		this.rendererScale = 1.0;
 		this.rendererMultisampling = 0;
 		this.soundVolume = 0.5;
 		this.extrapolateWeight = 0.5;

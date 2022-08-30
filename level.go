@@ -1,9 +1,5 @@
 package main
 
-import (
-	"math"
-)
-
 type LevelIdType uint8
 const (
 	unknownLevel LevelIdType = iota
@@ -66,325 +62,52 @@ func (l *Level) loadTestLevel() {
 	g := l.grid
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(4, -10), NewVec2(12, 10), bottomCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(20, 0), NewVec2(16, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(12, 4.5), NewVec2(0.5, 3.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(28, 4.5), NewVec2(0.5, 3.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(20, 7), NewVec2(16, 1.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(12, 8), NewVec2(1, 1), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(28, 8), NewVec2(1, 1), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(20, 0), NewVec2(16, 8.5), defaultCenter)
 		block := NewBlock(init)
 		block.LoadTemplate(emptyBlockTemplate)
 		block.SetInitProp(dimZProp, 7)
 		block.SetThickness(0.5)
-		block.AddHorizontalBorder(1, NewPair(0, 1))
-		block.AddVerticalBorder(0, NewPair(0, 1))
-		block.AddVerticalBorder(1, NewPair(0, 1))
 		g.Upsert(block)
-		for _, object := range(block.GetObjects()) {
-			object.SetId(g.NextId(object.GetSpace()))
-			object.SetInitProp(dimZProp, 6)
-			g.Upsert(object)
-		}
 	}
 
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(4, 0), NewVec2(8, 4), bottomCenter)
-		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 5)
-		block.SetThickness(0.5)
-		block.AddHorizontalBorder(1, NewPair(0, 1))
-		block.AddVerticalBorder(0, NewPair(0, 1))
-		g.Upsert(block)
-		for _, object := range(block.GetObjects()) {
-			object.SetId(g.NextId(object.GetSpace()))
-			object.SetInitProp(dimZProp, 4)
-			g.Upsert(object)
-		}
-	}
-
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(4, 0), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
-
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(4, 3), NewVec2(0.3, 0.2))))
-	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
-	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
-	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 1)
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(22, -10), NewVec2(20, 10), bottomCenter)
-		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 6)
-		block.SetThickness(0.5)
-		block.AddHorizontalBorder(1, NewPair(0, 1))
-		block.AddVerticalBorder(0, NewPair(0, 1))
-		block.AddVerticalBorder(1, NewPair(0, 1))
-		g.Upsert(block)
-		for _, object := range(block.GetObjects()) {
-			object.SetId(g.NextId(object.GetSpace()))
-			object.SetInitProp(dimZProp, 5)
-			g.Upsert(object)
-		}
-	}
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(22, 0), NewVec2(16, 6), bottomCenter)
-		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 5)
-		block.SetThickness(0.5)
-		block.AddHorizontalBorder(1, NewPair(0, 0.3), NewPair(0.7, 1))
-		block.AddVerticalBorder(0, NewPair(0.5, 1))
-		block.AddVerticalBorder(1, NewPair(0.5, 1))
-		g.Upsert(block)
-		for _, object := range(block.GetObjects()) {
-			object.SetId(g.NextId(object.GetSpace()))
-			object.SetInitProp(dimZProp, 4)
-			g.Upsert(object)
-		}
-	}
-
-	g.Upsert(g.New(l.createInitT(lightSpace, NewVec2(17, 5), NewVec2(0.3, 0.5))))
-	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
-	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFF6666)
-	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 1)
-
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(27, 5), NewVec2(0.3, 0.5))))
-	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
-	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0x6666FF)
-	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 1)
-
-	g.Upsert(g.New(l.createInitB(wallSpace, NewVec2(22, 0), NewVec2(2, 2))))
-	g.GetLast(wallSpace).AddAttribute(stairAttribute)
-	g.GetLast(wallSpace).SetInitProp(dimZProp, 4)
-	g.Upsert(g.New(l.createInitBR(wallSpace, NewVec2(21, 0), NewVec2(1, 1.33))))
-	g.GetLast(wallSpace).AddAttribute(stairAttribute)
-	g.GetLast(wallSpace).SetInitProp(dimZProp, 4)
-	g.Upsert(g.New(l.createInitBR(wallSpace, NewVec2(20, 0), NewVec2(1, 0.66))))
-	g.GetLast(wallSpace).AddAttribute(stairAttribute)
-	g.GetLast(wallSpace).SetInitProp(dimZProp, 4)
-	g.Upsert(g.New(l.createInitBL(wallSpace, NewVec2(23, 0), NewVec2(1, 1.33))))
-	g.GetLast(wallSpace).AddAttribute(stairAttribute)
-	g.GetLast(wallSpace).SetInitProp(dimZProp, 4)
-	g.Upsert(g.New(l.createInitBL(wallSpace, NewVec2(24, 0), NewVec2(1, 0.66))))
-	g.GetLast(wallSpace).AddAttribute(stairAttribute)
-	g.GetLast(wallSpace).SetInitProp(dimZProp, 4)
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(22, 2), NewVec2(1.5, 1.2))))
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(14, 8.5), NewVec2(1.5, 1.2))))
 	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(uziWeapon))
 
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(22, 6), NewVec2(12, 6), bottomCenter)
-		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 4)
-		block.SetThickness(0.5)
-		block.AddHorizontalBorder(1, NewPair(0, 0.3), NewPair(0.7, 1))
-		block.AddVerticalBorder(0, NewPair(0.5, 1))
-		block.AddVerticalBorder(1, NewPair(0.5, 1))
-		g.Upsert(block)
-		for _, object := range(block.GetObjects()) {
-			object.SetId(g.NextId(object.GetSpace()))
-			object.SetInitProp(dimZProp, 3)
-			g.Upsert(object)
-		}
-	}
-
-	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(22, 8), NewVec2(3, 0.2))))
-	g.GetLast(wallSpace).(*Wall).AddAttribute(platformAttribute)
-	g.GetLast(wallSpace).SetInitProp(dimZProp, 3)
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(22, 8.1), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(bazookaWeapon))
-
-	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(22, 14), NewVec2(3, 0.2))))
-	g.GetLast(wallSpace).AddAttribute(platformAttribute)
-	g.GetLast(wallSpace).(*Wall).SetSpeed(2)
-	g.GetLast(wallSpace).(*Wall).AddWaypoint(NewVec2(20, 14))
-	g.GetLast(wallSpace).(*Wall).AddWaypoint(NewVec2(24, 14))
-	g.GetLast(wallSpace).SetInitProp(dimZProp, 3)
-
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(40, -10), NewVec2(8, 8), bottomCenter)
-		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 7)
-		block.SetThickness(0.5)
-		block.AddHorizontalBorder(1, NewPair(-0.25, 1))
-		block.AddVerticalBorder(0, NewPair(0, 1))
-		block.AddVerticalBorder(1, NewPair(0, 1))
-		g.Upsert(block)
-		for _, object := range(block.GetObjects()) {
-			object.SetId(g.NextId(object.GetSpace()))
-			object.SetInitProp(dimZProp, 6)
-			g.Upsert(object)
-		}
-	}
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(40, -2), NewVec2(8, 4), bottomCenter)
-		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 7)
-		block.SetThickness(0.5)
-		block.AddHorizontalBorder(1, NewPair(0, 1))
-		g.Upsert(block)
-		for _, object := range(block.GetObjects()) {
-			object.SetId(g.NextId(object.GetSpace()))
-			object.SetInitProp(dimZProp, 6)
-			g.Upsert(object)
-		}
-	}
-
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(40, 1), NewVec2(0.3, 0.2))))
-	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
-	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xAD07DB)
-	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 1)
-
-	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(40, 4), NewVec2(3, 0.2))))
-	g.GetLast(wallSpace).AddAttribute(platformAttribute)
-	g.GetLast(wallSpace).SetInitProp(dimZProp, 4)
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(40, 2), NewVec2(1.5, 1.2))))
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(18, 8.5), NewVec2(1.5, 1.2))))
 	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(starWeapon))
 
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(56, -10), NewVec2(8, 8), bottomCenter)
-		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 7)
-		block.SetThickness(0.5)
-		block.AddHorizontalBorder(1, NewPair(0, 1.25))
-		block.AddVerticalBorder(0, NewPair(0, 1))
-		block.AddVerticalBorder(1, NewPair(0, 1))
-		g.Upsert(block)
-		for _, object := range(block.GetObjects()) {
-			object.SetId(g.NextId(object.GetSpace()))
-			object.SetInitProp(dimZProp, 6)
-			g.Upsert(object)
-		}
-	}
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(56, -2), NewVec2(8, 4), bottomCenter)
-		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 7)
-		block.SetThickness(0.5)
-		block.AddHorizontalBorder(1, NewPair(0, 1))
-		g.Upsert(block)
-		for _, object := range(block.GetObjects()) {
-			object.SetId(g.NextId(object.GetSpace()))
-			object.SetInitProp(dimZProp, 6)
-			g.Upsert(object)
-		}
-	}
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(22, 8.5), NewVec2(1.5, 1.2))))
+	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(bazookaWeapon))
 
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(56, 1), NewVec2(0.3, 0.2))))
-	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, spotLight)
-	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xC306D1)
-	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 1)
-
-	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(48, -2.25), NewVec2(8, 0.5))))
-	g.GetLast(wallSpace).SetInitProp(dimZProp, 7)
-	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(48, 8), NewVec2(8, 0.2))))
-	g.GetLast(wallSpace).AddAttribute(platformAttribute)
-	g.GetLast(wallSpace).SetInitProp(dimZProp, 7)
-
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(46, -2), NewVec2(0.3, 0.1))))
-	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
-	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
-	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 2.5)
-
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(48, -2), NewVec2(0.3, 0.1))))
-	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
-	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
-	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 2.5)
-
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(50, -2), NewVec2(0.3, 0.1))))
-	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
-	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
-	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 2.5)
-
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(46, -2), NewVec2(0.3, 0.1))))
-	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
-	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
-	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, -2.5)
-
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(48, -2), NewVec2(0.3, 0.1))))
-	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
-	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
-	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, -2.5)
-
-	g.Upsert(g.New(l.createInit(lightSpace, NewVec2(50, -2), NewVec2(0.3, 0.1))))
-	g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-	g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
-	g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
-	g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-	g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
-	g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, -2.5)
-
-	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(56, 4), NewVec2(3, 0.2))))
-	g.GetLast(wallSpace).AddAttribute(platformAttribute)
-	g.GetLast(wallSpace).SetInitProp(dimZProp, 4)
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(80, -10), NewVec2(20, 14), bottomCenter)
-		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 7)
-		block.SetThickness(0.5)
-		block.AddHorizontalBorder(1, NewPair(0, 1))
-		g.Upsert(block)
-		for _, object := range(block.GetObjects()) {
-			object.SetId(g.NextId(object.GetSpace()))
-			object.SetInitProp(dimZProp, 6)
-			g.Upsert(object)
-		}
-	}
-
-	g.Upsert(g.New(l.createInit(wallSpace, NewVec2(80, 6), NewVec2(18, 0.2))))
-	g.GetLast(wallSpace).AddAttribute(platformAttribute)
-	g.GetLast(wallSpace).SetInitProp(dimZProp, 4)
-
-
-	for i := 0; i < 10; i++ {
-		g.Upsert(g.New(l.createInit(lightSpace, NewVec2(float64(71 + 2 * i), 4), NewVec2(0.3, 0.1))))
-		g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-		g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
-		g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
-		g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-		g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
-		g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, -2.5)
-
-		g.Upsert(g.New(l.createInit(lightSpace, NewVec2(float64(71 + 2 * i), 4), NewVec2(0.3, 0.1))))
-		g.GetLast(lightSpace).SetByteAttribute(typeByteAttribute, floorLight)
-		g.GetLast(lightSpace).SetFloatAttribute(intensityFloatAttribute, 4)
-		g.GetLast(lightSpace).SetFloatAttribute(distanceFloatAttribute, 6)
-		g.GetLast(lightSpace).SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-		g.GetLast(lightSpace).SetIntAttribute(colorIntAttribute, 0xFFFFFF)
-		g.GetLast(lightSpace).SetFloatAttribute(posZFloatAttribute, 2.5)
-	}
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(26, 8.5), NewVec2(1.5, 1.2))))
+	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
 }

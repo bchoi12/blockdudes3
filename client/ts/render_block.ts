@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { ForegroundGroup } from './foreground_group.js'
+import { loader, Model } from './loader.js'
 import { options } from './options.js'
 import { PrismGeometry } from './prism_geometry.js'
 import { RenderObject } from './render_object.js'
@@ -29,13 +30,18 @@ export class RenderBlock extends RenderObject {
 	override initialize() : void {
 		super.initialize();
 
+		loader.load(Model.TEST_BUILDING, (mesh) => {
+			this.setMesh(mesh);
+		})
+
+
 		const dim = this.dim();
 		const pos = this.pos3();
 		const thickness = this.thickness();
 
 		this._bbox = new THREE.Box2(new THREE.Vector2(pos.x - dim.x/2, pos.y - dim.y/2), new THREE.Vector2(pos.x + dim.x/2, pos.y + dim.y/2));
 
-		let wallBuilder = new WallBuilder(this.dim(), thickness);
+/*		let wallBuilder = new WallBuilder(this.dim(), thickness);
 
 		if (Math.random() <= 0.5) {
 			for (let i = 1; i <= 5; i += 2) {
@@ -80,9 +86,9 @@ export class RenderBlock extends RenderObject {
 		this._foreground.add(wall);
 	
 		this._scene.add(this._foreground.scene());
-		renderer.compile(this._scene);
 
  		this.setMesh(this._scene);
+*/
 	}
 
 	override update() : void {

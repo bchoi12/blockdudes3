@@ -42,7 +42,7 @@ func (w *Wall) AddWaypoint(waypoint Vec2) {
 
 func (w *Wall) UpdateState(grid *Grid, now time.Time) {
 	w.BaseObject.UpdateState(grid, now)
-	if w.speed <= 0 || len(w.waypoints) == 0 {
+	if w.speed <= 0 || len(w.waypoints) == 0 || isWasm {
 		return
 	}
 

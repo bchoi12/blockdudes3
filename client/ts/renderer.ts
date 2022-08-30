@@ -50,6 +50,7 @@ class Renderer {
 		this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
 		this._renderer.toneMappingExposure = 1.0;
 
+
 		this._renderer.shadowMap.enabled = options.enableShadows;
 		if (options.enableShadows) {
 			this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
