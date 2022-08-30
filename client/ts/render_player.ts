@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
+import SpriteText from 'three-spritetext';
 
 import { game } from './game.js'
 import { loader, Model, Typeface } from './loader.js'
@@ -23,8 +23,8 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private readonly _cloudMaterial = new THREE.MeshStandardMaterial( {color: 0xdddddd } );
 	private readonly _pointsMaterial = new THREE.PointsMaterial( { color: 0x000000, size: 0.2} );
 
-	private _name : THREE.Object3D;
-	private _playerMesh : THREE.Object3D;
+	private _name : SpriteText;
+	private _playerMesh : THREE.Mesh;
 	private _arm : THREE.Object3D;
 	private _armOrigin : THREE.Vector3;
 
@@ -46,36 +46,28 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		loader.load(this.byteAttribute(typeByteAttribute) == 0 ? Model.CHICKEN : Model.DUCK, (mesh : THREE.Mesh) => {
 			this.setMesh(mesh);
-
-			loader.loadFont(Typeface.HELVETIKER_REGULAR, (font) => {
-				const text = new TextGeometry(this.name(), {
-						font: font,
-						size: 0.2,
-						height: 0.05,
-						curveSegments: 6,
-					});
-
-				this._name = new THREE.Mesh(text, new THREE.MeshStandardMaterial({color : this.color() }));
-				let size = new THREE.Vector3();
-				const bbox = new THREE.Box3().setFromObject(this._name);
-				bbox.getSize(size);
-				this._name.position.x = -size.x/2;
-				this._name.position.y = 1.1;
-				mesh.add(this._name);
-			});
 		});
 	}
 
 	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
 
-		this._playerMesh = this.mesh().getObjectByName("mesh");
+		// @ts-ignore
+		this._playerMesh = mesh.getObjectByName("mesh");
 		// Model origin is at feet.
 		this._playerMesh.position.y -= this.dim().y / 2;
 		this._playerMesh.rotation.y = Math.PI / 2 + this._rotationOffset;
 
 		this._arm = this.mesh().getObjectByName("armR");
 		this._armOrigin = this._arm.position.clone();
+
+		this._name = new SpriteText(this.name(), 0.3, this.color().toString(16));
+		this._name.fontSize = 200;
+		let size = new THREE.Vector3();
+		const bbox = new THREE.Box3().setFromObject(this._name);
+		bbox.getSize(size);
+		this._name.position.y = 1.15;
+		mesh.add(this._name);
 
 		for (const action in PlayerAction) {
 			this.initializeClip(PlayerAction[action]);

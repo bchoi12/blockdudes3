@@ -95,7 +95,7 @@ export class OptionsHandler implements InterfaceHandler {
 			options.soundVolume = volume;
 		};
 		this._rendererScaleInputElm.onchange = () => {
-			const scale = Math.min(2, Math.max(0.25, Number(this._rendererScaleInputElm.value)));
+			const scale = Math.min(1, Math.max(0.25, Number(this._rendererScaleInputElm.value)));
 			options.rendererScale = scale;
 			renderer.resize();
 		};

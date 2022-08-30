@@ -11,7 +11,7 @@ import { Util } from './util.js'
 class Renderer {
 	private readonly _elmRenderer = "canvas-game";
 
-	private _canvas : HTMLElement;
+	private _canvas : HTMLCanvasElement;
 	private _audio : Audio;
 	private _cameraController : CameraController;
 	private _mousePixels : THREE.Vector2;
@@ -23,7 +23,7 @@ class Renderer {
 	private _effects : Effects;
 
 	constructor() {
-		this._canvas = Html.elm(this._elmRenderer);
+		this._canvas = Html.canvasElm(this._elmRenderer);
 		this._renderCounter = 0;
 		this._fps = 0;
 		this.updateFPS();
@@ -60,14 +60,25 @@ class Renderer {
 	}
 
 	resize() : void {
+		if (options.rendererScale <= 0) {
+			return;
+		}
+
 		const width = window.innerWidth;
 		const height = window.innerHeight;
+		const dpr = window.devicePixelRatio;
 
-		this._renderer.setSize(width, height);
-		this._renderer.setPixelRatio(options.rendererScale);
+		const rendererWidth = width * options.rendererScale;
+		const rendererHeight = height * options.rendererScale;
+		this._renderer.setSize(width * options.rendererScale, height * options.rendererScale);
+		this._renderer.setPixelRatio(dpr);
 
+		this._canvas.width = rendererWidth * dpr;
+		this._canvas.width = rendererHeight * dpr;
 		this._canvas.style.width = width + "px";
 		this._canvas.style.height = height + "px";
+		this._canvas.style.transformOrigin = "0 0";
+		this._canvas.style.transform = "scale(" + 1 / options.rendererScale + ")";
 
 		this._cameraController.setAspect(width / height);
 

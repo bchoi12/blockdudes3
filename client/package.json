@@ -8,7 +8,8 @@
     "howler": "^2.2.3",
     "normalize.css": "^8.0.1",
     "postprocessing": "^6.28.4",
-    "three": "^0.137.5"
+    "three": "^0.137.5",
+    "three-spritetext": "^1.6.5"
   },
   "devDependencies": {
     "@types/msgpack": "0.0.31",

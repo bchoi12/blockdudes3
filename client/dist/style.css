@@ -55,6 +55,11 @@ fieldset legend {
 	padding: 0;
 }
 
+#canvas-game {
+	image-rendering: optimizeSpeed;
+	image-rendering: smooth;
+}
+
 #div-overlays {
 	position: absolute;
 	width: 100%;

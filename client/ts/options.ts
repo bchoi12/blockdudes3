@@ -24,11 +24,11 @@ class Options {
 
 		this.enablePointerLock = true;
 		this.enableShadows = true;
-		this.enableEffects = true;
+		this.enableEffects = !Util.isDev();
 		this.enableDynamicLighting = true;
-		this.enableAntialiasing = false;
+		this.enableAntialiasing = true;
 
-		this.rendererScale = 1.0;
+		this.rendererScale = 0.6;
 		this.rendererMultisampling = 0;
 		this.soundVolume = 0.5;
 		this.extrapolateWeight = 0.5;

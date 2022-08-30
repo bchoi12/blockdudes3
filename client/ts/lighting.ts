@@ -9,8 +9,8 @@ import { Sky } from 'three/examples/jsm/objects/Sky.js'
 
 export class Lighting extends SceneComponent {
 
-	private readonly _shadowMapWidth = 512;
-	private readonly _shadowMapHeight = 512;
+	private readonly _shadowMapWidth = 1024;
+	private readonly _shadowMapHeight = 1024;
 	private readonly _shadowBias = -0.00018;
 
 	private readonly _sunHeightAngle = new Range(Math.PI / 4, Math.PI / 2 - 0.1);
@@ -48,7 +48,7 @@ export class Lighting extends SceneComponent {
 		this.addObject(this._sunLight);
 		this.addObject(this._sunLight.target);
 		
-		this._hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x232323, 1.2);
+		this._hemisphereLight = new THREE.HemisphereLight(0xfdfbfd, 0x232323, 1.2);
 		this.addObject(this._hemisphereLight);
 
 		this.updateSky(0);
@@ -77,6 +77,8 @@ export class Lighting extends SceneComponent {
 		this._hemisphereLight.intensity = this._hemisphereLightIntensity.lerp(timeOfDay);
 
 		this._sunLightOffset = this._sunPos.clone();
+
+		// TODO: put this closer and tweak shadow bias or something
 		this._sunLightOffset.multiplyScalar(86);
 		this._sunLight.position.copy(this._sunLightOffset);
 	}

@@ -1,5 +1,9 @@
 package main
 
+import (
+	"math"
+)
+
 type LevelIdType uint8
 const (
 	unknownLevel LevelIdType = iota
@@ -60,38 +64,63 @@ func (l Level) createInitT(space SpaceType, pos Vec2, dim Vec2) Init {
 // TODO: currently loading is done via WASM then sent redundantly over network & skipped
 func (l *Level) loadTestLevel() {
 	g := l.grid
+	var x, y float64
+
+
+	x = 20
+	y = 0
 
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(20, 0), NewVec2(16, 0.5), bottomCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(16, 0.5), bottomCenter)
 		g.Upsert(g.New(init))
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(12, 4.5), NewVec2(0.5, 3.5), bottomLeftCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 4.5), NewVec2(0.5, 3.5), bottomLeftCenter)
 		g.Upsert(g.New(init))
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(28, 4.5), NewVec2(0.5, 3.5), bottomRightCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 4.5), NewVec2(0.5, 3.5), bottomRightCenter)
 		g.Upsert(g.New(init))
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(20, 7), NewVec2(16, 1.5), bottomCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y + 7), NewVec2(16, 1.5), bottomCenter)
 		g.Upsert(g.New(init))
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(12, 8), NewVec2(1, 1), bottomRightCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 8), NewVec2(1, 1), bottomRightCenter)
 		g.Upsert(g.New(init))
 	}
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(28, 8), NewVec2(1, 1), bottomLeftCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 8), NewVec2(1, 1), bottomLeftCenter)
 		g.Upsert(g.New(init))
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(20, 0), NewVec2(16, 8.5), defaultCenter)
+		init := NewInitC(g.NextSpacedId(lightSpace), NewVec2(x, y + 7), NewVec2(0.2, 0.3), topCenter)
+		light := NewLight(init)
+		light.SetByteAttribute(typeByteAttribute, spotLight)
+		light.SetFloatAttribute(intensityFloatAttribute, 4)
+		light.SetFloatAttribute(distanceFloatAttribute, 6)
+		light.SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+		light.SetIntAttribute(colorIntAttribute, 0x6666FF)
+
+		g.Upsert(light)
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(16, 8.5), defaultCenter)
+		block := NewBlock(init)
+		block.LoadTemplate(emptyBlockTemplate)
+		block.SetInitProp(dimZProp, 7)
+		block.SetThickness(0.5)
+		g.Upsert(block)
+	}
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y - 8.5), NewVec2(16, 8.5), defaultCenter)
 		block := NewBlock(init)
 		block.LoadTemplate(emptyBlockTemplate)
 		block.SetInitProp(dimZProp, 7)
@@ -110,4 +139,113 @@ func (l *Level) loadTestLevel() {
 
 	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(26, 8.5), NewVec2(1.5, 1.2))))
 	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
+
+	x = 40
+	y = 3
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(16, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 4.5), NewVec2(0.5, 3.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 4.5), NewVec2(0.5, 3.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y + 7), NewVec2(16, 1.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 8), NewVec2(1, 1), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 8), NewVec2(1, 1), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(16, 8.5), defaultCenter)
+		block := NewBlock(init)
+		block.LoadTemplate(emptyBlockTemplate)
+		block.SetInitProp(dimZProp, 7)
+		block.SetThickness(0.5)
+		g.Upsert(block)
+	}
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y - 8.5), NewVec2(16, 8.5), defaultCenter)
+		block := NewBlock(init)
+		block.LoadTemplate(emptyBlockTemplate)
+		block.SetInitProp(dimZProp, 7)
+		block.SetThickness(0.5)
+		g.Upsert(block)
+	}
+
+	x = 60
+	y = 6
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(16, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 4.5), NewVec2(0.5, 3.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 4.5), NewVec2(0.5, 3.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y + 7), NewVec2(16, 1.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 8), NewVec2(1, 1), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 8), NewVec2(1, 1), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(lightSpace), NewVec2(x, y + 7), NewVec2(0.2, 0.3), topCenter)
+		light := NewLight(init)
+		light.SetByteAttribute(typeByteAttribute, spotLight)
+		light.SetFloatAttribute(intensityFloatAttribute, 4)
+		light.SetFloatAttribute(distanceFloatAttribute, 6)
+		light.SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
+		light.SetIntAttribute(colorIntAttribute, 0x6666FF)
+
+		g.Upsert(light)
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(16, 8.5), defaultCenter)
+		block := NewBlock(init)
+		block.LoadTemplate(emptyBlockTemplate)
+		block.SetInitProp(dimZProp, 7)
+		block.SetThickness(0.5)
+		g.Upsert(block)
+	}
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y - 8.5), NewVec2(16, 8.5), defaultCenter)
+		block := NewBlock(init)
+		block.LoadTemplate(emptyBlockTemplate)
+		block.SetInitProp(dimZProp, 7)
+		block.SetThickness(0.5)
+		g.Upsert(block)
+	}
 }

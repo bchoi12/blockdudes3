@@ -39,6 +39,7 @@ export namespace Html {
 	export const cursor = "cursor";
 
 	export function elm(id : string) : HTMLElement { return document.getElementById(id); }
+	export function canvasElm(id : string) : HTMLCanvasElement { return (<HTMLCanvasElement>document.getElementById(id)); }
 	export function inputElm(id : string) : HTMLInputElement { return (<HTMLInputElement>document.getElementById(id)); }
 
 	export function div() : HTMLElement { return document.createElement("div"); }
