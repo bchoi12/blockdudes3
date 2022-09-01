@@ -205,7 +205,7 @@ func (r *Room) initClient(client *Client) error {
 	playerId := Id(playerSpace, client.id)
 	if !r.game.Has(playerId) {
 		player := r.game.Add(NewInit(playerId, NewVec2(5, 5), NewVec2(0.8, 1.44)))
-		player.SetInitProp(colorProp, 0)
+		player.SetInitProp(colorProp, 0xFF0000)
 		player.SetInitProp(nameProp, client.GetDisplayName())
 	} else {
 		player := r.game.Get(playerId)

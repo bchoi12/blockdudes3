@@ -76,7 +76,7 @@ export class RenderProjectile extends RenderObject {
 			if (stopped) {
 				this._trail.scale.x = 0;
 			} else if (Date.now() - this.initializeTime() > 30) {
-				this._trail.scale.x += Math.min(this._trailScalingFactor * this.timestep(), 0.15);
+				this._trail.scale.x = Math.min(this._trail.scale.x + this._trailScalingFactor * this.timestep(), 0.2);
 			}
 		}
 	}

@@ -19,6 +19,8 @@ export enum Model {
 	ROCKET = "ROCKET",
 
 	TEST_BUILDING = "TEST_BUILDING",
+	TEST_BUILDING2 = "TEST_BUILDING2",
+	TEST_BUILDING2_ROOF = "TEST_BUILDING2_ROOF",
 }
 
 export enum Typeface {
@@ -120,8 +122,20 @@ class Loader {
 			case Model.STAR_GUN:
 			case Model.ROCKET:
 			case Model.TEST_BUILDING:
-				data.scene.getObjectByName("mesh").castShadow = options.enableShadows;
-				data.scene.getObjectByName("mesh").receiveShadow = options.enableShadows;
+			case Model.TEST_BUILDING2:
+			case Model.TEST_BUILDING2_ROOF:
+				data.scene.traverse((child) => {
+					if (child.material) {
+						const name = child.material.name;
+						if (name.includes("front") || name.includes("window")) {
+							child.material.transparent = true;
+						}
+					}
+					if (child instanceof THREE.Mesh) {
+						child.castShadow = options.enableShadows;
+						child.receiveShadow = options.enableShadows;
+					}
+				});
 				break;
 			default:
 				LogUtil.d("Model " + model + " processing skipped.");

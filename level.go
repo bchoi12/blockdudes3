@@ -1,9 +1,5 @@
 package main
 
-import (
-	"math"
-)
-
 type LevelIdType uint8
 const (
 	unknownLevel LevelIdType = iota
@@ -66,8 +62,435 @@ func (l *Level) loadTestLevel() {
 	g := l.grid
 	var x, y float64
 
+	x = 6
+	y = -9
 
-	x = 20
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 4.5), NewVec2(0.5, 1.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 4.5), NewVec2(0.5, 1.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0x0ffc89)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		g.Upsert(block)
+	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 4.5), NewVec2(0.5, 1.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 4.5), NewVec2(0.5, 1.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0x0ffc89)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		g.Upsert(block)
+	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 4.5), NewVec2(0.5, 1.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 4.5), NewVec2(0.5, 1.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0x0ffc89)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		g.Upsert(block)
+	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 0.5), NewVec2(0.5, 0.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0x0ffc89)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlockRoof))
+		g.Upsert(block)
+	}
+
+	x += 12
+	x += 2
+	y = -9
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 4.5), NewVec2(0.5, 1.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 4.5), NewVec2(0.5, 1.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		g.Upsert(block)
+	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 4.5), NewVec2(0.5, 1.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 4.5), NewVec2(0.5, 1.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(openingByteAttribute, 0b11)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		g.Upsert(block)
+	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 4.5), NewVec2(0.5, 1.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 4.5), NewVec2(0.5, 1.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(openingByteAttribute, 0b11)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		g.Upsert(block)
+	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 0.5), NewVec2(0.5, 0.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(openingByteAttribute, 0b10)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlockRoof))
+		g.Upsert(block)
+	}
+
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x - 3, y + 0.5), NewVec2(1.5, 1.2))))
+	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(uziWeapon))
+
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x - 1, y + 0.5), NewVec2(1.5, 1.2))))
+	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(starWeapon))
+
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x + 1, y + 0.5), NewVec2(1.5, 1.2))))
+	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(bazookaWeapon))
+
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x + 3, y + 0.5), NewVec2(1.5, 1.2))))
+	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
+
+	x += 12
+	y = -9
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 4.5), NewVec2(0.5, 1.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 4.5), NewVec2(0.5, 1.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		g.Upsert(block)
+	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 4.5), NewVec2(0.5, 1.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 4.5), NewVec2(0.5, 1.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(openingByteAttribute, 0b11)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		g.Upsert(block)
+	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 4.5), NewVec2(0.5, 1.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 4.5), NewVec2(0.5, 1.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(openingByteAttribute, 0b11)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		g.Upsert(block)
+	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 4.5), NewVec2(0.5, 1.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y), NewVec2(0.5, 6), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(openingByteAttribute, 0b1)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		g.Upsert(block)
+	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 0.5), NewVec2(0.5, 0.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 0.5), NewVec2(0.5, 0.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlockRoof))
+		g.Upsert(block)
+	}
+
+	x += 12
+	y = -9
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 4.5), NewVec2(0.5, 1.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 4.5), NewVec2(0.5, 1.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0xb50ffc)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		g.Upsert(block)
+	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 6, y + 4.5), NewVec2(0.5, 1.5), bottomLeftCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y), NewVec2(0.5, 6), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0xb50ffc)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(openingByteAttribute, 0b1)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		g.Upsert(block)
+	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 0.5), NewVec2(0.5, 0.5), bottomRightCenter)
+		g.Upsert(g.New(init))
+	}
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0xb50ffc)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(openingByteAttribute, 0b1)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlockRoof))
+		g.Upsert(block)
+	}
+
+	x += 2
+	x += 6
+	x += 8
 	y = 0
 
 	{
@@ -100,152 +523,15 @@ func (l *Level) loadTestLevel() {
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(lightSpace), NewVec2(x, y + 7), NewVec2(0.2, 0.3), topCenter)
-		light := NewLight(init)
-		light.SetByteAttribute(typeByteAttribute, spotLight)
-		light.SetFloatAttribute(intensityFloatAttribute, 4)
-		light.SetFloatAttribute(distanceFloatAttribute, 6)
-		light.SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-		light.SetIntAttribute(colorIntAttribute, 0x6666FF)
-
-		g.Upsert(light)
-	}
-
-	{
 		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(16, 8.5), defaultCenter)
 		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 7)
-		block.SetThickness(0.5)
+		block.SetByteAttribute(typeByteAttribute, uint8(testBlock))
 		g.Upsert(block)
 	}
 	{
 		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y - 8.5), NewVec2(16, 8.5), defaultCenter)
 		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 7)
-		block.SetThickness(0.5)
-		g.Upsert(block)
-	}
-
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(14, 8.5), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(uziWeapon))
-
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(18, 8.5), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(starWeapon))
-
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(22, 8.5), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(bazookaWeapon))
-
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(26, 8.5), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
-
-	x = 40
-	y = 3
-
-	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(16, 0.5), bottomCenter)
-		g.Upsert(g.New(init))
-	}
-
-	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 4.5), NewVec2(0.5, 3.5), bottomLeftCenter)
-		g.Upsert(g.New(init))
-	}
-
-	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 4.5), NewVec2(0.5, 3.5), bottomRightCenter)
-		g.Upsert(g.New(init))
-	}
-
-	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y + 7), NewVec2(16, 1.5), bottomCenter)
-		g.Upsert(g.New(init))
-	}
-
-	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 8), NewVec2(1, 1), bottomRightCenter)
-		g.Upsert(g.New(init))
-	}
-	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 8), NewVec2(1, 1), bottomLeftCenter)
-		g.Upsert(g.New(init))
-	}
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(16, 8.5), defaultCenter)
-		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 7)
-		block.SetThickness(0.5)
-		g.Upsert(block)
-	}
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y - 8.5), NewVec2(16, 8.5), defaultCenter)
-		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 7)
-		block.SetThickness(0.5)
-		g.Upsert(block)
-	}
-
-	x = 60
-	y = 6
-
-	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(16, 0.5), bottomCenter)
-		g.Upsert(g.New(init))
-	}
-
-	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 4.5), NewVec2(0.5, 3.5), bottomLeftCenter)
-		g.Upsert(g.New(init))
-	}
-
-	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 4.5), NewVec2(0.5, 3.5), bottomRightCenter)
-		g.Upsert(g.New(init))
-	}
-
-	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y + 7), NewVec2(16, 1.5), bottomCenter)
-		g.Upsert(g.New(init))
-	}
-
-	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 8), NewVec2(1, 1), bottomRightCenter)
-		g.Upsert(g.New(init))
-	}
-	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 8), NewVec2(1, 1), bottomLeftCenter)
-		g.Upsert(g.New(init))
-	}
-
-	{
-		init := NewInitC(g.NextSpacedId(lightSpace), NewVec2(x, y + 7), NewVec2(0.2, 0.3), topCenter)
-		light := NewLight(init)
-		light.SetByteAttribute(typeByteAttribute, spotLight)
-		light.SetFloatAttribute(intensityFloatAttribute, 4)
-		light.SetFloatAttribute(distanceFloatAttribute, 6)
-		light.SetFloatAttribute(fovFloatAttribute, 0.4 * math.Pi)
-		light.SetIntAttribute(colorIntAttribute, 0x6666FF)
-
-		g.Upsert(light)
-	}
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(16, 8.5), defaultCenter)
-		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 7)
-		block.SetThickness(0.5)
-		g.Upsert(block)
-	}
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y - 8.5), NewVec2(16, 8.5), defaultCenter)
-		block := NewBlock(init)
-		block.LoadTemplate(emptyBlockTemplate)
-		block.SetInitProp(dimZProp, 7)
-		block.SetThickness(0.5)
+		block.SetByteAttribute(typeByteAttribute, uint8(testBlock))
 		g.Upsert(block)
 	}
 }

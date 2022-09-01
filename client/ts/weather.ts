@@ -27,22 +27,22 @@ export class Weather extends SceneComponent {
 		this._cloudMaterials.push(this.newCloudMaterial(0xe0e0e0, MathUtil.randomRange(0.3, 0.5)));
 		this._cloudMaterials.push(this.newCloudMaterial(0xd2d2d2, MathUtil.randomRange(0.4, 0.6)));
 
-/*
-		for (let x = -15; x < 40; x += MathUtil.randomRange(9, 12)) {
+
+		for (let x = -5; x < 80; x += MathUtil.randomRange(10, 15)) {
 			let cloud = new RenderCustom();
 			cloud.setMesh(this.newCloudMesh(x));
 
 			const speed = MathUtil.randomRange(0.6, 1);
 			const updateCloud = (ts : number) => {
 				cloud.mesh().position.x += speed * ts;
-				if (cloud.mesh().position.x > 40) {
+				if (cloud.mesh().position.x > 80) {
 					cloud.mesh().position.x = -15;
 				}
 			};
 			cloud.setUpdate(updateCloud);
 			this.addCustom(cloud);
 		}
-*/
+
 	}
 
 	override update() : void {

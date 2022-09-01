@@ -18,10 +18,8 @@ enum PlayerAction {
 }
 
 export class RenderPlayer extends RenderAnimatedObject {
-	private readonly _sqrtHalf = .70710678;
 	private readonly _rotationOffset = -0.1;
 	private readonly _cloudMaterial = new THREE.MeshStandardMaterial( {color: 0xdddddd } );
-	private readonly _pointsMaterial = new THREE.PointsMaterial( { color: 0x000000, size: 0.2} );
 
 	private _name : SpriteText;
 	private _playerMesh : THREE.Mesh;
@@ -61,13 +59,19 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._arm = this.mesh().getObjectByName("armR");
 		this._armOrigin = this._arm.position.clone();
 
-		this._name = new SpriteText(this.name(), 0.3, this.color().toString(16));
+		this._name = new SpriteText(this.name(), 0.3, "black");
 		this._name.fontSize = 200;
 		let size = new THREE.Vector3();
 		const bbox = new THREE.Box3().setFromObject(this._name);
 		bbox.getSize(size);
-		this._name.position.y = 1.15;
+		this._name.position.y = 1.33;
 		mesh.add(this._name);
+
+		const pointer = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.2, 4, 1), new THREE.MeshToonMaterial({ color: this.color() }));
+		pointer.rotation.x = Math.PI;
+		pointer.rotation.y = Math.PI / 4;
+		pointer.position.y = 1.1;
+		mesh.add(pointer);
 
 		for (const action in PlayerAction) {
 			this.initializeClip(PlayerAction[action]);

@@ -109,6 +109,7 @@ func setGlobals() {
 	js.Global().Set("deadAttribute", int(deadAttribute))
 
 	js.Global().Set("typeByteAttribute", int(typeByteAttribute))
+	js.Global().Set("openingByteAttribute", int(openingByteAttribute))
 	js.Global().Set("healthByteAttribute", int(healthByteAttribute))
 	js.Global().Set("juiceByteAttribute", int(juiceByteAttribute))
 
@@ -129,6 +130,10 @@ func setGlobals() {
 	js.Global().Set("bazookaWeapon", int(bazookaWeapon))
 	js.Global().Set("sniperWeapon", int(sniperWeapon))
 	js.Global().Set("starWeapon", int(starWeapon))
+
+	js.Global().Set("testBlock", int(testBlock))
+	js.Global().Set("archBlock", int(archBlock))
+	js.Global().Set("archBlockRoof", int(archBlockRoof))
 
 	js.Global().Set("upKey", int(upKey))
 	js.Global().Set("downKey", int(downKey))

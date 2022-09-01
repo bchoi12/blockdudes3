@@ -79,6 +79,7 @@ declare var doubleJumpAttribute : number;
 declare var deadAttribute : number;
 
 declare var typeByteAttribute : number;
+declare var openingByteAttribute : number;
 declare var healthByteAttribute : number;
 declare var juiceByteAttribute : number;
 
@@ -99,6 +100,10 @@ declare var uziWeapon : number;
 declare var bazookaWeapon : number;
 declare var sniperWeapon : number;
 declare var starWeapon : number;
+
+declare var testBlock : number;
+declare var archBlock : number;
+declare var archBlockRoof : number;
 
 declare var upKey : number;
 declare var downKey : number;

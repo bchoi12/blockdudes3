@@ -21,6 +21,7 @@ const (
 	unknownByteAttribute ByteAttributeType = iota
 
 	typeByteAttribute
+	openingByteAttribute
 
 	// TODO: not really attributes?
 	healthByteAttribute

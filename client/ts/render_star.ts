@@ -15,6 +15,8 @@ export class RenderStar extends RenderProjectile {
 
 	constructor(space : number, id : number) {
 		super(space, id);
+
+		this.setSound(Sound.THROW);
 	}
 
 	override ready() : boolean {

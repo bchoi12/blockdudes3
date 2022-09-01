@@ -7,8 +7,8 @@ export enum Sound {
 	PEW,
 	LASER,
 	ROCKET,
+	THROW,
 	EXPLOSION,
-
 	TOM_SCREAM,
 }
 
@@ -17,17 +17,19 @@ export enum SystemSound {
 }
 
 export class Audio {
+	private readonly _soundPrefix = "./sound/";
 	private readonly _distThresholdSq : number = 80;
 
 	private _sounds : Map<Sound, Howl>;
 
 	constructor() {
 		this._sounds = new Map<Sound, Howl>();
-		this.registerSound(Sound.PEW, "./sound/pew.wav");
-		this.registerSound(Sound.LASER ,"./sound/laser.wav");
-		this.registerSound(Sound.ROCKET, "./sound/rocket.wav");
-		this.registerSound(Sound.EXPLOSION, "./sound/explosion.wav");
-		this.registerSound(Sound.TOM_SCREAM, "./sound/tom_scream.mp3");
+		this.registerSound(Sound.PEW, this._soundPrefix + "pew.wav");
+		this.registerSound(Sound.LASER , this._soundPrefix + "laser.wav");
+		this.registerSound(Sound.ROCKET, this._soundPrefix + "rocket.wav");
+		this.registerSound(Sound.THROW, this._soundPrefix + "throw.wav");
+		this.registerSound(Sound.EXPLOSION, this._soundPrefix + "explosion.wav");
+		this.registerSound(Sound.TOM_SCREAM, this._soundPrefix + "tom_scream.mp3");
 	}
 
 	getSound(sound : Sound) : Howl {

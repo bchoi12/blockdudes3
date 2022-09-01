@@ -29,7 +29,7 @@ class Options {
 		this.enableAntialiasing = true;
 
 		this.rendererScale = 0.6;
-		this.rendererMultisampling = 0;
+		this.rendererMultisampling = 2;
 		this.soundVolume = 0.5;
 		this.extrapolateWeight = 0.5;
 		this.extrapolateMs = 100;
