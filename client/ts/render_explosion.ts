@@ -10,8 +10,6 @@ import { MathUtil, Util } from './util.js'
 export class RenderExplosion extends RenderObject {
 	private _scale : number;
 
-	private _light : THREE.PointLight;
-
 	constructor(space : number, id : number) {
 		super(space, id);
 
@@ -24,17 +22,12 @@ export class RenderExplosion extends RenderObject {
 
 	override initialize() : void {
 		super.initialize();
-		const material = new THREE.MeshStandardMaterial({color: this.color() });
+		const material = new THREE.MeshLambertMaterial({color: this.color() });
 		const mesh = new THREE.Mesh(new THREE.SphereGeometry(this.dim().x / 2 + MathUtil.randomRange(-0.02, 0.02), 12, 8), material);
 
 		renderer.playSound(Sound.EXPLOSION, this.pos());
 
 		this.setMesh(mesh);
-	}
-
-	override delete() : void {
-		super.delete();
-		game.sceneMap().returnPointLight(this._light);
 	}
 
 	override setMesh(mesh : THREE.Object3D) {
@@ -44,14 +37,6 @@ export class RenderExplosion extends RenderObject {
 			mesh.receiveShadow = true;
 		}
 		this.scale(0.1);
-
-		this._light = game.sceneMap().getPointLight();
-		if (Util.defined(this._light)) {
-			this._light.color = new THREE.Color(this.color());
-			this._light.intensity = 6.0;
-			this._light.distance = Math.max(4, this.dim().x * 2);
-			mesh.add(this._light);
-		}
 	}
 
 	override update() : void {
@@ -62,7 +47,7 @@ export class RenderExplosion extends RenderObject {
 		}
 
 		if (this._scale < 1) {
-			this._scale = Math.min(this._scale + this.timestep() * 12, 1);
+			this._scale = Math.min(this._scale + this.timestep() * 10, 1);
 			this.scale(this._scale);
 		}
 	}

@@ -19,7 +19,7 @@ enum PlayerAction {
 
 export class RenderPlayer extends RenderAnimatedObject {
 	private readonly _rotationOffset = -0.1;
-	private readonly _cloudMaterial = new THREE.MeshStandardMaterial( {color: 0xdddddd } );
+	private readonly _cloudMaterial = new THREE.MeshLambertMaterial( {color: 0xdddddd } );
 
 	private _name : SpriteText;
 	private _playerMesh : THREE.Mesh;

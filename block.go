@@ -32,3 +32,51 @@ func (b Block) GetRelativePos(percent Vec2, buffer Vec2) Vec2 {
 func (b Block) GetObjects() []Object {
 	return b.objects
 }
+
+func (b *Block) Load() {
+	blockType, _ := b.GetByteAttribute(typeByteAttribute)
+	pos := b.Pos()
+	x := pos.X
+	y := pos.Y
+	dim := b.Dim()
+	width := dim.X
+	height := dim.Y
+	thick := 0.5
+	opening, hasOpening := b.GetByteAttribute(openingByteAttribute)
+	leftPercent := 0.0
+	rightPercent := 0.0
+	leftOpening := hasOpening && opening & 1 == 1
+	rightOpening := hasOpening && (opening >> 1) & 1 == 1
+
+	switch (BlockType(blockType)) {
+	case testBlock:
+	case archBlock:
+		floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(b.Dim().X, thick), bottomCenter)
+		b.objects = append(b.objects, NewWall(floor))
+
+		if leftOpening {
+			leftPercent = 0.75
+		}
+		if rightOpening {
+			rightPercent = 0.75
+		}
+
+		left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y + leftPercent * height), NewVec2(thick, (1.0 - leftPercent) * height), bottomLeftCenter)
+		b.objects = append(b.objects, NewWall(left))
+		right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + rightPercent * height), NewVec2(thick, (1.0 - rightPercent) * height), bottomRightCenter)
+		b.objects = append(b.objects, NewWall(right))
+	case archBlockRoof:
+		floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, thick), bottomCenter)
+		b.objects = append(b.objects, NewWall(floor))
+
+		if !leftOpening {
+			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y + thick), NewVec2(thick, thick), bottomLeftCenter)
+			b.objects = append(b.objects, NewWall(left))
+		}
+
+		if !rightOpening {
+			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + thick), NewVec2(thick, thick), bottomRightCenter)
+			b.objects = append(b.objects, NewWall(right))
+		}
+	}
+}

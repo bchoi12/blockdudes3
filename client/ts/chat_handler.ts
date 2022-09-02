@@ -91,6 +91,12 @@ export class ChatHandler implements InterfaceHandler {
 				game.setTimeOfDay(Number(pieces[1]));
 			}
 			break;
+		case "/pos":
+			const player = game.sceneMap().get(playerSpace, game.id());
+			if (Util.defined(player)) {
+				const pos = player.pos();
+				ui.print("x: " + pos.x + ", y: " + pos.y);
+			}
 		case "/nolights":
 			game.sceneMap().clear(lightSpace);
 			break;
@@ -100,8 +106,14 @@ export class ChatHandler implements InterfaceHandler {
 		case "/noblocks":
 			game.sceneMap().clear(blockSpace);
 			break;
-		case "/green":
+		case "/greenbasic":
 			game.sceneMap().scene().overrideMaterial = new THREE.MeshBasicMaterial({ color: 0x00FF00 });
+			break;
+		case "/greenlambert":
+			game.sceneMap().scene().overrideMaterial = new THREE.MeshLambertMaterial({ color: 0x00FF00 });
+			break;
+		case "/greenphong":
+			game.sceneMap().scene().overrideMaterial = new THREE.MeshPhongMaterial({ color: 0x00FF00 });
 			break;
 		case "/nogreen":
 			game.sceneMap().scene().overrideMaterial = null;

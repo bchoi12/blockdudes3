@@ -390,11 +390,9 @@ func getData(data js.Value) Data {
 		d.Set(dirProp, parseVec2(prop))
 	}
 
-/*
 	if prop, ok = getPropData(data, keysProp); ok {
 		d.Set(keysProp, parseKeysAsProp(prop.String()))
 	}
-*/
 
 	return d
 }

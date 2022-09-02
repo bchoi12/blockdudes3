@@ -8,10 +8,8 @@ import { renderer } from './renderer.js'
 import { Util } from './util.js'
 
 export class RenderPellet extends RenderProjectile {
-	private readonly _material = new THREE.MeshStandardMaterial( {color: 0xdede1d });
-	private readonly _trailMaterial = new THREE.MeshStandardMaterial( {color: 0xdede1d });
-
-	private _light : THREE.PointLight;
+	private readonly _material = new THREE.MeshPhongMaterial( {color: 0xfffc40 });
+	private readonly _trailMaterial = new THREE.MeshPhongMaterial( {color: 0xfffc40 });
 
 	constructor(space : number, id : number) {
 		super(space, id);
@@ -32,7 +30,6 @@ export class RenderPellet extends RenderProjectile {
 
 		renderer.setEffect(EffectType.BLOOM, false, this.mesh());
 		renderer.setEffect(EffectType.BLOOM, false, super.getTrail());
-		game.sceneMap().returnPointLight(this._light);
 	}
 
 	override setMesh(mesh : THREE.Object3D) {
@@ -41,22 +38,6 @@ export class RenderPellet extends RenderProjectile {
 
 		renderer.setEffect(EffectType.BLOOM, true, mesh);
 		renderer.setEffect(EffectType.BLOOM, true, super.getTrail());
-
-		this._light = game.sceneMap().getPointLight();
-		if (Util.defined(this._light)) {
-			this._light.color = new THREE.Color(0xffffa6);
-			this._light.intensity = 1.0;
-			this._light.distance = 3.0;
-			mesh.add(this._light);
-		}
-	}
-
-	override update() : void {
-		super.update();
-
-		if (!this.hasMesh()) {
-			return;
-		}
 	}
 }
 

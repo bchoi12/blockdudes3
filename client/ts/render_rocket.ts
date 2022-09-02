@@ -10,7 +10,7 @@ import { renderer } from './renderer.js'
 import { MathUtil, Util } from './util.js'
 
 export class RenderRocket extends RenderProjectile {
-	private readonly _smokeMaterial = new THREE.MeshStandardMaterial( {color: 0xbbbbbb} );
+	private readonly _smokeMaterial = new THREE.MeshLambertMaterial( {color: 0xbbbbbb} );
 	private readonly _smokeInterval = 15;
 	private readonly _rotateZ = 8;
 

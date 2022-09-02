@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 import { connection } from './connection.js'
 import { Keys } from './keys.js'
@@ -31,9 +30,6 @@ export enum GameState {
 }
 
 class Game {
-	private readonly _statsInterval = 500;
-	private readonly _objectMaterial = new THREE.MeshStandardMaterial( {color: 0x444444, shadowSide: THREE.FrontSide } );
-
 	private _id : number;
 	private _state : GameState;
 	private _timeOfDay : number;
@@ -44,7 +40,6 @@ class Game {
 	private _lastSeqNum : number;
 	private _lastStateUpdate : number;
 
-	private _stats : Stats;
 	private _numObjectsAdded : number;
 	private _numObjectsExtrapolated: number;
 	private _numObjectsUpdated : number;
@@ -60,7 +55,6 @@ class Game {
 		this._lastSeqNum = 0;
 		this._lastStateUpdate = Date.now();
 
-		this._stats = Stats();
 		this._numObjectsAdded = 0;
 		this._numObjectsExtrapolated = 0;
 		this._numObjectsUpdated = 0;
@@ -91,10 +85,6 @@ class Game {
 	setState(state : GameState) { this._state = state; }
 	setTimeOfDay(timeOfDay : number) { this._timeOfDay = timeOfDay; }
 
-	stats() : Stats {
-		return this._stats;
-	}
-
 	flushAdded() : number {
 		const copy = this._numObjectsAdded;
 		this._numObjectsAdded = 0;
@@ -114,7 +104,6 @@ class Game {
 	}
 
 	private animate() : void {
-		this._stats.begin();
 		if (this.state() === GameState.GAME) {
 			this._keys.snapshotKeys();
 			this.extrapolateState();
@@ -126,7 +115,6 @@ class Game {
 			this.extrapolatePlayer();
 		}
 		renderer.render();
-		this._stats.end();
 		requestAnimationFrame(() => { this.animate(); });
 	}
 
@@ -233,7 +221,7 @@ class Game {
 	}
 
 	private extrapolateState() {
-		if (options.extrapolateWeight <= 0) {
+		if (options.extrapolateWeight <= 0.1) {
 			return;
 		}
 

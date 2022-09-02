@@ -89,7 +89,8 @@ export class RenderProjectile extends RenderObject {
 		let gyro = new Gyroscope();
 		this._trail = new THREE.Mesh(this._trailGeometry, material);
 		this._trail.scale.y = this.dim().y;
-		this._trail.scale.x = 0.05;
+		this._trail.scale.x = 0.1;
+
 		gyro.add(this._trail);
 		this.mesh().add(gyro);
 

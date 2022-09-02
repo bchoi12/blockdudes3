@@ -42,15 +42,14 @@ export class Weather extends SceneComponent {
 			cloud.setUpdate(updateCloud);
 			this.addCustom(cloud);
 		}
-
 	}
 
 	override update() : void {
 		super.update();
 	}
 
-	private newCloudMaterial(color : number, opacity : number) : THREE.MeshStandardMaterial {
-		return new THREE.MeshStandardMaterial({
+	private newCloudMaterial(color : number, opacity : number) : THREE.MeshLambertMaterial {
+		return new THREE.MeshLambertMaterial({
 			transparent: true,
 			shadowSide: THREE.FrontSide,
 			color: color,

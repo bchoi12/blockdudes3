@@ -7,6 +7,7 @@ import { RenderProjectile } from './render_projectile.js'
 import { MathUtil } from './util.js'
 
 export class RenderGrapplingHook extends RenderProjectile {
+	private readonly _metalMaterial = new THREE.MeshStandardMaterial({ color: 0x5b5b5b })
 	private readonly _prismGeometry = new PrismGeometry(new THREE.Shape([
 		new THREE.Vector2(-0.06, 0),
 		new THREE.Vector2(-0.1, 0),
@@ -36,7 +37,7 @@ export class RenderGrapplingHook extends RenderProjectile {
 
 		const dim = this.dim();
 		for (let i = 0; i < 4; ++i) {
-			const prismMesh = new THREE.Mesh(this._prismGeometry, new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.1 }));
+			const prismMesh = new THREE.Mesh(this._prismGeometry, this._metalMaterial);
 			prismMesh.rotation.z = i * Math.PI / 2;
 			group.add(prismMesh)
 		}

@@ -6,7 +6,7 @@ import { LogUtil, Util } from './util.js'
 
 export class LightBuffer {
 
-	private readonly _bufferSize : number = 20;
+	private readonly _bufferSize : number = 10;
 
 	private _scene : THREE.Scene;
 	private _allPointLights : Set<THREE.PointLight>;

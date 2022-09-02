@@ -13,8 +13,12 @@ export class RenderStar extends RenderProjectile {
 		new THREE.Vector2(0, 0.1),
 	]), 0.2);
 
+	private _materials : Array<THREE.MeshLambertMaterial>;
+
 	constructor(space : number, id : number) {
 		super(space, id);
+
+		this._materials = new Array<THREE.MeshLambertMaterial>();
 
 		this.setSound(Sound.THROW);
 	}
@@ -29,8 +33,12 @@ export class RenderStar extends RenderProjectile {
 		const dim = this.dim();
 		const group = new THREE.Group();
 		const colorPair = [this.color(), Math.min(0xFFFFFF, this.color() + 0x42A11B)];
+
+		this._materials.push(new THREE.MeshLambertMaterial({ color: colorPair[0] }));
+		this._materials.push(new THREE.MeshLambertMaterial({ color: colorPair[1] }));
+
 		for (let i = 0; i < 4; ++i) {
-			const prismMesh = new THREE.Mesh(this._prismGeometry, new THREE.MeshStandardMaterial({ color: colorPair[i % 2]}));
+			const prismMesh = new THREE.Mesh(this._prismGeometry, new THREE.MeshLambertMaterial({ color: colorPair[i % 2]}));
 			prismMesh.rotation.z = i * Math.PI / 2;
 			group.add(prismMesh)
 		}
@@ -42,7 +50,7 @@ export class RenderStar extends RenderProjectile {
 
 	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
-		super.addTrail(new THREE.MeshStandardMaterial({color: this.color()}), 0.5);
+		super.addTrail(this._materials[0], 0.5);
 	}
 
 	override update() : void {

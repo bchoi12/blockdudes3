@@ -112,24 +112,33 @@ class Loader {
 		switch (model) {
 			case Model.CHICKEN:
 			case Model.DUCK:
-				data.scene.animations = data.animations;
-				data.scene.getObjectByName("mesh").castShadow = options.enableShadows;
-				data.scene.getObjectByName("mesh").receiveShadow = options.enableShadows;
-				break;
 			case Model.UZI:
 			case Model.BAZOOKA:
 			case Model.SNIPER:
 			case Model.STAR_GUN:
 			case Model.ROCKET:
 			case Model.TEST_BUILDING:
+				data.scene.animations = data.animations;
+				data.scene.traverse((child) => {
+					if (child instanceof THREE.Mesh) {
+						child.castShadow = options.enableShadows;
+						child.receiveShadow = options.enableShadows;
+					}
+				});
+				break;
 			case Model.TEST_BUILDING2:
 			case Model.TEST_BUILDING2_ROOF:
 				data.scene.traverse((child) => {
-					if (child.material) {
+					let processed = new Set<string>();
+					if (child.material && !processed.has(child.material.name)) {
 						const name = child.material.name;
-						if (name.includes("front") || name.includes("window")) {
-							child.material.transparent = true;
-						}
+						const imported = child.material;
+						child.material = new THREE.MeshLambertMaterial();
+						child.material.name = name;
+						child.material.side = imported.side;
+						child.material.shadowSide = imported.shadowSide;
+						child.material.color = imported.color;
+						processed.add(name);
 					}
 					if (child instanceof THREE.Mesh) {
 						child.castShadow = options.enableShadows;

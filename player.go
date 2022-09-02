@@ -125,9 +125,9 @@ func (p *Player) Respawn() {
 	p.AddAttribute(doubleJumpAttribute)
 
 	rand.Seed(time.Now().Unix())
-	p.SetPos(NewVec2(float64(15 + rand.Intn(10)), 20))
-	p.SetVel(NewVec2(0, 0))
-	p.SetAcc(NewVec2(0, 0))
+	// p.SetPos(NewVec2(float64(15 + rand.Intn(10)), 20))
+	p.SetPos(NewVec2(29, 4.22))
+	p.Stop()
 }
 
 func (p *Player) UpdateState(grid *Grid, now time.Time) {

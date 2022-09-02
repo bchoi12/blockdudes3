@@ -52,11 +52,11 @@ export class RenderLight extends RenderObject {
 			target.position.copy(new THREE.Vector3(0, -1, 0));
 
 			const rad = dim.x / 3;
-			this._bulb = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, rad, 12), new THREE.MeshStandardMaterial({color: color }));
+			this._bulb = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, rad, 12), new THREE.MeshLambertMaterial({color: color }));
 			this._bulb.rotation.x = Math.PI / 2;
 
 			const height = 0.6 * dim.x;
-			lamp = new THREE.Mesh(new THREE.ConeGeometry(dim.x, height, 8, 1), new THREE.MeshStandardMaterial({color: secondaryColor }));
+			lamp = new THREE.Mesh(new THREE.ConeGeometry(dim.x, height, 8, 1), new THREE.MeshLambertMaterial({color: secondaryColor }));
 			lamp.position.y += height / 2;
 
 			let wireGeometry = new THREE.BufferGeometry();
@@ -74,7 +74,7 @@ export class RenderLight extends RenderObject {
 			target = new THREE.Object3D();
 			target.position.copy(new THREE.Vector3(0, 1, 0));
 
-			this._bulb = new THREE.Mesh(new THREE.CylinderGeometry(dim.x / 2, dim.x / 2, dim.y, 12), new THREE.MeshStandardMaterial({color: color }));
+			this._bulb = new THREE.Mesh(new THREE.CylinderGeometry(dim.x / 2, dim.x / 2, dim.y, 12), new THREE.MeshLambertMaterial({color: color }));
 			break;
 		default:
 			LogUtil.w("Unknown light type: " + this.byteAttribute(typeByteAttribute));

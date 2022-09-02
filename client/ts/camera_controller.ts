@@ -5,8 +5,8 @@ import { Timer } from './timer.js'
 import { MathUtil } from './util.js'
 
 export class CameraController {
-	private readonly _horizontalFov = 43;
-	private readonly _cameraOffset = new THREE.Vector3(0, 1.2, 30.0);
+	private readonly _horizontalFov = 45;
+	private readonly _cameraOffset = new THREE.Vector3(0, 1.2, 28.0);
 	private readonly _lookAtOffset = new THREE.Vector3(0, 0.5, 0);
 	private readonly _panTiming = 250; // ms
 
@@ -19,7 +19,7 @@ export class CameraController {
 	private _panInterp : Interp;
 
 	constructor(aspect : number) {
-		this._camera = new THREE.PerspectiveCamera(20, aspect, 0.1, 1000);
+		this._camera = new THREE.PerspectiveCamera(20, aspect, 0.1, 100);
 		this._target = new THREE.Vector3();
 		this._anchor = new THREE.Vector3(22, 10, 0);
 

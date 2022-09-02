@@ -418,7 +418,7 @@ func (g *Grid) GetCollidersCheckLine(object Object, line Line) ObjectHeap {
 				object: other,
 			}
 			heap.Push(item)
-			heap.Priority(item, 0)
+			heap.Priority(item, object.Dim().Area() + 1)
 		}
 	}
 	return heap

@@ -48,7 +48,7 @@ func (b *Bolt) AddAttribute(attribute AttributeType) {
 		b.SetExplosionOptions(ExplosionOptions {
 			explode: true,
 			size: NewVec2(5, 5),
-			color: 0x47def5,
+			color: 0xffa424,
 		})
 	}
 }

@@ -8,11 +8,10 @@ import { renderer } from './renderer.js'
 import { Util } from './util.js'
 
 export class RenderBolt extends RenderProjectile {
-	private readonly _material = new THREE.MeshStandardMaterial( {color: 0x47def5 });
-	private readonly _tailMaterial = new THREE.MeshStandardMaterial( {color: 0xffd663 });
+	private readonly _material = new THREE.MeshStandardMaterial( {color: 0xffa424 });
+	private readonly _tailMaterial = new THREE.MeshStandardMaterial( {color: 0xffd663, transparent: true, opacity: 0.5 });
 
 	private _soundId : number;
-	private _light : THREE.PointLight;
 
 	constructor(space : number, id : number) {
 		super(space, id);
@@ -37,7 +36,6 @@ export class RenderBolt extends RenderProjectile {
 
 	override delete() : void {
 		super.delete();
-		game.sceneMap().returnPointLight(this._light);
 		renderer.setEffect(EffectType.BLOOM, false, this.mesh());
 		renderer.setEffect(EffectType.BLOOM, false, super.getTrail());
 
@@ -52,20 +50,6 @@ export class RenderBolt extends RenderProjectile {
 
 		renderer.setEffect(EffectType.BLOOM, true, mesh);
 		renderer.setEffect(EffectType.BLOOM, true, super.getTrail());
-
-		this._light = game.sceneMap().getPointLight();
-		if (Util.defined(this._light)) {
-			this._light.color = new THREE.Color(0x98fafa);
-
-			if (this.dim().x > 0.5) {
-				this._light.intensity = 4.0;
-				this._light.distance = 10.0;
-			} else {
-				this._light.intensity = 2.0;
-				this._light.distance = 6.0;
-			}
-			mesh.add(this._light);
-		}
 	}
 
 	override update() : void {

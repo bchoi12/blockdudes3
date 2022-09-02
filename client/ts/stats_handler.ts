@@ -19,8 +19,6 @@ export class StatsHandler implements InterfaceHandler {
 
 	setup() : void {
 		this.updateStats();
-
-		this._statsElm.append(game.stats().dom);
 	}
 
 	reset() : void {}

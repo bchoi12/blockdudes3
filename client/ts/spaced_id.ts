@@ -8,21 +8,14 @@ export class SpacedId {
 		this._id = id;
 	}
 
-	space() : number {
-		return this._space;
-	}
+	space() : number { return this._space; }
+	id() : number { return this._id; }
 
-	id() : number {
-		return this._id;
-	}
+	valid() : boolean { return this._space > 0 && this._id >= 0; }
+	toString() : string { return this._space + "," + this._id;}
 
-	valid() : boolean {
-		return this._space > 0 && this._id >= 0;
-	}
-
-	toString() : string {
-		return this._space + "," + this._id;
-	}
+	setSpace(space : number) : void { this._space = space; }
+	setId(id : number) : void { this._id = id; }
 
 	parseSpace(sid : string) : number {
 		return Number(sid.split(",")[0]);	

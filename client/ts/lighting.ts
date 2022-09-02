@@ -27,6 +27,8 @@ export class Lighting extends SceneComponent {
 	private _sunLightOffset : THREE.Vector3;
 	private _hemisphereLight : THREE.HemisphereLight;
 
+	private _skyTime : number;
+
 	constructor() {
 		super();
 
@@ -60,7 +62,10 @@ export class Lighting extends SceneComponent {
 		const cameraTarget = renderer.cameraTarget();
 		this._sunLight.target.position.copy(cameraTarget);
 
-		this.updateSky(game.timeOfDay());
+		if (game.timeOfDay() > this._skyTime) {
+			this._skyTime = game.timeOfDay();
+			this.updateSky(this._skyTime);
+		}
 	}
 
 	private updateSky(timeOfDay : number) : void {
@@ -81,5 +86,7 @@ export class Lighting extends SceneComponent {
 		// TODO: put this closer and tweak shadow bias or something
 		this._sunLightOffset.multiplyScalar(86);
 		this._sunLight.position.copy(this._sunLightOffset);
+
+		this._skyTime = timeOfDay;
 	}
 }

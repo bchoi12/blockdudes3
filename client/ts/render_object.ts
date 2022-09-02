@@ -2,9 +2,9 @@ import * as THREE from 'three';
 
 import { Message } from './message.js'
 import { RenderMesh } from './render_mesh.js'
-import { SpacedId } from './spaced_id.js'
-
 import { renderer } from './renderer.js'
+import { SpacedId } from './spaced_id.js'
+import { Util } from './util.js'
 
 export class RenderObject extends RenderMesh {
 	private _space : number;
@@ -16,6 +16,15 @@ export class RenderObject extends RenderMesh {
 	private _timestep : number;
 	private _lastUpdate : number;
 	private _wasmLastSeqNum : number;
+
+	private _pos : THREE.Vector2;
+	private _pos3 : THREE.Vector3;
+	private _dim : THREE.Vector2;
+	private _dim3 : THREE.Vector3;
+	private _vel : THREE.Vector2;
+	private _acc : THREE.Vector2;
+	private _dir : THREE.Vector2;
+	private _owner : SpacedId;
 
 	constructor(space : number, id : number) {
 		super();
@@ -201,62 +210,87 @@ export class RenderObject extends RenderMesh {
 
 	hasDim() : boolean { return this._msg.has(dimProp); }
 	dim() : THREE.Vector2 {
-		if (this.hasDim()) {
-			return new THREE.Vector2(this._msg.get(dimProp).X, this._msg.get(dimProp).Y);
+		if (!Util.defined(this._dim)) {
+			this._dim = new THREE.Vector2();
 		}
-		return new THREE.Vector2();
+		if (this.hasDim()) {
+			this._dim.set(this._msg.get(dimProp).X, this._msg.get(dimProp).Y);
+		}
+		return this._dim;
 	}
 	dim3() : THREE.Vector3 {
-		if (this.hasDim()) {
-			return new THREE.Vector3(this._msg.get(dimProp).X, this._msg.get(dimProp).Y, this.dimZ());
+		if (!Util.defined(this._dim3)) {
+			this._dim3 = new THREE.Vector3();
 		}
-		return new THREE.Vector3();
+		if (this.hasDim()) {
+			this._dim3.set(this._msg.get(dimProp).X, this._msg.get(dimProp).Y, this.dimZ());
+		}
+		return this._dim3;
 	}
 
 	hasPos() : boolean { return this._msg.has(posProp); }
 	pos() : THREE.Vector2 {
-		if (this.hasPos()) {
-			return new THREE.Vector2(this._msg.get(posProp).X, this._msg.get(posProp).Y);
+		if (!Util.defined(this._pos)) {
+			this._pos = new THREE.Vector2();
 		}
-		return new THREE.Vector2();
+		if (this.hasPos()) {
+			this._pos.set(this._msg.get(posProp).X, this._msg.get(posProp).Y);
+		}
+		return this._pos;
 	}
 	pos3() : THREE.Vector3 {
-		if (this.hasPos()) {
-			return new THREE.Vector3(this._msg.get(posProp).X, this._msg.get(posProp).Y, this.posZ());
+		if (!Util.defined(this._pos3)) {
+			this._pos3 = new THREE.Vector3();
 		}
-		return new THREE.Vector3();
+		if (this.hasPos()) {
+			this._pos3.set(this._msg.get(posProp).X, this._msg.get(posProp).Y, this.posZ());
+		}
+		return this._pos3;
 	}
 
 	hasVel() : boolean { return this._msg.has(velProp); }
 	vel() : THREE.Vector2 {
-		if (this.hasVel()) {
-			return new THREE.Vector2(this._msg.get(velProp).X, this._msg.get(velProp).Y);
+		if (!Util.defined(this._vel)) {
+			this._vel = new THREE.Vector2();
 		}
-		return new THREE.Vector2(0, 0);
+		if (this.hasVel()) {
+			this._vel.set(this._msg.get(velProp).X, this._msg.get(velProp).Y);
+		}
+		return this._vel;
 	}
 
 	hasAcc() : boolean { return this._msg.has(accProp); }
 	acc() : THREE.Vector2 {
-		if (this.hasAcc()) {
-			return new THREE.Vector2(this._msg.get(accProp).X, this._msg.get(accProp).Y);
+		if (!Util.defined(this._acc)) {
+			this._acc = new THREE.Vector2();
 		}
-		return new THREE.Vector2(0, 0);
+		if (this.hasAcc()) {
+			this._acc.set(this._msg.get(accProp).X, this._msg.get(accProp).Y);
+		}
+		return this._acc;
 	}
 
 	hasDir() : boolean { return this._msg.has(dirProp); }
 	dir() : THREE.Vector2 {
-		if (this.hasDir()) {
-			return new THREE.Vector2(this._msg.get(dirProp).X, this._msg.get(dirProp).Y);
+		if (!Util.defined(this._dir)) {
+			this._dir = new THREE.Vector2();
 		}
-		return new THREE.Vector2(1, 0);
+		if (this.hasDir()) {
+			this._dir.set(this._msg.get(dirProp).X, this._msg.get(dirProp).Y);
+		}
+		return this._dir;
 	}
 
 	hasOwner() : boolean { return this._msg.has(ownerProp); }
 	owner() : SpacedId {
-		if (this.hasOwner()) {
-			return new SpacedId(this._msg.get(ownerProp).S, this._msg.get(ownerProp).Id);
+		if (!Util.defined(this._owner)) {
+			this._owner = new SpacedId(0, 0);
 		}
-		return new SpacedId(0, -1);
+		if (this.hasOwner()) {
+			this._owner.setSpace(this._msg.get(ownerProp).S);
+			this._owner.setId(this._msg.get(ownerProp).Id);
+		}
+		return this._owner;
 	}
 
 	hasKills() : boolean { return this._msg.has(killProp); }
