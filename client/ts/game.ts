@@ -4,6 +4,7 @@ import { connection } from './connection.js'
 import { Keys } from './keys.js'
 import { Model, loader } from './loader.js'
 import { options } from './options.js'
+import { Particles } from './particles.js'
 import { RenderBlock } from './render_block.js'
 import { RenderBolt } from './render_bolt.js'
 import { RenderExplosion } from './render_explosion.js'
@@ -79,6 +80,8 @@ class Game {
 	state() : GameState { return this._state; }
 	timeOfDay() : number { return this._timeOfDay; }
 	sceneMap() : SceneMap { return this._sceneMap; }
+
+	particles() : Particles { return this._sceneMap.getComponentAsAny(SceneComponentType.PARTICLES); }
 	sceneComponent(type : SceneComponentType) : SceneComponent { return this._sceneMap.getComponent(type); }
 
 	startRender() : void { this.animate(); }

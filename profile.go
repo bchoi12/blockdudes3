@@ -88,7 +88,7 @@ func NewBaseProfile(init Init) BaseProfile {
 		accFlag: NewFlag(),
 		jerk: NewVec2(0, 0),
 		jerkFlag: NewFlag(),
-		dir: NewVec2(1, 0),
+		dir: init.Dir(),
 		dirFlag: NewFlag(),
 		dim: init.Dim(),
 		dimFlag: NewFlag(),
@@ -258,10 +258,7 @@ func (bp BaseProfile) GetData() Data {
 }
 
 func (bp BaseProfile) GetInitData() Data {
-	data := NewData()
-	data.Set(posProp, bp.Pos())
-	data.Set(dimProp, bp.Dim())
-	return data
+	return bp.Init.GetInitData()
 }
 
 func (bp BaseProfile) GetUpdates() Data {

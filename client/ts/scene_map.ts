@@ -60,6 +60,9 @@ export class SceneMap {
 
 	update() : void {
 		this._components.forEach((component, type) => {
+			if (type === SceneComponentType.PARTICLES) {
+				return;
+			}
 			component.update();
 		});
 
@@ -78,6 +81,9 @@ export class SceneMap {
 				object.update();
 			});
 		});
+
+		// Update particles after object updates.
+		this._components.get(SceneComponentType.PARTICLES).update();
 	}
 
 	snapshotWasm() : void {

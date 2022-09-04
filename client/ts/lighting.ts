@@ -14,12 +14,12 @@ export class Lighting extends SceneComponent {
 	private readonly _shadowBias = -0.00018;
 
 	private readonly _sunHeightAngle = new Range(Math.PI / 4, Math.PI / 2 - 0.1);
-	private readonly _turbidity = new Range(6, 2);
-	private readonly _rayleigh = new Range(0.15, 0.02);
-	private readonly _mieCoefficient = new Range(0.001, 0.005);
+	private readonly _turbidity = new Range(5.5, 2);
+	private readonly _rayleigh = new Range(0.12, 0.02);
+	private readonly _mieCoefficient = new Range(0.002, 0.005);
 	private readonly _mieDirectionalG = new Range(0.999, 1);
-	private readonly _sunLightIntensity = new Range(2.0, 0.5);
-	private readonly _hemisphereLightIntensity = new Range(1.2, 0.7);
+	private readonly _sunLightIntensity = new Range(1.6, 0.5);
+	private readonly _hemisphereLightIntensity = new Range(1, 0.7);
 
 	private _sky : Sky;
 	private _sunPos : THREE.Vector3;

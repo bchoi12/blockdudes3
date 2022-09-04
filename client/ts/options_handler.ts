@@ -56,8 +56,8 @@ export class OptionsHandler implements InterfaceHandler {
 
 		const toggleEffects = () => {
 			if (options.enableEffects) {
-				this._antialiasingElm.style.display = "none";
-				this._multisamplingElm.style.display = "block";
+				this._antialiasingElm.style.display = "block";
+				this._multisamplingElm.style.display = "none";
 			} else {
 				this._antialiasingElm.style.display = "block";
 				this._multisamplingElm.style.display = "none";

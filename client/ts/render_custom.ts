@@ -6,18 +6,22 @@ import { renderer } from './renderer.js'
 
 export class RenderCustom extends RenderMesh {
 
+	private _id : number;
 	private _lastUpdate : number;
 	private _hasUpdate : boolean;
-	private _update : (timestep : number) => void;
+	private _update : (object : THREE.Object3D, timestep : number) => void;
 
-	constructor() {
+	constructor(id : number) {
 		super();
 
+		this._id = id;
 		this._lastUpdate = Date.now();
 		this._hasUpdate = false;
 	}
 
-	setUpdate(update : (timestep : number) => void) : void {
+	id() : number { return this._id; }
+
+	setUpdate(update : (object : THREE.Object3D, ts : number) => void) : void {
 		this._hasUpdate = true;
 		this._update = update;
 	}
@@ -27,8 +31,8 @@ export class RenderCustom extends RenderMesh {
 			return;
 		}
 
-		const ts = (Date.now() - this._lastUpdate) / 1000;
-		this._update(ts);
+		const ts = Math.min((Date.now() - this._lastUpdate) / 1000, .03);
+		this._update(this.mesh(), ts);
 		this._lastUpdate = Date.now();
 	}
 }

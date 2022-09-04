@@ -24,7 +24,7 @@ class Options {
 
 		this.enablePointerLock = true;
 		this.enableShadows = true;
-		this.enableEffects = !Util.isDev();
+		this.enableEffects = true;
 		this.enableDynamicLighting = true;
 		this.enableAntialiasing = true;
 

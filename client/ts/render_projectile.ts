@@ -11,20 +11,8 @@ import { Util } from './util.js'
 
 export class RenderProjectile extends RenderObject {
 	private readonly _positionZ = 0.5;
-	private readonly _trailGeometry = new PrismGeometry(new THREE.Shape([
-		new THREE.Vector2(0, 0.5),
-		new THREE.Vector2(-1, 0.25),
-		new THREE.Vector2(-2, 0.08),
-		new THREE.Vector2(-5, 0),
-		new THREE.Vector2(-2, -0.08),
-		new THREE.Vector2(-1, -0.25),
-		new THREE.Vector2(0, -0.5),
-	]), 0.1);
 
 	private _sound : Sound;
-
-	private _trail : THREE.Object3D;
-	private _trailScalingFactor : number;
 
 	constructor(space : number, id : number) {
 		super(space, id);
@@ -60,24 +48,12 @@ export class RenderProjectile extends RenderObject {
 			return;
 		}
 
-		const stopped = this.vel().lengthSq() == 0 || this.attribute(attachedAttribute);
-
-		if (stopped) {
+		if (this.stopped()) {
 			this.mesh().position.z = 0;
 		}
 
 		if (this.mesh().position.z > 0) {
 			this.mesh().position.z -= 2 * this.timestep();
-		}
-
-		if (Util.defined(this._trail)) {
-			this._trail.rotation.z = this.dir().angle();
-
-			if (stopped) {
-				this._trail.scale.x = 0;
-			} else if (Date.now() - this.initializeTime() > 30) {
-				this._trail.scale.x = Math.min(this._trail.scale.x + this._trailScalingFactor * this.timestep(), 0.2);
-			}
 		}
 	}
 
@@ -85,20 +61,8 @@ export class RenderProjectile extends RenderObject {
 		this._sound = sound;
 	}
 
-	protected addTrail(material : THREE.Material, scalingFactor : number) : void {
-		let gyro = new Gyroscope();
-		this._trail = new THREE.Mesh(this._trailGeometry, material);
-		this._trail.scale.y = this.dim().y;
-		this._trail.scale.x = 0.1;
-
-		gyro.add(this._trail);
-		this.mesh().add(gyro);
-
-		this._trailScalingFactor = scalingFactor;
-	}
-
-	protected getTrail() : THREE.Object3D {
-		return this._trail;
+	protected stopped() : boolean {
+		return this.vel().lengthSq() === 0 || this.attribute(attachedAttribute);
 	}
 }
 

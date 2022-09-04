@@ -51,7 +51,7 @@ func (b *Block) Load() {
 	switch (BlockType(blockType)) {
 	case testBlock:
 	case archBlock:
-		floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(b.Dim().X, thick), bottomCenter)
+		floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(b.Dim().X, thick), bottomOrigin)
 		b.objects = append(b.objects, NewWall(floor))
 
 		if leftOpening {
@@ -61,21 +61,21 @@ func (b *Block) Load() {
 			rightPercent = 0.75
 		}
 
-		left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y + leftPercent * height), NewVec2(thick, (1.0 - leftPercent) * height), bottomLeftCenter)
+		left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y + leftPercent * height), NewVec2(thick, (1.0 - leftPercent) * height), bottomLeftOrigin)
 		b.objects = append(b.objects, NewWall(left))
-		right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + rightPercent * height), NewVec2(thick, (1.0 - rightPercent) * height), bottomRightCenter)
+		right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + rightPercent * height), NewVec2(thick, (1.0 - rightPercent) * height), bottomRightOrigin)
 		b.objects = append(b.objects, NewWall(right))
 	case archBlockRoof:
-		floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, thick), bottomCenter)
+		floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, thick), bottomOrigin)
 		b.objects = append(b.objects, NewWall(floor))
 
 		if !leftOpening {
-			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y + thick), NewVec2(thick, thick), bottomLeftCenter)
+			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y + thick), NewVec2(thick, thick), bottomLeftOrigin)
 			b.objects = append(b.objects, NewWall(left))
 		}
 
 		if !rightOpening {
-			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + thick), NewVec2(thick, thick), bottomRightCenter)
+			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + thick), NewVec2(thick, thick), bottomRightOrigin)
 			b.objects = append(b.objects, NewWall(right))
 		}
 	}

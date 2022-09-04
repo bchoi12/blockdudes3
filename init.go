@@ -65,18 +65,18 @@ func (sid SpacedId) Invalid() bool {
 	return sid.GetSpace() == 0
 }
 
-type CenterType uint8
+type OriginType uint8
 const (
-	unknownCenter CenterType = iota
-	defaultCenter
-	rightCenter
-	topRightCenter
-	topCenter
-	topLeftCenter
-	leftCenter
-	bottomLeftCenter
-	bottomCenter
-	bottomRightCenter
+	unknownOrigin OriginType = iota
+	defaultOrigin
+	rightOrigin
+	topRightOrigin
+	topOrigin
+	topLeftOrigin
+	leftOrigin
+	bottomLeftOrigin
+	bottomOrigin
+	bottomRightOrigin
 )
 
 type Init struct {
@@ -84,12 +84,16 @@ type Init struct {
 
 	pos Vec2
 	dim Vec2
+
+	hasDir bool
+	dir Vec2
 }
 
 type InitMethods interface {
 	SpacedIdMethods
 	Pos() Vec2
 	Dim() Vec2
+	Dir() Vec2
 	GetInitData() Data
 }
 
@@ -98,26 +102,29 @@ func NewInit(sid SpacedId, pos Vec2, dim Vec2) Init {
 		SpacedId: sid,
 		pos: pos,
 		dim: dim,
+
+		hasDir: false,
+		dir: NewVec2(1, 0),
 	}
 }
 
-func NewInitC(sid SpacedId, pos Vec2, dim Vec2, center CenterType) Init {
+func NewInitC(sid SpacedId, pos Vec2, dim Vec2, center OriginType) Init {
 	switch center {
-	case rightCenter:
+	case rightOrigin:
 		return NewInit(sid, NewVec2(pos.X - dim.X/2, pos.Y), dim)
-	case topRightCenter:
+	case topRightOrigin:
 		return NewInit(sid, NewVec2(pos.X - dim.X/2, pos.Y - dim.Y/2), dim)
-	case topCenter:
+	case topOrigin:
 		return NewInit(sid, NewVec2(pos.X, pos.Y - dim.Y/2), dim)
-	case topLeftCenter:
+	case topLeftOrigin:
 		return NewInit(sid, NewVec2(pos.X + dim.X/2, pos.Y - dim.Y/2), dim)
-	case leftCenter:
+	case leftOrigin:
 		return NewInit(sid, NewVec2(pos.X + dim.X/2, pos.Y), dim)
-	case bottomLeftCenter:
+	case bottomLeftOrigin:
 		return NewInit(sid, NewVec2(pos.X + dim.X/2, pos.Y + dim.Y/2), dim)
-	case bottomCenter:
+	case bottomOrigin:
 		return NewInit(sid, NewVec2(pos.X, pos.Y + dim.Y/2), dim)
-	case bottomRightCenter:
+	case bottomRightOrigin:
 		return NewInit(sid, NewVec2(pos.X - dim.X/2, pos.Y + dim.Y/2), dim)
 	}
 	return NewInit(sid, pos, dim)
@@ -131,9 +138,23 @@ func (i Init) Dim() Vec2 {
 	return i.dim
 }
 
+func (i Init) Dir() Vec2 {
+	return i.dir
+}
+
+func (i *Init) SetDir(dir Vec2) {
+	i.hasDir = true
+	i.dir = dir
+}
+
 func (i Init) GetInitData() Data {
 	data := NewData()
 	data.Set(posProp, i.pos)
 	data.Set(dimProp, i.dim)
+
+	if i.hasDir {
+		data.Set(dirProp, i.dir)
+	}
+
 	return data
 }

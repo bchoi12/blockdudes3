@@ -95,12 +95,15 @@ class Renderer {
 			this._effects = new Effects(this._renderer);
 		}
 
+		/*
 		if (options.enableEffects) {
 			this._effects.render(game.sceneMap().scene(), this._cameraController.camera());
 		} else {
 			this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
 		}
-		
+		*/
+
+		this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
 		this._renderCounter++;
 	}
 	fps() : number { return this._fps; }
@@ -126,9 +129,8 @@ class Renderer {
 		const dist = new THREE.Vector2(pos.x - this._cameraController.anchor().x, pos.y - this._cameraController.anchor().y);
 		return this._audio.adjustSoundDist(sound, dist, id);
 	}
-	stopSound(sound : Sound, id : number) : void {
-		this._audio.stopSound(sound, id);
-	}
+	fadeoutSound(sound : Sound, id : number) : void { this._audio.fadeoutSound(sound, id); }
+	stopSound(sound : Sound, id : number) : void { this._audio.stopSound(sound, id); }
 
 	setMouseFromPixels(mouse : THREE.Vector2) : void { this._mousePixels = mouse.clone(); }
 	getMouseScreen() : THREE.Vector2 {

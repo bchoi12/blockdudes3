@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { Sound } from './audio.js'
 import { game } from './game.js'
 import { Model, loader } from './loader.js'
+import { Particle, Particles } from './particles.js'
 import { SceneComponentType } from './scene_component.js'
 import { RenderCustom } from './render_custom.js'
 import { RenderProjectile } from './render_projectile.js'
@@ -11,7 +12,7 @@ import { MathUtil, Util } from './util.js'
 
 export class RenderRocket extends RenderProjectile {
 	private readonly _smokeMaterial = new THREE.MeshLambertMaterial( {color: 0xbbbbbb} );
-	private readonly _smokeInterval = 15;
+	private readonly _smokeInterval = 30;
 	private readonly _rotateZ = 8;
 
 	private _light : THREE.PointLight;
@@ -60,19 +61,16 @@ export class RenderRocket extends RenderProjectile {
 		projectile.rotation.z += this._rotateZ * this.timestep();
 
 		if (Date.now() - this._lastSmoke >= this._smokeInterval) {
-			// TODO: reuse SphereGeometry somehow
-			const smokeMesh = new THREE.Mesh(new THREE.SphereGeometry(MathUtil.randomRange(0.1, 0.2), 3, 3), this._smokeMaterial);
-			smokeMesh.position.x = pos.x - dim.x / 2 * dir.x + MathUtil.randomRange(-0.1, 0.1);
-			smokeMesh.position.y = pos.y - dim.y / 2 * dir.y + MathUtil.randomRange(-0.1, 0.1);
-			smokeMesh.position.z = this.mesh().position.z + MathUtil.randomRange(-0.1, 0.1);
-
-			const smoke = new RenderCustom();
-			smoke.setMesh(smokeMesh);
-			smoke.setUpdate(() => {
-				smoke.mesh().scale.multiplyScalar(0.9);
+			game.particles().emit(Particle.SMOKE, 400, (mesh : THREE.Object3D, ts : number) => {
+				mesh.scale.multiplyScalar(0.9);
+			}, {
+				position: new THREE.Vector3(
+					pos.x - dim.x / 2 * dir.x + MathUtil.randomRange(-0.1, 0.1),
+					pos.y - dim.y / 2 * dir.y + MathUtil.randomRange(-0.1, 0.1),
+					this.mesh().position.z + MathUtil.randomRange(-0.1, 0.1),
+				),
+				scale: MathUtil.randomRange(0.1, 0.15),
 			});
-			game.sceneComponent(SceneComponentType.PARTICLES).addCustomTemp(smoke, 400);
-
 			this._lastSmoke = Date.now();
 		}
 	}

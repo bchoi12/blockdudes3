@@ -98,11 +98,20 @@ export class RenderBlock extends RenderObject {
 			return;
 		}
 
+		const ts = this.timestep();
 		const anchor = renderer.cameraAnchor();
 		const inside = this._bbox.containsPoint(new THREE.Vector2(anchor.x, anchor.y));
 
 		this._frontMaterials.forEach((opacity, mat) => {
-			mat.visible = !inside;
+			if (options.enableEffects) {
+				if (inside && !mat.transparent) {
+					mat.transparent = true;
+				}
+
+				mat.opacity = Math.min(1, Math.max(0.2, mat.opacity + ts * (inside ? -3 : 5)));
+			} else {
+				mat.visible = !inside;
+			}
 		});
 	}
 }

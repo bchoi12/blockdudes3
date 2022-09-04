@@ -9,7 +9,6 @@ import { Util } from './util.js'
 
 export class RenderBolt extends RenderProjectile {
 	private readonly _material = new THREE.MeshStandardMaterial( {color: 0xffa424 });
-	private readonly _tailMaterial = new THREE.MeshStandardMaterial( {color: 0xffd663, transparent: true, opacity: 0.5 });
 
 	private _soundId : number;
 
@@ -28,28 +27,22 @@ export class RenderBolt extends RenderProjectile {
 
 		const dim = this.dim();
 		const mesh = new THREE.Mesh(new THREE.BoxGeometry(dim.x, dim.y, 0.2), this._material);
-		const tail = new THREE.Mesh(new THREE.BoxGeometry(dim.x * 0.3, dim.y, 0.2), this._tailMaterial);
-		tail.position.x = -0.65 * dim.x
-		mesh.add(tail);
 		this.setMesh(mesh);
 	}
 
 	override delete() : void {
 		super.delete();
 		renderer.setEffect(EffectType.BLOOM, false, this.mesh());
-		renderer.setEffect(EffectType.BLOOM, false, super.getTrail());
 
 		if (Util.defined(this._soundId)) {
-			renderer.stopSound(Sound.TOM_SCREAM, this._soundId);
+			renderer.fadeoutSound(Sound.TOM_SCREAM, this._soundId);
 		}
 	}
 
 	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
-		super.addTrail(this._tailMaterial, 1);
 
 		renderer.setEffect(EffectType.BLOOM, true, mesh);
-		renderer.setEffect(EffectType.BLOOM, true, super.getTrail());
 	}
 
 	override update() : void {

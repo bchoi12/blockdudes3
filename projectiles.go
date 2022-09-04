@@ -94,7 +94,7 @@ func NewStar(init Init) *Star {
 	})
 	star.SetDamage(25)
 	star.SetSticky(true)
-	star.SetInitProp(colorProp, color)
+	star.SetIntAttribute(colorIntAttribute, color)
 	return star
 }
 
@@ -150,6 +150,7 @@ func (h *GrapplingHook) OnDelete(grid *Grid) {
 		return
 	}
 
+	player.AddAttribute(doubleJumpAttribute)
 	force := h.Offset(player)
 	if force.Y < 0 {
 		return

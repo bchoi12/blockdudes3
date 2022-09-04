@@ -70,6 +70,11 @@ export class Audio {
 		this.adjustVolume(this._sounds.get(sound), dist.lengthSq(), id);
 	}
 
+	fadeoutSound(sound : Sound, id : number) : void {
+		const howl = this._sounds.get(sound);
+		howl.fade(howl.volume(id), 0, 1000 * (howl.duration() - howl.seek()), id);
+	}
+
 	stopSound(sound : Sound, id : number) : void {
 		this._sounds.get(sound).stop(id);
 	}

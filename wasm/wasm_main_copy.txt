@@ -78,11 +78,7 @@ func setGlobals() {
 	js.Global().Set("byteAttributesProp", int(byteAttributesProp))
 	js.Global().Set("intAttributesProp", int(intAttributesProp))
 	js.Global().Set("floatAttributesProp", int(floatAttributesProp))
-	js.Global().Set("colorProp", int(colorProp))
 	js.Global().Set("nameProp", int(nameProp))
-	js.Global().Set("thicknessProp", int(thicknessProp))
-	js.Global().Set("dimZProp", int(dimZProp))
-	js.Global().Set("posZProp", int(posZProp))
 
 	js.Global().Set("dimProp", int(dimProp))
 	js.Global().Set("posProp", int(posProp))

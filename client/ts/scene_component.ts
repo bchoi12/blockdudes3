@@ -26,40 +26,33 @@ export abstract class SceneComponent {
 	}
 
 	addObject(object : THREE.Object3D) : void {
-		this.addObjectTemp(object, -1);
-	}
-
-	addObjectTemp(object : THREE.Object3D, ttl : number) : void {
 		const id = this.nextId();
 		this._objects.set(id, object);
 		this._scene.add(object);
-
-		if (ttl > 0) {
-			setTimeout(() => {
-				this._objects.delete(id);
-				this._scene.remove(object);
-			}, ttl);
-		}
 	}
 
 	addCustom(custom : RenderCustom) : void {
-		this.addCustomTemp(custom, -1);
+		this.addCustomTemp(custom, -1, () => {});
 	}
 
-	addCustomTemp(custom : RenderCustom, ttl : number) : void {
-		const id = this.nextId();
-
+	addCustomTemp(custom : RenderCustom, ttl : number, onDelete : (object : THREE.Object3D) => void) : void {
+		const id = custom.id();
 		custom.onMeshLoad(() => {
 			this._customObjects.set(id, custom);
 			this._scene.add(custom.mesh());
 
 			if (ttl > 0) {
 				setTimeout(() => {
-					this._customObjects.delete(id);
-					this._scene.remove(custom.mesh());
+					this.deleteCustomTemp(custom, onDelete);
 				}, ttl);
 			}
 		});
+	}
+
+	deleteCustomTemp(custom : RenderCustom, onDelete : (object : THREE.Object3D) => void) {
+		this._customObjects.delete(custom.id());
+		this._scene.remove(custom.mesh());
+		onDelete(custom.mesh());
 	}
 
 	scene() : THREE.Scene { return this._scene; }
@@ -72,7 +65,7 @@ export abstract class SceneComponent {
 		});
 	}
 
-	private nextId() : number {
+	protected nextId() : number {
 		this._nextId++;
 		return this._nextId - 1;
 	}

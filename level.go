@@ -68,7 +68,7 @@ func (l *Level) loadTestLevel() {
 	blocks = 3
 
 	for i := 0; i < blocks; i += 1 {
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0x0ffc89)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
@@ -108,7 +108,7 @@ func (l *Level) loadTestLevel() {
 	y = -9
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
@@ -126,26 +126,7 @@ func (l *Level) loadTestLevel() {
 	y += 6
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b11)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
-
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-	}
-
-	y += 6
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
@@ -164,7 +145,26 @@ func (l *Level) loadTestLevel() {
 	y += 6
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(openingByteAttribute, 0b11)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+
+		block.Load()
+		g.Upsert(block)
+
+		for _, obj := range(block.GetObjects()) {
+			obj.SetId(g.NextId(obj.GetSpace()))
+			g.Upsert(obj)
+		}
+	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
@@ -184,7 +184,7 @@ func (l *Level) loadTestLevel() {
 	y = -9
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
@@ -202,7 +202,7 @@ func (l *Level) loadTestLevel() {
 	y += 6
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
@@ -221,7 +221,7 @@ func (l *Level) loadTestLevel() {
 	y += 6
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
@@ -243,7 +243,7 @@ func (l *Level) loadTestLevel() {
 	y += 6
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
@@ -262,7 +262,7 @@ func (l *Level) loadTestLevel() {
 	y += 6
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
@@ -281,7 +281,7 @@ func (l *Level) loadTestLevel() {
 	y = -9
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0xb50ffc)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
@@ -299,7 +299,7 @@ func (l *Level) loadTestLevel() {
 	y += 6
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0xb50ffc)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
@@ -318,17 +318,17 @@ func (l *Level) loadTestLevel() {
 	y += 6
 
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomOrigin)
 		g.Upsert(g.New(init))
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 0.5), NewVec2(0.5, 0.5), bottomRightCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 0.5), NewVec2(0.5, 0.5), bottomRightOrigin)
 		g.Upsert(g.New(init))
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0xb50ffc)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
@@ -350,42 +350,42 @@ func (l *Level) loadTestLevel() {
 	y = 0
 
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(16, 0.5), bottomCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(16, 0.5), bottomOrigin)
 		g.Upsert(g.New(init))
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 4.5), NewVec2(0.5, 3.5), bottomLeftCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 4.5), NewVec2(0.5, 3.5), bottomLeftOrigin)
 		g.Upsert(g.New(init))
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 4.5), NewVec2(0.5, 3.5), bottomRightCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 4.5), NewVec2(0.5, 3.5), bottomRightOrigin)
 		g.Upsert(g.New(init))
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y + 7), NewVec2(16, 1.5), bottomCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y + 7), NewVec2(16, 1.5), bottomOrigin)
 		g.Upsert(g.New(init))
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 8), NewVec2(1, 1), bottomRightCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x - 8, y + 8), NewVec2(1, 1), bottomRightOrigin)
 		g.Upsert(g.New(init))
 	}
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 8), NewVec2(1, 1), bottomLeftCenter)
+		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 8, y + 8), NewVec2(1, 1), bottomLeftOrigin)
 		g.Upsert(g.New(init))
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(16, 8.5), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(16, 8.5), defaultOrigin)
 		block := NewBlock(init)
 		block.SetByteAttribute(typeByteAttribute, uint8(testBlock))
 		g.Upsert(block)
 	}
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y - 8.5), NewVec2(16, 8.5), defaultCenter)
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y - 8.5), NewVec2(16, 8.5), defaultOrigin)
 		block := NewBlock(init)
 		block.SetByteAttribute(typeByteAttribute, uint8(testBlock))
 		g.Upsert(block)

@@ -46,11 +46,7 @@ declare var attributesProp : number;
 declare var byteAttributesProp : number;
 declare var intAttributesProp : number;
 declare var floatAttributesProp : number;
-declare var colorProp : number;
 declare var nameProp : number;
-declare var thicknessProp : number;
-declare var dimZProp : number;
-declare var posZProp : number;
 
 declare var dimProp : number;
 declare var posProp : number;

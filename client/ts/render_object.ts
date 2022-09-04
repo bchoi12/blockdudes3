@@ -165,10 +165,26 @@ export class RenderObject extends RenderMesh {
 		return 0;
 	}
 
-	hasColor() : boolean { return this._msg.has(colorProp); }
+	hasColor() : boolean { return this.hasIntAttribute(colorIntAttribute); }
 	color() : number {
 		if (this.hasColor()) {
-			return this._msg.get(colorProp);
+			return this.intAttribute(colorIntAttribute);
+		}
+		return 0;
+	}
+
+	hasDimZ() : boolean { return this.hasFloatAttribute(dimZFloatAttribute); }
+	dimZ() : number {
+		if (this.hasDimZ()) {
+			return this.floatAttribute(dimZFloatAttribute);
+		}
+		return 0;
+	}
+
+	hasPosZ() : boolean { return this.hasFloatAttribute(posZFloatAttribute); }
+	posZ() : number {
+		if (this.hasPosZ()) {
+			return this.floatAttribute(posZFloatAttribute);
 		}
 		return 0;
 	}
@@ -179,53 +195,6 @@ export class RenderObject extends RenderMesh {
 			return this._msg.get(nameProp);
 		}
 		return "";
-	}
-
-	hasThickness() : boolean { return this._msg.has(thicknessProp); }
-	thickness() : number {
-		if (this.hasThickness()) {
-			return this._msg.get(thicknessProp);
-		}
-		return 0;
-	}
-
-	hasDimZ() : boolean { return this._msg.has(dimZProp); }
-	dimZ() : number {
-		if (this.hasDimZ()) {
-			return this._msg.get(dimZProp);
-		}
-		return 0;
-	}
-
-	hasPosZ() : boolean { return this.hasFloatAttribute(posZFloatAttribute) || this._msg.has(posZProp); }
-	posZ() : number {
-		if (this.hasFloatAttribute(posZFloatAttribute)) {
-			return this.floatAttribute(posZFloatAttribute);
-		}
-		if (this.hasPosZ()) {
-			return this._msg.get(posZProp);
-		}
-		return 0;
-	}
-
-	hasDim() : boolean { return this._msg.has(dimProp); }
-	dim() : THREE.Vector2 {
-		if (!Util.defined(this._dim)) {
-			this._dim = new THREE.Vector2();
-		}
-		if (this.hasDim()) {
-			this._dim.set(this._msg.get(dimProp).X, this._msg.get(dimProp).Y);
-		}
-		return this._dim;
-	}
-	dim3() : THREE.Vector3 {
-		if (!Util.defined(this._dim3)) {
-			this._dim3 = new THREE.Vector3();
-		}
-		if (this.hasDim()) {
-			this._dim3.set(this._msg.get(dimProp).X, this._msg.get(dimProp).Y, this.dimZ());
-		}
-		return this._dim3;
 	}
 
 	hasPos() : boolean { return this._msg.has(posProp); }
@@ -246,6 +215,26 @@ export class RenderObject extends RenderMesh {
 			this._pos3.set(this._msg.get(posProp).X, this._msg.get(posProp).Y, this.posZ());
 		}
 		return this._pos3;
+	}
+
+	hasDim() : boolean { return this._msg.has(dimProp); }
+	dim() : THREE.Vector2 {
+		if (!Util.defined(this._dim)) {
+			this._dim = new THREE.Vector2();
+		}
+		if (this.hasDim()) {
+			this._dim.set(this._msg.get(dimProp).X, this._msg.get(dimProp).Y);
+		}
+		return this._dim;
+	}
+	dim3() : THREE.Vector3 {
+		if (!Util.defined(this._dim3)) {
+			this._dim3 = new THREE.Vector3();
+		}
+		if (this.hasDim()) {
+			this._dim3.set(this._msg.get(dimProp).X, this._msg.get(dimProp).Y, this.dimZ());
+		}
+		return this._dim3;
 	}
 
 	hasVel() : boolean { return this._msg.has(velProp); }

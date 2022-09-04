@@ -1,18 +1,24 @@
 import * as THREE from 'three';
 
-import { EffectType } from './effects.js'
 import { Sound } from './audio.js'
 import { game } from './game.js'
+import { Particle, Particles } from './particles.js'
+import { RenderCustom } from './render_custom.js'
 import { RenderProjectile } from './render_projectile.js'
-import { renderer } from './renderer.js'
 import { Util } from './util.js'
 
 export class RenderPellet extends RenderProjectile {
-	private readonly _material = new THREE.MeshPhongMaterial( {color: 0xfffc40 });
-	private readonly _trailMaterial = new THREE.MeshPhongMaterial( {color: 0xfffc40 });
+	private readonly _material = new THREE.MeshPhongMaterial( {color: 0xf6ff00 });
+	private readonly _particleInterval = 30;
+
+	private _lastParticle : number;
+	private _lastPos : THREE.Vector3;
 
 	constructor(space : number, id : number) {
 		super(space, id);
+
+		this._lastParticle = Date.now();
+
 		this.setSound(Sound.PEW);
 	}
 
@@ -27,17 +33,30 @@ export class RenderPellet extends RenderProjectile {
 
 	override delete() : void {
 		super.delete();
-
-		renderer.setEffect(EffectType.BLOOM, false, this.mesh());
-		renderer.setEffect(EffectType.BLOOM, false, super.getTrail());
 	}
 
 	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
-		super.addTrail(this._trailMaterial, 0.7);
+	}
 
-		renderer.setEffect(EffectType.BLOOM, true, mesh);
-		renderer.setEffect(EffectType.BLOOM, true, super.getTrail());
+	override update() : void {
+		super.update();
+
+		if (Util.defined(this._lastPos) && Date.now() - this._lastParticle >= this._particleInterval) {
+			const initialScale = 0.3 * this.dim().x;
+			let particle = game.particles().emit(Particle.PELLET, 500, (object : THREE.Object3D, ts : number) => {
+				const scale = Math.max(object.scale.x - 0.5 * initialScale * ts, 0);
+				object.scale.x = scale;
+				object.scale.y = scale;
+			}, {
+				position: this._lastPos,
+				scale: initialScale,
+			});
+
+			this._lastParticle = Date.now();
+		}
+
+		this._lastPos = this.pos3().clone();
 	}
 }
 

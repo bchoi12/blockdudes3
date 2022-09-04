@@ -22,13 +22,6 @@ export namespace Util {
 	    }
 	}
 
-	export function getOr(msg : any, prop : number, or : any) : any{
-		if (msg.hasOwnProperty(prop)) {
-			return msg[prop];
-		}
-		return or;
-	}
-
 	export function isDev() : boolean {
 		return dev;
 	}

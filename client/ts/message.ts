@@ -82,6 +82,16 @@ export class Message {
 		return this._data.get(prop);
 	}
 
+	getOr(prop : number, or : any) : any {
+		if (this._mapProps.has(prop)) {
+			return this._maps.get(prop);
+		}
+		if (this._data.has(prop)) {
+			return this._data.get(prop);
+		}
+		return or;
+	}
+
 	private sanitizeData(data : Object) : void {
 		// Maps aren't supported well in WASM so store them separately then convert them to strings for WASM.
 		this._mapProps.forEach((overwriteMethod, prop) => {

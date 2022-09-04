@@ -3,7 +3,7 @@ import SpriteText from 'three-spritetext';
 
 import { game } from './game.js'
 import { loader, Model, Typeface } from './loader.js'
-import { SceneComponentType } from './scene_component.js'
+import { Particle, Particles } from './particles.js'
 import { RenderAnimatedObject } from './render_animated_object.js'
 import { RenderCustom } from './render_custom.js'
 import { RenderWeapon } from './render_weapon.js'
@@ -87,7 +87,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 			return;
 		}
 
-		const pos = this.pos();
+		const pos = this.pos3();
 		const dim = this.dim();
 		const vel = this.vel();
 		const acc = this.acc();
@@ -105,18 +105,23 @@ export class RenderPlayer extends RenderAnimatedObject {
 		if (grounded != this._lastGrounded) {
 			this._lastGrounded = grounded;
 
-			// TODO: move this to particles?
-			// TODO: reuse the sphere
-			const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(0.3, 6, 6), this._cloudMaterial);
-			cloudMesh.position.x = pos.x;
-			cloudMesh.position.y = pos.y - dim.y / 2;
-			cloudMesh.position.z = 0.5;
-			const cloud = new RenderCustom();
-			cloud.setMesh(cloudMesh);
-			cloud.setUpdate(() => {
-				cloud.mesh().scale.multiplyScalar(0.92);
+			[-1, 1].forEach((i : number) => {
+				for (let j = 0; j < 3; j++) {
+					const scale = MathUtil.randomRange(0.1, 0.7 * dim.x / 2);
+					let cloud = game.particles().emit(Particle.SMOKE, 500, (mesh : THREE.Object3D, ts : number) => {
+						mesh.scale.multiplyScalar(0.9);
+						mesh.position.x += i * mesh.scale.x * ts;
+						mesh.position.y += 2 * mesh.scale.y * ts;
+					}, {
+						color: 0x7b7b7b,
+						position: new THREE.Vector3(
+							pos.x + i * scale,
+							pos.y - dim.y / 2 + MathUtil.randomRange(-0.05, 0.05),
+							pos.z + MathUtil.randomRange(-0.3, 0.3)),
+						scale : scale,
+					});
+				}
 			});
-			game.sceneComponent(SceneComponentType.PARTICLES).addCustomTemp(cloud, 800);
 		}
 
 		if (!grounded) {

@@ -11,10 +11,6 @@ const (
 	byteAttributesProp
 	intAttributesProp
 	floatAttributesProp
-	colorProp
-	thicknessProp
-	dimZProp
-	posZProp
 
 	dimProp
 	posProp

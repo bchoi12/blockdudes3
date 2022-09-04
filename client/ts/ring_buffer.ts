@@ -1,12 +1,20 @@
 
+import { Util } from './util.js'
+
 export class RingBuffer<T> {
 
 	private _buffer : Array<T>;
 	private _index : number;
+	private _shuffle : boolean;
 
-	constructor() {
+	constructor(array : Array<T>) {
 		this._index = 0;
-		this._buffer = new Array<T>();
+		this._buffer = array;
+		this._shuffle = false;
+	}
+
+	setShuffle(shuffle : boolean) {
+		this._shuffle = shuffle;
 	}
 
 	asArray() : Array<T> {
@@ -23,6 +31,9 @@ export class RingBuffer<T> {
 		}
 		if (this._index >= this._buffer.length) {
 			this._index = 0;
+		}
+		if (this._index === 0 && this._shuffle) {
+			Util.shuffleArray(this._buffer);
 		}
 
 		let next = this._buffer[this._index];
