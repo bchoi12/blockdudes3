@@ -318,16 +318,6 @@ func (l *Level) loadTestLevel() {
 	y += 6
 
 	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x, y), NewVec2(12, 0.5), bottomOrigin)
-		g.Upsert(g.New(init))
-	}
-
-	{
-		init := NewInitC(g.NextSpacedId(wallSpace), NewVec2(x + 6, y + 0.5), NewVec2(0.5, 0.5), bottomRightOrigin)
-		g.Upsert(g.New(init))
-	}
-
-	{
 		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0xb50ffc)
@@ -343,6 +333,26 @@ func (l *Level) loadTestLevel() {
 			g.Upsert(obj)
 		}
 	}
+
+	y += 6
+
+	{
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x - 6, y), NewVec2(8, 2), defaultOrigin)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		block.SetByteAttribute(openingByteAttribute, 0b1)
+		block.SetByteAttribute(typeByteAttribute, uint8(archBlockBalcony))
+
+		block.Load()
+		g.Upsert(block)
+
+		for _, obj := range(block.GetObjects()) {
+			obj.SetId(g.NextId(obj.GetSpace()))
+			g.Upsert(obj)
+		}
+	}
+
 
 	x += 2
 	x += 6

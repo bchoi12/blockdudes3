@@ -26,16 +26,28 @@ export abstract class SceneComponent {
 	}
 
 	addObject(object : THREE.Object3D) : void {
+		this.addObjectTemp(object, -1);
+	}
+
+	addObjectTemp(object : THREE.Object3D, ttl : number, onDelete? : (object : THREE.Object3D) => void) : void {
 		const id = this.nextId();
 		this._objects.set(id, object);
 		this._scene.add(object);
+
+		if (ttl > 0) {
+			setTimeout(() => {
+				this._objects.delete(id);
+				this._scene.remove(object);
+				onDelete(object);
+			}, ttl);
+		}
 	}
 
 	addCustom(custom : RenderCustom) : void {
 		this.addCustomTemp(custom, -1, () => {});
 	}
 
-	addCustomTemp(custom : RenderCustom, ttl : number, onDelete : (object : THREE.Object3D) => void) : void {
+	addCustomTemp(custom : RenderCustom, ttl : number, onDelete? : (object : THREE.Object3D) => void) : void {
 		const id = custom.id();
 		custom.onMeshLoad(() => {
 			this._customObjects.set(id, custom);
@@ -49,7 +61,7 @@ export abstract class SceneComponent {
 		});
 	}
 
-	deleteCustomTemp(custom : RenderCustom, onDelete : (object : THREE.Object3D) => void) {
+	deleteCustomTemp(custom : RenderCustom, onDelete? : (object : THREE.Object3D) => void) {
 		this._customObjects.delete(custom.id());
 		this._scene.remove(custom.mesh());
 		onDelete(custom.mesh());

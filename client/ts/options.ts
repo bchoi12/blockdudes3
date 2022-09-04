@@ -10,7 +10,6 @@ class Options {
 	public enablePointerLock : boolean;
 	public enableShadows : boolean;
 	public enableEffects : boolean;
-	public enableDynamicLighting : boolean;
 	public enableAntialiasing : boolean;
 
 	public rendererScale : number;
@@ -25,7 +24,6 @@ class Options {
 		this.enablePointerLock = true;
 		this.enableShadows = true;
 		this.enableEffects = true;
-		this.enableDynamicLighting = true;
 		this.enableAntialiasing = true;
 
 		this.rendererScale = 0.6;

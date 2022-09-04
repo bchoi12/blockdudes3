@@ -37,9 +37,12 @@ export class RenderBlock extends RenderObject {
 		case archBlockRoof:
 			model = Model.TEST_BUILDING2_ROOF;
 			break;
+		case archBlockBalcony:
+			model = Model.TEST_BALCONY;
+			break;
 		}
 		loader.load(model, (mesh) => {
-			if (model === Model.TEST_BUILDING2 || model === Model.TEST_BUILDING2_ROOF) {
+			if (model !== Model.TEST_BUILDING) {
 				mesh.traverse((child) => {
 					if (child.material) {
 						if (!child.material.visible) {
@@ -48,9 +51,9 @@ export class RenderBlock extends RenderObject {
 
 						const name = child.material.name;
 						if (name.includes("window")) {
-							child.material.color = new THREE.Color(0x45d0ff);
 							child.material.transparent = true;
-							child.material.opacity = 0.7;
+							child.material.color = new THREE.Color(0x45d0ff);
+							child.material.opacity = 0.5;
 						}
 
 						if (this.hasByteAttribute(openingByteAttribute)) {
@@ -108,7 +111,7 @@ export class RenderBlock extends RenderObject {
 					mat.transparent = true;
 				}
 
-				mat.opacity = Math.min(1, Math.max(0.2, mat.opacity + ts * (inside ? -3 : 5)));
+				mat.opacity = Math.min(opacity, Math.max(0.2, mat.opacity + ts * (inside ? -3 : 5)));
 			} else {
 				mat.visible = !inside;
 			}

@@ -16,8 +16,8 @@ export class Weather extends SceneComponent {
 	private readonly _cloudHeight = 0.3;
 	private readonly _cloudDepth = 2.5;
 
-	private readonly _cloudYs = new RingBuffer([6, 9, 12, 15]);
-	private readonly _cloudZs = new RingBuffer([-12, -9, 9]);
+	private readonly _cloudYs = new RingBuffer([6, 10, 14, 18]);
+	private readonly _cloudZs = new RingBuffer([-18, -15, -12, -9, 9, 10]);
 
 	private _cloudMesh : THREE.InstancedMesh;
 	private _cloudObject : RenderCustom;
@@ -28,9 +28,9 @@ export class Weather extends SceneComponent {
 		this._cloudYs.setShuffle(true);
 		this._cloudZs.setShuffle(true);
 
-		const space = 9;
-		const start = -30;
-		const numClouds = 20;
+		const space = 12;
+		const start = -40;
+		const numClouds = 40;
 		const end = start + numClouds * space
 
 		this._cloudMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(
@@ -43,7 +43,10 @@ export class Weather extends SceneComponent {
 		for (let i = 0; i < numClouds; ++i) {
 			let matrix = new THREE.Matrix4();
 			this._cloudMesh.getMatrixAt(i, matrix);
-			matrix.makeTranslation(i * space + start, this._cloudYs.getNext(), this._cloudZs.getNext());
+			matrix.makeTranslation(
+				Math.floor(i/2) * space + start + MathUtil.randomRange(-2, 2),
+				(i % 2 === 0 ? 16 : 0) + this._cloudYs.getNext() + MathUtil.randomRange(-1, 1),
+				this._cloudZs.getNext());
 			this._cloudMesh.setMatrixAt(i, matrix);
 		}
 		this._cloudMesh.instanceMatrix.needsUpdate = true;
@@ -57,8 +60,9 @@ export class Weather extends SceneComponent {
 				let matrix = new THREE.Matrix4();
 				this._cloudMesh.getMatrixAt(i, matrix);
 
-				if (matrix.elements[3] > end) {
-					matrix.elements[3] = start;
+				const x = mesh.position.x + matrix.elements[12];
+				if (x > end) {
+					matrix.setPosition(x - (end - start), this._cloudYs.getNext(), this._cloudZs.getNext());
 					this._cloudMesh.setMatrixAt(i, matrix);
 					this._cloudMesh.instanceMatrix.needsUpdate = true;
 				}

@@ -7,6 +7,7 @@ const (
 	testBlock
 	archBlock
 	archBlockRoof
+	archBlockBalcony
 )
 
 type Block struct {
@@ -76,6 +77,14 @@ func (b *Block) Load() {
 
 		if !rightOpening {
 			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + thick), NewVec2(thick, thick), bottomRightOrigin)
+			b.objects = append(b.objects, NewWall(right))
+		}
+	case archBlockBalcony:
+		if leftOpening {
+			floor := NewInitC(Id(wallSpace, 0), NewVec2(x, y), NewVec2(width / 2, thick), bottomLeftOrigin)
+			b.objects = append(b.objects, NewWall(floor))
+
+			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2(thick, height), bottomRightOrigin)
 			b.objects = append(b.objects, NewWall(right))
 		}
 	}

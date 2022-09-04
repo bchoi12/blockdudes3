@@ -11,7 +11,6 @@ export class OptionsHandler implements InterfaceHandler {
 	private _pointerLockInputElm : HTMLInputElement;
 	private _shadowsInputElm : HTMLInputElement;
 	private _effectsInputElm : HTMLInputElement;
-	private _dynamicLightingInputElm : HTMLInputElement;
 	private _antialiasingElm : HTMLElement;
 	private _antialiasingInputElm : HTMLInputElement;
 
@@ -27,7 +26,6 @@ export class OptionsHandler implements InterfaceHandler {
 		this._pointerLockInputElm = Html.inputElm(Html.inputPointerLock);
 		this._shadowsInputElm = Html.inputElm(Html.inputShadows);
 		this._effectsInputElm = Html.inputElm(Html.inputEffects);
-		this._dynamicLightingInputElm = Html.inputElm(Html.inputDynamicLighting);
 		this._antialiasingElm = Html.elm(Html.optionsAntialiasing);
 		this._antialiasingInputElm = Html.inputElm(Html.inputAntialiasing);
 
@@ -46,7 +44,6 @@ export class OptionsHandler implements InterfaceHandler {
 		this._pointerLockInputElm.checked = options.enablePointerLock;
 		this._shadowsInputElm.checked = options.enableShadows;
 		this._effectsInputElm.checked = options.enableEffects;
-		this._dynamicLightingInputElm.checked = options.enableDynamicLighting;
 		this._antialiasingInputElm.checked = options.enableAntialiasing;
 
 		this._extrapolationInputElm.value = "" + options.extrapolateWeight;
@@ -76,9 +73,6 @@ export class OptionsHandler implements InterfaceHandler {
 			options.enableEffects = this._effectsInputElm.checked;
 			toggleEffects();
 			renderer.reset();
-		};
-		this._dynamicLightingInputElm.onchange = () => {
-			options.enableDynamicLighting = this._dynamicLightingInputElm.checked;
 		};
 		this._antialiasingInputElm.onchange = () => {
 			options.enableAntialiasing = this._antialiasingInputElm.checked;

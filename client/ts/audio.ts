@@ -5,6 +5,7 @@ import { options } from './options.js'
 export enum Sound {
 	UNKNOWN,
 	PEW,
+	BIT_PEW,
 	LASER,
 	ROCKET,
 	THROW,
@@ -25,6 +26,7 @@ export class Audio {
 	constructor() {
 		this._sounds = new Map<Sound, Howl>();
 		this.registerSound(Sound.PEW, this._soundPrefix + "pew.wav");
+		this.registerSound(Sound.BIT_PEW, this._soundPrefix + "bitpew.wav");
 		this.registerSound(Sound.LASER , this._soundPrefix + "laser.wav");
 		this.registerSound(Sound.ROCKET, this._soundPrefix + "rocket.wav");
 		this.registerSound(Sound.THROW, this._soundPrefix + "throw.wav");

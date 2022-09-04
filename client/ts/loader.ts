@@ -21,6 +21,7 @@ export enum Model {
 	TEST_BUILDING = "TEST_BUILDING",
 	TEST_BUILDING2 = "TEST_BUILDING2",
 	TEST_BUILDING2_ROOF = "TEST_BUILDING2_ROOF",
+	TEST_BALCONY = "TEST_BALCONY",
 }
 
 export enum Typeface {
@@ -128,6 +129,7 @@ class Loader {
 				break;
 			case Model.TEST_BUILDING2:
 			case Model.TEST_BUILDING2_ROOF:
+			case Model.TEST_BALCONY:
 				data.scene.traverse((child) => {
 					let processed = new Set<string>();
 					if (child.material && !processed.has(child.material.name)) {

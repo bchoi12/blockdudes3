@@ -130,6 +130,7 @@ func setGlobals() {
 	js.Global().Set("testBlock", int(testBlock))
 	js.Global().Set("archBlock", int(archBlock))
 	js.Global().Set("archBlockRoof", int(archBlockRoof))
+	js.Global().Set("archBlockBalcony", int(archBlockBalcony))
 
 	js.Global().Set("upKey", int(upKey))
 	js.Global().Set("downKey", int(downKey))

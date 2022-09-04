@@ -100,6 +100,7 @@ declare var starWeapon : number;
 declare var testBlock : number;
 declare var archBlock : number;
 declare var archBlockRoof : number;
+declare var archBlockBalcony : number;
 
 declare var upKey : number;
 declare var downKey : number;

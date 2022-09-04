@@ -108,7 +108,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 			[-1, 1].forEach((i : number) => {
 				for (let j = 0; j < 3; j++) {
 					const scale = MathUtil.randomRange(0.1, 0.7 * dim.x / 2);
-					let cloud = game.particles().emit(Particle.SMOKE, 500, (mesh : THREE.Object3D, ts : number) => {
+					let cloud = game.particles().emit(Particle.SMOKE, MathUtil.randomRange(400, 600), (mesh : THREE.Object3D, ts : number) => {
 						mesh.scale.multiplyScalar(0.9);
 						mesh.position.x += i * mesh.scale.x * ts;
 						mesh.position.y += 2 * mesh.scale.y * ts;

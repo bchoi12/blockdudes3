@@ -32,9 +32,6 @@ export class LightBuffer {
 	}
 
 	hasPointLight() : boolean {
-		if (!options.enableDynamicLighting) {
-			return false;
-		}
 		if (this._pointLights.size == 0) {
 			return false;
 		}
@@ -42,10 +39,6 @@ export class LightBuffer {
 	}
 
 	getPointLight() : THREE.PointLight {
-		if (!options.enableDynamicLighting) {
-			return null;
-		}
-
 		// Typically this happens due to lag, just reset the buffer here.
 		if (this._pointLights.size == 0) {
 			for (let light of this._allPointLights) {

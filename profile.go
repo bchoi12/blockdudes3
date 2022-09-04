@@ -475,7 +475,8 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 	if collisionFlag.X != 0 && collisionFlag.Y != 0 {
 		if Abs(posAdj.Y) < overlapEpsilon {
 			collisionFlag.X = 0
-		} else if Abs(posAdj.X) < overlapEpsilon {
+		}
+		if Abs(posAdj.X) < overlapEpsilon {
 			collisionFlag.Y = 0
 		}
 	}
