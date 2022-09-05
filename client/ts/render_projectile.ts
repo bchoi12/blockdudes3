@@ -53,7 +53,7 @@ export class RenderProjectile extends RenderObject {
 		}
 
 		if (this.mesh().position.z > 0) {
-			this.mesh().position.z -= 2 * this.timestep();
+			this.mesh().position.z = Math.max(0, this.mesh().position.z - this.timestep());
 		}
 	}
 

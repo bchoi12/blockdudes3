@@ -6,7 +6,7 @@ import { LogUtil, Util } from './util.js'
 
 export class LightBuffer {
 
-	private readonly _bufferSize : number = 10;
+	private readonly _bufferSize : number = 16;
 
 	private _scene : THREE.Scene;
 	private _allPointLights : Set<THREE.PointLight>;
@@ -38,7 +38,7 @@ export class LightBuffer {
 		return true;
 	}
 
-	getPointLight() : THREE.PointLight {
+	getPointLight(overrides : LightOverrides) : THREE.PointLight {
 		// Typically this happens due to lag, just reset the buffer here.
 		if (this._pointLights.size == 0) {
 			for (let light of this._allPointLights) {
@@ -47,6 +47,7 @@ export class LightBuffer {
 		}
 		for (let light of this._pointLights) {
 		    this._pointLights.delete(light);
+		    this.applyOverrides(light, overrides);
 		    return light;
 		}
 		return null;
@@ -62,6 +63,29 @@ export class LightBuffer {
 		// Hack to prevent lag from destroying light
 		this._scene.add(light);
 		this._pointLights.add(light);
-		
 	}
+
+	private applyOverrides(light : THREE.PointLight, overrides : LightOverrides) {
+		light.color = overrides.color;
+		light.intensity = overrides.intensity;
+		light.distance = overrides.distance;
+
+		if (overrides.position) {
+			light.position.copy(overrides.position);
+		}
+
+		if (overrides.attach) {
+			overrides.attach.add(light);
+		}
+	}
+}
+
+export interface LightOverrides {
+	attach? : THREE.Object3D;
+	position? : THREE.Vector3;
+
+	color : THREE.Color;
+	intensity : number;
+	distance : number;
+
 }

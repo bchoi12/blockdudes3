@@ -126,7 +126,7 @@ func (p *Player) Respawn() {
 
 	rand.Seed(time.Now().Unix())
 	// p.SetPos(NewVec2(float64(15 + rand.Intn(10)), 20))
-	p.SetPos(NewVec2(29, 4.22))
+	p.SetPos(NewVec2(4, 6))
 	p.Stop()
 }
 

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { LightBuffer } from './light_buffer.js'
+import { LightBuffer, LightOverrides } from './light_buffer.js'
 import { Lighting } from './lighting.js'
 import { Particles } from './particles.js'
 import { RenderMesh } from './render_mesh.js'
@@ -97,7 +97,7 @@ export class SceneMap {
 		});
 	}
 
-	getPointLight() : THREE.PointLight { return this._lightBuffer.getPointLight(); }
+	getPointLight(overrides : LightOverrides) : THREE.PointLight { return this._lightBuffer.getPointLight(overrides); }
 	returnPointLight(light : THREE.PointLight) : void { this._lightBuffer.returnPointLight(light); }
 
 	getMap(space : number) : Map<number, RenderObject> {

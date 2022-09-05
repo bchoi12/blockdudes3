@@ -131,12 +131,13 @@ export class RenderWeapon extends RenderObject {
 		}
 
 		if (!Util.defined(this._chargeLight)) {
-			this._chargeLight = game.sceneMap().getPointLight();
-		}
-		if (Util.defined(this._chargeLight)) {
-			this._chargeLight.color = new THREE.Color(0x47def5);
-			this._chargeLight.position.copy(this._shotOrigin);
-			this.mesh().add(this._chargeLight);
+			this._chargeLight = game.sceneMap().getPointLight({
+				position: this._shotOrigin,
+				color: new THREE.Color(0x47def5),
+				intensity: 0,
+				distance: 0,
+				attach: this.mesh(),
+			});
 		}
 	}
 

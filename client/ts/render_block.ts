@@ -83,8 +83,6 @@ export class RenderBlock extends RenderObject {
 			}
 
 			mesh.position.copy(this.pos3());
-			mesh.matrixAutoUpdate = false;
-			mesh.updateMatrix();	
 			this.setMesh(mesh);
 		})
 

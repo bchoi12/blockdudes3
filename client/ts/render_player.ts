@@ -60,7 +60,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._armOrigin = this._arm.position.clone();
 
 		this._name = new SpriteText(this.name(), 0.3, "black");
-		this._name.fontSize = 200;
+		this._name.fontSize = 400;
 		let size = new THREE.Vector3();
 		const bbox = new THREE.Box3().setFromObject(this._name);
 		bbox.getSize(size);

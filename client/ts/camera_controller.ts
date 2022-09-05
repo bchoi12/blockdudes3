@@ -1,8 +1,10 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 import { Interp } from './interp.js'
+import { renderer } from './renderer.js'
 import { Timer } from './timer.js'
-import { MathUtil } from './util.js'
+import { MathUtil, Util } from './util.js'
 
 export class CameraController {
 	private readonly _horizontalFov = 45;
@@ -11,6 +13,8 @@ export class CameraController {
 	private readonly _panTiming = 250; // ms
 
 	private _camera : THREE.PerspectiveCamera;
+	private _free : boolean;
+	private _orbitControls : OrbitControls;
 	private _target : THREE.Vector3;
 	private _anchor : THREE.Vector3;
 
@@ -29,6 +33,7 @@ export class CameraController {
 		this._panInterp.capMax(true);
 		this._panInterp.setFn((x: number) => { return -(x * x) + 2 * x; })
 
+		this.setFree(false);
 		this.setAnchor(this._anchor);
 	}
 
@@ -38,14 +43,31 @@ export class CameraController {
 	pan() : THREE.Vector3 { return this._pan; }
 	panEnabled() : boolean { return this._panTimer.enabled(); }
 
+	setFree(free : boolean) : void {
+		if (free && !Util.defined(this._orbitControls)) {
+			this._orbitControls = new OrbitControls(this._camera, renderer.elm());
+			this._orbitControls.enableRotate = true;
+			this._orbitControls.enablePan =  true;
+			this._orbitControls.enableZoom = true;
+		}
+
+		this._free = free;
+	}
+
 	setAnchor(anchor: THREE.Vector3) : void {
 		this._anchor = anchor.clone();
 		this._anchor.y = Math.max(this._cameraOffset.y, this._anchor.y);
 
-		this._camera.position.copy(this._anchor);
-		this._camera.position.add(this._cameraOffset);
+		if (this._free) {
+			this._orbitControls.update();
+			return;
+		}
+
 		this._target = this._anchor.clone();
 		this._target.add(this._lookAtOffset);
+
+		this._camera.position.copy(this._anchor);
+		this._camera.position.add(this._cameraOffset);
 
 		let pan = new THREE.Vector3();
 		if (this._panTimer.enabled()) {

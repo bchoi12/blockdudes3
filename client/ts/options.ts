@@ -16,7 +16,6 @@ class Options {
 	public rendererMultisampling : number;
 	public soundVolume : number;
 	public extrapolateWeight : number;
-	public extrapolateMs : number;
 
 	constructor() {
 		THREE.Cache.enabled = true;
@@ -26,11 +25,10 @@ class Options {
 		this.enableEffects = true;
 		this.enableAntialiasing = true;
 
-		this.rendererScale = 0.6;
+		this.rendererScale = 0.8;
 		this.rendererMultisampling = 2;
 		this.soundVolume = 0.5;
 		this.extrapolateWeight = 0.5;
-		this.extrapolateMs = 100;
 
 		this.load();
 	}

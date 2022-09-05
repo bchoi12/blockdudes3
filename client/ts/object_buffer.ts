@@ -4,6 +4,8 @@ import { renderer } from './renderer.js'
 import { Util } from './util.js'
 
 export class ObjectBuffer<T extends THREE.Object3D> {
+	private readonly _maxBufferSize = 10;
+
 	private _objects : Set<T>;
 	private _create : () => T;
 
@@ -31,20 +33,50 @@ export class ObjectBuffer<T extends THREE.Object3D> {
 		} else {
 			material.transparent = false;
 		}
-		if (overrides.position) {
-			object.position.copy(overrides.position);
-		}
-		if (overrides.scale) {
-			if (overrides.scale instanceof THREE.Vector3) {
-				object.scale.copy(overrides.scale);
-			} else if (!isNaN(overrides.scale)) {
-				object.scale.set(1, 1, 1);
+
+		object.position.copy(overrides.position);
+		if (overrides.scale instanceof THREE.Vector3) {
+			object.scale.copy(overrides.scale);
+		} else {
+			object.scale.set(1, 1, 1);
+			if (!isNaN(overrides.scale)) {
 				object.scale.multiplyScalar(overrides.scale);
 			}
 		}
 		if (overrides.rotation) {
 			object.rotation.copy(overrides.rotation);
 		}
+
+		if (object instanceof THREE.InstancedMesh && overrides.instances) {
+			for (let i = 0; i < object.count; ++i) {
+				let pos = overrides.instances.posFn ? overrides.instances.posFn(object, i) : new THREE.Vector3();
+				let scale = overrides.instances.scaleFn ? overrides.instances.scaleFn(object, i) : new THREE.Vector3(1, 1, 1);
+				let rotation = overrides.instances.rotationFn ? overrides.instances.rotationFn(object, i) : new THREE.Quaternion();
+
+				let matrix = new THREE.Matrix4();
+				matrix.compose(pos, rotation, scale);
+				object.setMatrixAt(i, matrix);
+
+				let color = new THREE.Color();
+				if (overrides.instances.colorFn) {
+					let color = overrides.instances.colorFn(object, i);
+					if (color instanceof THREE.Color) {
+						object.setColorAt(i, color);
+					} else if (!isNaN(color)) {
+						object.setColorAt(i, new THREE.Color(color));
+					}
+				}
+			}
+
+			if (object.instanceMatrix) {
+				object.instanceMatrix.needsUpdate = true;
+			}
+
+			if (object.instanceColor) {
+				object.instanceColor.needsUpdate = true;
+			}
+		}
+
 		return object;
 	}
 
@@ -64,8 +96,18 @@ export class ObjectBuffer<T extends THREE.Object3D> {
 		if (!Util.defined(object)) {
 			return;
 		}
-		this._objects.add(object);
+
+		if (this._objects.size < this._maxBufferSize) {
+			this._objects.add(object);
+		}
 	}
+}
+
+export interface InstanceOptions {
+	posFn? : (object? : THREE.InstancedMesh, i? : number) => THREE.Vector3;
+	scaleFn? : (object? : THREE.InstancedMesh, i? : number) => THREE.Vector3;
+	rotationFn? : (object? : THREE.InstancedMesh, i? : number) => THREE.Quaternion
+	colorFn? : (object? : THREE.InstancedMesh, i? : number) => any;
 }
 
 export interface ObjectOverrides {
@@ -75,7 +117,10 @@ export interface ObjectOverrides {
 	opacity? : number;
 
 	// Object overrides
-	position? : THREE.Vector3;
-	scale? : any;
+	position : THREE.Vector3;
+	scale : any;
 	rotation? : THREE.Euler;
+
+	// Instance overrides
+	instances? : InstanceOptions;
 }

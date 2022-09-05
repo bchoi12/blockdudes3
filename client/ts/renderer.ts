@@ -87,6 +87,7 @@ class Renderer {
 		}
 	}
 
+	domElement() : HTMLElement { return this._renderer.domElement; }
 	info() : any { return this._renderer.info; }
 	elm() : HTMLElement { return this._canvas; }
 	compile(scene : THREE.Scene) { this._renderer.compile(scene, this._cameraController.camera()); }

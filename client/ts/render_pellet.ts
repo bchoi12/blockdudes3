@@ -9,6 +9,7 @@ import { MathUtil, Util } from './util.js'
 
 export class RenderPellet extends RenderProjectile {
 	private readonly _material = new THREE.MeshPhongMaterial( {color: 0xf6ff00 });
+	private readonly _particleColors = [0xf6ff00, 0xffc800, 0xff9100];
 	private readonly _particleInterval = 30;
 
 	private _lastParticle : number;
@@ -35,23 +36,25 @@ export class RenderPellet extends RenderProjectile {
 		super.delete();
 
 		const pos = this.pos3();
-		game.particles().instance(Particle.SPARKS, 70, (object : THREE.InstancedMesh, ts : number) => {
-			const scale = object.scale.x + 7 * ts;
+		game.particles().emit(Particle.SPARKS, 100, (object : THREE.InstancedMesh, ts : number) => {
+			const scale = object.scale.x + 6 * ts;
 			object.scale.set(scale, scale, scale);
 		}, {
 			position: this.pos3(),
 			scale: 0,
-		}, {
-			posFn: () => {
-				let pos = new THREE.Vector3();
-				pos.setFromSphericalCoords(0.3, MathUtil.randomRange(0, Math.PI), MathUtil.randomRange(0, 2 * Math.PI));
-				return pos;
+			instances: {
+				posFn: () => {
+					let pos = new THREE.Vector3();
+					pos.setFromSphericalCoords(1.0, MathUtil.randomRange(0, Math.PI), MathUtil.randomRange(0, 2 * Math.PI));
+					return pos;
+				},
+				scaleFn: () => {
+					return new THREE.Vector3(0.08, 0.08, 0.08);
+				},
+				colorFn: () => {
+					return new THREE.Color(Util.randomElement(this._particleColors));
+				},
 			},
-			scaleFn: () => {
-				return new THREE.Vector3(0.03, 0.03, 0.03);
-			},
-			count: 10,
-			colors: [0xf6ff00],
 		});
 	}
 
@@ -64,8 +67,8 @@ export class RenderPellet extends RenderProjectile {
 
 		if (Util.defined(this._lastPos) && Date.now() - this._lastParticle >= this._particleInterval) {
 			const initialScale = 0.3 * this.dim().x;
-			let particle = game.particles().emit(Particle.CUBE, 300, (object : THREE.Object3D, ts : number) => {
-				const scale = Math.max(object.scale.x - 0.2 * ts, 0);
+			let particle = game.particles().emit(Particle.CUBE, 200, (object : THREE.Object3D, ts : number) => {
+				const scale = Math.max(object.scale.x - 0.3 * ts, 0);
 				object.scale.x = scale;
 				object.scale.y = scale;
 			}, {

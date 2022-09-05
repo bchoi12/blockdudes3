@@ -7,7 +7,8 @@ import { RenderProjectile } from './render_projectile.js'
 import { MathUtil } from './util.js'
 
 export class RenderGrapplingHook extends RenderProjectile {
-	private readonly _metalMaterial = new THREE.MeshStandardMaterial({ color: 0x5b5b5b })
+	private readonly _metalMaterial = new THREE.MeshPhongMaterial({ color: 0x5b5b5b })
+	private readonly _lineMaterial = new THREE.LineBasicMaterial({color: 0x000000});
 	private readonly _prismGeometry = new PrismGeometry(new THREE.Shape([
 		new THREE.Vector2(-0.06, 0),
 		new THREE.Vector2(-0.1, 0),
@@ -29,7 +30,7 @@ export class RenderGrapplingHook extends RenderProjectile {
 		const group = new THREE.Group();
 
 		this._ropeGeometry = new THREE.BufferGeometry();
-		let ropeLine = new THREE.Line(this._ropeGeometry, new THREE.LineBasicMaterial({color: 0x000000}));
+		let ropeLine = new THREE.Line(this._ropeGeometry, this._lineMaterial);
 		ropeLine.frustumCulled = false;
 		const gyro = new Gyroscope();
 		gyro.add(ropeLine);

@@ -62,21 +62,25 @@ func (b *Block) Load() {
 			rightPercent = 0.75
 		}
 
-		left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y + leftPercent * height), NewVec2(thick, (1.0 - leftPercent) * height), bottomLeftOrigin)
-		b.objects = append(b.objects, NewWall(left))
-		right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + rightPercent * height), NewVec2(thick, (1.0 - rightPercent) * height), bottomRightOrigin)
-		b.objects = append(b.objects, NewWall(right))
+		if leftPercent < 1 {
+			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y + leftPercent * height), NewVec2(thick, (1.0 - leftPercent) * height), bottomLeftOrigin)
+			b.objects = append(b.objects, NewWall(left))
+		}
+		if rightPercent < 1 {
+			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + rightPercent * height), NewVec2(thick, (1.0 - rightPercent) * height), bottomRightOrigin)
+			b.objects = append(b.objects, NewWall(right))
+		}
 	case archBlockRoof:
 		floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, thick), bottomOrigin)
 		b.objects = append(b.objects, NewWall(floor))
 
 		if !leftOpening {
-			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y + thick), NewVec2(thick, thick), bottomLeftOrigin)
+			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2(thick, 1), bottomLeftOrigin)
 			b.objects = append(b.objects, NewWall(left))
 		}
 
 		if !rightOpening {
-			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + thick), NewVec2(thick, thick), bottomRightOrigin)
+			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2(thick, 1), bottomRightOrigin)
 			b.objects = append(b.objects, NewWall(right))
 		}
 	case archBlockBalcony:

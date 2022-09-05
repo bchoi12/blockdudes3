@@ -14,6 +14,8 @@ enum OverwriteMethod {
 }
 
 export class Message {
+	private readonly _extrapolateMs = 250;
+
 	private readonly _extrapolateProps : Set<number> = new Set<number>([posProp, velProp, accProp]);
 	private readonly _mapProps : Map<number, OverwriteMethod> = new Map<number, OverwriteMethod>([
 		[attributesProp, OverwriteMethod.MERGE_AND_REPLACE],
@@ -50,7 +52,7 @@ export class Message {
 		this.sanitizeData(msg);
 
 		const millisElapsed = Date.now() - this._lastUpdate;
-		const weight = Math.min(millisElapsed / (options.extrapolateMs), 1) * options.extrapolateWeight;
+		const weight = Math.min(millisElapsed / (this._extrapolateMs), 1) * options.extrapolateWeight;
 
 		for (const [stringProp, data] of Object.entries(msg) as [string, any]) {
 			const prop = Number(stringProp);

@@ -36,6 +36,7 @@ func NewBolt(init Init) *Bolt {
 	}
 	bolt.SetTTL(800 * time.Millisecond)
 	bolt.SetDamage(10)
+	bolt.SetIntAttribute(colorIntAttribute, 0xffa610)
 	return bolt
 }
 
@@ -43,12 +44,13 @@ func (b *Bolt) AddAttribute(attribute AttributeType) {
 	b.Projectile.AddAttribute(attribute)
 
 	if attribute == chargedAttribute {
+		b.SetIntAttribute(colorIntAttribute, 0x10b3ff)
 		b.SetTTL(1600 * time.Millisecond)
 		b.SetDamage(80)
 		b.SetExplosionOptions(ExplosionOptions {
 			explode: true,
 			size: NewVec2(5, 5),
-			color: 0xffa424,
+			color: 0x10b3ff,
 		})
 	}
 }

@@ -75,9 +75,9 @@ func NewLauncher(weapon *Weapon, space SpaceType) *Launcher {
 		l.maxAmmo = 3
 		l.ammoTimer.SetDuration(100 * time.Millisecond)
 		l.reloadTimer.SetDuration(400 * time.Millisecond)
-		l.projectileSize = NewVec2(0.25, 0.15)
+		l.projectileSize = NewVec2(0.5, 0.15)
 		l.projectileVel = 30
-		l.chargedSize = NewVec2(0.5, 0.25)
+		l.chargedSize = NewVec2(0.6, 0.25)
 		l.chargedVel = 45
 	case rocketSpace:
 		l.maxAmmo = 1

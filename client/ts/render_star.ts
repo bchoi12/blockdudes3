@@ -56,14 +56,14 @@ export class RenderStar extends RenderProjectile {
 		super.delete();
 
 		if (Util.defined(this._trail)) {
-			game.particles().delete(Particle.TRAIL, this._trail);
+			game.particles().delete(Particle.COLOR_TRAIL, this._trail);
 		}
 	}
 
 	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
 
-		this._trail = game.particles().emit(Particle.TRAIL, -1, (object : THREE.Object3D) => {
+		this._trail = game.particles().emit(Particle.COLOR_TRAIL, -1, (object : THREE.Object3D) => {
 			object.position.copy(this.pos3());
 			object.rotation.z = this.dir().angle();
 
@@ -73,6 +73,7 @@ export class RenderStar extends RenderProjectile {
 				object.scale.x = Math.min(object.scale.x + 0.7 * this.timestep(), 0.2);
 			}
 		}, {
+			position: this.pos3(),
 			color: new THREE.Color(this.color()),
 			scale: new THREE.Vector3(0.1, this.dim().y, 1),
 		});
