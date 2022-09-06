@@ -53,6 +53,7 @@ export class RenderObject extends RenderMesh {
 	id() : number { return this._id; }
 	msg() : Message { return this._msg; }
 	data() : { [k: string]: any } { return this._msg.data(); }
+	lastSeqNum() : number { return this._msg.lastSeqNum(); }
 
 	initializeTime() : number { return this._initializeTime; }
 	timestep() : number { return this._timestep; }
@@ -103,6 +104,10 @@ export class RenderObject extends RenderMesh {
 
 	delete() : void {
 		wasmDelete(this.space(), this.id());
+	}
+
+	seqNum(prop : number) : number {
+		return this._msg.seqNum(prop);
 	}
 
 	hasAttributes() : boolean { return this._msg.has(attributesProp); }

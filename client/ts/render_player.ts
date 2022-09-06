@@ -27,12 +27,12 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private _armOrigin : THREE.Vector3;
 
 	private _weapon : RenderWeapon;
+
 	private _lastGrounded : boolean;
+	private _lastDoubleJump : boolean;
 
 	constructor(space : number, id : number) {
 		super(space, id);
-
-		this._lastGrounded = false;
 	}
 
 	override ready() : boolean {
@@ -101,27 +101,23 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this._arm.position.add(armOffset);
 		}
 
-		const grounded = this.attribute(groundedAttribute);
-		if (grounded != this._lastGrounded) {
-			this._lastGrounded = grounded;
+		const doubleJump = this.attribute(doubleJumpAttribute);
+		if (!Util.defined(this._lastDoubleJump)) {
+			this._lastDoubleJump = doubleJump;
+		} else if (doubleJump != this._lastDoubleJump) {
+			this._lastDoubleJump = doubleJump;
 
-			[-1, 1].forEach((i : number) => {
-				for (let j = 0; j < 3; j++) {
-					const scale = MathUtil.randomRange(0.1, 0.7 * dim.x / 2);
-					let cloud = game.particles().emit(Particle.SMOKE, MathUtil.randomRange(400, 600), (mesh : THREE.Object3D, ts : number) => {
-						mesh.scale.multiplyScalar(0.9);
-						mesh.position.x += i * mesh.scale.x * ts;
-						mesh.position.y += 2 * mesh.scale.y * ts;
-					}, {
-						color: 0x7b7b7b,
-						position: new THREE.Vector3(
-							pos.x + i * scale,
-							pos.y - dim.y / 2 + MathUtil.randomRange(-0.05, 0.05),
-							pos.z + MathUtil.randomRange(-0.3, 0.3)),
-						scale : scale,
-					});
-				}
-			});
+			if (!this._lastDoubleJump) {
+				this.emitClouds(1);
+			}
+		}
+
+		const grounded = this.attribute(groundedAttribute);
+		if (!Util.defined(this._lastGrounded)) {
+			this._lastGrounded = grounded;
+		} else if (grounded != this._lastGrounded) {
+			this._lastGrounded = grounded;
+			this.emitClouds(3);
 		}
 
 		if (!grounded) {
@@ -210,5 +206,27 @@ export class RenderPlayer extends RenderAnimatedObject {
 				this._playerMesh.scale.z = MathUtil.signPos(dir.x);
 			}
 		}
+	}
+	
+	private emitClouds(num : number) : void {
+		const pos = this.pos3();
+		const dim = this.dim();
+		[-1, 1].forEach((i : number) => {
+			for (let j = 0; j < num; j++) {
+				const scale = MathUtil.randomRange(0.1, 0.7 * dim.x / 2);
+				let cloud = game.particles().emit(Particle.SMOKE, MathUtil.randomRange(400, 600), (mesh : THREE.Object3D, ts : number) => {
+					mesh.scale.multiplyScalar(0.9);
+					mesh.position.x += i * mesh.scale.x * ts;
+					mesh.position.y += 2 * mesh.scale.y * ts;
+				}, {
+					color: 0x7b7b7b,
+					position: new THREE.Vector3(
+						pos.x + i * scale,
+						pos.y - dim.y / 2 + MathUtil.randomRange(-0.05, 0.05),
+						pos.z + MathUtil.randomRange(-0.3, 0.3)),
+					scale : scale,
+				});
+			}
+		});
 	}
 }

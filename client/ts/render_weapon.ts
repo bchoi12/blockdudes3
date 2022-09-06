@@ -1,11 +1,13 @@
 import * as THREE from 'three';
+
 import { game } from './game.js'
 import { loader, Model } from './loader.js'
 import { options } from './options.js'
+import { Particle } from './particles.js'
 import { RenderObject } from './render_object.js'
 import { RenderPlayer } from './render_player.js'
 import { renderer } from './renderer.js'
-import { Util } from './util.js'
+import { MathUtil, Util } from './util.js'
 
 export class RenderWeapon extends RenderObject {
 
@@ -89,15 +91,15 @@ export class RenderWeapon extends RenderObject {
 		} else {
 			if (this.attribute(chargedAttribute)) {
 				this._chargingCount = 0;
-				this._chargeLight.intensity = 16;
-				this._chargeLight.distance = 0.4;
+				this._chargeLight.intensity = 6;
+				this._chargeLight.distance = 1;
 			} else if (this.attribute(chargingAttribute)) {
 				if (this._chargingCount > 5) {
-					this._chargeLight.intensity += 16 * this.timestep();
+					this._chargeLight.intensity += 6 * this.timestep();
 					this._chargeLight.distance += 0.4 * this.timestep();
 
-					if (this._chargeLight.intensity > 16) {
-						this._chargeLight.intensity = 16;
+					if (this._chargeLight.intensity > 6) {
+						this._chargeLight.intensity = 6;
 					}
 					if (this._chargeLight.distance > 0.4) {
 						this._chargeLight.distance = 0.4;
@@ -121,24 +123,21 @@ export class RenderWeapon extends RenderObject {
 		}
 	}
 
-	weaponType() : number {
-		return this.byteAttribute(typeByteAttribute);
-	}
+	shotOrigin() : THREE.Vector3 { return this._shotOrigin; }
+	weaponType() : number { return this.byteAttribute(typeByteAttribute); }
 
 	private tryInitLight() : void {
-		if (!this.hasMesh()) {
+		if (!this.hasMesh() || Util.defined(this._chargeLight)) {
 			return;
 		}
 
-		if (!Util.defined(this._chargeLight)) {
-			this._chargeLight = game.sceneMap().getPointLight({
-				position: this._shotOrigin,
-				color: new THREE.Color(0x47def5),
-				intensity: 0,
-				distance: 0,
-				attach: this.mesh(),
-			});
-		}
+		this._chargeLight = game.sceneMap().getPointLight({
+			position: this._shotOrigin,
+			color: new THREE.Color(0x47def5),
+			intensity: 0,
+			distance: 0,
+			attach: this.mesh(),
+		});
 	}
 
 	private loadMesh() {
@@ -149,6 +148,9 @@ export class RenderWeapon extends RenderObject {
 			return;
 		}
 
+		if (Util.defined(this._player)) {
+			this._player.removeWeaponMesh();
+		}
 		loader.load(loader.getWeaponModel(this.weaponType()), (mesh : THREE.Mesh) => {
 			if (Util.defined(this._player)) {
 				this._player.removeWeaponMesh();

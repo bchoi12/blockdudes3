@@ -36,7 +36,7 @@ export class RenderPellet extends RenderProjectile {
 		super.delete();
 
 		const pos = this.pos3();
-		game.particles().emit(Particle.SPARKS, 100, (object : THREE.InstancedMesh, ts : number) => {
+		game.particles().emit(Particle.PELLET_SPARKS, 100, (object : THREE.InstancedMesh, ts : number) => {
 			const scale = object.scale.x + 6 * ts;
 			object.scale.set(scale, scale, scale);
 		}, {

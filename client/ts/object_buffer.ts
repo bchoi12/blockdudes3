@@ -8,10 +8,12 @@ export class ObjectBuffer<T extends THREE.Object3D> {
 
 	private _objects : Set<T>;
 	private _create : () => T;
+	private _maxSize : number;
 
-	constructor(create : () => T) {
+	constructor(create : () => T, size? : number) {
 		this._objects = new Set<T>();
 		this._create = create;
+		this._maxSize = Util.defined(size) ? size : this._maxBufferSize;
 	}
 
 	static applyOverrides(object : THREE.Object3D, overrides : ObjectOverrides) : THREE.Object3D {
@@ -34,6 +36,10 @@ export class ObjectBuffer<T extends THREE.Object3D> {
 			material.transparent = false;
 		}
 
+		if (overrides.attach) {
+			overrides.attach.add(object);
+		}
+
 		object.position.copy(overrides.position);
 		if (overrides.scale instanceof THREE.Vector3) {
 			object.scale.copy(overrides.scale);
@@ -44,7 +50,11 @@ export class ObjectBuffer<T extends THREE.Object3D> {
 			}
 		}
 		if (overrides.rotation) {
-			object.rotation.copy(overrides.rotation);
+			if (overrides.rotation instanceof THREE.Quaternion) {
+				object.rotation.setFromQuaternion(overrides.rotation);
+			} else if (overrides.rotation instanceof THREE.Euler) {		
+				object.rotation.copy(overrides.rotation);
+			}
 		}
 
 		if (object instanceof THREE.InstancedMesh && overrides.instances) {
@@ -97,7 +107,7 @@ export class ObjectBuffer<T extends THREE.Object3D> {
 			return;
 		}
 
-		if (this._objects.size < this._maxBufferSize) {
+		if (this._objects.size < this._maxSize) {
 			this._objects.add(object);
 		}
 	}
@@ -117,9 +127,10 @@ export interface ObjectOverrides {
 	opacity? : number;
 
 	// Object overrides
+	attach? : THREE.Object3D;
 	position : THREE.Vector3;
 	scale : any;
-	rotation? : THREE.Euler;
+	rotation? : THREE.Quaternion | THREE.Euler;
 
 	// Instance overrides
 	instances? : InstanceOptions;

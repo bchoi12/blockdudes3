@@ -68,9 +68,10 @@ export class Message {
 				this._seqNum.set(prop, seqNum);
 			}
 		}
+
+		this._lastUpdate = Date.now();
 	}
 
-	dataDEBUG() : any { return this._data; }
 	data() : { [k: string]: any } { return Object.fromEntries(this._data); }
 	has(prop : number) : boolean { return this._data.has(prop); }
 	lastSeqNum() : number { return this._lastSeqNum; }
@@ -92,6 +93,10 @@ export class Message {
 			return this._data.get(prop);
 		}
 		return or;
+	}
+
+	seqNum(prop : number) : number {
+		return this._seqNum.get(prop);
 	}
 
 	private sanitizeData(data : Object) : void {

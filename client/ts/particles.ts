@@ -11,8 +11,10 @@ export enum Particle {
 	SMOKE = 1,
 	COLOR_TRAIL = 2,
 	CUBE = 3,
-	SPARKS = 4,
+	PELLET_SPARKS = 4,
 	LASER = 5,
+	LASER_SPARKS = 6,
+	CONFETTI = 7,
 }
 
 export class Particles extends SceneComponent {
@@ -35,12 +37,17 @@ export class Particles extends SceneComponent {
 		opacity: 0.5,
 		transparent: true,
 		blending: THREE.AdditiveBlending,
-		color: 0xffffff,
+		color: 0x888888,
 	});
-	private readonly _laserMaterial = new THREE.MeshBasicMaterial({ color: 0x111111 });
+	private readonly _laserMaterial = new THREE.MeshBasicMaterial({ color: 0x060606 });
+	private readonly _confettiMaterial = new THREE.MeshBasicMaterial( {
+		side: THREE.DoubleSide,
+		color: 0xffffff,
+	})
 
 	private _geometries : Map<Particle, THREE.BufferGeometry>;
 	private _materials : Map<Particle, () => THREE.Material>;
+	private _sizes : Map<Particle, number>;
 	private _counts : Map<Particle, number>;
 	private _emitters : Map<Particle, ObjectBuffer<THREE.Object3D>>;
 
@@ -51,26 +58,40 @@ export class Particles extends SceneComponent {
 		this._geometries.set(Particle.SMOKE, this._sphere);
 		this._geometries.set(Particle.COLOR_TRAIL, this._trail);
 		this._geometries.set(Particle.CUBE, this._cube);
-		this._geometries.set(Particle.SPARKS, this._sphere);
+		this._geometries.set(Particle.PELLET_SPARKS, this._sphere);
 		this._geometries.set(Particle.LASER, this._plane);
+		this._geometries.set(Particle.LASER_SPARKS, this._cube);
+		this._geometries.set(Particle.CONFETTI, this._plane);
 
 		this._materials = new Map<Particle, () => THREE.Material>();
 		this._materials.set(Particle.SMOKE, () => { return this._smokeMaterial; });
 		this._materials.set(Particle.COLOR_TRAIL, () => { return new THREE.MeshLambertMaterial(); })
 		this._materials.set(Particle.CUBE, () => { return this._cubeMaterial; });
-		this._materials.set(Particle.SPARKS, () => { return this._sparksMaterial; });
+		this._materials.set(Particle.PELLET_SPARKS, () => { return this._sparksMaterial; });
 		this._materials.set(Particle.LASER, () => { return this._laserMaterial; });
+		this._materials.set(Particle.LASER_SPARKS, () => { return this._sparksMaterial; });
+		this._materials.set(Particle.CONFETTI, () => { return this._confettiMaterial; });
+
+		this._sizes = new Map<Particle, number>();
+		this._sizes.set(Particle.SMOKE, 24);
+		this._sizes.set(Particle.CUBE, 18);
 
 		this._counts = new Map<Particle, number>();
-		this._counts.set(Particle.SPARKS, 12);
+		this._counts.set(Particle.PELLET_SPARKS, 12);
 		this._counts.set(Particle.LASER, 8);
+		this._counts.set(Particle.LASER_SPARKS, 3);
+		this._counts.set(Particle.CONFETTI, 18);
 
 		this._emitters = new Map<Particle, ObjectBuffer<THREE.Object3D>>();
 
 		Object.keys(Particle).forEach((value) => {
 			const num = Number(value);
 			if (!isNaN(num) && num > 0) {
-				this.createEmitter(num);
+				if (this._sizes.has(num)) {
+					this.createEmitter(num, this._sizes.get(num));
+				} else {
+					this.createEmitter(num);
+				}
 			}
 		});
 	}
@@ -92,13 +113,13 @@ export class Particles extends SceneComponent {
 		this.deleteCustomTemp(custom, (object : THREE.Object3D) => { this._emitters.get(particle).returnObject(object); });
 	}
 
-	private createEmitter(particle : Particle) : void {
+	private createEmitter(particle : Particle, size? : number) : void {
 		this._emitters.set(particle, new ObjectBuffer<THREE.Object3D>(() => {
 			if (this._counts.has(particle)) {
 				return this.createInstancedMesh(particle, this._counts.get(particle));
 			}
 			return this.createMesh(particle);
-		}));
+		}, size));
 	}
 
 	private createMesh(particle : Particle) : THREE.Mesh {

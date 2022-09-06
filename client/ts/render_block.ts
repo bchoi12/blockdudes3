@@ -64,6 +64,9 @@ export class RenderBlock extends RenderObject {
 							if (name.includes("right") && ((opening >> 1) & 1) === 1) {
 								child.material.visible = false;
 							}
+							if (name.includes("bottom") && ((opening >> 2) & 1) === 1) {
+								child.material.visible = false;
+							}
 						}
 
 						if (name.includes("base")) {

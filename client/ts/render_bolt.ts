@@ -7,10 +7,9 @@ import { Particle } from './particles.js'
 import { RenderCustom } from './render_custom.js'
 import { RenderProjectile } from './render_projectile.js'
 import { renderer } from './renderer.js'
-import { Util } from './util.js'
+import { MathUtil, Util } from './util.js'
 
 export class RenderBolt extends RenderProjectile {
-
 	private _laser : RenderCustom;
 	private _soundId : number;
 
@@ -41,10 +40,10 @@ export class RenderBolt extends RenderProjectile {
 			scale: new THREE.Vector3(dim.x, dim.y, 0),
 			instances: {
 				posFn: (object, i) => {
-					return new THREE.Vector3(0, 0, 0.01 * i);
+					return new THREE.Vector3(0, 0, 0.02 * i);
 				},
 				scaleFn: (object, i) => {
-					return new THREE.Vector3(1, 1 - (i + 1) * 0.1, 0);
+					return new THREE.Vector3(1, 1 - i / object.count * i / object.count, 0);
 				},
 				colorFn: (object, i) => {
 					let r = 0xff * color.r * (i + 1) / object.count;
@@ -62,6 +61,52 @@ export class RenderBolt extends RenderProjectile {
 		super.delete();
 
 		game.particles().delete(Particle.LASER, this._laser);
+
+		let sparkColors = [this.color()];
+		let rotation = new THREE.Quaternion();
+		rotation.setFromAxisAngle(new THREE.Vector3(0, 0, 1), this.dir().angle());
+
+		game.particles().emit(Particle.LASER_SPARKS, 100, (object : THREE.InstancedMesh, ts : number) => {
+			for (let i = 0; i < object.count; ++i) {
+				let matrix = new THREE.Matrix4();
+				object.getMatrixAt(i, matrix);
+				let pos = new THREE.Vector3();
+				let rotation = new THREE.Quaternion();
+				let scale = new THREE.Vector3();
+				matrix.decompose(pos, rotation, scale);
+
+				scale.x += (2 + i / object.count) * ts;
+
+				let dir = new THREE.Vector3(1, 0, 0);
+				dir.applyQuaternion(rotation);
+				dir.multiplyScalar(-pos.length() - (7 + 3 * i / object.count) * ts);
+				pos = dir;
+
+				matrix.compose(pos, rotation, scale);
+				object.setMatrixAt(i, matrix);
+			}
+
+			if (object.instanceMatrix) {
+				object.instanceMatrix.needsUpdate = true;
+			}
+		}, {
+			position: this.pos3(),
+			scale: 1,
+			rotation: rotation,
+			instances: {
+				scaleFn: () => {
+					return new THREE.Vector3(0.01, 0.05, 0.05);
+				},
+				rotationFn: () => {
+					let rotation = new THREE.Quaternion();
+					rotation.setFromAxisAngle(new THREE.Vector3(0, 0, 1), MathUtil.randomRange(-0.6, 0.6));
+					return rotation;
+				},
+				colorFn: () => {
+					return new THREE.Color(Util.randomElement(sparkColors));
+				},
+			},
+		});
 
 		if (Util.defined(this._soundId)) {
 			renderer.fadeoutSound(Sound.TOM_SCREAM, this._soundId);
