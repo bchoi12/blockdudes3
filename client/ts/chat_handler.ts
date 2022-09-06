@@ -101,11 +101,10 @@ export class ChatHandler implements InterfaceHandler {
 			break;
 		case "/free":
 			renderer.cameraController().setFree(true);
-			Html.hide(Html.elm(Html.divOverlays));
+			ui.print("Disable in-game cursor to pan and rotate.")
 			break;
 		case "/fix":
 			renderer.cameraController().setFree(false);
-			Html.show(Html.elm(Html.divOverlays));
 			break;
 		case "/nolights":
 			game.sceneMap().clear(lightSpace);

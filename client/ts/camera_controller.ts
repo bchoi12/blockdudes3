@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
+import { Html } from './html.js'
 import { Interp } from './interp.js'
-import { renderer } from './renderer.js'
 import { Timer } from './timer.js'
 import { MathUtil, Util } from './util.js'
 
@@ -45,7 +45,7 @@ export class CameraController {
 
 	setFree(free : boolean) : void {
 		if (free && !Util.defined(this._orbitControls)) {
-			this._orbitControls = new OrbitControls(this._camera, renderer.elm());
+			this._orbitControls = new OrbitControls(this._camera, Html.elm(Html.divOverlays));
 			this._orbitControls.enableRotate = true;
 			this._orbitControls.enablePan =  true;
 			this._orbitControls.enableZoom = true;
