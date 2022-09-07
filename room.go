@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -12,7 +14,7 @@ const (
 )
 
 type Room struct {
-	id string
+	name string
 
 	nextClientId IdType
 	clients map[IdType]*Client
@@ -43,7 +45,7 @@ func CreateOrJoinRoom(vars map[string]string, ws *websocket.Conn) {
 
 	if !roomExists {
 		rooms[roomName] = &Room {
-			id: roomName,
+			name: roomName,
 
 			nextClientId: 0,
 			clients: make(map[IdType]*Client),
@@ -65,7 +67,7 @@ func CreateOrJoinRoom(vars map[string]string, ws *websocket.Conn) {
 			incoming: make(chan IncomingMsg),
 			incomingQueue: make([]IncomingMsg, 0),
 		}
-		log.Printf("Created new room %s", roomName)
+		rooms[roomName].print("created room")
 
 		rooms[roomName].game.LoadLevel(testLevel)
 		go rooms[roomName].run()
@@ -92,8 +94,8 @@ func CreateOrJoinRoom(vars map[string]string, ws *websocket.Conn) {
 
 func (r *Room) run() {
 	defer func() {
-		log.Printf("Deleting room %v", r.id)
-		delete(rooms, r.id)
+		r.print("deleted room")
+		delete(rooms, r.name)
 	}()
 
 	for {
@@ -115,7 +117,7 @@ func (r *Room) run() {
 				continue
 			}
 			if r.gameTicks < 60 {
-				log.Printf("Slow FPS: %d", r.gameTicks)
+				r.print(fmt.Sprintf("slow FPS: %d", r.gameTicks))
 			}
 			r.gameTicks = 0
 		default:
@@ -148,7 +150,7 @@ func (r *Room) run() {
 
 			if len(r.clients) == 0 {
 				if !r.deleteTimer.Started() {
-					log.Printf("Starting timer to delete room %s", r.id)
+					r.print("started countdown to delete room")
 					r.deleteTimer.Start()
 				}
 
@@ -156,7 +158,7 @@ func (r *Room) run() {
 					return
 				}
 			} else if r.deleteTimer.Started() {
-				log.Printf("Stopping deletion of room %s due to reconnect", r.id)
+				r.print("stopping deletion due to reconnect")
 				r.deleteTimer.Stop()
 			}
 
@@ -165,7 +167,7 @@ func (r *Room) run() {
 					msg := Msg{}
 					err := Unpack(imsg.b, &msg)
 					if err != nil {
-						log.Printf("error unpacking: %v", err)
+						r.print(fmt.Sprintf("unpacking error: %v", err))
 						continue
 					}
 					r.processMsg(msg, imsg.client)
@@ -206,11 +208,12 @@ func (r *Room) initClient(client *Client) error {
 	if !r.game.Has(playerId) {
 		player := r.game.Add(NewInit(playerId, NewVec2(5, 5), NewVec2(0.8, 1.44)))
 		player.SetIntAttribute(colorIntAttribute, 0xFF0000)
+		player.SetByteAttribute(teamByteAttribute, uint8(client.id % 2))
 		player.SetInitProp(nameProp, client.GetDisplayName())
 	} else {
 		player := r.game.Get(playerId)
 		player.RemoveTTL()
-		log.Printf("%s reconnected and player already exists", client.GetDisplayName())
+		r.print(fmt.Sprintf("%s reconnected", client.GetDisplayName()))
 	}
 	playerInitMsg := r.game.createPlayerInitMsg(client.id)
 	err = client.Send(&playerInitMsg)
@@ -228,7 +231,7 @@ func (r *Room) initClient(client *Client) error {
 		client.Send(&chatMsg)
 	}
 
-	log.Printf("New client %s initialized in %s, total=%d", client.GetDisplayName(), r.id, len(r.clients))
+	r.print(fmt.Sprintf("%s joined, total clients = %d", client.GetDisplayName(), len(r.clients)))
 	return nil
 }
 
@@ -246,8 +249,7 @@ func (r *Room) unregisterClient(client *Client) error {
 			player.SetTTL(20 * time.Second)
 		}
 	}
-	log.Printf("Unregistering client %s, total=%d", client.GetDisplayName(), len(r.clients))
-
+	r.print(fmt.Sprintf("unregistered %s, total=%d", client.GetDisplayName(), len(r.clients)))
 	return nil
 }
 
@@ -279,11 +281,11 @@ func (r* Room) processMsg(msg Msg, c* Client) error {
 	case keyType:
 		r.game.ProcessKeyMsg(c.id, msg.Key)
 	default:
-		log.Printf("Unknown message type %d", msg.T)
+		r.print(fmt.Sprintf("unknown message type %d", msg.T))
 	}
 
 	if err != nil {
-		log.Printf("error when processing message: %v", err)
+		r.print(fmt.Sprintf("error when processing message: %v", err))
 	}
 	return err
 }
@@ -367,4 +369,12 @@ func (r *Room) sendUDP(msg interface{}) {
 	for _, c := range(r.clients) {
 		c.SendBytesUDP(b)
 	}
+}
+
+func (r Room) print(message string) {
+   	var sb strings.Builder
+   	sb.WriteString(r.name)
+   	sb.WriteString(": ")
+   	sb.WriteString(message)
+	log.Printf(sb.String())
 }

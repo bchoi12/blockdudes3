@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 type Prop uint8
 const (
 	unknownProp Prop = iota
@@ -58,7 +62,7 @@ func (d Data) Valid(prop Prop) bool {
 
 func (d *Data) Set(prop Prop, data interface{}) {
 	if !d.Valid(prop) {
-		Debug("Error: trying to set invalid prop %d", prop)
+		Log(fmt.Sprintf("Error: trying to set invalid prop %d", prop))
 		return
 	}
 	d.props[prop] = data

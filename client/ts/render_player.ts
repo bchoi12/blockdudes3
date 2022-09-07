@@ -50,6 +50,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
 
+		// Avoid z artifacts
+		mesh.position.z = 0.01 * (this.id() % 10);
+
 		// @ts-ignore
 		this._playerMesh = mesh.getObjectByName("mesh");
 		// Model origin is at feet.

@@ -185,10 +185,24 @@ func (l *Launcher) Shoot(grid *Grid, now time.Time) {
 	if charged {
 		size = l.chargedSize
 	}
+	owner := grid.Get(l.weapon.GetOwner())
 
 	init := NewInit(grid.NextSpacedId(l.space), l.weapon.GetShotOrigin(), size)
 	projectile := grid.New(init)
-	projectile.SetOwner(l.weapon.GetOwner())
+
+	if owner != nil {
+		projectile.SetOwner(owner.GetSpacedId())
+		overlapOptions := projectile.GetOverlapOptions()
+		overlapOptions.SetIds(false, owner.GetSpacedId())
+		projectile.SetOverlapOptions(overlapOptions)
+
+		if team, ok := owner.GetByteAttribute(teamByteAttribute); ok {
+			projectile.SetByteAttribute(teamByteAttribute, team)
+			overlapOptions := projectile.GetOverlapOptions()
+			overlapOptions.ExcludeByteAttributes(teamByteAttribute, team)
+			projectile.SetOverlapOptions(overlapOptions)
+		}
+	}
 	projectile.SetDir(l.weapon.Dir())
 	if charged {
 		projectile.AddAttribute(chargedAttribute)
@@ -202,7 +216,6 @@ func (l *Launcher) Shoot(grid *Grid, now time.Time) {
 	}
 
 	if l.projectileRelativeSpeed {
-		owner := grid.Get(l.weapon.GetOwner())
 		if owner != nil {
 			addedVel := l.weapon.Dir()
 			addedVel.Scale(Max(1, Abs(addedVel.Dot(owner.Vel()))))

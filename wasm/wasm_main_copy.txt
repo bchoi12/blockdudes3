@@ -105,6 +105,7 @@ func setGlobals() {
 	js.Global().Set("deadAttribute", int(deadAttribute))
 
 	js.Global().Set("typeByteAttribute", int(typeByteAttribute))
+	js.Global().Set("teamByteAttribute", int(teamByteAttribute))
 	js.Global().Set("openingByteAttribute", int(openingByteAttribute))
 	js.Global().Set("healthByteAttribute", int(healthByteAttribute))
 	js.Global().Set("juiceByteAttribute", int(juiceByteAttribute))

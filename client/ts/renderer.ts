@@ -40,9 +40,8 @@ class Renderer {
 		this._renderer = new THREE.WebGLRenderer({
 			canvas: this._canvas,
 			powerPreference: "high-performance",
-			precision: "lowp",
+			precision: "highp",
 			antialias: !options.enableEffects && options.enableAntialiasing,
-			stencil: false,
 			depth: true,
 		});
 

@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 type LevelIdType uint8
 const (
 	unknownLevel LevelIdType = iota
@@ -29,7 +33,7 @@ func (l *Level) LoadLevel(id LevelIdType) {
 	case testLevel:
 		l.loadTestLevel()
 	default:
-		Debug("Unknown map: %d", id)
+		Log(fmt.Sprintf("Unknown map: %d", id))
 	}
 }
 
@@ -355,4 +359,51 @@ func (l *Level) loadTestLevel() {
 			g.Upsert(obj)
 		}
 	}
+
+	x += 4
+	x += 12
+	y = -9
+
+	for i := 0; i < blocks; i += 1 {
+		roof := i == blocks - 1
+		height := 6.0
+		if roof {
+			height = 2.0
+		}
+
+		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, height), defaultOrigin)
+		block := NewBlock(init)
+		block.SetIntAttribute(colorIntAttribute, 0x0ffc89)
+		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+
+		if roof {
+			block.SetByteAttribute(typeByteAttribute, uint8(archBlockRoof))
+		} else {
+			block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		}
+		block.Load()
+		g.Upsert(block)
+
+		for _, obj := range(block.GetObjects()) {
+			obj.SetId(g.NextId(obj.GetSpace()))
+			g.Upsert(obj)
+		}
+
+		if i < blocks - 1 {
+			y += 6
+		}
+	}
+
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x - 3, y + 0.5), NewVec2(1.5, 1.2))))
+	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(uziWeapon))
+
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x - 1, y + 0.5), NewVec2(1.5, 1.2))))
+	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(starWeapon))
+
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x + 1, y + 0.5), NewVec2(1.5, 1.2))))
+	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(bazookaWeapon))
+
+	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x + 3, y + 0.5), NewVec2(1.5, 1.2))))
+	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
+
 }

@@ -82,7 +82,6 @@ func (w *Weapon) SetWeaponType(weaponType WeaponType) {
 		w.parts[altMouseClick] = NewBooster(w)
 		w.SetShotOffset(NewVec2(0.1, 0))
 	default:
-		Debug("Unknown weapon type! %d", weaponType)
 		return
 	}
 

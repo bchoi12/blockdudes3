@@ -4,6 +4,7 @@ type ColliderOptions struct {
 	ids map[SpacedId]bool
 	spaces map[SpaceType]bool
 	attributes map[AttributeType]bool
+	byteAttributes map[ByteAttributeType]map[uint8]bool
 }
 
 func NewColliderOptions() ColliderOptions {
@@ -11,6 +12,7 @@ func NewColliderOptions() ColliderOptions {
 		ids: make(map[SpacedId]bool),
 		spaces: make(map[SpaceType]bool),
 		attributes: make(map[AttributeType]bool),
+		byteAttributes: make(map[ByteAttributeType]map[uint8]bool),
 	}
 }
 
@@ -35,6 +37,16 @@ func (co *ColliderOptions) SetAttributes(attributes ...AttributeType) {
 	}
 }
 
+func (co *ColliderOptions) ExcludeByteAttributes(byteAttribute ByteAttributeType, bytes ...uint8) {
+	_, ok := co.byteAttributes[byteAttribute]
+	if !ok {
+		co.byteAttributes[byteAttribute] = make(map[uint8]bool)
+	}
+	for _, byte := range(bytes) {
+		co.byteAttributes[byteAttribute][byte] = false
+	}
+}
+
 func (co ColliderOptions) Evaluate(object Object) bool {
 	if include, ok := co.ids[object.GetSpacedId()]; ok {
 		return include
@@ -50,6 +62,16 @@ func (co ColliderOptions) Evaluate(object Object) bool {
 
 	for attribute, include := range(co.attributes) {
 		if !include && object.HasAttribute(attribute) {
+			return false
+		}
+	}
+
+	for attribute, bytes := range(co.byteAttributes) {
+		objAttribute, hasAttribute := object.GetByteAttribute(attribute)
+		if !hasAttribute {
+			continue
+		}
+		if val, ok := bytes[objAttribute]; ok && !val {
 			return false
 		}
 	}

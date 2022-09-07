@@ -23,7 +23,7 @@ export class CameraController {
 	private _panInterp : Interp;
 
 	constructor(aspect : number) {
-		this._camera = new THREE.PerspectiveCamera(20, aspect, 0.1, 100);
+		this._camera = new THREE.PerspectiveCamera(20, aspect, 0.1, 200);
 		this._target = new THREE.Vector3();
 		this._anchor = new THREE.Vector3(22, 10, 0);
 

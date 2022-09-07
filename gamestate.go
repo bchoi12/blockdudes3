@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 type ScoreType uint16
 type StatePropMap map[Prop]*State
 type GameState struct {
@@ -22,7 +26,7 @@ func NewGameState() GameState {
 
 func (gs *GameState) RegisterId(sid SpacedId) {
 	if _, ok := gs.objectStates[sid]; ok {
-		Debug("Skipping registration of duplicate object %+v", sid)
+		Log(fmt.Sprintf("Skipping registration of duplicate object %+v", sid))
 		return
 	}
 
@@ -46,7 +50,6 @@ func (gs *GameState) IncrementScore(sid SpacedId, prop Prop, delta int) {
 		return
 	}
 	if sid.GetSpace() != playerSpace {
-		Debug("Skipping setting score for non-player %+v", sid)
 		return
 	}
 
@@ -79,7 +82,7 @@ func (gs *GameState) GetObjectState(sid SpacedId, prop Prop) *State {
 
 func (gs *GameState) SetObjectState(sid SpacedId, prop Prop, data interface{}) {
 	if !gs.HasId(sid) {
-		Debug("Skipping setting prop %d for non-existent player %+v", prop, sid)
+		return
 	}
 	if !gs.HasObjectState(sid, prop) {
 		gs.objectStates[sid][prop] = NewState(data)

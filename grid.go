@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -84,7 +85,7 @@ func (g *Grid) New(init Init) Object {
 	case pickupSpace:
 		return NewPickup(init)
 	default:
-		Debug("Unknown space! %+v", init)
+		Log(fmt.Sprintf("Unknown space! %+v", init))
 		return nil
 	}
 }
@@ -131,7 +132,7 @@ func (g *Grid) Upsert(object Object) {
 
 func (g *Grid) insert(sid SpacedId, object Object) {
 	if sid.Invalid() {
-		Debug("Invalid ID: %+v", sid)
+		Log(fmt.Sprintf("Invalid ID: %+v", sid))
 		return
 	}
 

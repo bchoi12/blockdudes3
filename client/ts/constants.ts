@@ -75,6 +75,7 @@ declare var doubleJumpAttribute : number;
 declare var deadAttribute : number;
 
 declare var typeByteAttribute : number;
+declare var teamByteAttribute : number;
 declare var openingByteAttribute : number;
 declare var healthByteAttribute : number;
 declare var juiceByteAttribute : number;

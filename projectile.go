@@ -45,13 +45,6 @@ func NewProjectile(object BaseObject) Projectile {
 	return p
 }
 
-func (p *Projectile) SetOwner(owner SpacedId) {
-	p.BaseObject.SetOwner(owner)
-	overlapOptions := p.GetOverlapOptions()
-	overlapOptions.SetIds(false, owner)
-	p.SetOverlapOptions(overlapOptions)
-}
-
 func (p *Projectile) SetDamage(damage int) {
 	p.damage = damage
 }

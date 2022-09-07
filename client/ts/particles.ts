@@ -34,7 +34,7 @@ export class Particles extends SceneComponent {
 	private readonly _smokeMaterial = new THREE.MeshLambertMaterial( {color: 0xb0b0b0} );
 	private readonly _cubeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff})
 	private readonly _sparksMaterial = new THREE.MeshBasicMaterial({
-		opacity: 0.5,
+		opacity: 0.4,
 		transparent: true,
 		blending: THREE.AdditiveBlending,
 		color: 0x888888,

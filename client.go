@@ -7,6 +7,7 @@ import (
 	"github.com/pion/webrtc/v3"
 	"log"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -53,7 +54,7 @@ func (c *Client) run() {
 
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("unexpected socket error: %v", err)
+				c.print(fmt.Sprintf("unexpected socket error: %v", err))
 			}
 			return
 		}
@@ -126,14 +127,14 @@ func (c *Client) InitWebRTC(onSuccess func()) error {
 		},
 	}
 
-	log.Printf("Starting new WebRTC connection")
+	c.print("starting new WebRTC connection")
 	c.wrtc, err = webrtc.NewPeerConnection(config)
 	if err != nil {
 		return err
 	}
 
 	c.wrtc.OnConnectionStateChange(func(s webrtc.PeerConnectionState) {
-		log.Printf("WebRTC connection state for %s has changed: %s", c.GetDisplayName(), s.String())
+		c.print(fmt.Sprintf("WebRTC connection state: %s", s.String()))
 	})
 
 	ordered := false
@@ -149,7 +150,7 @@ func (c *Client) InitWebRTC(onSuccess func()) error {
 
 	c.dc.OnOpen(func() {
 		onSuccess()
-		log.Printf("Opened data channel for %s: %s-%d", c.GetDisplayName(), c.dc.Label(), c.dc.ID())
+		c.print(fmt.Sprintf("opened data channel: %s-%d", c.dc.Label(), c.dc.ID()))
 	})
 
 	c.dc.OnMessage(func(msg webrtc.DataChannelMessage) {
@@ -177,7 +178,7 @@ func (c *Client) InitWebRTC(onSuccess func()) error {
 }
 
 func (c *Client) processWebRTCOffer(json interface{}) error {
-	log.Printf("Received WebRTC offer for %s", c.GetDisplayName())
+	c.print("received WebRTC offer")
 
 	offer, ok := json.(map[string]interface{})
 	if !ok {
@@ -209,7 +210,7 @@ func (c *Client) processWebRTCOffer(json interface{}) error {
 }
 
 func (c *Client) processWebRTCCandidate(json interface{}) error {
-	log.Printf("Received WebRTC ICE candidate for %s", c.GetDisplayName())
+	c.print("received WebRTC ICE candidate")
 
 	candidate, ok := json.(map[string]interface{})
 	if !ok {
@@ -229,4 +230,14 @@ func (c *Client) processWebRTCCandidate(json interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func (c Client) print(message string) {
+   	var sb strings.Builder
+   	sb.WriteString(c.room.name)
+   	sb.WriteString("/")
+   	sb.WriteString(c.GetDisplayName())
+   	sb.WriteString(": ")
+   	sb.WriteString(message)
+	log.Printf(sb.String())
 }
