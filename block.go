@@ -100,11 +100,17 @@ func (b *Block) Load() {
 		}
 	case archBlockBalcony:
 		if leftOpening {
-			floor := NewInitC(Id(wallSpace, 0), NewVec2(x, y), NewVec2(width / 2, thick), bottomLeftOrigin)
+			floor := NewInitC(Id(wallSpace, 0), NewVec2(x, y), NewVec2(width, thick), bottomLeftOrigin)
 			b.objects = append(b.objects, NewWall(floor))
 
-			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2(thick, height), bottomRightOrigin)
+			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width, y), NewVec2(thick, height), bottomRightOrigin)
 			b.objects = append(b.objects, NewWall(right))
+		} else if rightOpening {
+			floor := NewInitC(Id(wallSpace, 0), NewVec2(x, y), NewVec2(width, thick), bottomRightOrigin)
+			b.objects = append(b.objects, NewWall(floor))
+
+			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width, y), NewVec2(thick, height), bottomLeftOrigin)
+			b.objects = append(b.objects, NewWall(left))
 		}
 	}
 }

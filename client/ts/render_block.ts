@@ -41,51 +41,63 @@ export class RenderBlock extends RenderObject {
 			model = Model.TEST_BALCONY;
 			break;
 		}
-		loader.load(model, (mesh) => {
+
+		const opening = this.byteAttribute(openingByteAttribute);
+		loader.load(model, (mesh : THREE.Object3D) => {
 			if (model !== Model.TEST_BUILDING) {
 				mesh.traverse((child) => {
-					if (child.material) {
-						if (!child.material.visible) {
+					// @ts-ignore
+					let material = child.material;
+					if (material) {
+						if (!material.visible) {
 							return;
 						}
 
-						const name = child.material.name;
+						const name = material.name;
 						if (name.includes("window")) {
-							child.material.transparent = true;
-							child.material.color = new THREE.Color(0x45d0ff);
-							child.material.opacity = 0.5;
+							material.transparent = true;
+							material.color = new THREE.Color(0x45d0ff);
+							material.opacity = 0.5;
 						}
 
 						if (this.hasByteAttribute(openingByteAttribute)) {
-							const opening = this.byteAttribute(openingByteAttribute);
 							if (name.includes("left") && (opening & 1) === 1) {
-								child.material.visible = false;
+								material.visible = false;
 							}
 							if (name.includes("right") && ((opening >> 1) & 1) === 1) {
-								child.material.visible = false;
+								material.visible = false;
 							}
 							if (name.includes("bottom") && ((opening >> 2) & 1) === 1) {
-								child.material.visible = false;
+								material.visible = false;
 							}
 						}
 
 						if (name.includes("base")) {
-							child.material.color = new THREE.Color(this.intAttribute(colorIntAttribute));
+							material.color = new THREE.Color(this.intAttribute(colorIntAttribute));
 						} else if (name.includes("secondary")) {
-							child.material.color = new THREE.Color(this.intAttribute(secondaryColorIntAttribute));
+							material.color = new THREE.Color(this.intAttribute(secondaryColorIntAttribute));
 						}
 
 						if (name.includes("front")) {
-							this._frontMaterials.set(child.material, Util.defined(child.material.opacity) ? child.material.opacity : 1);
+							this._frontMaterials.set(material, Util.defined(material.opacity) ? material.opacity : 1);
 						}
 						if (name.includes("back")) {
-							child.material.color.sub(new THREE.Color(0x333333));
+							material.color.sub(new THREE.Color(0x333333));
 						}
 					}
 				});
 			}
 
 			mesh.position.copy(this.pos3());
+
+			if (model === Model.TEST_BALCONY) {
+				if ((opening & 1) === 1) {
+					mesh.rotation.set(0, Math.PI / 2, 0);
+				} else if (((opening >> 1) & 1) === 1) {
+					mesh.rotation.set(0, -Math.PI / 2, 0);
+				}
+			}
+
 			this.setMesh(mesh);
 		})
 
