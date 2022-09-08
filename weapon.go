@@ -22,14 +22,14 @@ type Weapon struct {
 
 type WeaponPart interface {
 	SetPressed(pressed bool)
-	UpdateState(grid *Grid, now time.Time)
+	Update(grid *Grid, now time.Time)
 	State() PartStateType
 	OnDelete(grid *Grid)
 }
 
 func NewWeapon(init Init) *Weapon {
 	w := &Weapon {
-		BaseObject: NewBaseObject(NewCircle(init)),
+		BaseObject: NewCircleObject(init),
 		Keys: NewKeys(),
 		shotOffset: NewVec2(0, 0),
 		parts: make(map[KeyType]WeaponPart),
@@ -88,9 +88,9 @@ func (w *Weapon) SetWeaponType(weaponType WeaponType) {
 	w.SetByteAttribute(typeByteAttribute, uint8(weaponType))
 }
 
-func (w *Weapon) UpdateState(grid *Grid, now time.Time) {
+func (w *Weapon) Update(grid *Grid, now time.Time) {
 	w.PrepareUpdate(now)
-	w.BaseObject.UpdateState(grid, now)
+	w.BaseObject.Update(grid, now)
 
 	player := grid.Get(w.GetOwner())
 	if player != nil && player.HasAttribute(deadAttribute) {
@@ -100,7 +100,7 @@ func (w *Weapon) UpdateState(grid *Grid, now time.Time) {
 	}
 
 	for _, part := range(w.parts) {
-		part.UpdateState(grid, now)
+		part.Update(grid, now)
 	}
 	grid.Upsert(w)
 }

@@ -21,9 +21,8 @@ type Wall struct {
 }
 
 func NewWall(init Init) *Wall {
-	profile := NewRec2(init)
 	wall := &Wall {
-		BaseObject: NewBaseObject(profile),
+		BaseObject: NewRec2Object(init),
 		speed: 0,
 		waypointIndex: 0,
 		waypoints: make([]Vec2, 0),
@@ -40,8 +39,8 @@ func (w *Wall) AddWaypoint(waypoint Vec2) {
 	w.waypoints = append(w.waypoints, waypoint)
 }
 
-func (w *Wall) UpdateState(grid *Grid, now time.Time) {
-	w.BaseObject.UpdateState(grid, now)
+func (w *Wall) Update(grid *Grid, now time.Time) {
+	w.BaseObject.Update(grid, now)
 	if w.speed <= 0 || len(w.waypoints) == 0 || isWasm {
 		return
 	}

@@ -55,7 +55,7 @@ func (e *Explosion) Hit(object Object, now time.Time) {
 	object.AddForce(force)
 }
 
-func (e *Explosion) UpdateState(grid *Grid, now time.Time) {
+func (e *Explosion) Update(grid *Grid, now time.Time) {
 	e.PrepareUpdate(now)
 
 	if isWasm {

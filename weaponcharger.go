@@ -34,7 +34,7 @@ func (wc *WeaponCharger) SetPressed(pressed bool) {
 	wc.pressed = pressed
 }
 
-func (wc *WeaponCharger) UpdateState(grid *Grid, now time.Time) {
+func (wc *WeaponCharger) Update(grid *Grid, now time.Time) {
 	if wc.state == activePartState && !wc.weapon.HasAttribute(chargedAttribute) {
 		wc.state = readyPartState
 		wc.pressedTime = now

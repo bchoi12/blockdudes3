@@ -75,10 +75,10 @@ func (g *Game) ProcessKeyMsg(id IdType, keyMsg KeyMsg) {
 	player.UpdateKeys(keyMsg)
 }
 
-func (g *Game) UpdateState() {
+func (g *Game) Update() {
 	now := time.Now()
 	g.grid.Update(now)
-	g.grid.Postprocess(now)
+	g.grid.PostUpdate(now)
 	g.seqNum++
 }
 

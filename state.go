@@ -4,7 +4,6 @@ const (
 	stateDefaultTTL int = 3
 )
 
-// TODO: deprecate in favor of flag
 type State struct {
 	state interface{}
 	changed bool

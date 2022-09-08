@@ -71,7 +71,7 @@ func NewPlayer(init Init) *Player {
 	profile.SetSnapOptions(snapOptions)
 
 	player := &Player {
-		BaseObject: NewBaseObject(profile),
+		BaseObject: NewBaseObject(init, profile),
 		Keys: NewKeys(),
 		weapon: nil,
 
@@ -130,9 +130,9 @@ func (p *Player) Respawn() {
 	p.Stop()
 }
 
-func (p *Player) UpdateState(grid *Grid, now time.Time) {
+func (p *Player) Update(grid *Grid, now time.Time) {
 	ts := p.PrepareUpdate(now)
-	p.BaseObject.UpdateState(grid, now)
+	p.BaseObject.Update(grid, now)
 
 	if p.Expired() {
 		grid.Delete(p.GetSpacedId())
@@ -252,8 +252,8 @@ func (p *Player) UpdateState(grid *Grid, now time.Time) {
 	grid.Upsert(p)
 }
 
-func (p *Player) Postprocess(grid *Grid, now time.Time) {
-	p.BaseObject.Postprocess(grid, now)
+func (p *Player) PostUpdate(grid *Grid, now time.Time) {
+	p.BaseObject.PostUpdate(grid, now)
 	p.Keys.SaveKeys()
 }
 

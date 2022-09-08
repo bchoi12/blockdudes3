@@ -40,6 +40,7 @@ export class InputHandler implements InterfaceHandler {
 		this.mapKey(32, jumpKey);
 		this.mapKey(38, jumpKey);
 		this.mapKey(69, interactKey);
+		this.mapKey(16, altMouseClick);		
 
 		// TODO: consolidate this between handlers somehow
 		document.addEventListener("keydown", (e : any) => {

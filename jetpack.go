@@ -32,7 +32,7 @@ func (j *Jetpack) SetPressed(pressed bool) {
 	j.pressed = pressed
 }
 
-func (j *Jetpack) UpdateState(grid *Grid, now time.Time) {
+func (j *Jetpack) Update(grid *Grid, now time.Time) {
 	player := grid.Get(j.owner)
 	if player == nil {
 		return

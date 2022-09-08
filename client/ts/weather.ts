@@ -7,6 +7,7 @@ import { RingBuffer } from './ring_buffer.js'
 import { SceneComponent, SceneComponentType } from './scene_component.js'
 import { MathUtil, Util } from './util.js'
 
+// TODO: rename to Decoration
 export class Weather extends SceneComponent {
 	private readonly _cloudMaterial = new THREE.MeshLambertMaterial({
 		color: 0xebebeb,

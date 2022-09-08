@@ -62,11 +62,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._arm = this.mesh().getObjectByName("armR");
 		this._armOrigin = this._arm.position.clone();
 
+		// TODO: hide when not moving or inside
 		this._name = new SpriteText(this.name(), 0.3, "black");
-		this._name.fontSize = 400;
-		let size = new THREE.Vector3();
-		const bbox = new THREE.Box3().setFromObject(this._name);
-		bbox.getSize(size);
+		this._name.fontSize = 100;
 		this._name.position.y = 1.33;
 		mesh.add(this._name);
 

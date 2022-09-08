@@ -67,9 +67,9 @@ func (p *Projectile) SetSticky(sticky bool) {
 
 func (p *Projectile) Charge() {}
 
-func (p *Projectile) UpdateState(grid *Grid, now time.Time) {
+func (p *Projectile) Update(grid *Grid, now time.Time) {
 	ts := p.PrepareUpdate(now)
-	p.BaseObject.UpdateState(grid, now)
+	p.BaseObject.Update(grid, now)
 
 	p.hits = make([]*Hit, 0)
 
@@ -87,8 +87,6 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) {
 	p.SetVel(vel)
 
 	lastPos := p.Pos()
-	movement := p.Vel()
-	movement.Scale(ts)
 
 	pos := p.Pos()
 	pos.Add(p.Vel(), ts)
@@ -104,8 +102,16 @@ func (p *Projectile) UpdateState(grid *Grid, now time.Time) {
 		return
 	}
 
-	line := NewLine(lastPos, movement)
-	colliders := grid.GetCollidersCheckLine(p, line)
+
+	var colliders ObjectHeap
+	movement := p.Pos()
+	movement.Sub(lastPos, 1.0)
+	if movement.LenSquared() > 0 {
+		line := NewLine(lastPos, movement)
+		colliders = grid.GetCollidersCheckLine(p, line)
+	} else {
+		colliders = grid.GetColliders(p)
+	}
 	if len(colliders) > 0 {
 		object := PopObject(&colliders)
 		result := p.OverlapProfile(object.GetProfile())

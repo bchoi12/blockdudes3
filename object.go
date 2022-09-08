@@ -13,12 +13,12 @@ type DataMethods interface {
 
 type Object interface {
 	Profile
+	InitMethods
 	DataMethods
 
 	GetId() IdType
 	GetSpace() SpaceType
 	GetSpacedId() SpacedId
-	
 	GetProfile() Profile
 
 	HasInitProp(prop Prop) bool
@@ -42,14 +42,14 @@ type Object interface {
 	SetFloatAttribute(attribute FloatAttributeType, float float64)
 	GetFloatAttribute(attribute FloatAttributeType) (float64, bool)
 
-	// TODO: rename PreUpdate, Update, PostUpdate
-	Preprocess(grid *Grid, now time.Time)
-	UpdateState(grid *Grid, now time.Time)
-	Postprocess(grid *Grid, now time.Time)
+	PreUpdate(grid *Grid, now time.Time)
+	Update(grid *Grid, now time.Time)
+	PostUpdate(grid *Grid, now time.Time)
 	OnDelete(grid *Grid)
 }
 
 type BaseObject struct {
+	Init
 	Profile
 	InitProps
 	Association
@@ -61,28 +61,27 @@ type BaseObject struct {
 	lastUpdateTime time.Time
 }
 
-func NewBaseObject(profile Profile) BaseObject {
+func NewBaseObject(init Init, profile Profile) BaseObject {
 	object := BaseObject {
+		Init: init,
 		Profile: profile,
 		InitProps: NewInitProps(),
 		Association: NewAssociation(),
 		Health: NewHealth(),
 		Expiration: NewExpiration(),
 		Attribute: NewAttribute(),
-		Attachment: NewAttachment(profile.GetSpacedId()),
+		Attachment: NewAttachment(init.GetSpacedId()),
 		lastUpdateTime: time.Time{},
 	}
 	return object
 }
 
 func NewRec2Object(init Init) BaseObject {
-	profile := NewRec2(init)
-	return NewBaseObject(profile)
+	return NewBaseObject(init, NewRec2(init))
 }
 
 func NewCircleObject(init Init) BaseObject {
-	profile := NewCircle(init)
-	return NewBaseObject(profile)
+	return NewBaseObject(init, NewCircle(init))
 }
 
 func (o *BaseObject) PrepareUpdate(now time.Time) float64 {
@@ -102,15 +101,15 @@ func (o BaseObject) GetAttachment() Attachment {
 	return o.Attachment
 }
 
-func (o *BaseObject) Preprocess(grid *Grid, now time.Time) {
-	o.Attachment.Preprocess(grid, now)
+func (o *BaseObject) PreUpdate(grid *Grid, now time.Time) {
+	o.Attachment.PreUpdate(grid, now)
 }
 
-func (o *BaseObject) UpdateState(grid *Grid, now time.Time) {
+func (o *BaseObject) Update(grid *Grid, now time.Time) {
 }
 
-func (o *BaseObject) Postprocess(grid *Grid, now time.Time) {
-	o.Attachment.Postprocess(grid, now)
+func (o *BaseObject) PostUpdate(grid *Grid, now time.Time) {
+	o.Attachment.PostUpdate(grid, now)
 }
 
 func (o *BaseObject) OnDelete(grid *Grid) {
@@ -129,10 +128,11 @@ func (o *BaseObject) SetData(data Data) {
 
 func (o BaseObject) GetInitData() Data {
 	data := NewData()
+	data.Merge(o.Init.GetInitData())
+	data.Merge(o.InitProps.GetInitData())
 	data.Merge(o.Profile.GetInitData())
 	data.Merge(o.Association.GetInitData())
 	data.Merge(o.Attribute.GetInitData())
-	data.Merge(o.InitProps.GetInitData())
 	return data
 }
 

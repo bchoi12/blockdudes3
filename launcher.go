@@ -110,7 +110,7 @@ func (l Launcher) State() PartStateType { return l.state }
 func (l *Launcher) SetPressed(pressed bool) { l.pressed = pressed }
 func (l *Launcher) Reload() { l.ammo = l.maxAmmo }
 
-func (l *Launcher) UpdateState(grid *Grid, now time.Time) {
+func (l *Launcher) Update(grid *Grid, now time.Time) {
 	if l.ammo > 0 && (l.pressed || l.ammo < l.maxAmmo) {
 		if l.ammoTimer.On() {
 			l.state = rechargingPartState

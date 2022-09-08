@@ -120,6 +120,6 @@ declare var wasmUpdateKeys : any;
 declare var wasmGetData : any;
 declare var wasmSetData : any;
 declare var wasmLoadLevel : any;
-declare var wasmUpdateState : any;
+declare var wasmUpdate : any;
 declare var wasmReset : any;
 declare var wasmGetStats : any;

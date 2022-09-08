@@ -34,7 +34,7 @@ func (b *Booster) SetPressed(pressed bool) {
 	b.pressed = pressed
 }
 
-func (b *Booster) UpdateState(grid *Grid, now time.Time) {
+func (b *Booster) Update(grid *Grid, now time.Time) {
 	player := grid.Get(b.weapon.GetOwner())
 	if player == nil {
 		return

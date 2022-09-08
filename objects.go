@@ -16,13 +16,13 @@ func NewBomb(init Init) *Bomb {
 	return bomb
 }
 
-func (b *Bomb) UpdateState(grid *Grid, now time.Time) {
+func (b *Bomb) Update(grid *Grid, now time.Time) {
 	if isWasm {
 		return
 	}
 
 	b.PrepareUpdate(now)
-	b.BaseObject.UpdateState(grid, now)
+	b.BaseObject.Update(grid, now)
 
 	if b.Expired() {
 		pos := b.Pos()
@@ -42,9 +42,8 @@ type Pickup struct {
 }
 
 func NewPickup(init Init) *Pickup {
-	profile := NewRec2(init)
 	pickup := &Pickup {
-		BaseObject: NewBaseObject(profile),
+		BaseObject: NewRec2Object(init),
 	}
 	return pickup
 }

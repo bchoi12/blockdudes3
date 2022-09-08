@@ -269,7 +269,7 @@ func (l *Level) loadTestLevel() {
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b11)
+		block.SetByteAttribute(openingByteAttribute, 0b01)
 		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
 
 		block.Load()
@@ -397,7 +397,7 @@ func (l *Level) loadTestLevel() {
 		block := NewBlock(init)
 		block.SetIntAttribute(colorIntAttribute, 0xb50ffc)
 		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b1)
+		block.SetByteAttribute(openingByteAttribute, 0b0)
 		block.SetByteAttribute(typeByteAttribute, uint8(archBlockRoof))
 
 		block.Load()

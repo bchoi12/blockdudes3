@@ -11,10 +11,8 @@ const (
 
 type ProfileKey uint8
 type Profile interface {
-	InitMethods
 	DataMethods
 
-	// TODO: support setting initPos, initDir, etc.
 	Pos() Vec2
 	SetPos(pos Vec2)
 	Dim() Vec2
@@ -66,7 +64,6 @@ type Profile interface {
 }
 
 type BaseProfile struct {
-	Init
 	pos, vel, acc, jerk, dir, dim Vec2
 	posFlag, velFlag, accFlag, jerkFlag, dirFlag, dimFlag *Flag
 	extVel Vec2
@@ -79,8 +76,7 @@ type BaseProfile struct {
 
 func NewBaseProfile(init Init) BaseProfile {
 	bp := BaseProfile {
-		Init: init,
-		pos: init.Pos(),
+		pos: init.InitPos(),
 		posFlag: NewFlag(),
 		vel: NewVec2(0, 0),
 		velFlag: NewFlag(),
@@ -88,9 +84,9 @@ func NewBaseProfile(init Init) BaseProfile {
 		accFlag: NewFlag(),
 		jerk: NewVec2(0, 0),
 		jerkFlag: NewFlag(),
-		dir: init.Dir(),
+		dir: init.InitDir(),
 		dirFlag: NewFlag(),
-		dim: init.Dim(),
+		dim: init.InitDim(),
 		dimFlag: NewFlag(),
 		extVel: NewVec2(0, 0),
 		forces: make([]Vec2, 0),
@@ -258,7 +254,7 @@ func (bp BaseProfile) GetData() Data {
 }
 
 func (bp BaseProfile) GetInitData() Data {
-	return bp.Init.GetInitData()
+	return NewData()
 }
 
 func (bp BaseProfile) GetUpdates() Data {
@@ -452,6 +448,7 @@ func (bp *BaseProfile) updateIgnored(ignored map[SpacedId]bool) {
 	bp.ignoredColliders = ignored
 }
 
+// TODO: move to Object?
 func (bp BaseProfile) snapObject(other Object) CollideResult {
 	result := NewCollideResult()
 	posAdj := bp.PosAdjustment(other)
@@ -525,14 +522,6 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 		collisionFlag.X = 0
 		if posAdj.Y < 0 {
 			collisionFlag.Y = 0
-		}
-	}
-
-	if bp.GetSpace() == other.GetSpace() {
-		if collisionFlag.Y != 0 {
-			if posAdj.Y < 0 {
-				collisionFlag.Y = 0
-			}
 		}
 	}
 

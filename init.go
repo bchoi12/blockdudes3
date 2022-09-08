@@ -91,9 +91,9 @@ type Init struct {
 
 type InitMethods interface {
 	SpacedIdMethods
-	Pos() Vec2
-	Dim() Vec2
-	Dir() Vec2
+	InitPos() Vec2
+	InitDim() Vec2
+	InitDir() Vec2
 	GetInitData() Data
 }
 
@@ -130,19 +130,19 @@ func NewInitC(sid SpacedId, pos Vec2, dim Vec2, center OriginType) Init {
 	return NewInit(sid, pos, dim)
 }
 
-func (i Init) Pos() Vec2 {
+func (i Init) InitPos() Vec2 {
 	return i.pos
 } 
 
-func (i Init) Dim() Vec2 {
+func (i Init) InitDim() Vec2 {
 	return i.dim
 }
 
-func (i Init) Dir() Vec2 {
+func (i Init) InitDir() Vec2 {
 	return i.dir
 }
 
-func (i *Init) SetDir(dir Vec2) {
+func (i *Init) SetInitDir(dir Vec2) {
 	i.hasDir = true
 	i.dir = dir
 }

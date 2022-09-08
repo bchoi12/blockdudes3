@@ -170,29 +170,29 @@ func (g *Grid) deleteObject(sid SpacedId) {
 
 func (g *Grid) Update(now time.Time) {
 	for _, object := range(g.GetAllObjects()) {
-		object.Preprocess(g, now)
+		object.PreUpdate(g, now)
 	}
 
 	for _, object := range(g.GetAllObjects()) {
 		if object.GetSpace() == playerSpace {
 			continue
 		}
-		object.UpdateState(g, now)
+		object.Update(g, now)
 	}
 
 	// Map iteration is random
 	for _, object := range(g.GetObjects(playerSpace)) {
-		object.UpdateState(g, now)
+		object.Update(g, now)
 	}
 }
 
 func (g *Grid) updateObject(object Object, now time.Time) {
-	object.UpdateState(g, now)
+	object.Update(g, now)
 }
 
-func (g *Grid) Postprocess(now time.Time) {
+func (g *Grid) PostUpdate(now time.Time) {
 	for _, object := range(g.GetAllObjects()) {
-		object.Postprocess(g, now)
+		object.PostUpdate(g, now)
 	}
 }
 

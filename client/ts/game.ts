@@ -229,7 +229,7 @@ class Game {
 		}
 
 		this.sceneMap().snapshotWasm();
-		const state = JSON.parse(wasmUpdateState());
+		const state = JSON.parse(wasmUpdate());
 		for (const [stringSpace, objects] of Object.entries(state.Os) as [string, any]) {
 			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
 				const space = Number(stringSpace);

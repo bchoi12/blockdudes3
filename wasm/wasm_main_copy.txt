@@ -154,7 +154,7 @@ func setGameAPI() {
 	js.Global().Set("wasmGetData", GetData())
 	js.Global().Set("wasmSetData", SetData())
 	js.Global().Set("wasmLoadLevel", LoadLevel())
-	js.Global().Set("wasmUpdateState", UpdateState())
+	js.Global().Set("wasmUpdate", Update())
 	js.Global().Set("wasmGetStats", GetStats())
 }
 
@@ -318,13 +318,13 @@ func LoadLevel() js.Func {
 	})
 }
 
-func UpdateState() js.Func {  
+func Update() js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		game.UpdateState()
+		game.Update()
 		state := game.createGameStateMsg()
 		b, err := json.Marshal(state)
 		if err != nil {
-			fmt.Println("UpdateState: ", err)
+			fmt.Println("Update: ", err)
 			fmt.Println("state: ", state)
 		}
 		return string(b)

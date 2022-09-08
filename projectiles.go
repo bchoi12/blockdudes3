@@ -24,15 +24,15 @@ type Bolt struct {
 
 func NewBolt(init Init) *Bolt {
 	points := make([]Vec2, 4)
-	width := init.Dim().X
-	height := init.Dim().Y
+	width := init.InitDim().X
+	height := init.InitDim().Y
 	points[0] = NewVec2(-width/2, -height/2)
 	points[1] = NewVec2(-width/2, height/2)
 	points[2] = NewVec2(width/2, height/2)
 	points[3] = NewVec2(width/2, -height/2)
 	profile := NewRotPoly(init, points)
 	bolt := &Bolt {
-		Projectile: NewProjectile(NewBaseObject(profile)),
+		Projectile: NewProjectile(NewBaseObject(init, profile)),
 	}
 	bolt.SetTTL(800 * time.Millisecond)
 	bolt.SetDamage(10)
@@ -119,8 +119,8 @@ func NewGrapplingHook(init Init) *GrapplingHook {
 	return hook
 }
 
-func (h *GrapplingHook) UpdateState(grid *Grid, now time.Time) {
-	h.Projectile.UpdateState(grid, now)
+func (h *GrapplingHook) Update(grid *Grid, now time.Time) {
+	h.Projectile.Update(grid, now)
 
 	if !h.HasAttribute(attachedAttribute) {
 		return

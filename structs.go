@@ -34,6 +34,7 @@ type Line struct {
 
 func NewLine(origin Vec2, ray Vec2) Line {
 	if ray.X == 0 && ray.Y == 0 {
+		Log("0 length line!")
 		ray.X = 1
 	}
 
