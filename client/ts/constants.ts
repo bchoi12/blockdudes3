@@ -2,6 +2,11 @@
 declare var frameMillis : number;
 declare var wasmVersion : number;
 
+declare var leftCardinal : number;
+declare var rightCardinal : number;
+declare var bottomCardinal : number;
+declare var topCardinal : number;
+
 declare var pingType: number;
 declare var candidateType : number;
 declare var offerType : number;

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { Cardinal } from './cardinal.js'
 import { EffectType } from './effects.js'
 import { ForegroundGroup } from './foreground_group.js'
 import { loader, Model } from './loader.js'
@@ -42,7 +43,7 @@ export class RenderBlock extends RenderObject {
 			}
 		}
 
-		const opening = this.byteAttribute(openingByteAttribute);
+		const opening = new Cardinal(this.byteAttribute(openingByteAttribute));
 		loader.load(model, (mesh : THREE.Object3D) => {
 			mesh.traverse((child) => {
 				// @ts-ignore
@@ -60,13 +61,13 @@ export class RenderBlock extends RenderObject {
 					}
 
 					if (this.hasByteAttribute(openingByteAttribute)) {
-						if (name.includes("left") && (opening & 1) === 1) {
+						if (name.includes("left") && opening.get(leftCardinal)) {
 							material.visible = false;
 						}
-						if (name.includes("right") && ((opening >> 1) & 1) === 1) {
+						if (name.includes("right") && opening.get(rightCardinal)) {
 							material.visible = false;
 						}
-						if (name.includes("bottom") && ((opening >> 2) & 1) === 1) {
+						if (name.includes("bottom") && opening.get(bottomCardinal)) {
 							material.visible = false;
 						}
 					}
@@ -91,9 +92,9 @@ export class RenderBlock extends RenderObject {
 			mesh.position.copy(this.pos3());
 
 			if (model === Model.TEST_BALCONY) {
-				if ((opening & 1) === 1) {
+				if (opening.get(leftCardinal)) {
 					mesh.rotation.set(0, Math.PI / 2, 0);
-				} else if (((opening >> 1) & 1) === 1) {
+				} else if (opening.get(rightCardinal)) {
 					mesh.rotation.set(0, -Math.PI / 2, 0);
 				}
 			}
@@ -110,11 +111,10 @@ export class RenderBlock extends RenderObject {
 	override update() : void {
 		super.update();
 
-		if (!this.hasMesh()) {
+		if (!this.hasMesh() || this._frontMaterials.size === 0) {
 			return;
 		}
 
-		const ts = this.timestep();
 		const anchor = renderer.cameraAnchor();
 		const inside = this._bbox.containsPoint(new THREE.Vector2(anchor.x, anchor.y));
 
@@ -124,7 +124,7 @@ export class RenderBlock extends RenderObject {
 					mat.transparent = true;
 				}
 
-				mat.opacity = Math.min(opacity, Math.max(0.2, mat.opacity + ts * (inside ? -3 : 5)));
+				mat.opacity = Math.min(opacity, Math.max(0.2, mat.opacity + this.timestep() * (inside ? -3 : 5)));
 			} else {
 				mat.visible = !inside;
 			}

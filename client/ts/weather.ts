@@ -14,7 +14,7 @@ export class Weather extends SceneComponent {
 	});
 
 	private readonly _cloudLengths = new RingBuffer([4, 4.5, 5]);
-	private readonly _cloudHeights = new RingBuffer([0.2, 0.25, 0.3]);
+	private readonly _cloudHeights = new RingBuffer([0.3, 0.35]);
 	private readonly _cloudDepths = new RingBuffer([2, 2.5, 3]);
 
 	private readonly _cloudYs = new RingBuffer([6, 10, 14, 18]);
@@ -41,8 +41,8 @@ export class Weather extends SceneComponent {
 		this._cloudZs.setShuffle(true);
 		this._cloudColors.setShuffle(true);
 
-		const space = 14;
-		const vertical = 18;
+		const space = 16;
+		const vertical = 20;
 		const levels = 2;
 		const start = -40;
 		const numClouds = 40;

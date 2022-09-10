@@ -19,7 +19,7 @@ func NewGame() *Game {
 	grid := NewGrid(4, 4)
 	game := &Game {
 		grid: grid,
-		level: NewLevel(grid),
+		level: NewLevel(),
 		seqNum: 0,
 	}
 	return game
@@ -64,7 +64,7 @@ func (g *Game) SetData(sid SpacedId, data Data) {
 }
 
 func (g *Game) LoadLevel(id LevelIdType) {
-	g.level.LoadLevel(id)
+	g.level.LoadLevel(id, g.grid)
 }
 
 func (g *Game) ProcessKeyMsg(id IdType, keyMsg KeyMsg) {

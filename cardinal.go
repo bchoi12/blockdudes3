@@ -5,8 +5,13 @@ const (
 	unknownCardinal CardinalType = iota
 	leftCardinal
 	rightCardinal
-	downCardinal
-	upCardinal
+	bottomCardinal
+	topCardinal
+
+	bottomLeftCardinal
+	bottomRightCardinal
+	topLeftCardinal
+	topRightCardinal
 )
 
 type Cardinal struct {

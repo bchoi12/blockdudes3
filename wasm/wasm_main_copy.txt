@@ -34,6 +34,15 @@ func setGlobals() {
 	js.Global().Set("frameMillis", frameMillis)
 	js.Global().Set("wasmVersion", wasmVersion)
 
+	js.Global().Set("leftCardinal", int(leftCardinal))
+	js.Global().Set("rightCardinal", int(rightCardinal))
+	js.Global().Set("bottomCardinal", int(bottomCardinal))
+	js.Global().Set("topCardinal", int(topCardinal))
+	js.Global().Set("bottomLeftCardinal", int(bottomLeftCardinal))
+	js.Global().Set("bottomRightCardinal", int(bottomRightCardinal))
+	js.Global().Set("topLeftCardinal", int(topLeftCardinal))
+	js.Global().Set("topRightCardinal", int(topRightCardinal))
+
 	js.Global().Set("pingType", int(pingType))
 	js.Global().Set("candidateType", int(candidateType))
 	js.Global().Set("offerType", int(offerType))

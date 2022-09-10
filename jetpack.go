@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	jetpackMaxJuice int = 80
+	jetpackMaxJuice int = 100
 )
 
 type Jetpack struct {

@@ -34,7 +34,7 @@ export class RenderWeapon extends RenderObject {
 	}
 
 	override ready() : boolean {
-		return super.ready() && this.hasOwner() && this.hasByteAttribute(typeByteAttribute);
+		return this.hasDir() && this.hasOwner() && this.hasByteAttribute(typeByteAttribute);
 	}
 
 	override initialize() : void {

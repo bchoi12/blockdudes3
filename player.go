@@ -41,6 +41,7 @@ type Player struct {
 	BaseObject
 	Keys
 	weapon *Weapon
+	respawn Vec2
 
 	jumpTimer Timer
 	jumpGraceTimer Timer
@@ -81,7 +82,6 @@ func NewPlayer(init Init) *Player {
 	}
 
 	player.SetByteAttribute(typeByteAttribute, 0)
-	player.Respawn()
 	return player
 }
 
@@ -116,6 +116,11 @@ func (p Player) UpdateScore(g *Grid) {
 	g.IncrementScore(sid, killProp, 1)
 }
 
+func (p *Player) SetRespawn(respawn Vec2) {
+	p.respawn = respawn
+	p.Respawn()
+}
+
 func (p *Player) Respawn() {
 	p.Health.Respawn()
 
@@ -123,7 +128,7 @@ func (p *Player) Respawn() {
 	p.RemoveAttribute(groundedAttribute)
 	p.AddAttribute(doubleJumpAttribute)
 
-	p.SetPos(NewVec2(0, 6))
+	p.SetPos(p.respawn)
 	p.Stop()
 }
 

@@ -526,8 +526,13 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 		return result
 	}
 
-	edgeAdj := bp.EdgeAdjustment(other)
-	if edgeAdj.IsZero() {
+	var posAdj Vec2
+	if _, ok := other.GetProfile().(*Rec2); ok {
+		posAdj = bp.BoxAdjustment(other)
+	} else {
+		posAdj = bp.EdgeAdjustment(other)
+	}
+	if posAdj.IsZero() {
 		return result
 	}
 
@@ -542,7 +547,7 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 	collisionFlag := NewVec2(1, 1)
 
 	if _, ok := other.GetProfile().(*RotPoly); ok {
-		if edgeAdj.Y > 0 {
+		if posAdj.Y > 0 {
 			// TODO: support x collisions? this would require ignoring large X adjustments
 			collisionFlag.X = 0
 		}
@@ -550,10 +555,10 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 
 	// Check for tiny collisions that we can ignore
 	if collisionFlag.X != 0 && collisionFlag.Y != 0 {
-		if Abs(edgeAdj.Y) < overlapEpsilon {
+		if Abs(posAdj.Y) < overlapEpsilon {
 			collisionFlag.X = 0
 		}
-		if Abs(edgeAdj.X) < overlapEpsilon {
+		if Abs(posAdj.X) < overlapEpsilon {
 			collisionFlag.Y = 0
 		}
 	}
@@ -566,15 +571,15 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 			collisionFlag.Y = 0
 		} else if Abs(relativeVel.X) <= zeroVelEpsilon && Abs(relativeVel.Y) <= zeroVelEpsilon {
 			// somehow stopped inside the object
-			if Abs(edgeAdj.X) >= Abs(edgeAdj.Y) {
+			if Abs(posAdj.X) >= Abs(posAdj.Y) {
 				collisionFlag.X = 0
 			} else {
 				collisionFlag.Y = 0
 			}
 		} else if Abs(relativeVel.X) > zeroVelEpsilon && Abs(relativeVel.Y) > zeroVelEpsilon {
 			// If collision happens in both X, Y compute which overlap is greater based on velocity.
-			tx := Abs(edgeAdj.X / relativeVel.X)
-			ty := Abs(edgeAdj.Y / relativeVel.Y)
+			tx := Abs(posAdj.X / relativeVel.X)
+			ty := Abs(posAdj.Y / relativeVel.Y)
 
 			if tx > ty {
 				collisionFlag.X = 0
@@ -591,16 +596,16 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 			collisionFlag.Y = 1
 
 			oy, oyReverse := bp.boxAdjustmentY(other)
-			edgeAdj.Y = Max(oy, oyReverse)
+			posAdj.Y = Max(oy, oyReverse)
 			// Smooth ascent
-			edgeAdj.Y = Min(edgeAdj.Y, 0.2)
+			posAdj.Y = Min(posAdj.Y, 0.2)
 		}
 	}
 
 	// Adjust platform collision at the end after we've determined collision direction.
 	if byte, ok := other.GetByteAttribute(typeByteAttribute); ok && byte == uint8(platformWall) {
 		collisionFlag.X = 0
-		if edgeAdj.Y < 0 {
+		if posAdj.Y < 0 {
 			collisionFlag.Y = 0
 		}
 	}
@@ -614,14 +619,14 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 	}
 
 	// Collision
-	edgeAdj.X *= collisionFlag.X
-	edgeAdj.Y *= collisionFlag.Y
-	if edgeAdj.IsZero() {
+	posAdj.X *= collisionFlag.X
+	posAdj.Y *= collisionFlag.Y
+	if posAdj.IsZero() {
 		return result
 	}
 
 	result.SetHit(true)
-	result.SetPosAdjustment(edgeAdj)
+	result.SetPosAdjustment(posAdj)
 	result.SetForce(other.Vel())
 	return result
 }

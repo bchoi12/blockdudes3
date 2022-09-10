@@ -12,13 +12,14 @@ const (
 
 type Level struct {
 	id LevelIdType
-	grid *Grid
+	blockGrid BlockGrid
+	teamSpawn map[uint8]Vec2
 }
 
-func NewLevel(grid *Grid) *Level {
+func NewLevel() *Level {
 	return &Level {
 		id: unknownLevel,
-		grid: grid,
+		teamSpawn: make(map[uint8]Vec2),
 	}
 }
 
@@ -26,28 +27,33 @@ func (l Level) GetId() LevelIdType {
 	return l.id
 }
 
-func (l *Level) LoadLevel(id LevelIdType) {
+func (l Level) GetRespawn(team uint8) Vec2 {
+	if pos, ok := l.teamSpawn[team]; ok {
+		return pos
+	}
+	return NewVec2(0, 0)
+}
+
+// TODO: currently loading is done via WASM then sent redundantly over network & skipped
+func (l *Level) LoadLevel(id LevelIdType, grid *Grid) {
 	l.id = id
 
 	switch id {
 	case testLevel:
-		l.loadTestLevel()
+		l.loadTestLevel(grid)
 	default:
 		Log(fmt.Sprintf("Unknown map: %d", id))
 	}
 }
 
-// TODO: currently loading is done via WASM then sent redundantly over network & skipped
-func (l *Level) loadTestLevel() {
-	g := l.grid
-
-	blockGrid := NewBlockGrid()
-	blockGrid.SetYOffsets(1, 0, 1)
+func (l *Level) loadTestLevel(grid *Grid) {
+	l.blockGrid = NewBlockGrid()
+	l.blockGrid.SetYOffsets(1, 0)
 	var b *Block
 
 	{
 		blockType := archBlock
-		pos := blockGrid.GetNextPos(blockType, 0)
+		pos := l.blockGrid.GetNextPos(blockType, 0)
 		color := 0x0ffc89
 
 		building := NewBuilding(BuildingAttributes{
@@ -64,12 +70,16 @@ func (l *Level) loadTestLevel() {
 		b = building.AddBlock(roofBlockSubtype)
 		b.LoadTemplate(weaponsBlockTemplate)
 
-		blockGrid.AddBuilding(building)
+		spawn := b.Pos()
+		spawn.Y += 4
+		l.teamSpawn[0] = spawn
+
+		l.blockGrid.AddBuilding(building)
 	}
 
 	{
 		blockType := archBlock
-		pos := blockGrid.GetNextPos(blockType, 8.0)
+		pos := l.blockGrid.GetNextPos(blockType, 8.0)
 		color := 0xfc1f0f
 
 		building := NewBuilding(BuildingAttributes{
@@ -88,14 +98,14 @@ func (l *Level) loadTestLevel() {
 		b = building.AddBlock(balconyBlockSubtype)
 		b.AddOpenings(rightCardinal)
 		b = building.AddBlock(roofBlockSubtype)
-		b.AddOpenings(rightCardinal)
+		b.LoadTemplate(stairsBlockTemplate)
 
-		blockGrid.AddBuilding(building)
+		l.blockGrid.AddBuilding(building)
 	}
 
 	{
 		blockType := archBlock
-		pos := blockGrid.GetNextPos(blockType, 0)
+		pos := l.blockGrid.GetNextPos(blockType, 0)
 		color := 0x0fdcfc
 
 		building := NewBuilding(BuildingAttributes{
@@ -111,18 +121,19 @@ func (l *Level) loadTestLevel() {
 		b.AddOpenings(leftCardinal, rightCardinal)
 		b.LoadTemplate(middlePlatformBlockTemplate)
 		b = building.AddBlock(baseBlockSubtype)
-		b.AddOpenings(leftCardinal, rightCardinal, downCardinal)
+		b.AddOpenings(rightCardinal, bottomCardinal)
 		b.LoadTemplate(middlePlatformBlockTemplate)
 		b = building.AddBlock(balconyBlockSubtype)
 		b.AddOpenings(leftCardinal)
 		b = building.AddBlock(roofBlockSubtype)
+		b.AddOpenings(leftCardinal)
 
-		blockGrid.AddBuilding(building)
+		l.blockGrid.AddBuilding(building)
 	}
 
 	{
 		blockType := archBlock
-		pos := blockGrid.GetNextPos(blockType, 0)
+		pos := l.blockGrid.GetNextPos(blockType, 0)
 		color := 0xb50ffc
 
 		building := NewBuilding(BuildingAttributes{
@@ -139,12 +150,12 @@ func (l *Level) loadTestLevel() {
 		b = building.AddBlock(roofBlockSubtype)
 		b.AddOpenings(leftCardinal)
 
-		blockGrid.AddBuilding(building)
+		l.blockGrid.AddBuilding(building)
 	}
 
 	{
 		blockType := archBlock
-		pos := blockGrid.GetNextPos(blockType, 8)
+		pos := l.blockGrid.GetNextPos(blockType, 8)
 		color := 0x0ffc89
 
 		building := NewBuilding(BuildingAttributes{
@@ -161,8 +172,12 @@ func (l *Level) loadTestLevel() {
 		b = building.AddBlock(roofBlockSubtype)
 		b.LoadTemplate(weaponsBlockTemplate)
 
-		blockGrid.AddBuilding(building)
+		spawn := b.Pos()
+		spawn.Y += 4
+		l.teamSpawn[1] = spawn
+
+		l.blockGrid.AddBuilding(building)
 	}
 
-	blockGrid.UpsertToGrid(g)
+	l.blockGrid.UpsertToGrid(grid)
 }

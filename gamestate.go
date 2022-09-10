@@ -7,7 +7,6 @@ import (
 type ScoreType uint16
 type StatePropMap map[Prop]*State
 type GameState struct {
-	gameState StatePropMap
 	objectStates map[SpacedId]StatePropMap
 }
 
@@ -19,7 +18,6 @@ var gameStateExternalProps = map[Prop]bool {
 
 func NewGameState() GameState {
 	return GameState {
-		gameState: make(StatePropMap),
 		objectStates: make(map[SpacedId]StatePropMap),
 	}
 }
