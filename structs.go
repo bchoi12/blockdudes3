@@ -59,6 +59,7 @@ func (l Line) Intersects(o Line) IntersectResults {
     if s >= 0 && s <= 1 && t >= 0 && t <= 1 {
     	results.hit = true
     	results.t = t
+    	results.tmax = t
     }
     return results
 }
@@ -79,6 +80,10 @@ func (l Line) Ray() Vec2 {
 
 func (l Line) Endpoint() Vec2 {
 	return l.Point(1.0)
+}
+
+func (l Line) Len() float64 {
+	return l.R.Len()
 }
 
 func (l Line) LenSquared() float64 {

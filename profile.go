@@ -5,8 +5,9 @@ import (
 )
 
 const (
-	zeroVelEpsilon float64 = 1e-6
-	overlapEpsilon float64 = 0.01
+	zeroVelEpsilon float64 = 1e-8
+	overlapEpsilon float64 = 1e-3
+	edgeEpsilon float64 = 1e-3
 )
 
 type ProfileKey uint8
@@ -42,10 +43,17 @@ type Profile interface {
 	DistX(other Profile) float64
 	DistY(other Profile) float64
 
-	PosAdjustment(other Profile) Vec2
-	posAdjustmentX(other Profile) (float64, float64)
-	posAdjustmentY(other Profile) (float64, float64)
+	BoxAdjustment(other Profile) Vec2
+	boxAdjustmentX(other Profile) (float64, float64)
+	boxAdjustmentY(other Profile) (float64, float64)
 
+	EdgeAdjustment(other Profile) Vec2
+	edgeAdjustmentX(other Profile, dir float64) float64
+	edgeAdjustmentY(other Profile, dir float64) float64
+
+	RelativePos(other Profile) Vec2
+	RelativeVel(other Profile) Vec2
+	
 	Contains(point Vec2) ContainResults
 	Intersects(line Line) IntersectResults
 
@@ -55,10 +63,9 @@ type Profile interface {
 	SetSnapOptions(options ColliderOptions)
 
 	OverlapProfile(profile Profile) CollideResult
-	Snap(nearbyObjects ObjectHeap) SnapResults
-
 	Stick(result CollideResult)
 
+	Snap(nearbyObjects ObjectHeap) SnapResults
 	getIgnored() map[SpacedId]bool
 	updateIgnored(ignored map[SpacedId]bool) 
 }
@@ -293,20 +300,19 @@ func (bp *BaseProfile) SetData(data Data) {
 func (bp *BaseProfile) AddSubProfile(key ProfileKey, subProfile SubProfile) { bp.subProfiles[key] = subProfile }
 func (bp BaseProfile) GetSubProfile(key ProfileKey) SubProfile { return bp.subProfiles[key] }
 
-func (bp BaseProfile) PosAdjustment(other Profile) Vec2 {
-	ox, _ := bp.posAdjustmentX(other)
-	oy, _ := bp.posAdjustmentY(other)
+func (bp BaseProfile) BoxAdjustment(other Profile) Vec2 {
+	ox, _ := bp.boxAdjustmentX(other)
+	oy, _ := bp.boxAdjustmentY(other)
 	return NewVec2(ox, oy)
 }
-
-func (bp BaseProfile) posAdjustmentX(other Profile) (float64, float64) {
+func (bp BaseProfile) boxAdjustmentX(other Profile) (float64, float64) {
 	overlap := bp.Dim().X / 2 + other.Dim().X / 2 - bp.DistX(other)
 	if overlap <= 0 {
 		return 0, 0
 	}
 
 	relativePos := FSign(bp.Pos().X - other.Pos().X)
-	relativeVel := FSign(bp.Vel().X - other.Vel().X)
+	relativeVel := FSign(bp.RelativeVel(other).X)
 	reverseDist := Max(bp.Dim().X, other.Dim().X) + bp.Dim().X / 2 + other.Dim().X / 2
 	if relativePos == relativeVel {
 		overlap = reverseDist - overlap
@@ -315,14 +321,14 @@ func (bp BaseProfile) posAdjustmentX(other Profile) (float64, float64) {
 
 	return FSignPos(-relativeVel) * overlap, FSignPos(relativeVel) * reverseOverlap
 }
-func (bp BaseProfile) posAdjustmentY(other Profile) (float64, float64) {
+func (bp BaseProfile) boxAdjustmentY(other Profile) (float64, float64) {
 	overlap := bp.Dim().Y / 2 + other.Dim().Y / 2 - bp.DistY(other)
 	if overlap <= 0 {
 		return 0, 0
 	}
 
 	relativePos := FSign(bp.Pos().Y - other.Pos().Y)
-	relativeVel := FSign(bp.Vel().Y - other.Vel().Y)
+	relativeVel := FSign(bp.RelativeVel(other).Y)
 	reverseDist := Max(bp.Dim().Y, other.Dim().Y) + bp.Dim().Y / 2 + other.Dim().Y / 2
 	if relativePos == relativeVel {
 		overlap = reverseDist - overlap
@@ -330,6 +336,71 @@ func (bp BaseProfile) posAdjustmentY(other Profile) (float64, float64) {
 	reverseOverlap := reverseDist - overlap
 
 	return FSignPos(-relativeVel) * overlap, FSignPos(relativeVel) * reverseOverlap
+}
+
+func (bp BaseProfile) EdgeAdjustment(other Profile) Vec2 {
+	if _, ok := other.(*Rec2); ok {
+		return bp.BoxAdjustment(other)
+	}
+
+	relativeVel := bp.RelativeVel(other)
+	if relativeVel.X == 0 {
+		relativeVel.X = -bp.RelativePos(other).X
+	}
+	if relativeVel.Y == 0 {
+		relativeVel.Y = -bp.RelativePos(other).Y
+	}
+
+	return NewVec2(bp.edgeAdjustmentX(other, relativeVel.X), bp.edgeAdjustmentY(other, relativeVel.Y))
+}
+
+func (bp BaseProfile) edgeAdjustmentX(other Profile, dir float64) float64 {
+	origin := bp.Pos()
+	if Abs(origin.Y - other.Pos().Y) + overlapEpsilon > bp.Dim().Y / 2 + other.Dim().Y / 2 {
+		return 0
+	}
+
+	dir = FSignPos(dir)
+	origin.X += dir * bp.Dim().X / 2
+	origin.Y = Clamp(other.Pos().Y - other.Dim().Y / 2, origin.Y, other.Pos().Y + other.Dim().Y / 2)
+
+	ray := NewVec2(-dir * (bp.Dim().X / 2 + other.Dim().X), 0)
+
+	line := NewLine(origin, ray)
+	results := other.Intersects(line)
+
+	if results.hit {
+		return -dir * (results.tmax * line.Len() + edgeEpsilon)
+	}
+	return 0
+}
+
+func (bp BaseProfile) edgeAdjustmentY(other Profile, dir float64) float64 {
+	origin := bp.Pos()
+	if Abs(origin.X - other.Pos().X) + overlapEpsilon > bp.Dim().X / 2 + other.Dim().X / 2 {
+		return 0
+	}
+
+	dir = FSignPos(dir)
+	origin.Y += dir * bp.Dim().Y / 2
+	origin.X = Clamp(other.Pos().X - other.Dim().X / 2, origin.X, other.Pos().X + other.Dim().X / 2)
+
+	ray := NewVec2(0, -dir * (bp.Dim().Y / 2 + other.Dim().Y))
+	line := NewLine(origin, ray)
+
+	results := other.Intersects(line)
+	if results.hit {
+		return -dir * (results.tmax * line.Len() + edgeEpsilon)
+	}
+	return 0
+}
+
+func (bp BaseProfile) RelativePos(other Profile) Vec2 {
+	return NewVec2(bp.Pos().X - other.Pos().X, bp.Pos().Y - other.Pos().Y)
+}
+
+func (bp BaseProfile) RelativeVel(other Profile) Vec2 {
+	return NewVec2(bp.TotalVel().X - other.TotalVel().X, bp.TotalVel().Y - other.TotalVel().Y)
 }
 
 func (bp BaseProfile) Offset(other Profile) Vec2 {
@@ -451,97 +522,106 @@ func (bp *BaseProfile) updateIgnored(ignored map[SpacedId]bool) {
 // TODO: move to Object?
 func (bp BaseProfile) snapObject(other Object) CollideResult {
 	result := NewCollideResult()
-	posAdj := bp.PosAdjustment(other)
-	ignored := bp.getIgnored()
-
-	if !bp.GetSnapOptions().Evaluate(other) || posAdj.Area() <= 0 {
+	if !bp.GetSnapOptions().Evaluate(other) {
 		return result
 	}
 
+	edgeAdj := bp.EdgeAdjustment(other)
+	if edgeAdj.IsZero() {
+		return result
+	}
+
+	ignored := bp.getIgnored()
 	if _, ok := ignored[other.GetSpacedId()]; ok {
 		result.SetIgnored(true)
 		return result
 	}
 
 	// Figure out collision direction
-	// relativePos := NewVec2(bp.Pos().X - other.Pos().X, bp.Pos().Y - other.Pos().Y)
-	relativeVel := NewVec2(bp.TotalVel().X - other.TotalVel().X, bp.TotalVel().Y - other.TotalVel().Y)
+	relativeVel := bp.RelativeVel(other)
 	collisionFlag := NewVec2(1, 1)
+
+	if _, ok := other.GetProfile().(*RotPoly); ok {
+		if edgeAdj.Y > 0 {
+			// TODO: support x collisions? this would require ignoring large X adjustments
+			collisionFlag.X = 0
+		}
+	}
 
 	// Check for tiny collisions that we can ignore
 	if collisionFlag.X != 0 && collisionFlag.Y != 0 {
-		if Abs(posAdj.Y) < overlapEpsilon {
+		if Abs(edgeAdj.Y) < overlapEpsilon {
 			collisionFlag.X = 0
 		}
-		if Abs(posAdj.X) < overlapEpsilon {
+		if Abs(edgeAdj.X) < overlapEpsilon {
 			collisionFlag.Y = 0
 		}
 	}
 
 	// Zero out adjustments according to relative velocity.
 	if collisionFlag.X != 0 && collisionFlag.Y != 0 {
-		if Abs(relativeVel.X) < zeroVelEpsilon && Abs(relativeVel.Y) > zeroVelEpsilon {
+		if Abs(relativeVel.X) <= zeroVelEpsilon && Abs(relativeVel.Y) > zeroVelEpsilon {
 			collisionFlag.X = 0
-		} else if Abs(relativeVel.Y) < zeroVelEpsilon && Abs(relativeVel.X) > zeroVelEpsilon {
+		} else if Abs(relativeVel.Y) <= zeroVelEpsilon && Abs(relativeVel.X) > zeroVelEpsilon {
 			collisionFlag.Y = 0
-		} else if Abs(relativeVel.X) < zeroVelEpsilon && Abs(relativeVel.Y) < zeroVelEpsilon {
+		} else if Abs(relativeVel.X) <= zeroVelEpsilon && Abs(relativeVel.Y) <= zeroVelEpsilon {
 			// somehow stopped inside the object
-			if Abs(posAdj.X) >= Abs(posAdj.Y) {
+			if Abs(edgeAdj.X) >= Abs(edgeAdj.Y) {
 				collisionFlag.X = 0
 			} else {
 				collisionFlag.Y = 0
 			}
-		}
-	}
+		} else if Abs(relativeVel.X) > zeroVelEpsilon && Abs(relativeVel.Y) > zeroVelEpsilon {
+			// If collision happens in both X, Y compute which overlap is greater based on velocity.
+			tx := Abs(edgeAdj.X / relativeVel.X)
+			ty := Abs(edgeAdj.Y / relativeVel.Y)
 
-	// If collision happens in both X, Y compute which overlap is greater based on velocity.
-	if collisionFlag.X != 0 && collisionFlag.Y != 0 {
-		tx := Abs(posAdj.X / relativeVel.X)
-		ty := Abs(posAdj.Y / relativeVel.Y)
-
-		if tx > ty {
-			collisionFlag.X = 0
-		} else if ty > tx {
-			collisionFlag.Y = 0
-		}
+			if tx > ty {
+				collisionFlag.X = 0
+			} else if ty > tx {
+				collisionFlag.Y = 0
+			}
+		} 
 	}
 
 	// Special treatment for other object types
-	if other.HasAttribute(stairAttribute) && collisionFlag.X != 0 {
-		collisionFlag.X = 0
-		collisionFlag.Y = 1
+	if byte, ok := other.GetByteAttribute(typeByteAttribute); ok && byte == uint8(stairWall) {
+		if collisionFlag.X != 0 {
+			collisionFlag.X = 0
+			collisionFlag.Y = 1
 
-		oy, oyReverse := bp.posAdjustmentY(other)
-		posAdj.Y = Max(oy, oyReverse)
-		// Smooth ascent
-		posAdj.Y = Min(posAdj.Y, 0.2)
+			oy, oyReverse := bp.boxAdjustmentY(other)
+			edgeAdj.Y = Max(oy, oyReverse)
+			// Smooth ascent
+			edgeAdj.Y = Min(edgeAdj.Y, 0.2)
+		}
 	}
 
 	// Adjust platform collision at the end after we've determined collision direction.
-	if other.HasAttribute(platformAttribute) {
+	if byte, ok := other.GetByteAttribute(typeByteAttribute); ok && byte == uint8(platformWall) {
 		collisionFlag.X = 0
-		if posAdj.Y < 0 {
+		if edgeAdj.Y < 0 {
 			collisionFlag.Y = 0
 		}
 	}
 
 	// Have overlap, but no pos adjustment for some reason.
 	if collisionFlag.IsZero() {
-		if other.HasAttribute(platformAttribute) {
+		if byte, ok := other.GetByteAttribute(typeByteAttribute); ok && byte == uint8(platformWall) {
 			result.SetIgnored(true)
 		}
 		return result
 	}
 
 	// Collision
-	posAdj.X *= collisionFlag.X
-	posAdj.Y *= collisionFlag.Y
-	if posAdj.IsZero() {
+	edgeAdj.X *= collisionFlag.X
+	edgeAdj.Y *= collisionFlag.Y
+	if edgeAdj.IsZero() {
 		return result
 	}
 
 	result.SetHit(true)
-	result.SetPosAdjustment(posAdj)
+	result.SetPosAdjustment(edgeAdj)
 	result.SetForce(other.Vel())
 	return result
 }
@@ -581,6 +661,5 @@ func (bp *BaseProfile) Stick(result CollideResult) {
 
 	pos.X += posAdj.X
 	pos.Y += posAdj.Y
-
 	bp.SetPos(pos)
 }

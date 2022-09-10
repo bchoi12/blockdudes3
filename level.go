@@ -37,422 +37,132 @@ func (l *Level) LoadLevel(id LevelIdType) {
 	}
 }
 
-func (l Level) createInit(space SpaceType, pos Vec2, dim Vec2) Init {
-	return NewInit(l.grid.NextSpacedId(space), pos, dim)
-}
-
-func (l Level) createInitBL(space SpaceType, pos Vec2, dim Vec2) Init {
-	centered := NewVec2(pos.X + dim.X/2, pos.Y + dim.Y/2)
-	return l.createInit(space, centered, dim)
-}
-
-func (l Level) createInitB(space SpaceType, pos Vec2, dim Vec2) Init {
-	centered := NewVec2(pos.X, pos.Y + dim.Y/2)
-	return l.createInit(space, centered, dim)
-}
-
-func (l Level) createInitBR(space SpaceType, pos Vec2, dim Vec2) Init {
-	centered := NewVec2(pos.X - dim.X/2, pos.Y + dim.Y/2)
-	return l.createInit(space, centered, dim)
-}
-
-func (l Level) createInitT(space SpaceType, pos Vec2, dim Vec2) Init {
-	centered := NewVec2(pos.X, pos.Y - dim.Y/2)
-	return l.createInit(space, centered, dim)
-}
-
 // TODO: currently loading is done via WASM then sent redundantly over network & skipped
 func (l *Level) loadTestLevel() {
 	g := l.grid
-	var x, y float64
-	var blocks int
 
-	x = 4
-	y = -9
-	blocks = 3
-
-	for i := 0; i < blocks; i += 1 {
-		roof := i == blocks - 1
-		height := 6.0
-		if roof {
-			height = 2.0
-		}
-
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, height), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0x0ffc89)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-
-		if roof {
-			block.SetByteAttribute(typeByteAttribute, uint8(archBlockRoof))
-		} else {
-			block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
-		}
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-
-		if i < blocks - 1 {
-			y += 6
-		}
-	}
-
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x - 3, y + 0.5), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(uziWeapon))
-
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x - 1, y + 0.5), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(starWeapon))
-
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x + 1, y + 0.5), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(bazookaWeapon))
-
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x + 3, y + 0.5), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
-
-	x += 12
-	x += 6
-	y = -9
+	blockGrid := NewBlockGrid()
+	blockGrid.SetYOffsets(1, 0, 1)
+	var b *Block
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
+		blockType := archBlock
+		pos := blockGrid.GetNextPos(blockType, 0)
+		color := 0x0ffc89
 
-		block.Load()
-		g.Upsert(block)
+		building := NewBuilding(BuildingAttributes{
+			pos: pos,
+			blockType: blockType,
+			color: color,
+		})
 
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-	}
+		building.AddBlock(baseBlockSubtype)
+		b = building.AddBlock(baseBlockSubtype)
+		b.AddOpenings(rightCardinal)
+		b = building.AddBlock(balconyBlockSubtype)
+		b.AddOpenings(leftCardinal)
+		b = building.AddBlock(roofBlockSubtype)
+		b.LoadTemplate(weaponsBlockTemplate)
 
-	y += 6
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b11)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
-
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
+		blockGrid.AddBuilding(building)
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x - 6, y), NewVec2(3, 2), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b10)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlockBalcony))
+		blockType := archBlock
+		pos := blockGrid.GetNextPos(blockType, 8.0)
+		color := 0xfc1f0f
 
-		block.Load()
-		g.Upsert(block)
+		building := NewBuilding(BuildingAttributes{
+			pos: pos,
+			blockType: blockType,
+			color: color,
+		})
 
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-	}
+		building.AddBlock(baseBlockSubtype)
+		b = building.AddBlock(baseBlockSubtype)
+		b.AddOpenings(leftCardinal, rightCardinal)
+		b = building.AddBlock(balconyBlockSubtype)
+		b.AddOpenings(rightCardinal)
+		b = building.AddBlock(baseBlockSubtype)
+		b.AddOpenings(leftCardinal, rightCardinal)
+		b = building.AddBlock(balconyBlockSubtype)
+		b.AddOpenings(rightCardinal)
+		b = building.AddBlock(roofBlockSubtype)
+		b.AddOpenings(rightCardinal)
 
-	y += 6
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b11)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
-
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
+		blockGrid.AddBuilding(building)
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x - 6, y), NewVec2(3, 2), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b10)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlockBalcony))
+		blockType := archBlock
+		pos := blockGrid.GetNextPos(blockType, 0)
+		color := 0x0fdcfc
 
-		block.Load()
-		g.Upsert(block)
+		building := NewBuilding(BuildingAttributes{
+			pos: pos,
+			blockType: blockType,
+			color: color,
+		})
 
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-	}
+		building.AddBlock(baseBlockSubtype)
+		b = building.AddBlock(baseBlockSubtype)
+		b.AddOpenings(leftCardinal, rightCardinal)
+		b = building.AddBlock(baseBlockSubtype)
+		b.AddOpenings(leftCardinal, rightCardinal)
+		b.LoadTemplate(middlePlatformBlockTemplate)
+		b = building.AddBlock(baseBlockSubtype)
+		b.AddOpenings(leftCardinal, rightCardinal, downCardinal)
+		b.LoadTemplate(middlePlatformBlockTemplate)
+		b = building.AddBlock(balconyBlockSubtype)
+		b.AddOpenings(leftCardinal)
+		b = building.AddBlock(roofBlockSubtype)
 
-	y += 6
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 2), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0xfc1f0f)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b10)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlockRoof))
-
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-	}
-
-	x += 12
-	y = -9
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
-
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-	}
-
-	y += 6
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b11)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
-
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-	}
-
-	y += 6
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b01)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
-
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-	}
-
-	y += 6
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b111)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
-
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
+		blockGrid.AddBuilding(building)
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x + 6, y), NewVec2(3, 2), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b1)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlockBalcony))
+		blockType := archBlock
+		pos := blockGrid.GetNextPos(blockType, 0)
+		color := 0xb50ffc
 
-		block.Load()
-		g.Upsert(block)
+		building := NewBuilding(BuildingAttributes{
+			pos: pos,
+			blockType: blockType,
+			color: color,
+		})
 
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-	}
+		building.AddBlock(baseBlockSubtype)
+		b = building.AddBlock(baseBlockSubtype)
+		b.AddOpenings(leftCardinal, rightCardinal)
+		b = building.AddBlock(balconyBlockSubtype)
+		b.AddOpenings(leftCardinal)
+		b = building.AddBlock(roofBlockSubtype)
+		b.AddOpenings(leftCardinal)
 
-	y += 6
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 2), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0x0fdcfc)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlockRoof))
-
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-	}
-
-	x += 12
-	y = -9
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0xb50ffc)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
-
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-	}
-
-	y += 6
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 6), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0xb50ffc)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b11)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
-
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
+		blockGrid.AddBuilding(building)
 	}
 
 	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x + 6, y), NewVec2(3, 2), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0xb50ffc)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b1)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlockBalcony))
+		blockType := archBlock
+		pos := blockGrid.GetNextPos(blockType, 8)
+		color := 0x0ffc89
 
-		block.Load()
-		g.Upsert(block)
+		building := NewBuilding(BuildingAttributes{
+			pos: pos,
+			blockType: blockType,
+			color: color,
+		})
 
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
+		building.AddBlock(baseBlockSubtype)
+		b = building.AddBlock(baseBlockSubtype)
+		b.AddOpenings(leftCardinal)
+		b = building.AddBlock(balconyBlockSubtype)
+		b.AddOpenings(rightCardinal)
+		b = building.AddBlock(roofBlockSubtype)
+		b.LoadTemplate(weaponsBlockTemplate)
+
+		blockGrid.AddBuilding(building)
 	}
 
-
-	y += 6
-
-	{
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, 2), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0xb50ffc)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-		block.SetByteAttribute(openingByteAttribute, 0b0)
-		block.SetByteAttribute(typeByteAttribute, uint8(archBlockRoof))
-
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-	}
-
-	x += 6
-	x += 12
-	y = -9
-
-	for i := 0; i < blocks; i += 1 {
-		roof := i == blocks - 1
-		height := 6.0
-		if roof {
-			height = 2.0
-		}
-
-		init := NewInitC(g.NextSpacedId(blockSpace), NewVec2(x, y), NewVec2(12, height), defaultOrigin)
-		block := NewBlock(init)
-		block.SetIntAttribute(colorIntAttribute, 0x0ffc89)
-		block.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
-
-		if roof {
-			block.SetByteAttribute(typeByteAttribute, uint8(archBlockRoof))
-		} else {
-			block.SetByteAttribute(typeByteAttribute, uint8(archBlock))
-		}
-		block.Load()
-		g.Upsert(block)
-
-		for _, obj := range(block.GetObjects()) {
-			obj.SetId(g.NextId(obj.GetSpace()))
-			g.Upsert(obj)
-		}
-
-		if i < blocks - 1 {
-			y += 6
-		}
-	}
-
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x - 3, y + 0.5), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(uziWeapon))
-
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x - 1, y + 0.5), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(starWeapon))
-
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x + 1, y + 0.5), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(bazookaWeapon))
-
-	g.Upsert(g.New(l.createInitB(pickupSpace, NewVec2(x + 3, y + 0.5), NewVec2(1.5, 1.2))))
-	g.GetLast(pickupSpace).SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
-
+	blockGrid.UpsertToGrid(g)
 }

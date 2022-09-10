@@ -66,7 +66,7 @@ export class RenderBolt extends RenderProjectile {
 		let rotation = new THREE.Quaternion();
 		rotation.setFromAxisAngle(new THREE.Vector3(0, 0, 1), this.dir().angle());
 
-		game.particles().emit(Particle.LASER_SPARKS, 100, (object : THREE.InstancedMesh, ts : number) => {
+		game.particles().emit(Particle.LASER_SPARKS, 75, (object : THREE.InstancedMesh, ts : number) => {
 			for (let i = 0; i < object.count; ++i) {
 				let matrix = new THREE.Matrix4();
 				object.getMatrixAt(i, matrix);
@@ -95,11 +95,11 @@ export class RenderBolt extends RenderProjectile {
 			rotation: rotation,
 			instances: {
 				scaleFn: () => {
-					return new THREE.Vector3(0.01, 0.05, 0.05);
+					return new THREE.Vector3(0.1, 0.04, 0.04);
 				},
 				rotationFn: () => {
 					let rotation = new THREE.Quaternion();
-					rotation.setFromAxisAngle(new THREE.Vector3(0, 0, 1), MathUtil.randomRange(-0.6, 0.6));
+					rotation.setFromAxisAngle(new THREE.Vector3(0, 0, 1), MathUtil.randomRange(-0.7, 0.7));
 					return rotation;
 				},
 				colorFn: () => {

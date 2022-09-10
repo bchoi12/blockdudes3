@@ -134,6 +134,10 @@ func (i Init) InitPos() Vec2 {
 	return i.pos
 } 
 
+func (i *Init) SetInitPos(pos Vec2) {
+	i.pos = pos
+}
+
 func (i Init) InitDim() Vec2 {
 	return i.dim
 }

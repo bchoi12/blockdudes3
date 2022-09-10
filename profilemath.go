@@ -21,6 +21,7 @@ type IntersectResults struct {
 	hit bool
 	ignored bool
 	t float64
+	tmax float64
 }
 
 func NewIntersectResults() IntersectResults {
@@ -28,12 +29,17 @@ func NewIntersectResults() IntersectResults {
 		hit: false,
 		ignored: false,
 		t: 1.0,
+		tmax: 0,
 	}
 }
 
 func (ir *IntersectResults) Merge(other IntersectResults) {
 	ir.hit = ir.hit || other.hit
-	ir.t = Min(ir.t, other.t)
+
+	if other.hit {
+		ir.t = Min(ir.t, other.t)
+		ir.tmax = Max(ir.tmax, other.t)
+	}
 }
 
 type CollideResult struct {

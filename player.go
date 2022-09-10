@@ -1,7 +1,6 @@
 package main
 
 import (
-	"math/rand"
 	"time"
 )
 
@@ -81,7 +80,7 @@ func NewPlayer(init Init) *Player {
 		deathTimer: NewTimer(2 * time.Second),
 	}
 
-	player.SetByteAttribute(typeByteAttribute, uint8(init.GetId() % 2))
+	player.SetByteAttribute(typeByteAttribute, 0)
 	player.Respawn()
 	return player
 }
@@ -124,9 +123,7 @@ func (p *Player) Respawn() {
 	p.RemoveAttribute(groundedAttribute)
 	p.AddAttribute(doubleJumpAttribute)
 
-	rand.Seed(time.Now().Unix())
-	// p.SetPos(NewVec2(float64(15 + rand.Intn(10)), 20))
-	p.SetPos(NewVec2(4, 6))
+	p.SetPos(NewVec2(0, 6))
 	p.Stop()
 }
 

@@ -20,7 +20,7 @@ export class RenderBlock extends RenderObject {
 	}
 
 	override ready() : boolean {
-		return super.ready() && this.hasByteAttribute(typeByteAttribute); // && this.hasIntAttribute(colorIntAttribute)
+		return super.ready() && this.hasByteAttribute(typeByteAttribute) && this.hasByteAttribute(subtypeByteAttribute);
 	}
 
 	override initialize() : void {
@@ -28,65 +28,65 @@ export class RenderBlock extends RenderObject {
 
 		let model;
 		switch (this.byteAttribute(typeByteAttribute)) {
-		case testBlock:
-			model = Model.TEST_BUILDING;
-			break;
 		case archBlock:
-			model = Model.TEST_BUILDING2;
-			break;
-		case archBlockRoof:
-			model = Model.TEST_BUILDING2_ROOF;
-			break;
-		case archBlockBalcony:
-			model = Model.TEST_BALCONY;
-			break;
+			switch (this.byteAttribute(subtypeByteAttribute)) {
+			case baseBlockSubtype:
+				model = Model.TEST_BUILDING2;
+				break;
+			case roofBlockSubtype:
+				model = Model.TEST_BUILDING2_ROOF;
+				break;
+			case balconyBlockSubtype:
+				model = Model.TEST_BALCONY;
+				break;
+			}
 		}
 
 		const opening = this.byteAttribute(openingByteAttribute);
 		loader.load(model, (mesh : THREE.Object3D) => {
-			if (model !== Model.TEST_BUILDING) {
-				mesh.traverse((child) => {
-					// @ts-ignore
-					let material = child.material;
-					if (material) {
-						if (!material.visible) {
-							return;
-						}
+			mesh.traverse((child) => {
+				// @ts-ignore
+				let material = child.material;
+				if (material) {
+					if (!material.visible) {
+						return;
+					}
 
-						const name = material.name;
-						if (name.includes("window")) {
-							material.transparent = true;
-							material.color = new THREE.Color(0x45d0ff);
-							material.opacity = 0.5;
-						}
+					const name = material.name;
+					if (name.includes("window")) {
+						material.transparent = true;
+						material.color = new THREE.Color(0x45d0ff);
+						material.opacity = 0.5;
+					}
 
-						if (this.hasByteAttribute(openingByteAttribute)) {
-							if (name.includes("left") && (opening & 1) === 1) {
-								material.visible = false;
-							}
-							if (name.includes("right") && ((opening >> 1) & 1) === 1) {
-								material.visible = false;
-							}
-							if (name.includes("bottom") && ((opening >> 2) & 1) === 1) {
-								material.visible = false;
-							}
+					if (this.hasByteAttribute(openingByteAttribute)) {
+						if (name.includes("left") && (opening & 1) === 1) {
+							material.visible = false;
 						}
-
-						if (name.includes("base")) {
-							material.color = new THREE.Color(this.intAttribute(colorIntAttribute));
-						} else if (name.includes("secondary")) {
-							material.color = new THREE.Color(this.intAttribute(secondaryColorIntAttribute));
+						if (name.includes("right") && ((opening >> 1) & 1) === 1) {
+							material.visible = false;
 						}
-
-						if (name.includes("front")) {
-							this._frontMaterials.set(material, Util.defined(material.opacity) ? material.opacity : 1);
-						}
-						if (name.includes("back")) {
-							material.color.sub(new THREE.Color(0x333333));
+						if (name.includes("bottom") && ((opening >> 2) & 1) === 1) {
+							material.visible = false;
 						}
 					}
-				});
-			}
+
+					if (name.includes("base")) {
+						material.color = new THREE.Color(this.intAttribute(colorIntAttribute));
+					} else if (name.includes("secondary")) {
+						material.color = new THREE.Color(this.intAttribute(secondaryColorIntAttribute));
+					}
+
+					if (name.includes("front")) {
+						this._frontMaterials.set(material, Util.defined(material.opacity) ? material.opacity : 1);
+					}
+					if (name.includes("back")) {
+						material.color.r *= 0.8;
+						material.color.g *= 0.8;
+						material.color.b *= 0.8;
+					}
+				}
+			});
 
 			mesh.position.copy(this.pos3());
 

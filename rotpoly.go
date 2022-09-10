@@ -23,7 +23,6 @@ func NewRotPoly(init Init, verts []Vec2) *RotPoly {
 
 func (rp *RotPoly) computeSides() {
 	angle := rp.Dir().Angle()
-
 	for i := range(rp.verts) {
 		if i == 0 {
 			rp.points[i] = rp.verts[i]
@@ -48,16 +47,28 @@ func (rp RotPoly) getSides() []Line {
 }
 
 func (rp *RotPoly) SetPos(pos Vec2) {
+	if (rp.Pos().ApproxEq(pos)) {
+		return
+	}
+
 	rp.BaseProfile.SetPos(pos)
 	rp.computeSides()
 }
 
 func (rp *RotPoly) SetDim(dim Vec2) {
+	if rp.Dim().ApproxEq(dim) {
+		return
+	}
+
 	rp.BaseProfile.SetDim(dim)
 	rp.computeSides()
 }
 
 func (rp *RotPoly) SetDir(dir Vec2) {
+	if rp.Dir().ApproxEq(dir) {
+		return
+	}
+
 	rp.BaseProfile.SetDir(dir)
 	rp.computeSides()
 }
@@ -96,7 +107,9 @@ func (rp RotPoly) Contains(point Vec2) ContainResults {
 		}
 	}
 
-	results.contains = true
+	result := NewContainResults()
+	result.contains = true
+	results.Merge(result)
 	return results
 }
 
@@ -110,21 +123,26 @@ func (rp RotPoly) Intersects(line Line) IntersectResults {
 	return results
 }
 
-func (rp RotPoly) OverlapProfile(profile Profile) CollideResult {
-	result := rp.BaseProfile.OverlapProfile(profile)
+func (rp RotPoly) OverlapProfile(other Profile) CollideResult {
+	results := rp.BaseProfile.OverlapProfile(other)
+	result := NewCollideResult()
 
-	if profile.Contains(rp.Pos()).contains || rp.Contains(profile.Pos()).contains {
+	if other.Contains(rp.Pos()).contains || rp.Contains(other.Pos()).contains {
 		result.SetHit(true)
-		result.SetPosAdjustment(rp.PosAdjustment(profile))
-		return result
+		result.SetPosAdjustment(rp.EdgeAdjustment(other))
+
+		results.Merge(result)
+		return results
 	}
 
 	for _, side := range(rp.getSides()) {
-		if testResults := profile.Intersects(side); testResults.hit {
+		if testResults := other.Intersects(side); testResults.hit {
 			result.SetHit(true)
-			result.SetPosAdjustment(rp.PosAdjustment(profile))
+			result.SetPosAdjustment(rp.EdgeAdjustment(other))
 			break
 		}
 	}
-	return result
+
+	results.Merge(result)
+	return results
 }

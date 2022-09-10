@@ -17,6 +17,8 @@ class Options {
 	public soundVolume : number;
 	public extrapolateWeight : number;
 
+	public debugShowWalls : boolean;
+
 	constructor() {
 		THREE.Cache.enabled = true;
 
@@ -29,6 +31,8 @@ class Options {
 		this.rendererMultisampling = 2;
 		this.soundVolume = 0.5;
 		this.extrapolateWeight = 0.5;
+
+		this.debugShowWalls = false;
 
 		this.load();
 	}

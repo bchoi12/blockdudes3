@@ -28,13 +28,13 @@ func (c Circle) Contains(point Vec2) ContainResults {
 		return results
 	}
 
-	selfResults := NewContainResults()
+	result := NewContainResults()
 	pos := c.Pos()
 	distX := pos.X - point.X
 	distY := pos.Y - point.Y
-	selfResults.contains = distX * distX + distY * distY <= c.RadiusSqr()
+	result.contains = distX * distX + distY * distY <= c.RadiusSqr()
 	
-	results.Merge(selfResults)
+	results.Merge(result)
 	return results
 }
 
@@ -56,39 +56,51 @@ func (circ Circle) Intersects(line Line) IntersectResults {
 		return results
 	}
 
+
 	discriminant = math.Sqrt(discriminant)
 	t1 := (-b - discriminant) / (2 * a)
-
   	if t1 >= 0 && t1 <= 1 {
-  		results.hit = true
-  		results.t = t1
-  		return results
+		result := NewIntersectResults()
+  		result.hit = true
+  		result.t = t1
+  		result.tmax = t1
+  		results.Merge(result)
   	}
 
   	t2 := (-b + discriminant) / (2 * a)
   	if t2 >= 0 && t2 <= 1 {
-  		results.hit = true
-  		results.t = t2
-  		return results
+	  	result := NewIntersectResults()
+		result.hit = true
+  		result.t = t2
+  		result.tmax = t2
+  		results.Merge(result)
   	}
 	return results
 }
 
 func (c Circle) OverlapProfile(profile Profile) CollideResult {
-	result := c.BaseProfile.OverlapProfile(profile)
+	results := c.BaseProfile.OverlapProfile(profile)
 
+	result := NewCollideResult()
 	switch other := profile.(type) {
 	case *RotPoly:
 		result.Merge(other.OverlapProfile(&c))
 	case *Rec2:
 		result.Merge(other.OverlapProfile(&c))
 	case *Circle:
+		offset := c.Offset(other)
 		radius := c.Radius() + other.Radius()
-		if c.DistSqr(other) <= radius * radius {
+		if offset.LenSquared() <= radius * radius {
 			result.SetHit(true)
+
+			posAdj := offset
+			posAdj.Normalize()
+			posAdj.Scale(radius)
+			posAdj.Sub(offset, 1.0)
+			result.SetPosAdjustment(posAdj)
 		}
 	}
 
-	result.SetPosAdjustment(c.PosAdjustment(profile))
-	return result
+	results.Merge(result)
+	return results
 }

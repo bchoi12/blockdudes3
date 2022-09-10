@@ -93,18 +93,16 @@ func setGlobals() {
 	js.Global().Set("killProp", int(killProp))
 	js.Global().Set("deathProp", int(deathProp))
 
-	js.Global().Set("solidAttribute", int(solidAttribute))
-	js.Global().Set("stairAttribute", int(stairAttribute))
-	js.Global().Set("platformAttribute", int(platformAttribute))
-
 	js.Global().Set("attachedAttribute", int(attachedAttribute))
 	js.Global().Set("chargingAttribute", int(chargingAttribute))
 	js.Global().Set("chargedAttribute", int(chargedAttribute))
 	js.Global().Set("groundedAttribute", int(groundedAttribute))
 	js.Global().Set("doubleJumpAttribute", int(doubleJumpAttribute))
 	js.Global().Set("deadAttribute", int(deadAttribute))
+	js.Global().Set("visibleAttribute", int(visibleAttribute))
 
 	js.Global().Set("typeByteAttribute", int(typeByteAttribute))
+	js.Global().Set("subtypeByteAttribute", int(subtypeByteAttribute))
 	js.Global().Set("teamByteAttribute", int(teamByteAttribute))
 	js.Global().Set("openingByteAttribute", int(openingByteAttribute))
 	js.Global().Set("healthByteAttribute", int(healthByteAttribute))
@@ -128,10 +126,10 @@ func setGlobals() {
 	js.Global().Set("sniperWeapon", int(sniperWeapon))
 	js.Global().Set("starWeapon", int(starWeapon))
 
-	js.Global().Set("testBlock", int(testBlock))
 	js.Global().Set("archBlock", int(archBlock))
-	js.Global().Set("archBlockRoof", int(archBlockRoof))
-	js.Global().Set("archBlockBalcony", int(archBlockBalcony))
+	js.Global().Set("baseBlockSubtype", int(baseBlockSubtype))
+	js.Global().Set("roofBlockSubtype", int(roofBlockSubtype))
+	js.Global().Set("balconyBlockSubtype", int(balconyBlockSubtype))
 
 	js.Global().Set("upKey", int(upKey))
 	js.Global().Set("downKey", int(downKey))

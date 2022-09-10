@@ -30,14 +30,14 @@ func (r Rec2) Contains(point Vec2) ContainResults {
 		return results
 	}
 
-	selfResults := NewContainResults()
+	result := NewContainResults()
 	pos := r.Pos()
 	dim := r.Dim()
 	if Abs(pos.X - point.X) <= dim.X / 2 && Abs(pos.Y - point.Y) <= dim.Y / 2 {
-		selfResults.contains = true
+		result.contains = true
 	}
 
-	results.Merge(selfResults)
+	results.Merge(result)
 	return results
 }
 
@@ -52,18 +52,20 @@ func (r Rec2) Intersects(line Line) IntersectResults {
 }
 
 func (r Rec2) OverlapProfile(profile Profile) CollideResult {
-	result := r.BaseProfile.OverlapProfile(profile)
+	results := r.BaseProfile.OverlapProfile(profile)
+	result := NewCollideResult()
 
 	switch other := profile.(type) {
 	case *RotPoly:
 		result.Merge(other.OverlapProfile(&r))
 	case *Rec2:
-		if do := r.PosAdjustment(other); do.Area() > 0 {
+		if boxAdj := r.BoxAdjustment(other); boxAdj.Area() > 0 {
 			result.SetHit(true)
+			result.SetPosAdjustment(boxAdj)
 		}
 	case *Circle:
-		do := r.PosAdjustment(other)
-		if do.Area() <= 0 {
+		edgeAdj := r.EdgeAdjustment(other)
+		if edgeAdj.Area() <= 0 {
 			break
 		}
 
@@ -75,8 +77,11 @@ func (r Rec2) OverlapProfile(profile Profile) CollideResult {
 		if dist.X * dist.X + dist.Y * dist.Y <= other.RadiusSqr() {
 			result.SetHit(true)
 		}
+		if result.hit {
+			result.SetPosAdjustment(edgeAdj)
+		}
 	}
 
-	result.SetPosAdjustment(r.PosAdjustment(profile))
-	return result
+	results.Merge(result)
+	return results
 }

@@ -132,7 +132,7 @@ func FSignPos(n float64) float64 {
 }
 
 func Clamp(min, n, max float64) float64 {
-	return Max(Min(min, n), max)
+	return Min(Max(min, n), max)
 }
 
 func And(bools ...bool) bool {

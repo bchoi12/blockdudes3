@@ -12,15 +12,11 @@ type DataMethods interface {
 }
 
 type Object interface {
-	Profile
 	InitMethods
 	DataMethods
+	Profile
 
-	GetId() IdType
-	GetSpace() SpaceType
-	GetSpacedId() SpacedId
 	GetProfile() Profile
-
 	HasInitProp(prop Prop) bool
 	SetInitProp(prop Prop, value interface{})
 
@@ -84,6 +80,10 @@ func NewCircleObject(init Init) BaseObject {
 	return NewBaseObject(init, NewCircle(init))
 }
 
+func (o BaseObject) GetProfile() Profile {
+	return o.Profile
+}
+
 func (o *BaseObject) PrepareUpdate(now time.Time) float64 {
 	ts := GetTimestep(now, o.lastUpdateTime)
 	if ts >= 0 {
@@ -91,14 +91,6 @@ func (o *BaseObject) PrepareUpdate(now time.Time) float64 {
 	}
 
 	return Max(0, Min(ts, 2 * float64(frameMillis)))
-}
-
-func (o BaseObject) GetProfile() Profile {
-	return o.Profile
-}
-
-func (o BaseObject) GetAttachment() Attachment {
-	return o.Attachment
 }
 
 func (o *BaseObject) PreUpdate(grid *Grid, now time.Time) {

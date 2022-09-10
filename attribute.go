@@ -4,16 +4,13 @@ type AttributeType uint8
 const (
 	unknownAttribute AttributeType = iota
 
-	solidAttribute
-	stairAttribute
-	platformAttribute
-
 	attachedAttribute
 	chargingAttribute
 	chargedAttribute
 	groundedAttribute
 	doubleJumpAttribute
 	deadAttribute
+	visibleAttribute
 )
 
 type ByteAttributeType uint8
@@ -21,6 +18,7 @@ const (
 	unknownByteAttribute ByteAttributeType = iota
 
 	typeByteAttribute
+	subtypeByteAttribute
 	teamByteAttribute
 	openingByteAttribute
 

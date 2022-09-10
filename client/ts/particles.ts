@@ -37,7 +37,7 @@ export class Particles extends SceneComponent {
 		opacity: 0.4,
 		transparent: true,
 		blending: THREE.AdditiveBlending,
-		color: 0x888888,
+		color: 0xbbbbbb,
 	});
 	private readonly _laserMaterial = new THREE.MeshBasicMaterial({ color: 0x060606 });
 	private readonly _confettiMaterial = new THREE.MeshBasicMaterial( {

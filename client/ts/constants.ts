@@ -64,17 +64,16 @@ declare var hitsProp : number;
 declare var killProp : number;
 declare var deathProp : number;
 
-declare var solidAttribute : number;
-declare var stairAttribute : number;
-declare var platformAttribute : number;
 declare var attachedAttribute : number;
 declare var chargingAttribute : number;
 declare var chargedAttribute : number;
 declare var groundedAttribute : number;
 declare var doubleJumpAttribute : number;
 declare var deadAttribute : number;
+declare var visibleAttribute : number;
 
 declare var typeByteAttribute : number;
+declare var subtypeByteAttribute : number;
 declare var teamByteAttribute : number;
 declare var openingByteAttribute : number;
 declare var healthByteAttribute : number;
@@ -98,10 +97,10 @@ declare var bazookaWeapon : number;
 declare var sniperWeapon : number;
 declare var starWeapon : number;
 
-declare var testBlock : number;
 declare var archBlock : number;
-declare var archBlockRoof : number;
-declare var archBlockBalcony : number;
+declare var baseBlockSubtype : number;
+declare var roofBlockSubtype : number;
+declare var balconyBlockSubtype : number;
 
 declare var upKey : number;
 declare var downKey : number;

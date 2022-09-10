@@ -207,7 +207,12 @@ func (r *Room) initClient(client *Client) error {
 	playerId := Id(playerSpace, client.id)
 	if !r.game.Has(playerId) {
 		player := r.game.Add(NewInit(playerId, NewVec2(5, 5), NewVec2(0.8, 1.44)))
-		player.SetIntAttribute(colorIntAttribute, 0xFF0000)
+
+		if client.id % 2 == 0 {
+			player.SetIntAttribute(colorIntAttribute, 0xFF0000)
+		} else {
+			player.SetIntAttribute(colorIntAttribute, 0x0000FF)
+		}
 		player.SetByteAttribute(teamByteAttribute, uint8(client.id % 2))
 		player.SetInitProp(nameProp, client.GetDisplayName())
 	} else {

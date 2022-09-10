@@ -4,6 +4,15 @@ import (
 	"time"
 )
 
+type WallType uint8
+const (
+	unknownWall WallType = iota
+	normalWall
+	platformWall
+	stairWall
+	rampWall
+)
+
 type Wall struct {
 	BaseObject
 
@@ -27,7 +36,28 @@ func NewWall(init Init) *Wall {
 		waypointIndex: 0,
 		waypoints: make([]Vec2, 0),
 	}
-	wall.AddAttribute(solidAttribute)
+	wall.SetByteAttribute(typeByteAttribute, uint8(normalWall))
+	return wall
+}
+
+func NewRamp(init Init, cardinal Cardinal) *Wall {
+	dim := init.InitDim()
+	points := make([]Vec2, 3)
+	points[0] = NewVec2(-dim.X / 2, -dim.Y / 2)
+	points[1] = NewVec2(dim.X / 2, -dim.Y / 2)
+	if cardinal.Get(leftCardinal) {
+		points[2] = NewVec2(dim.X / 2, dim.Y / 2)
+	} else {
+		points[2] = NewVec2(-dim.X / 2, dim.Y / 2)
+	}
+	rotPoly := NewRotPoly(init, points)
+	wall := &Wall {
+		BaseObject: NewBaseObject(init, rotPoly),
+		speed: 0,
+		waypointIndex: 0,
+		waypoints: make([]Vec2, 0),
+	}
+	wall.SetByteAttribute(typeByteAttribute, uint8(rampWall))
 	return wall
 }
 
