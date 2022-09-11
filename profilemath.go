@@ -77,6 +77,11 @@ func (cr *CollideResult) Merge(other CollideResult) {
 	force.AbsMax(other.GetForce())
 }
 
+func (cr *CollideResult) Reverse() {
+	cr.posAdjustment.Negate()
+	cr.force.Negate()
+}
+
 type SnapResults struct {
 	snap bool
 

@@ -6,6 +6,10 @@ declare var leftCardinal : number;
 declare var rightCardinal : number;
 declare var bottomCardinal : number;
 declare var topCardinal : number;
+declare var bottomLeftCardinal : number;
+declare var bottomRightCardinal : number;
+declare var topLeftCardinal : number;
+declare var topRightCardinal : number;
 
 declare var pingType: number;
 declare var candidateType : number;
@@ -102,8 +106,13 @@ declare var bazookaWeapon : number;
 declare var sniperWeapon : number;
 declare var starWeapon : number;
 
+declare var platformWall : number;
+declare var stairWall : number;
+declare var tableWallSubtype : number;
+
 declare var archBlock : number;
 declare var baseBlockSubtype : number;
+declare var tallBlockSubtype : number;
 declare var roofBlockSubtype : number;
 declare var balconyBlockSubtype : number;
 

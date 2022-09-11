@@ -13,8 +13,8 @@ export class Weather extends SceneComponent {
 		color: 0xebebeb,
 	});
 
-	private readonly _cloudLengths = new RingBuffer([4, 4.5, 5]);
-	private readonly _cloudHeights = new RingBuffer([0.3, 0.35]);
+	private readonly _cloudLengths = new RingBuffer([3, 4, 5, 6]);
+	private readonly _cloudHeights = new RingBuffer([0.25, 0.33, 0.4]);
 	private readonly _cloudDepths = new RingBuffer([2, 2.5, 3]);
 
 	private readonly _cloudYs = new RingBuffer([6, 10, 14, 18]);
@@ -60,8 +60,8 @@ export class Weather extends SceneComponent {
 				this._cloudHeights.getNext(),
 				this._cloudDepths.getNext());
 			matrix.setPosition(
-				start + i / levels * space + MathUtil.randomRange(-2, 2),
-				(vertical * (i % levels)) + this._cloudYs.getNext() + MathUtil.randomRange(-1, 1),
+				start + i / levels * space + MathUtil.randomRange(-3, 3),
+				(vertical * (i % levels)) + this._cloudYs.getNext() + MathUtil.randomRange(-1.5, 1.5),
 				this._cloudZs.getNext());
 			this._cloudMesh.setMatrixAt(i, matrix);
 

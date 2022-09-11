@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	zeroVelEpsilon float64 = 1e-8
+	zeroVelEpsilon float64 = 1e-6
 	overlapEpsilon float64 = 1e-3
 	edgeEpsilon float64 = 1e-3
 )
@@ -591,7 +591,7 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 
 	// Special treatment for other object types
 	if byte, ok := other.GetByteAttribute(typeByteAttribute); ok && byte == uint8(stairWall) {
-		if collisionFlag.X != 0 {
+		if collisionFlag.X != 0 && Abs(posAdj.X) > overlapEpsilon {
 			collisionFlag.X = 0
 			collisionFlag.Y = 1
 

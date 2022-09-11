@@ -135,8 +135,13 @@ func setGlobals() {
 	js.Global().Set("sniperWeapon", int(sniperWeapon))
 	js.Global().Set("starWeapon", int(starWeapon))
 
+	js.Global().Set("platformWall", int(platformWall))
+	js.Global().Set("stairWall", int(stairWall))
+	js.Global().Set("tableWallSubtype", int(tableWallSubtype))
+
 	js.Global().Set("archBlock", int(archBlock))
 	js.Global().Set("baseBlockSubtype", int(baseBlockSubtype))
+	js.Global().Set("tallBlockSubtype", int(tallBlockSubtype))
 	js.Global().Set("roofBlockSubtype", int(roofBlockSubtype))
 	js.Global().Set("balconyBlockSubtype", int(balconyBlockSubtype))
 

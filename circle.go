@@ -84,9 +84,13 @@ func (c Circle) OverlapProfile(profile Profile) CollideResult {
 	result := NewCollideResult()
 	switch other := profile.(type) {
 	case *RotPoly:
-		result.Merge(other.OverlapProfile(&c))
+		reverse := other.OverlapProfile(&c)
+		reverse.Reverse()
+		result.Merge(reverse)
 	case *Rec2:
-		result.Merge(other.OverlapProfile(&c))
+		reverse := other.OverlapProfile(&c)
+		reverse.Reverse()
+		result.Merge(reverse)
 	case *Circle:
 		offset := c.Offset(other)
 		radius := c.Radius() + other.Radius()

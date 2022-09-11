@@ -3,7 +3,6 @@ import { Gyroscope } from 'three/examples/jsm/misc/Gyroscope.js'
 
 import { Sound } from './audio.js'
 import { game } from './game.js'
-import { PrismGeometry } from './prism_geometry.js'
 import { RenderObject } from './render_object.js'
 import { RenderPlayer } from './render_player.js'
 import { renderer } from './renderer.js'

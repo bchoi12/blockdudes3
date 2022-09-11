@@ -3,18 +3,17 @@ import * as THREE from 'three';
 import { Sound } from './audio.js'
 import { game } from './game.js'
 import { Particle, Particles } from './particles.js'
-import { PrismGeometry } from './prism_geometry.js'
 import { RenderCustom } from './render_custom.js'
 import { RenderProjectile } from './render_projectile.js'
 import { MathUtil, Util } from './util.js'
 
 export class RenderStar extends RenderProjectile {
-	private readonly _prismGeometry = new PrismGeometry(new THREE.Shape([
+	private readonly _prismGeometry = new THREE.ExtrudeGeometry(new THREE.Shape([
 		new THREE.Vector2(0, 0),
 		new THREE.Vector2(-0.1, 0),
 		new THREE.Vector2(-0.1, 0.2),
 		new THREE.Vector2(0, 0.1),
-	]), 0.2);
+	]), { depth: 0.2, bevelEnabled: false });
 
 	private _materials : Array<THREE.MeshLambertMaterial>;
 	private _trail : RenderCustom;

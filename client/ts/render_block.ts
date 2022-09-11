@@ -5,7 +5,6 @@ import { EffectType } from './effects.js'
 import { ForegroundGroup } from './foreground_group.js'
 import { loader, Model } from './loader.js'
 import { options } from './options.js'
-import { PrismGeometry } from './prism_geometry.js'
 import { RenderObject } from './render_object.js'
 import { renderer } from './renderer.js'
 import { Util } from './util.js'
@@ -32,13 +31,16 @@ export class RenderBlock extends RenderObject {
 		case archBlock:
 			switch (this.byteAttribute(subtypeByteAttribute)) {
 			case baseBlockSubtype:
-				model = Model.TEST_BUILDING2;
+				model = Model.ARCH_BASE;
+				break;
+			case tallBlockSubtype:
+				model = Model.ARCH_TALL;
 				break;
 			case roofBlockSubtype:
-				model = Model.TEST_BUILDING2_ROOF;
+				model = Model.ARCH_ROOF;
 				break;
 			case balconyBlockSubtype:
-				model = Model.TEST_BALCONY;
+				model = Model.ARCH_BALCONY;
 				break;
 			}
 		}
@@ -53,35 +55,51 @@ export class RenderBlock extends RenderObject {
 						return;
 					}
 
-					const name = material.name;
-					if (name.includes("window")) {
+					const name = material.name.toLowerCase();
+					const components = new Set(name.split("."));
+					if (components.has("window")) {
 						material.transparent = true;
 						material.color = new THREE.Color(0x45d0ff);
 						material.opacity = 0.5;
 					}
 
 					if (this.hasByteAttribute(openingByteAttribute)) {
-						if (name.includes("left") && opening.get(leftCardinal)) {
+						if (components.has("left") && opening.get(leftCardinal)) {
 							material.visible = false;
 						}
-						if (name.includes("right") && opening.get(rightCardinal)) {
+						if (components.has("right") && opening.get(rightCardinal)) {
 							material.visible = false;
 						}
-						if (name.includes("bottom") && opening.get(bottomCardinal)) {
+						if (components.has("bottom") && opening.get(bottomCardinal)) {
+							material.visible = false;
+						}
+						if (components.has("top") && opening.get(topCardinal)) {
+							material.visible = false;
+						}
+						if (components.has("bottomleft") && opening.get(bottomLeftCardinal)) {
+							material.visible = false;
+						}
+						if (components.has("bottomright") && opening.get(bottomRightCardinal)) {
+							material.visible = false;
+						}
+						if (components.has("topleft") && opening.get(topLeftCardinal)) {
+							material.visible = false;
+						}
+						if (components.has("topright") && opening.get(topRightCardinal)) {
 							material.visible = false;
 						}
 					}
 
-					if (name.includes("base")) {
+					if (components.has("base")) {
 						material.color = new THREE.Color(this.intAttribute(colorIntAttribute));
-					} else if (name.includes("secondary")) {
+					} else if (components.has("secondary")) {
 						material.color = new THREE.Color(this.intAttribute(secondaryColorIntAttribute));
 					}
 
-					if (name.includes("front")) {
+					if (components.has("front")) {
 						this._frontMaterials.set(material, Util.defined(material.opacity) ? material.opacity : 1);
 					}
-					if (name.includes("back")) {
+					if (components.has("back")) {
 						material.color.r *= 0.8;
 						material.color.g *= 0.8;
 						material.color.b *= 0.8;
@@ -91,11 +109,11 @@ export class RenderBlock extends RenderObject {
 
 			mesh.position.copy(this.pos3());
 
-			if (model === Model.TEST_BALCONY) {
-				if (opening.get(leftCardinal)) {
-					mesh.rotation.set(0, Math.PI / 2, 0);
-				} else if (opening.get(rightCardinal)) {
+			if (this.byteAttribute(subtypeByteAttribute) === balconyBlockSubtype) {
+				if (opening.anyLeft()) {
 					mesh.rotation.set(0, -Math.PI / 2, 0);
+				} else if (opening.anyRight()) {
+					mesh.rotation.set(0, Math.PI / 2, 0);
 				}
 			}
 

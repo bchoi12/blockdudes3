@@ -57,15 +57,17 @@ func (r Rec2) OverlapProfile(profile Profile) CollideResult {
 
 	switch other := profile.(type) {
 	case *RotPoly:
-		result.Merge(other.OverlapProfile(&r))
+		reverse := other.OverlapProfile(&r)
+		reverse.Reverse()
+		result.Merge(reverse)
 	case *Rec2:
 		if boxAdj := r.BoxAdjustment(other); boxAdj.Area() > 0 {
 			result.SetHit(true)
 			result.SetPosAdjustment(boxAdj)
 		}
 	case *Circle:
-		edgeAdj := r.EdgeAdjustment(other)
-		if edgeAdj.Area() <= 0 {
+		boxAdj := r.BoxAdjustment(other)
+		if boxAdj.Area() <= 0 {
 			break
 		}
 
@@ -78,7 +80,7 @@ func (r Rec2) OverlapProfile(profile Profile) CollideResult {
 			result.SetHit(true)
 		}
 		if result.hit {
-			result.SetPosAdjustment(edgeAdj)
+			result.SetPosAdjustment(boxAdj)
 		}
 	}
 

@@ -13,6 +13,12 @@ const (
 	rampWall
 )
 
+type WallSubtype uint8
+const (
+	unknownWallSubtype WallSubtype = iota
+	tableWallSubtype
+)
+
 type Wall struct {
 	BaseObject
 

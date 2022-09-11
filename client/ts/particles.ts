@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 
 import { ObjectBuffer, ObjectOverrides } from './object_buffer.js'
-import { PrismGeometry } from './prism_geometry.js'
 import { RenderCustom } from './render_custom.js'
 import { SceneComponent } from './scene_component.js'
 import { MathUtil, Util } from './util.js'
@@ -21,7 +20,7 @@ export class Particles extends SceneComponent {
 	private readonly _sphere = new THREE.SphereGeometry(1.0, 6, 6);
 	private readonly _cube = new THREE.BoxGeometry(1, 1, 1);
 	private readonly _plane = new THREE.PlaneGeometry(1, 1);
-	private readonly _trail = new PrismGeometry(new THREE.Shape([
+	private readonly _trail = new THREE.ExtrudeGeometry(new THREE.Shape([
 			new THREE.Vector2(0, 0.5),
 			new THREE.Vector2(-1, 0.25),
 			new THREE.Vector2(-2, 0.08),
@@ -29,7 +28,7 @@ export class Particles extends SceneComponent {
 			new THREE.Vector2(-2, -0.08),
 			new THREE.Vector2(-1, -0.25),
 			new THREE.Vector2(0, -0.5),
-		]), 0.1);
+		]), { depth: 0.1, bevelEnabled: false });
 
 	private readonly _smokeMaterial = new THREE.MeshLambertMaterial( {color: 0xb0b0b0} );
 	private readonly _cubeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff})

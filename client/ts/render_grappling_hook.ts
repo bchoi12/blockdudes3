@@ -2,21 +2,20 @@ import * as THREE from 'three';
 import { Gyroscope } from 'three/examples/jsm/misc/Gyroscope.js'
 
 import { game } from './game.js'
-import { PrismGeometry } from './prism_geometry.js'
 import { RenderProjectile } from './render_projectile.js'
 import { MathUtil } from './util.js'
 
 export class RenderGrapplingHook extends RenderProjectile {
 	private readonly _metalMaterial = new THREE.MeshPhongMaterial({ color: 0x5b5b5b })
 	private readonly _lineMaterial = new THREE.LineBasicMaterial({color: 0x000000});
-	private readonly _prismGeometry = new PrismGeometry(new THREE.Shape([
+	private readonly _prismGeometry = new THREE.ExtrudeGeometry(new THREE.Shape([
 		new THREE.Vector2(-0.06, 0),
 		new THREE.Vector2(-0.1, 0),
 		new THREE.Vector2(0, 0.2),
 		new THREE.Vector2(0.1, 0),
 		new THREE.Vector2(0.06, 0),
 		new THREE.Vector2(0, 0.06),
-	]), 0.2);
+	]), { depth: 0.2, bevelEnabled: false });
 
 	private _ropeGeometry : THREE.BufferGeometry;
 
@@ -70,7 +69,7 @@ export class RenderGrapplingHook extends RenderProjectile {
 		const attached = this.attribute(attachedAttribute);
 		if (!attached) {
 			const vel = this.vel();
-			mesh.rotation.z -= MathUtil.signPos(vel.x) * 0.1;
+			mesh.rotation.z -= MathUtil.signPos(vel.x) * this.timestep() * 9;
 
 			const factor = Math.sin(mesh.rotation.z);
 			mesh.rotation.x = factor * 0.05;

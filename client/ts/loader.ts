@@ -18,10 +18,10 @@ export enum Model {
 
 	ROCKET = "ROCKET",
 
-	TEST_BUILDING = "TEST_BUILDING",
-	TEST_BUILDING2 = "TEST_BUILDING2",
-	TEST_BUILDING2_ROOF = "TEST_BUILDING2_ROOF",
-	TEST_BALCONY = "TEST_BALCONY",
+	ARCH_BASE = "ARCH_BASE",
+	ARCH_TALL = "ARCH_TALL",
+	ARCH_ROOF = "ARCH_ROOF",
+	ARCH_BALCONY = "ARCH_BALCONY",
 }
 
 export enum Typeface {
@@ -118,7 +118,6 @@ class Loader {
 			case Model.SNIPER:
 			case Model.STAR_GUN:
 			case Model.ROCKET:
-			case Model.TEST_BUILDING:
 				data.scene.animations = data.animations;
 				data.scene.traverse((child) => {
 					if (child instanceof THREE.Mesh) {
@@ -127,9 +126,10 @@ class Loader {
 					}
 				});
 				break;
-			case Model.TEST_BUILDING2:
-			case Model.TEST_BUILDING2_ROOF:
-			case Model.TEST_BALCONY:
+			case Model.ARCH_BASE:
+			case Model.ARCH_TALL:
+			case Model.ARCH_ROOF:
+			case Model.ARCH_BALCONY:
 				data.scene.traverse((child) => {
 					let processed = new Set<string>();
 					if (child.material && !processed.has(child.material.name)) {
