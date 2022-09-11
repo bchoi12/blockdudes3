@@ -1,9 +1,5 @@
 package main
 
-import (
-	"log"
-)
-
 const (
 	buildingStartY float64 = -9.0
 )
@@ -124,6 +120,5 @@ func (bg *BlockGrid) nextYPos() float64 {
 		bg.curOffset = 0
 	}
 
-	log.Printf("%+v, %f, %d", bg.yOffsets, y, bg.curOffset)
 	return y
 }

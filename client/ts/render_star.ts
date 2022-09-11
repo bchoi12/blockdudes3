@@ -89,7 +89,7 @@ export class RenderStar extends RenderProjectile {
 		const attached = this.attribute(attachedAttribute);
 		if (!attached) {
 			const vel = this.vel();
-			mesh.rotation.z -= MathUtil.signPos(vel.x) * this.timestep() * 9;
+			mesh.rotation.z -= MathUtil.signPos(vel.x) * this.timestep() * 20;
 		}
 	}
 }

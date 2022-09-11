@@ -69,7 +69,7 @@ export class RenderGrapplingHook extends RenderProjectile {
 		const attached = this.attribute(attachedAttribute);
 		if (!attached) {
 			const vel = this.vel();
-			mesh.rotation.z -= MathUtil.signPos(vel.x) * this.timestep() * 9;
+			mesh.rotation.z -= MathUtil.signPos(vel.x) * this.timestep() * 15;
 
 			const factor = Math.sin(mesh.rotation.z);
 			mesh.rotation.x = factor * 0.05;
