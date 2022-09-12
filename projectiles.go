@@ -85,7 +85,7 @@ func NewStar(init Init) *Star {
 		Projectile: NewProjectile(NewCircleObject(init)),
 	}
 
-	rand.Seed(time.Now().UnixMilli())
+	rand.Seed(UnixMilli())
 	color := starColors[rand.Intn(len(starColors))]
 
 	star.SetTTL(1 * time.Second)

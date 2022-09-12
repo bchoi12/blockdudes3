@@ -152,3 +152,8 @@ func Or(bools ...bool) bool {
 	}
 	return false
 }
+
+// For Google Cloud compatibility
+func UnixMilli() int64 {
+    return time.Now().UnixNano() / int64(time.Millisecond)
+}
