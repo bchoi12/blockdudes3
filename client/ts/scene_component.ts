@@ -17,12 +17,18 @@ export abstract class SceneComponent {
 	private _objects : Map<number, THREE.Object3D>;
 	private _customObjects : Map<number, RenderCustom>;
 
+	private _timestep : number;
+	private _lastUpdate : number;
+
 	constructor() {
 		this._scene = new THREE.Scene();
 
 		this._nextId = 1;
 		this._objects = new Map<number, THREE.Object3D>();
 		this._customObjects = new Map<number, RenderCustom>();
+
+		this._timestep = 0;
+		this._lastUpdate = Date.now();
 	}
 
 	addObject(object : THREE.Object3D) : void {
@@ -71,10 +77,15 @@ export abstract class SceneComponent {
 
 	reset() : void {}
 
+	timestep() : number { return this._timestep; }
+
 	update() : void {
 		this._customObjects.forEach((custom, id) => {
 			custom.update();
 		});
+
+		this._timestep = (Date.now() - this._lastUpdate) / 1000;
+		this._lastUpdate = Date.now();
 	}
 
 	protected nextId() : number {

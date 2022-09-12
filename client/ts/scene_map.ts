@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { game } from './game.js'
 import { LightBuffer, LightOverrides } from './light_buffer.js'
 import { Lighting } from './lighting.js'
 import { Particles } from './particles.js'
@@ -30,6 +31,7 @@ export class SceneMap {
 
 	reset() : void {
 		this._scene = new THREE.Scene();
+		this._scene.fog = new THREE.Fog(0xffffff, 50, 400);
 
 		this._renders = new Map();
 		this._deleted = new Map();
@@ -59,6 +61,9 @@ export class SceneMap {
 	}
 
 	update() : void {
+		const fogColor = 1 - 0.5 * game.timeOfDay();
+		this._scene.fog.color = new THREE.Color(fogColor, fogColor, fogColor);
+
 		this._components.forEach((component, type) => {
 			if (type === SceneComponentType.PARTICLES) {
 				return;

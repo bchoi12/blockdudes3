@@ -40,7 +40,7 @@ export class RenderBolt extends RenderProjectile {
 			scale: new THREE.Vector3(dim.x, dim.y, 0),
 			instances: {
 				posFn: (object, i) => {
-					return new THREE.Vector3(0, 0, 0.02 * i);
+					return new THREE.Vector3(0, 0, 0.04 * i);
 				},
 				scaleFn: (object, i) => {
 					return new THREE.Vector3(1, 1 - i / object.count * i / object.count, 0);

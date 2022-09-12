@@ -33,6 +33,8 @@ export enum GameState {
 class Game {
 	private _id : number;
 	private _state : GameState;
+
+	// TODO: move to SceneMap
 	private _timeOfDay : number;
 
 	private _sceneMap : SceneMap;

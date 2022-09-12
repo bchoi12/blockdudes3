@@ -17,8 +17,8 @@ export class Weather extends SceneComponent {
 	private readonly _cloudHeights = new RingBuffer([0.25, 0.33, 0.4]);
 	private readonly _cloudDepths = new RingBuffer([2, 2.5, 3]);
 
-	private readonly _cloudYs = new RingBuffer([6, 10, 14, 18]);
-	private readonly _cloudZs = new RingBuffer([-18, -15, -12, -9, 9, 10]);
+	private readonly _cloudYs = new RingBuffer([10, 14, 18, 22]);
+	private readonly _cloudZs = new RingBuffer([-50, -30, -18, -15, -12, -9, 9, 10]);
 
 	private readonly _cloudColors = new RingBuffer<THREE.Color>([
 		new THREE.Color(0xfbfbfb),
@@ -43,9 +43,9 @@ export class Weather extends SceneComponent {
 
 		const space = 16;
 		const vertical = 20;
-		const levels = 2;
+		const levels = 1;
 		const start = -40;
-		const numClouds = 40;
+		const numClouds = 20;
 		const end = start + numClouds * space / levels;
 
 		this._cloudMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), this._cloudMaterial, numClouds);

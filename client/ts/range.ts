@@ -1,5 +1,4 @@
 
-
 export class Range {
 	private _min : number;
 	private _max : number;
