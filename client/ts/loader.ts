@@ -19,11 +19,12 @@ export enum Model {
 	ROCKET = "ROCKET",
 
 	ARCH_BASE = "ARCH_BASE",
-	ARCH_TALL = "ARCH_TALL",
 	ARCH_ROOF = "ARCH_ROOF",
 	ARCH_BALCONY = "ARCH_BALCONY",
 
 	TABLE = "TABLE",
+	TRASH_CAN = "TRASH_CAN",
+	POTTED_TREE = "POTTED_TREE",
 }
 
 export enum Typeface {
@@ -131,10 +132,11 @@ class Loader {
 				});
 				break;
 			case Model.ARCH_BASE:
-			case Model.ARCH_TALL:
 			case Model.ARCH_ROOF:
 			case Model.ARCH_BALCONY:
 			case Model.TABLE:
+			case Model.POTTED_TREE:
+			case Model.TRASH_CAN:
 				data.scene.traverse((child) => {
 					let processed = new Set<string>();
 					if (child.material && !processed.has(child.material.name)) {

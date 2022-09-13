@@ -33,9 +33,6 @@ export class RenderBlock extends RenderObject {
 			case baseBlockSubtype:
 				model = Model.ARCH_BASE;
 				break;
-			case tallBlockSubtype:
-				model = Model.ARCH_TALL;
-				break;
 			case roofBlockSubtype:
 				model = Model.ARCH_ROOF;
 				break;
@@ -65,9 +62,9 @@ export class RenderBlock extends RenderObject {
 						this._frontMaterials.set(material, Util.defined(material.opacity) ? material.opacity : 1);
 					}
 
-					if (components.has("base")) {
+					if (components.has("base") && this.hasIntAttribute(colorIntAttribute)) {
 						material.color = new THREE.Color(this.intAttribute(colorIntAttribute));
-					} else if (components.has("secondary")) {
+					} else if (components.has("secondary") && this.hasIntAttribute(secondaryColorIntAttribute)) {
 						material.color = new THREE.Color(this.intAttribute(secondaryColorIntAttribute));
 					}
 
@@ -105,6 +102,14 @@ export class RenderBlock extends RenderObject {
 					if (components.has("topright") && opening.get(topRightCardinal)) {
 						child.visible = false;
 					}
+				}
+
+				if (components.has("random")) {
+					let random = mesh.getObjectByName(name);
+					loader.load(Math.random() < 0.4 ? Model.TRASH_CAN : Model.POTTED_TREE, (thing) => {
+						thing.position.copy(random.position);
+						mesh.add(thing);
+					});
 				}
 
 			});

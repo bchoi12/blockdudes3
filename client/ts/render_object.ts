@@ -217,7 +217,7 @@ export class RenderObject extends RenderMesh {
 			this._pos3 = new THREE.Vector3();
 		}
 		if (this.hasPos()) {
-			this._pos3.set(this._msg.get(posProp).X, this._msg.get(posProp).Y, this.posZ());
+			this._pos3.set(this._msg.get(posProp).X, this._msg.get(posProp).Y, this.hasPosZ() ? this.posZ() : (this.hasMesh() ? this.mesh().position.z : 0));
 		}
 		return this._pos3;
 	}
