@@ -56,38 +56,13 @@ export class RenderBlock extends RenderObject {
 					}
 
 					const name = material.name.toLowerCase();
-					const components = new Set(name.split("."));
-					if (components.has("window")) {
+					const components = new Set(name.split("-"));
+					if (components.has("transparent")) {
 						material.transparent = true;
-						material.color = new THREE.Color(0x45d0ff);
 						material.opacity = 0.5;
 					}
-
-					if (this.hasByteAttribute(openingByteAttribute)) {
-						if (components.has("left") && opening.get(leftCardinal)) {
-							material.visible = false;
-						}
-						if (components.has("right") && opening.get(rightCardinal)) {
-							material.visible = false;
-						}
-						if (components.has("bottom") && opening.get(bottomCardinal)) {
-							material.visible = false;
-						}
-						if (components.has("top") && opening.get(topCardinal)) {
-							material.visible = false;
-						}
-						if (components.has("bottomleft") && opening.get(bottomLeftCardinal)) {
-							material.visible = false;
-						}
-						if (components.has("bottomright") && opening.get(bottomRightCardinal)) {
-							material.visible = false;
-						}
-						if (components.has("topleft") && opening.get(topLeftCardinal)) {
-							material.visible = false;
-						}
-						if (components.has("topright") && opening.get(topRightCardinal)) {
-							material.visible = false;
-						}
+					if (components.has("front")) {
+						this._frontMaterials.set(material, Util.defined(material.opacity) ? material.opacity : 1);
 					}
 
 					if (components.has("base")) {
@@ -96,15 +71,42 @@ export class RenderBlock extends RenderObject {
 						material.color = new THREE.Color(this.intAttribute(secondaryColorIntAttribute));
 					}
 
-					if (components.has("front")) {
-						this._frontMaterials.set(material, Util.defined(material.opacity) ? material.opacity : 1);
-					}
 					if (components.has("back")) {
 						material.color.r *= 0.8;
 						material.color.g *= 0.8;
 						material.color.b *= 0.8;
 					}
 				}
+
+				const name = child.name;
+				const components = new Set(name.split("-"));
+				if (components.has("opening") && this.hasByteAttribute(openingByteAttribute)) {
+					if (components.has("left") && opening.get(leftCardinal)) {
+						child.visible = false;
+					}
+					if (components.has("right") && opening.get(rightCardinal)) {
+						child.visible = false;
+					}
+					if (components.has("bottom") && opening.get(bottomCardinal)) {
+						child.visible = false;
+					}
+					if (components.has("top") && opening.get(topCardinal)) {
+						child.visible = false;
+					}
+					if (components.has("bottomleft") && opening.get(bottomLeftCardinal)) {
+						child.visible = false;
+					}
+					if (components.has("bottomright") && opening.get(bottomRightCardinal)) {
+						child.visible = false;
+					}
+					if (components.has("topleft") && opening.get(topLeftCardinal)) {
+						child.visible = false;
+					}
+					if (components.has("topright") && opening.get(topRightCardinal)) {
+						child.visible = false;
+					}
+				}
+
 			});
 
 			mesh.position.copy(this.pos3());
@@ -118,18 +120,17 @@ export class RenderBlock extends RenderObject {
 			}
 
 			this.setMesh(mesh);
-		})
 
-
-		const pos = this.pos();
-		const dim = this.dim();
-		this._bbox = new THREE.Box2(new THREE.Vector2(pos.x - dim.x/2, pos.y), new THREE.Vector2(pos.x + dim.x/2, pos.y + dim.y));
+			const pos = this.pos();
+			const dim = this.dim();
+			this._bbox = new THREE.Box2(new THREE.Vector2(pos.x - dim.x/2, pos.y), new THREE.Vector2(pos.x + dim.x/2, pos.y + dim.y));
+		});
 	}
 
 	override update() : void {
 		super.update();
 
-		if (!this.hasMesh() || this._frontMaterials.size === 0) {
+		if (!this.hasMesh() || this._frontMaterials.size === 0 || !Util.defined(this._bbox)) {
 			return;
 		}
 

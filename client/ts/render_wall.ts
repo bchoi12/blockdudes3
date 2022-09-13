@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { loader, Model } from './loader.js'
 import { options } from './options.js'
 import { RenderObject } from './render_object.js'
 import { Util } from './util.js'
@@ -24,10 +25,13 @@ export class RenderWall extends RenderObject {
 		if (this.attribute(visibleAttribute)) {
 			let material = new THREE.MeshLambertMaterial({ color: this.color() });
 			if (this.byteAttribute(typeByteAttribute) === platformWall) {
-				let table = new WallBuilder(WallShape.SQUARE, this.dim3(), material);
-				mesh = table.build();
+				let wall = new WallBuilder(WallShape.SQUARE, this.dim3(), material);
+				mesh = wall.build()
 			} else if (this.byteAttribute(subtypeByteAttribute) === tableWallSubtype) {
-				mesh = new THREE.Mesh(new THREE.BoxGeometry(dim.x, dim.y, dim.z), material);
+				loader.load(Model.TABLE, (mesh) => {
+					this.setStaticMesh(mesh);
+				});
+				return;
 			} else {
 				mesh = new THREE.Mesh(new THREE.BoxGeometry(dim.x, dim.y, dim.z), material);
 			}
@@ -40,10 +44,7 @@ export class RenderWall extends RenderObject {
 		}
 
 		if (Util.defined(mesh)) {
-			mesh.position.copy(this.pos3());
-			mesh.matrixAutoUpdate = false;
-			mesh.updateMatrix();
-			this.setMesh(mesh);
+			this.setStaticMesh(mesh);
 		}
 	}
 
@@ -57,6 +58,13 @@ export class RenderWall extends RenderObject {
 		if (this.vel().lengthSq() > 0) {
 			this.mesh().updateMatrix();
 		}
+	}
+
+	private setStaticMesh(mesh : THREE.Object3D) {
+		mesh.position.copy(this.pos3());
+		mesh.matrixAutoUpdate = false;
+		mesh.updateMatrix();
+		this.setMesh(mesh);
 	}
 }
 

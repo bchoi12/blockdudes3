@@ -36,7 +36,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	}
 
 	override ready() : boolean {
-		return super.ready()&& this.hasByteAttribute(typeByteAttribute) && this.hasName() && this.hasColor();
+		return super.ready() && this.hasByteAttribute(typeByteAttribute) && this.hasName() && this.hasColor();
 	}
 
 	override initialize() : void {

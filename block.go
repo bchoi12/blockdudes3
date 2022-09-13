@@ -10,6 +10,8 @@ type BlockSubtype uint8
 const (
 	unknownBlockSubtype BlockSubtype = iota
 	baseBlockSubtype
+
+	// TODO: deprecate tall block
 	tallBlockSubtype
 	roofBlockSubtype
 	balconyBlockSubtype
@@ -152,10 +154,9 @@ func (b *Block) LoadTemplate(template BlockTemplate) {
 		b.objects = append(b.objects, platform)
 
 	case tableBlockTemplate:
-		table := NewWall(NewInit(Id(wallSpace, 0), NewVec2(x, y + b.thick), NewVec2(3, 1.5)))
+		table := NewWall(NewInitC(Id(wallSpace, 0), NewVec2(x, y + b.thick), NewVec2(3, 1), bottomOrigin))
 		table.SetByteAttribute(subtypeByteAttribute, uint8(tableWallSubtype))
 		table.AddAttribute(visibleAttribute)
-		table.SetFloatAttribute(dimZFloatAttribute, 2)
 		table.SetIntAttribute(colorIntAttribute, 0x996312)
 		b.objects = append(b.objects, table)
 	}
@@ -249,11 +250,16 @@ func (b *Block) LoadWalls() {
 
 	switch (b.blockSubtype) {
 	case baseBlockSubtype:
-		if b.openings.Get(bottomCardinal) {
-			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomLeftOrigin)
-			b.objects = append(b.objects, NewWall(left))
-			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomRightOrigin)
-			b.objects = append(b.objects, NewWall(right))
+		if b.openings.AnyBottom() {
+			if !b.openings.Get(bottomLeftCardinal) {
+				left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2(width / 2, b.thick), bottomLeftOrigin)
+				b.objects = append(b.objects, NewWall(left))
+			}
+
+			if !b.openings.Get(bottomRightCardinal) {
+				right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2(width / 2, b.thick), bottomRightOrigin)
+				b.objects = append(b.objects, NewWall(right))
+			}
 		} else {
 			floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, b.thick), bottomOrigin)
 			b.objects = append(b.objects, NewWall(floor))

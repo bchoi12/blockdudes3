@@ -22,6 +22,8 @@ export enum Model {
 	ARCH_TALL = "ARCH_TALL",
 	ARCH_ROOF = "ARCH_ROOF",
 	ARCH_BALCONY = "ARCH_BALCONY",
+
+	TABLE = "TABLE",
 }
 
 export enum Typeface {
@@ -65,7 +67,7 @@ class Loader {
 		}
 	}
 
-	load(model : Model, cb : (any) => void) : void {
+	load(model : Model, cb : (object: THREE.Object3D) => void) : void {
 		if (!this._paths.has(model)) {
 			LogUtil.d("Tried to load unknown model " + model);
 			return;
@@ -74,6 +76,8 @@ class Loader {
 		this._loader.load(this._paths.get(model), (data) => {
 			this.process(model, data);
 			cb(data.scene);
+		}, () => {}, (error) => {
+			console.error("Failed to load model " + model + ": " + error)
 		});
 	}
 
@@ -130,6 +134,7 @@ class Loader {
 			case Model.ARCH_TALL:
 			case Model.ARCH_ROOF:
 			case Model.ARCH_BALCONY:
+			case Model.TABLE:
 				data.scene.traverse((child) => {
 					let processed = new Set<string>();
 					if (child.material && !processed.has(child.material.name)) {

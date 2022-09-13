@@ -42,6 +42,7 @@ export class Lighting extends SceneComponent {
 		this._sky.scale.setScalar(4000);
 		this.addObject(this._sky);
 
+		// TODO: move TextureLoader to loader
 		this._water = new Water(new THREE.PlaneGeometry(4000, 2000), {
 			textureWidth: 512,
 			textureHeight: 512,
