@@ -30,15 +30,17 @@ export class StatsHandler implements InterfaceHandler {
 		const fps = renderer.fps();
 
 		let text = "Ping : " + ping + " | FPS: " + fps;
-		text += " | Added/s " + Math.round(game.flushAdded() / this._intervalSec);
-		text += " | Extrapolated/s " + Math.round(game.flushExtrapolated() / this._intervalSec);
-		text += " | Updates/s: " + Math.round(game.flushUpdated() / this._intervalSec);
-		text += " | SetData/s: " + wasmGetStats();
-		text += " | Geometries: " + renderer.info().memory.geometries;
-		text += " | Textures: " + renderer.info().memory.textures;
-		text += " | Draw/s: " + renderer.info().render.calls;
-		text += " | Triangles: " + renderer.info().render.triangles;
 
+		if (Util.isDev()) {
+			text += " | Added/s " + Math.round(game.flushAdded() / this._intervalSec);
+			text += " | Extrapolated/s " + Math.round(game.flushExtrapolated() / this._intervalSec);
+			text += " | Updates/s: " + Math.round(game.flushUpdated() / this._intervalSec);
+			text += " | SetData/s: " + wasmGetStats();
+			text += " | Geometries: " + renderer.info().memory.geometries;
+			text += " | Textures: " + renderer.info().memory.textures;
+			text += " | Draw/s: " + renderer.info().render.calls;
+			text += " | Triangles: " + renderer.info().render.triangles;
+		}
 		this._customStats.textContent = text;
 		setTimeout(() => {
 			this.updateStats();

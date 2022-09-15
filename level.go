@@ -48,7 +48,7 @@ func (l *Level) LoadLevel(id LevelIdType, grid *Grid) {
 
 func (l *Level) loadTestLevel(grid *Grid) {
 	l.blockGrid = NewBlockGrid()
-	l.blockGrid.SetYOffsets(1, 0)
+	l.blockGrid.SetYOffsets(2, 0)
 	var b *Block
 
 	{
@@ -79,7 +79,7 @@ func (l *Level) loadTestLevel(grid *Grid) {
 
 	{
 		blockType := archBlock
-		pos := l.blockGrid.GetNextPos(blockType, 8.0)
+		pos := l.blockGrid.GetNextPos(blockType, 9.0)
 		color := 0xfc1f0f
 
 		building := NewBuilding(BuildingAttributes{
@@ -155,7 +155,7 @@ func (l *Level) loadTestLevel(grid *Grid) {
 
 	{
 		blockType := archBlock
-		pos := l.blockGrid.GetNextPos(blockType, 8)
+		pos := l.blockGrid.GetNextPos(blockType, 9.0)
 		color := 0x0ffc89
 
 		building := NewBuilding(BuildingAttributes{

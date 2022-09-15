@@ -7,6 +7,7 @@ import { options } from './options.js'
 import { Particles } from './particles.js'
 import { RenderBlock } from './render_block.js'
 import { RenderBolt } from './render_bolt.js'
+import { RenderEquip } from './render_equip.js'
 import { RenderExplosion } from './render_explosion.js'
 import { RenderGrapplingHook } from './render_grappling_hook.js'
 import { RenderLight } from './render_light.js'
@@ -189,6 +190,8 @@ class Game {
 						renderObj = new RenderExplosion(space, id);
 					} else if (space === lightSpace) {
 						renderObj = new RenderLight(space, id);
+					} else if (space === equipSpace) {
+						renderObj = new RenderEquip(space, id);
 					} else if (space === weaponSpace) {
 						renderObj = new RenderWeapon(space, id);
 					} else if (space === pelletSpace) {
@@ -292,9 +295,8 @@ class Game {
 		const playerPos = player.pos();
 		renderer.setCameraAnchor(new THREE.Vector3(playerPos.x, playerPos.y, 0));
 
-		// TODO: clean up
-		if (player.weaponType() === sniperWeapon) {
-			const panEnabled = renderer.cameraController().panEnabled();
+		const panEnabled = renderer.cameraController().panEnabled();
+		if (Util.defined(player.weapon()) && player.weapon().byteAttribute(subtypeByteAttribute) === chargerEquip) {
 			if (!panEnabled && this._keys.keyDown(altMouseClick)) {
 				const mouseScreen = renderer.getMouseScreen();
 				let pan = new THREE.Vector3(mouseScreen.x, mouseScreen.y, 0);
@@ -304,6 +306,8 @@ class Game {
 			} else if (panEnabled && !this._keys.keyDown(altMouseClick)) {
 				renderer.cameraController().disablePan();
 			}
+		} else if (panEnabled) {
+				renderer.cameraController().disablePan();		
 		}
 	}
 }

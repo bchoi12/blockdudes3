@@ -129,18 +129,22 @@ func (b *Block) LoadTemplate(template BlockTemplate) {
 	case weaponsBlockTemplate:
 		uzi := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x - width / 3, y + b.thick), NewVec2(1.2, 1.2), bottomOrigin))
 		uzi.SetByteAttribute(typeByteAttribute, uint8(uziWeapon))
+		uzi.SetByteAttribute(subtypeByteAttribute, uint8(grapplingHookWeapon))
 		b.objects = append(b.objects, uzi)
 
 		star := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x - width / 9, y + b.thick), NewVec2(1.2, 1.2), bottomOrigin))
 		star.SetByteAttribute(typeByteAttribute, uint8(starWeapon))
+		star.SetByteAttribute(subtypeByteAttribute, uint8(boosterEquip))
 		b.objects = append(b.objects, star)
 
 		bazooka := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x + width / 9, y + b.thick), NewVec2(1.2, 1.2), bottomOrigin))
 		bazooka.SetByteAttribute(typeByteAttribute, uint8(bazookaWeapon))
+		bazooka.SetByteAttribute(subtypeByteAttribute, uint8(jetpackEquip))
 		b.objects = append(b.objects, bazooka)
 
 		sniper := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x + width / 3, y + b.thick), NewVec2(1.2, 1.2), bottomOrigin))
 		sniper.SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
+		sniper.SetByteAttribute(subtypeByteAttribute, uint8(chargerEquip))
 		b.objects = append(b.objects, sniper)
 
 	case middlePlatformBlockTemplate:
@@ -196,9 +200,11 @@ func (b *Block) LoadSidedTemplate(template SidedBlockTemplate, cardinal Cardinal
 		stairWidth := baseHeight / numStairs
 		stairHeight := stairWidth
 		for i := 0.0; i < numStairs; i += 1 {
-			stair := NewWall(NewInitC(Id(wallSpace, 0),
+			stairInit := NewInitC(Id(wallSpace, 0),
 				NewVec2(x + dir * (width / 2 - i * stairWidth - b.thick), y + b.thick),
-				NewVec2(stairWidth, baseHeight - i * stairHeight), origin))
+				NewVec2(stairWidth, baseHeight - i * stairHeight), origin)
+			stairInit.SetInitDir(NewVec2(-dir, 0))
+			stair := NewWall(stairInit)
 			stair.SetByteAttribute(typeByteAttribute, uint8(stairWall))
 			stair.AddAttribute(visibleAttribute)
 			stair.SetFloatAttribute(dimZFloatAttribute, innerDimZ / 2)

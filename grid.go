@@ -68,6 +68,8 @@ func (g *Grid) New(init Init) Object {
 		return NewExplosion(init)
 	case lightSpace:
 		return NewLight(init)
+	case equipSpace:
+		return NewEquip(init)
 	case weaponSpace:
 		return NewWeapon(init)
 	case bombSpace:

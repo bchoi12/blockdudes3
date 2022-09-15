@@ -27,28 +27,28 @@ export enum Model {
 	POTTED_TREE = "POTTED_TREE",
 }
 
-export enum Typeface {
+export enum Texture {
 	UNKNOWN = "",
-	HELVETIKER_BOLD = "HELVETIKER_BOLD",
-	HELVETIKER_REGULAR = "HELVETIKER_REGULAR",
+	WATER_NORMALS = "WATER_NORMALS",
+	SAND = "SAND",
 }
 
 class Loader {
 	private readonly _modelPrefix = "./model/";
-	private readonly _fontPrefix = "./typeface/";
+	private readonly _texturePrefix = "./texture/";
 
 	private _loader : GLTFLoader;
 	private _paths : Map<Model, string>;
 
-	private _fontLoader : FontLoader;
-	private _fontPaths : Map<Typeface, string>
+	private _textureLoader : THREE.TextureLoader;
+	private _texturePaths : Map<Texture, string>;
 
 	constructor() {
 		this._loader = new GLTFLoader();
 		this._paths = new Map<Model, string>();
 
-		this._fontLoader = new FontLoader();
-		this._fontPaths = new Map<Typeface, string>();
+		this._textureLoader = new THREE.TextureLoader();
+		this._texturePaths = new Map<Texture, string>();
 
 		for (const model in Model) {
 			if (model.length === 0) {
@@ -59,26 +59,40 @@ class Loader {
 		}
 		this.preload();
 
-		for (const typeface in Typeface) {
-			if (typeface.length === 0) {
+		for (const texture in Texture) {
+			if (texture.length === 0) {
 				continue;
 			}
 
-			this._fontPaths.set(Typeface[typeface], this._fontPrefix + typeface.toLowerCase() + ".typeface.json");
+			this._texturePaths.set(Texture[texture], this._texturePrefix + texture.toLowerCase() + ".jpg");
 		}
 	}
 
-	load(model : Model, cb : (object: THREE.Object3D) => void) : void {
+	load(model : Model, cb? : (object: THREE.Object3D) => void) : void {
 		if (!this._paths.has(model)) {
-			LogUtil.d("Tried to load unknown model " + model);
 			return;
 		}
 
 		this._loader.load(this._paths.get(model), (data) => {
 			this.process(model, data);
-			cb(data.scene);
+
+			if (Util.defined(cb)) {
+				cb(data.scene);
+			}
 		}, () => {}, (error) => {
 			console.error("Failed to load model " + model + ": " + error)
+		});
+	}
+
+	loadTexture(texture : Texture, cb? : (object: THREE.Texture) => void) : THREE.Texture {
+		if (!this._texturePaths.has(texture)) {
+			return;
+		}
+
+		return this._textureLoader.load("./texture/water_normals.jpg", (texture) => {
+			if (Util.defined(cb)) {
+				cb(texture);
+			}
 		});
 	}
 
@@ -96,22 +110,9 @@ class Loader {
 		return Model.UNKNOWN;
 	}
 
-	loadFont(typeface : Typeface, cb : (any) => void) : void {
-		if (!this._fontPaths.has(typeface)) {
-			LogUtil.d("Tried to load unknown typeface " + typeface);
-			return;
-		}
-
-		this._fontLoader.load(this._fontPaths.get(typeface), (font) => {
-			cb(font);
-		});
-	}
-
 	private preload() : void {
-		// TODO: revisit loading everything, this could be smarter
-		this._paths.forEach((path, model) => {
-			this.load(Model[model], () => {});
-		});
+		this.load(Model.CHICKEN);
+		this.load(Model.ROCKET);
 	}
 
 	private process(model : Model, data : any) : void {

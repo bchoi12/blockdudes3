@@ -7,8 +7,9 @@ const (
 	attachedAttribute
 	chargingAttribute
 	chargedAttribute
-	groundedAttribute
-	doubleJumpAttribute
+	canJumpAttribute
+	canDoubleJumpAttribute
+	dashingAttribute
 	deadAttribute
 	visibleAttribute
 )
@@ -45,8 +46,6 @@ const (
 )
 
 var wasmIgnoreAttributes = map[AttributeType]bool {
-	// TODO: try re-enabling grounded
-	groundedAttribute: true,
 	deadAttribute: true,
 }
 

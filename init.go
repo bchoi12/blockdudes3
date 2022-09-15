@@ -9,6 +9,7 @@ const (
 	wallSpace
 	lightSpace
 	explosionSpace
+	equipSpace
 	weaponSpace
 	bombSpace
 	pelletSpace
@@ -94,6 +95,7 @@ type InitMethods interface {
 	InitPos() Vec2
 	InitDim() Vec2
 	InitDir() Vec2
+	HasInitDir() bool
 	GetInitData() Data
 }
 
@@ -144,6 +146,10 @@ func (i Init) InitDim() Vec2 {
 
 func (i Init) InitDir() Vec2 {
 	return i.dir
+}
+
+func (i Init) HasInitDir() bool {
+	return i.hasDir
 }
 
 func (i *Init) SetInitDir(dir Vec2) {

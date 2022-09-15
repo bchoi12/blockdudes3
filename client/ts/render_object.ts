@@ -12,6 +12,7 @@ export class RenderObject extends RenderMesh {
 	private _msg : Message;
 	private _initialized : boolean;
 	private _initializeTime : number;
+	private _deleted : boolean;
 
 	private _timestep : number;
 	private _lastUpdate : number;
@@ -33,6 +34,7 @@ export class RenderObject extends RenderMesh {
 		this._id = id;
 		this._msg = new Message();
 		this._initialized = false;
+		this._deleted = false;
 		this._timestep = 0;
 		this._lastUpdate = Date.now();
 		this._wasmLastSeqNum = 0;
@@ -59,7 +61,7 @@ export class RenderObject extends RenderMesh {
 	timestep() : number { return this._timestep; }
 	ready() : boolean { return this._msg.has(posProp) && this._msg.has(dimProp); }
 	initialized() : boolean { return this._initialized; }
-	deleted() : boolean { return this._msg.has(deletedProp) && this._msg.get(deletedProp); }
+	deleted() : boolean { return this._deleted || this._msg.has(deletedProp) && this._msg.get(deletedProp); }
 
 	initialize() : void {
 		if (this.initialized()) {
@@ -104,6 +106,7 @@ export class RenderObject extends RenderMesh {
 
 	delete() : void {
 		wasmDelete(this.space(), this.id());
+		this._deleted = true;
 	}
 
 	seqNum(prop : number) : number {

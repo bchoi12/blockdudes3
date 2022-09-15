@@ -48,14 +48,12 @@ func NewPickup(init Init) *Pickup {
 	return pickup
 }
 
-func (p *Pickup) SetWeaponType(weaponType WeaponType) {
-	p.SetByteAttribute(typeByteAttribute, uint8(weaponType))
+func (p Pickup) GetType() EquipType {
+	typeByte, _ := p.GetByteAttribute(typeByteAttribute)
+	return EquipType(typeByte)
 }
 
-func (p Pickup) GetWeaponType() WeaponType {
-	typeByte, ok := p.GetByteAttribute(typeByteAttribute)
-	if !ok {
-		return unknownWeapon
-	}
-	return WeaponType(typeByte)
+func (p Pickup) GetSubtype() EquipType {
+	typeByte, _ := p.GetByteAttribute(subtypeByteAttribute)
+	return EquipType(typeByte)
 }

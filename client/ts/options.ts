@@ -27,7 +27,7 @@ class Options {
 		this.enableEffects = true;
 		this.enableAntialiasing = true;
 
-		this.rendererScale = 0.8;
+		this.rendererScale = 1.0;
 		this.rendererMultisampling = 2;
 		this.soundVolume = 0.5;
 		this.extrapolateWeight = 0.5;

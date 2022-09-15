@@ -142,19 +142,10 @@ export class RenderWeapon extends RenderObject {
 
 	private loadMesh() {
 		if (this.weaponType() === 0) {
-			if (Util.defined(this._player)) {
-				this._player.removeWeaponMesh();
-			}
 			return;
 		}
 
-		if (Util.defined(this._player)) {
-			this._player.removeWeaponMesh();
-		}
 		loader.load(loader.getWeaponModel(this.weaponType()), (mesh : THREE.Mesh) => {
-			if (Util.defined(this._player)) {
-				this._player.removeWeaponMesh();
-			}
 			this.setMesh(mesh);
 		});
 	}

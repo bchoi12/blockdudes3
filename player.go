@@ -41,7 +41,9 @@ type Player struct {
 	BaseObject
 	Keys
 	weapon *Weapon
+	equip *Equip
 	respawn Vec2
+	grounded bool
 
 	jumpTimer Timer
 	jumpGraceTimer Timer
@@ -74,6 +76,8 @@ func NewPlayer(init Init) *Player {
 		BaseObject: NewBaseObject(init, profile),
 		Keys: NewKeys(),
 		weapon: nil,
+		equip: nil,
+		grounded: false,
 
 		jumpTimer: NewTimer(jumpDuration),
 		jumpGraceTimer: NewTimer(jumpGraceDuration),
@@ -125,8 +129,7 @@ func (p *Player) Respawn() {
 	p.Health.Respawn()
 
 	p.SetHealth(100)
-	p.RemoveAttribute(groundedAttribute)
-	p.AddAttribute(doubleJumpAttribute)
+	p.AddAttribute(canDoubleJumpAttribute)
 
 	p.SetPos(p.respawn)
 	p.Stop()
@@ -162,20 +165,21 @@ func (p *Player) Update(grid *Grid, now time.Time) {
 		}
 	}
 
-	grounded := p.HasAttribute(groundedAttribute)
 	acc := p.Acc()
 	vel := p.Vel()
 	pos := p.Pos()
 
-	if grounded {
+	if p.grounded {
 		p.jumpGraceTimer.Start()
-		p.AddAttribute(doubleJumpAttribute)
+		p.AddAttribute(canJumpAttribute)
+		p.AddAttribute(canDoubleJumpAttribute)
+	} else if !p.jumpGraceTimer.On() {
+		p.RemoveAttribute(canJumpAttribute)
 	}
-
 
 	// Gravity & air resistance
 	acc.Y = gravityAcc
-	if !grounded {
+	if !p.grounded {
 		if !p.jumpTimer.On() || vel.Y <= 0 {
 			acc.Y += downAcc
 		}
@@ -205,15 +209,15 @@ func (p *Player) Update(grid *Grid, now time.Time) {
 			p.jumpGraceTimer.Stop()
 			vel.Y = Max(0, vel.Y) + jumpVel
 			p.jumpTimer.Start()
-		} else if p.KeyPressed(jumpKey) && p.HasAttribute(doubleJumpAttribute) {
+		} else if p.KeyPressed(jumpKey) && p.HasAttribute(canDoubleJumpAttribute) {
 			vel.Y = jumpVel
-			p.RemoveAttribute(doubleJumpAttribute)
+			p.RemoveAttribute(canDoubleJumpAttribute)
 			p.jumpTimer.Start()
 		}
 	}
 
 	// Friction
-	if grounded {
+	if p.grounded {
 		if Sign(acc.X) != Sign(vel.X) {
 			if p.knockbackTimer.On() {
 				vel.X *= p.knockbackTimer.Lerp(knockbackFriction, friction)
@@ -263,16 +267,15 @@ func (p *Player) OnDelete(grid *Grid) {
 	if p.weapon != nil {
 		grid.Delete(p.weapon.GetSpacedId())
 	}
+	if p.equip != nil {
+		grid.Delete(p.equip.GetSpacedId())
+	}
 }
 
 func (p *Player) checkCollisions(grid *Grid) {
 	colliders := grid.GetColliders(p)
 	snapResults := p.Snap(colliders)
-	if snapResults.posAdjustment.Y > 0 {
-		p.AddAttribute(groundedAttribute)
-	} else {
-		p.RemoveAttribute(groundedAttribute)
-	}
+	p.grounded = snapResults.posAdjustment.Y > 0
 
 	colliders = grid.GetColliders(p)
 	for len(colliders) > 0 {
@@ -288,7 +291,16 @@ func (p *Player) checkCollisions(grid *Grid) {
 					p.weapon.SetOwner(p.GetSpacedId())
 				}
 
-				p.weapon.SetWeaponType(object.GetWeaponType())
+				if p.equip == nil {
+					equip := grid.New(NewInit(grid.NextSpacedId(equipSpace), p.Pos(), p.Dim()))
+					grid.Upsert(equip)
+					p.equip = equip.(*Equip)
+					p.equip.AddConnection(p.GetSpacedId(), NewOffsetConnection(NewVec2(0, bodySubProfileOffsetY)))
+					p.equip.SetOwner(p.GetSpacedId())
+				}
+
+				p.weapon.SetType(object.GetType(), object.GetSubtype())
+				p.equip.SetType(object.GetType(), object.GetSubtype())
 			}
 		}
 	}
@@ -298,6 +310,9 @@ func (p *Player) UpdateKeys(keyMsg KeyMsg) {
 	p.Keys.UpdateKeys(keyMsg)
 	if p.weapon != nil {
 		p.weapon.UpdateKeys(keyMsg)
+	}
+	if p.equip != nil {
+		p.equip.UpdateKeys(keyMsg)
 	}
 
 	if p.HasAttribute(deadAttribute) {

@@ -1,38 +1,32 @@
 package main
 
-import (
-	"time"
-)
-
-type WeaponType uint8
-const (
-	unknownWeapon WeaponType = iota
-	uziWeapon
-	bazookaWeapon
-	sniperWeapon
-	starWeapon
-)
-
 type Weapon struct {
-	BaseObject
-	Keys
+	*Equip
 	shotOffset Vec2
-	parts map[KeyType]WeaponPart
 }
 
-type WeaponPart interface {
-	SetPressed(pressed bool)
-	Update(grid *Grid, now time.Time)
-	State() PartStateType
-	OnDelete(grid *Grid)
+func NewWeaponPart(weapon *Weapon, equipType EquipType) EquipPart {
+	switch equipType {
+	case uziWeapon:
+		return NewLauncher(weapon, pelletSpace)
+	case grapplingHookWeapon:
+		return NewLauncher(weapon, grapplingHookSpace)
+	case bazookaWeapon:
+		return NewLauncher(weapon, rocketSpace)
+	case sniperWeapon:
+		return NewLauncher(weapon, boltSpace)
+	case starWeapon:
+		return NewLauncher(weapon, starSpace)
+	case chargerEquip:
+		return NewEquipCharger(weapon)
+	}
+	return nil
 }
 
 func NewWeapon(init Init) *Weapon {
 	w := &Weapon {
-		BaseObject: NewCircleObject(init),
-		Keys: NewKeys(),
+		Equip: NewEquip(init),
 		shotOffset: NewVec2(0, 0),
-		parts: make(map[KeyType]WeaponPart),
 	}
 	return w
 }
@@ -46,75 +40,37 @@ func (w Weapon) GetShotOrigin() Vec2 {
 	return origin
 }
 
-func (w Weapon) GetWeaponType() WeaponType {
-	typeByte, ok := w.GetByteAttribute(typeByteAttribute)
-	if !ok {
-		return unknownWeapon
-	}
-	return WeaponType(typeByte)
-}
-func (w *Weapon) SetWeaponType(weaponType WeaponType) {
+func (w *Weapon) SetType(equipType EquipType, equipSubtype EquipType) {
 	if isWasm {
 		return
 	}
 
-	if currentType, ok := w.GetByteAttribute(typeByteAttribute); ok && currentType == uint8(weaponType) {
+	if currentType, ok := w.GetByteAttribute(typeByteAttribute); ok && currentType == uint8(equipType) {
 		return
 	}
 
-	w.parts = make(map[KeyType]WeaponPart)
-	switch weaponType {
-	case unknownWeapon:
+	w.parts = make(map[KeyType]EquipPart)
+	w.SetByteAttribute(typeByteAttribute, uint8(equipType))
+	w.SetByteAttribute(subtypeByteAttribute, uint8(equipSubtype))
+
+	main := NewWeaponPart(w, equipType)
+	if main != nil {
+		w.parts[mouseClick] = main
+	}
+
+	sub := NewWeaponPart(w, equipSubtype)
+	if sub != nil {
+		w.parts[altMouseClick] = sub
+	}
+
+	switch equipType {
 	case uziWeapon:
-		w.parts[mouseClick] = NewLauncher(w, pelletSpace)
-		w.parts[altMouseClick] = NewLauncher(w, grapplingHookSpace)
-		w.SetShotOffset(NewVec2(0.3, 0))
+	case grapplingHookWeapon:
 	case bazookaWeapon:
-		w.parts[mouseClick] = NewLauncher(w, rocketSpace)
-		w.parts[altMouseClick] = NewJetpack(w.GetOwner())
 		w.SetShotOffset(NewVec2(0.3, 0))
 	case sniperWeapon:
-		w.parts[mouseClick] = NewLauncher(w, boltSpace)
-		w.parts[altMouseClick] = NewWeaponCharger(w, 1250 * time.Millisecond)
 		w.SetShotOffset(NewVec2(0.6, 0))
 	case starWeapon:
-		w.parts[mouseClick] = NewLauncher(w, starSpace)
-		w.parts[altMouseClick] = NewBooster(w)
 		w.SetShotOffset(NewVec2(0.1, 0))
-	default:
-		return
 	}
-
-	w.SetByteAttribute(typeByteAttribute, uint8(weaponType))
-}
-
-func (w *Weapon) Update(grid *Grid, now time.Time) {
-	w.PrepareUpdate(now)
-	w.BaseObject.Update(grid, now)
-
-	player := grid.Get(w.GetOwner())
-	if player != nil && player.HasAttribute(deadAttribute) {
-		for _, part := range(w.parts) {
-			part.SetPressed(false)
-		}
-	}
-
-	for _, part := range(w.parts) {
-		part.Update(grid, now)
-	}
-	grid.Upsert(w)
-}
-
-func (w *Weapon) OnDelete(grid *Grid) {
-	for _, part := range(w.parts) {
-		part.OnDelete(grid)
-	}
-}
-
-func (w *Weapon) UpdateKeys(keyMsg KeyMsg) {
-	w.Keys.UpdateKeys(keyMsg)
-	for key, part := range(w.parts) {
-		part.SetPressed(w.KeyDown(key))
-	}
-	w.SetDir(keyMsg.D)
 }

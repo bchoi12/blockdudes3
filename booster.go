@@ -5,7 +5,7 @@ import (
 )
 
 type Booster struct {
-	weapon *Weapon
+	equip *Equip
 	state PartStateType
 	pressed bool
 
@@ -14,9 +14,9 @@ type Booster struct {
 	timer Timer
 }
 
-func NewBooster(weapon *Weapon) *Booster {
+func NewBooster(equip *Equip) *Booster {
 	return &Booster {
-		weapon: weapon,
+		equip: equip,
 		state: unknownPartState,
 		pressed: false,
 
@@ -35,19 +35,19 @@ func (b *Booster) SetPressed(pressed bool) {
 }
 
 func (b *Booster) Update(grid *Grid, now time.Time) {
-	player := grid.Get(b.weapon.GetOwner())
+	player := grid.Get(b.equip.GetOwner())
 	if player == nil {
 		return
 	}
 
-	grounded := player.HasAttribute(groundedAttribute)
-	if grounded {
+	enabled := player.HasAttribute(canJumpAttribute)
+	if enabled {
 		b.canBoost = true
 		b.doubleJumpReset = true
 	}
 
 	if !b.canBoost || b.timer.On() {
-		if b.doubleJumpReset && !grounded && !player.HasAttribute(doubleJumpAttribute) {
+		if b.doubleJumpReset && !enabled && !player.HasAttribute(canDoubleJumpAttribute) {
 			b.canBoost = true
 			b.doubleJumpReset = false
 		} else {
@@ -61,11 +61,11 @@ func (b *Booster) Update(grid *Grid, now time.Time) {
 		return
 	}
 
-	if grounded {
+	if enabled {
 		return
 	}
 
-	dash := b.weapon.Dir()
+	dash := b.equip.Dir()
 	dash.Scale(3 * jumpVel)
 	player.Stop()
 	player.AddForce(dash)

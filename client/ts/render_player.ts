@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import SpriteText from 'three-spritetext';
 
 import { game } from './game.js'
-import { loader, Model, Typeface } from './loader.js'
+import { loader, Model } from './loader.js'
 import { Particle, Particles } from './particles.js'
 import { RenderAnimatedObject } from './render_animated_object.js'
 import { RenderCustom } from './render_custom.js'
@@ -28,7 +28,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 	private _weapon : RenderWeapon;
 
-	private _lastGrounded : boolean;
+	private _lastCanJump : boolean;
 	private _lastDoubleJump : boolean;
 
 	constructor(space : number, id : number) {
@@ -102,7 +102,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this._arm.position.add(armOffset);
 		}
 
-		const doubleJump = this.attribute(doubleJumpAttribute);
+		const doubleJump = this.attribute(canDoubleJumpAttribute);
 		if (!Util.defined(this._lastDoubleJump)) {
 			this._lastDoubleJump = doubleJump;
 		} else if (doubleJump != this._lastDoubleJump) {
@@ -113,15 +113,15 @@ export class RenderPlayer extends RenderAnimatedObject {
 			}
 		}
 
-		const grounded = this.attribute(groundedAttribute);
-		if (!Util.defined(this._lastGrounded)) {
-			this._lastGrounded = grounded;
-		} else if (grounded != this._lastGrounded) {
-			this._lastGrounded = grounded;
+		const canJump = this.attribute(canJumpAttribute);
+		if (!Util.defined(this._lastCanJump)) {
+			this._lastCanJump = canJump;
+		} else if (canJump != this._lastCanJump) {
+			this._lastCanJump = canJump;
 			this.emitClouds(3);
 		}
 
-		if (!grounded) {
+		if (!canJump) {
 			this.fadeOut(PlayerAction.Idle, 0.1);
 			this.fadeOut(PlayerAction.Walk, 0.1);
 			this.fadeIn(PlayerAction.Jump, 0.1);
@@ -140,8 +140,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 		if (!this.hasMesh()) {
 			return;
 		}
-		this._weapon = weapon;
 
+		this._weapon = weapon;
+		this._arm.remove(...this._arm.children);
 		this._arm.add(this._weapon.mesh());
 		this._weapon.mesh().rotation.x = Math.PI / 2;
 		this._weapon.mesh().scale.z = -1;
@@ -150,12 +151,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 	weapon() : RenderWeapon { return this._weapon; }
 	hasWeapon() : boolean { return Util.defined(this._weapon) && this._weapon.weaponType() !== 0; }
 	weaponType() : number { return this.hasWeapon() ? this._weapon.weaponType() : 0; }
-	removeWeaponMesh() : void {
-		if (this.hasWeapon()) {
-			this._weapon.delete();
-			this._arm.remove(this._weapon.mesh());
-		}
-	}
 
 	shootingOrigin() : THREE.Vector3 {
 		if (!this.hasMesh()) {

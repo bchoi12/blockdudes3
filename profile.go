@@ -34,8 +34,8 @@ type Profile interface {
 	ApplyForces() Vec2
 	Stop()
 
-	AddSubProfile(key ProfileKey, subProfile SubProfile)
-	GetSubProfile(key ProfileKey) SubProfile
+	AddSubProfile(key ProfileKey, subProfile Profile)
+	GetSubProfile(key ProfileKey) Profile
 
 	Offset(other Profile) Vec2
 	DistSqr(other Profile) float64
@@ -76,7 +76,7 @@ type BaseProfile struct {
 	extVel Vec2
 	forces []Vec2
 
-	subProfiles map[ProfileKey]SubProfile
+	subProfiles map[ProfileKey]Profile
 	ignoredColliders map[SpacedId]bool
 	overlapOptions, snapOptions ColliderOptions
 }
@@ -98,7 +98,7 @@ func NewBaseProfile(init Init) BaseProfile {
 		extVel: NewVec2(0, 0),
 		forces: make([]Vec2, 0),
 
-		subProfiles: make(map[ProfileKey]SubProfile),
+		subProfiles: make(map[ProfileKey]Profile),
 		ignoredColliders: make(map[SpacedId]bool),
 		overlapOptions: NewColliderOptions(),
 		snapOptions: NewColliderOptions(),
@@ -297,8 +297,8 @@ func (bp *BaseProfile) SetData(data Data) {
 	}
 }
 
-func (bp *BaseProfile) AddSubProfile(key ProfileKey, subProfile SubProfile) { bp.subProfiles[key] = subProfile }
-func (bp BaseProfile) GetSubProfile(key ProfileKey) SubProfile { return bp.subProfiles[key] }
+func (bp *BaseProfile) AddSubProfile(key ProfileKey, subProfile Profile) { bp.subProfiles[key] = subProfile }
+func (bp BaseProfile) GetSubProfile(key ProfileKey) Profile { return bp.subProfiles[key] }
 
 func (bp BaseProfile) BoxAdjustment(other Profile) Vec2 {
 	ox, _ := bp.boxAdjustmentX(other)
@@ -591,7 +591,7 @@ func (bp BaseProfile) snapObject(other Object) CollideResult {
 
 	// Special treatment for other object types
 	if byte, ok := other.GetByteAttribute(typeByteAttribute); ok && byte == uint8(stairWall) {
-		if collisionFlag.X != 0 && Abs(posAdj.X) > overlapEpsilon {
+		if collisionFlag.X != 0 && Abs(posAdj.X) > overlapEpsilon && other.HasInitDir() && FSign(posAdj.X) == FSign(other.InitDir().X) {
 			collisionFlag.X = 0
 			collisionFlag.Y = 1
 

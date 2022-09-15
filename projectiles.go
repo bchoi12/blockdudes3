@@ -152,7 +152,7 @@ func (h *GrapplingHook) OnDelete(grid *Grid) {
 		return
 	}
 
-	player.AddAttribute(doubleJumpAttribute)
+	player.AddAttribute(canDoubleJumpAttribute)
 	force := h.Offset(player)
 	if force.Y < 0 {
 		return

@@ -38,7 +38,7 @@ func (j *Jetpack) Update(grid *Grid, now time.Time) {
 		return
 	}
 
-	if player.HasAttribute(groundedAttribute) {
+	if player.HasAttribute(canJumpAttribute) {
 		j.juice = jetpackMaxJuice
 	}
 

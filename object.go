@@ -80,6 +80,10 @@ func NewCircleObject(init Init) BaseObject {
 	return NewBaseObject(init, NewCircle(init))
 }
 
+func NewSubObject(init Init) BaseObject {
+	return NewBaseObject(init, NewSubProfile(NewCircle(init)))
+}
+
 func (o BaseObject) GetProfile() Profile {
 	return o.Profile
 }

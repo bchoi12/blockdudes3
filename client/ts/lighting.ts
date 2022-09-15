@@ -3,6 +3,7 @@ import { Sky } from 'three/examples/jsm/objects/Sky.js'
 import { Water } from 'three/examples/jsm/objects/Water.js';
 
 import { game } from './game.js'
+import { loader, Texture } from './loader.js'
 import { options } from './options.js'
 import { Range } from './range.js'
 import { renderer } from './renderer.js'
@@ -14,15 +15,16 @@ export class Lighting extends SceneComponent {
 
 	private readonly _shadowMapWidth = 1024;
 	private readonly _shadowMapHeight = 1024;
-	private readonly _shadowBias = -0.00018;
+	private readonly _shadowBias = -0.0002;
 
 	private readonly _sunHeightAngle = new Range(Math.PI / 4, Math.PI / 2 - 0.1);
 	private readonly _turbidity = new Range(5, 0);
 	private readonly _rayleigh = new Range(0.12, 0);
 	private readonly _mieCoefficient = new Range(0.002, 0.005);
 	private readonly _mieDirectionalG = new Range(0.99, 1);
-	private readonly _sunLightIntensity = new Range(1.5, 0.5);
-	private readonly _hemisphereLightIntensity = new Range(1.0, 0.7);
+	private readonly _sunLightIntensity = new Range(1.5, 0.8);
+	private readonly _hemisphereLightIntensity = new Range(1.2, 0.7);
+	private readonly _hemisphereLightColor = new Range(1.0, 0.3);
 
 	private _fog : THREE.Fog;
 	private _sky : Sky;
@@ -42,11 +44,10 @@ export class Lighting extends SceneComponent {
 		this._sky.scale.setScalar(4000);
 		this.addObject(this._sky);
 
-		// TODO: move TextureLoader to loader
 		this._water = new Water(new THREE.PlaneGeometry(4000, 2000), {
 			textureWidth: 512,
 			textureHeight: 512,
-			waterNormals: new THREE.TextureLoader().load("./texture/waternormals.jpg", (texture) => {
+			waterNormals: loader.loadTexture(Texture.WATER_NORMALS, (texture) => {
 				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 			}),
 			sunColor: 0xfdfbfd,
@@ -61,7 +62,7 @@ export class Lighting extends SceneComponent {
 
 		const sandDepth = 30;
 		const sand = new THREE.Mesh(new THREE.PlaneGeometry(4000, sandDepth), new THREE.MeshLambertMaterial({
-			map: new THREE.TextureLoader().load("./texture/sand.jpg", (texture) => {
+			map: loader.loadTexture(Texture.SAND, (texture) => {
 				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 				texture.repeat.set(10, 10);
 			}),
@@ -122,10 +123,9 @@ export class Lighting extends SceneComponent {
 
 		this._sunLight.intensity = this._sunLightIntensity.lerp(timeOfDay);
 
-		const intensity = this._hemisphereLightIntensity.lerp(timeOfDay);
-		const color = MathUtil.clamp(0.5, intensity, 1);
+		this._hemisphereLight.intensity = this._hemisphereLightIntensity.lerp(timeOfDay);
+		const color = this._hemisphereLightColor.lerp(timeOfDay);
 		this._hemisphereLight.color = new THREE.Color(color, color, color);
-		this._hemisphereLight.intensity = intensity;
 
 		this._sunLightOffset = this._sunPos.clone();
 

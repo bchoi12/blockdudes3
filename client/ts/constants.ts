@@ -39,6 +39,7 @@ declare var blockSpace : number;
 declare var wallSpace : number;
 declare var lightSpace : number;
 declare var explosionSpace : number;
+declare var equipSpace : number;
 declare var weaponSpace : number;
 declare var bombSpace : number;
 declare var pelletSpace : number;
@@ -76,8 +77,9 @@ declare var deathProp : number;
 declare var attachedAttribute : number;
 declare var chargingAttribute : number;
 declare var chargedAttribute : number;
-declare var groundedAttribute : number;
-declare var doubleJumpAttribute : number;
+declare var canJumpAttribute : number;
+declare var canDoubleJumpAttribute : number;
+declare var dashingAttribute : number;
 declare var deadAttribute : number;
 declare var visibleAttribute : number;
 
@@ -102,9 +104,13 @@ declare var pointLight : number;
 declare var floorLight : number;
 
 declare var uziWeapon : number;
+declare var grapplingHookWeapon : number;
 declare var bazookaWeapon : number;
 declare var sniperWeapon : number;
 declare var starWeapon : number;
+declare var boosterEquip : number;
+declare var chargerEquip : number;
+declare var jetpackEquip : number;
 
 declare var platformWall : number;
 declare var stairWall : number;
