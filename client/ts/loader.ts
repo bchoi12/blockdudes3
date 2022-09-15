@@ -89,7 +89,7 @@ class Loader {
 			return;
 		}
 
-		return this._textureLoader.load("./texture/water_normals.jpg", (texture) => {
+		return this._textureLoader.load(this._texturePaths.get(texture), (texture) => {
 			if (Util.defined(cb)) {
 				cb(texture);
 			}
