@@ -6,6 +6,7 @@ import { loader, Model } from './loader.js'
 import { Particle, Particles } from './particles.js'
 import { RenderAnimatedObject } from './render_animated_object.js'
 import { RenderCustom } from './render_custom.js'
+import { RenderObject } from './render_object.js'
 import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
 import { MathUtil, Util } from './util.js'
@@ -19,7 +20,7 @@ enum PlayerAction {
 
 export class RenderPlayer extends RenderAnimatedObject {
 	private readonly _rotationOffset = -0.1;
-	private readonly _cloudMaterial = new THREE.MeshLambertMaterial( {color: 0xdddddd } );
+	private readonly _hitDuration = 0.15;
 
 	private _name : SpriteText;
 	private _playerMesh : THREE.Mesh;
@@ -30,9 +31,12 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 	private _lastCanJump : boolean;
 	private _lastDoubleJump : boolean;
+	private _lastHit : number;
 
 	constructor(space : number, id : number) {
 		super(space, id);
+
+		this._lastHit = 0;
 	}
 
 	override ready() : boolean {
@@ -94,7 +98,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 		const acc = this.acc();
 
 		this.setDir(this.dir());
-		this.setWeaponDir(this.hasWeapon() ? this._weapon.dir() : this.dir());
+		if (!this.hasWeapon()) {
+			this.setWeaponDir(this.dir());
+		}
 
 		if (this._arm.position.lengthSq() > 0) {
 			let armOffset = this._armOrigin.clone().sub(this._arm.position);
@@ -121,6 +127,14 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this.emitClouds(3);
 		}
 
+		if ((Date.now() - this._lastHit) / 1000 <= this._hitDuration) {
+			// @ts-ignore
+			this._playerMesh.material.emissive = new THREE.Color(0xFFFFFF);
+		} else {
+			// @ts-ignore
+			this._playerMesh.material.emissive = new THREE.Color(0x0);
+		}
+
 		if (!canJump) {
 			this.fadeOut(PlayerAction.Idle, 0.1);
 			this.fadeOut(PlayerAction.Walk, 0.1);
@@ -135,6 +149,11 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this.fadeIn(PlayerAction.Idle, 0.1);
 		}
 	}
+
+	override takeHit(from : RenderObject) : void {
+		this._lastHit = Date.now();
+	}
+
 
 	setWeapon(weapon : RenderWeapon) : void {
 		if (!this.hasMesh()) {
@@ -178,6 +197,8 @@ export class RenderPlayer extends RenderAnimatedObject {
 		const axis = new THREE.Vector3(1, 0, 0);
 		const recoil = new THREE.Vector3(0, 0, -0.1);
 		recoil.applyAxisAngle(axis, this._arm.rotation.x);
+
+		console.log(this._arm.rotation.x);
 
 		this._arm.position.y = this._armOrigin.y - recoil.z;
 		this._arm.position.z = this._armOrigin.z + recoil.y;

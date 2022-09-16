@@ -62,6 +62,10 @@ func (sid SpacedId) GetSpacedId() SpacedId {
 	return sid
 }
 
+func (sid SpacedId) Valid() bool {
+	return !sid.Invalid()
+}
+
 func (sid SpacedId) Invalid() bool {
 	return sid.GetSpace() == 0
 }

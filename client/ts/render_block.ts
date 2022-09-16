@@ -11,7 +11,9 @@ import { Util } from './util.js'
 import { WallBuilder } from './wall_builder.js'
 
 export class RenderBlock extends RenderObject {
+	
 	private _bbox : THREE.Box2;
+	private _windows : THREE.Object3D;
 	private _frontMaterials : Map<THREE.Material, number>;
 
 	constructor(space : number, id : number) {
@@ -78,38 +80,28 @@ export class RenderBlock extends RenderObject {
 				const name = child.name;
 				const components = new Set(name.split("-"));
 				if (components.has("opening") && this.hasByteAttribute(openingByteAttribute)) {
-					if (components.has("left") && opening.get(leftCardinal)) {
-						child.visible = false;
-					}
-					if (components.has("right") && opening.get(rightCardinal)) {
-						child.visible = false;
-					}
-					if (components.has("bottom") && opening.get(bottomCardinal)) {
-						child.visible = false;
-					}
-					if (components.has("top") && opening.get(topCardinal)) {
-						child.visible = false;
-					}
-					if (components.has("bottomleft") && opening.get(bottomLeftCardinal)) {
-						child.visible = false;
-					}
-					if (components.has("bottomright") && opening.get(bottomRightCardinal)) {
-						child.visible = false;
-					}
-					if (components.has("topleft") && opening.get(topLeftCardinal)) {
-						child.visible = false;
-					}
-					if (components.has("topright") && opening.get(topRightCardinal)) {
+					if (opening.getCardinals(components).length > 0) {
 						child.visible = false;
 					}
 				}
 
+				if (components.has("windows")) {
+					this._windows = child;
+				}
+
 				if (components.has("random")) {
-					let random = mesh.getObjectByName(name);
-					loader.load(Math.random() < 0.4 ? Model.TRASH_CAN : Model.POTTED_TREE, (thing) => {
-						thing.position.copy(random.position);
-						mesh.add(thing);
-					});
+					let valid = true;
+					if (opening.getCardinals(components).length > 0) {
+						valid = false;
+					}
+
+					if (valid) {
+						let random = mesh.getObjectByName(name);
+						loader.load(Math.random() < 0.4 ? Model.TRASH_CAN : Model.POTTED_TREE, (thing) => {
+							thing.position.copy(random.position);
+							mesh.add(thing);
+						});
+					}
 				}
 
 			});
@@ -147,11 +139,15 @@ export class RenderBlock extends RenderObject {
 				if (inside && !mat.transparent) {
 					mat.transparent = true;
 				}
-
 				mat.opacity = Math.min(opacity, Math.max(0.2, mat.opacity + this.timestep() * (inside ? -3 : 5)));
 			} else {
 				mat.visible = !inside;
 			}
 		});
+
+		if (Util.defined(this._windows)) {
+			this._windows.visible = !inside;
+		}
+
 	}
 }

@@ -66,11 +66,8 @@ declare var jerkProp : number;
 declare var dirProp : number;
 
 declare var keysProp : number;
-
 declare var ownerProp : number;
 declare var targetProp : number;
-declare var hitsProp : number;
-
 declare var killProp : number;
 declare var deathProp : number;
 

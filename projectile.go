@@ -12,12 +12,12 @@ type ExplosionOptions struct {
 
 type Projectile struct {
 	BaseObject
-	hits []*Hit
 
 	damage int
 	maxSpeed float64
 	sticky bool
 	collider Object
+	target SpacedId
 
 	explosionOptions ExplosionOptions
 }
@@ -25,12 +25,12 @@ type Projectile struct {
 func NewProjectile(object BaseObject) Projectile {
 	p := Projectile {
 		BaseObject: object,
-		hits: make([]*Hit, 0),
 
 		damage: 0,
 		maxSpeed: 100,
 		sticky: false,
 		collider: nil,
+		target: InvalidId(),
 
 		explosionOptions: ExplosionOptions{
 			explode: false,
@@ -70,8 +70,6 @@ func (p *Projectile) Charge() {}
 func (p *Projectile) Update(grid *Grid, now time.Time) {
 	ts := p.PrepareUpdate(now)
 	p.BaseObject.Update(grid, now)
-
-	p.hits = make([]*Hit, 0)
 
 	acc := p.Acc()
 	acc.Add(p.Jerk(), ts)
@@ -149,10 +147,7 @@ func (p *Projectile) SelfDestruct(grid *Grid) {
 }
 
 func (p *Projectile) Hit(grid *Grid, collider Object) {
-	hit := NewHit()
-	hit.SetTarget(collider.GetSpacedId())
-	hit.SetPos(p.Pos())
-	p.hits = append(p.hits, hit)
+	p.target = p.collider.GetSpacedId()
 
 	switch object := collider.(type) {
 	case *Player:
@@ -166,16 +161,21 @@ func (p *Projectile) GetInitData() Data {
 	return data
 }
 
-func (p *Projectile) GetUpdates() Data {
-	updates := NewData()
-	updates.Merge(p.BaseObject.GetUpdates())
+func (p Projectile) GetData() Data {
+	data := p.BaseObject.GetData()
 
-	if len(p.hits) > 0 {
-		hitPropMaps := make([]PropMap, 0)
-		for _, hit := range(p.hits) {
-			hitPropMaps = append(hitPropMaps, hit.GetData().Props())
-		}
-		updates.Set(hitsProp, hitPropMaps)
+	if p.target.Valid() {
+		data.Set(targetProp, p.target)
 	}
+	return data
+}
+
+func (p Projectile) GetUpdates() Data {
+	updates := p.BaseObject.GetUpdates()
+
+	if p.target.Valid() {
+		updates.Set(targetProp, p.target)
+	}
+
 	return updates
 }

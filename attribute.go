@@ -46,6 +46,7 @@ const (
 )
 
 var wasmIgnoreAttributes = map[AttributeType]bool {
+	canJumpAttribute: true,
 	deadAttribute: true,
 }
 

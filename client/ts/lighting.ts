@@ -15,7 +15,7 @@ export class Lighting extends SceneComponent {
 
 	private readonly _shadowMapWidth = 1024;
 	private readonly _shadowMapHeight = 1024;
-	private readonly _shadowBias = -0.0002;
+	private readonly _shadowBias = -0.001;
 
 	private readonly _sunHeightAngle = new Range(Math.PI / 4, Math.PI / 2 - 0.1);
 	private readonly _turbidity = new Range(5, 0);

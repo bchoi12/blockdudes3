@@ -26,6 +26,7 @@ export class RenderObject extends RenderMesh {
 	private _acc : THREE.Vector2;
 	private _dir : THREE.Vector2;
 	private _owner : SpacedId;
+	private _target : SpacedId;
 
 	constructor(space : number, id : number) {
 		super();
@@ -108,6 +109,8 @@ export class RenderObject extends RenderMesh {
 		wasmDelete(this.space(), this.id());
 		this._deleted = true;
 	}
+
+	takeHit(from : RenderObject) {}
 
 	seqNum(prop : number) : number {
 		return this._msg.seqNum(prop);
@@ -288,6 +291,19 @@ export class RenderObject extends RenderMesh {
 			this._owner.setId(this._msg.get(ownerProp).Id);
 		}
 		return this._owner;
+	}
+
+	hasTarget() : boolean { return this._msg.has(targetProp); }
+	target() : SpacedId {
+		if (!Util.defined(this._target)) {
+			this._target = new SpacedId(0, 0);
+		}
+
+		if (this.hasTarget()) {
+			this._target.setSpace(this._msg.get(targetProp).S);
+			this._target.setId(this._msg.get(targetProp).Id);
+		}
+		return this._target;
 	}
 
 	hasKills() : boolean { return this._msg.has(killProp); }

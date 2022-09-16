@@ -119,6 +119,7 @@ export class RenderWeapon extends RenderObject {
 		if (this._attached) {
 			this.mesh().position.copy(new THREE.Vector3(0, 0, 0));
 		} else {
+			// NOTE: dir is always (1, 0) in WASM since key updates are not propagated correctly
 			this.mesh().rotation.z = this.dir().angle();
 		}
 	}

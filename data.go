@@ -27,7 +27,6 @@ const (
 	keysProp
 	ownerProp
 	targetProp
-	hitsProp
 
 	killProp
 	deathProp

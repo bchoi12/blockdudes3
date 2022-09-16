@@ -71,6 +71,7 @@ export class SceneMap {
 		this._renders.forEach((map, space) => {
 			map.forEach((object, id) => {
 				if (object.deleted()) {
+					object.update();
 					this.delete(space, id);
 					return;
 				}
