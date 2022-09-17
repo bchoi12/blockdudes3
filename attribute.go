@@ -20,6 +20,7 @@ const (
 
 	typeByteAttribute
 	subtypeByteAttribute
+	stateByteAttribute
 	teamByteAttribute
 	openingByteAttribute
 

@@ -4,14 +4,6 @@ import (
 	"time"
 )
 
-type PartStateType uint8
-const (
-	unknownPartState PartStateType = iota
-	readyPartState
-	activePartState
-	rechargingPartState
-)
-
 type Launcher struct {
 	Keys
 	weapon *Weapon

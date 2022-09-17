@@ -6,6 +6,7 @@ import { loader, Model } from './loader.js'
 import { Particle, Particles } from './particles.js'
 import { RenderAnimatedObject } from './render_animated_object.js'
 import { RenderCustom } from './render_custom.js'
+import { RenderEquip } from './render_equip.js'
 import { RenderObject } from './render_object.js'
 import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
@@ -28,6 +29,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private _armOrigin : THREE.Vector3;
 
 	private _weapon : RenderWeapon;
+	private _equip : RenderEquip;
 
 	private _lastCanJump : boolean;
 	private _lastDoubleJump : boolean;
@@ -154,7 +156,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._lastHit = Date.now();
 	}
 
-
 	setWeapon(weapon : RenderWeapon) : void {
 		if (!this.hasMesh()) {
 			return;
@@ -165,6 +166,27 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._arm.add(this._weapon.mesh());
 		this._weapon.mesh().rotation.x = Math.PI / 2;
 		this._weapon.mesh().scale.z = -1;
+	}
+
+	setEquip(equip : RenderEquip) : void {
+		if (!this.hasMesh()) {
+			return;
+		}
+
+		const jetpack = this.mesh().getObjectByName("equip-jetpack");
+		let neck = this.mesh().getObjectByName("neck");
+		equip.mesh().position.copy(jetpack.position);
+		equip.mesh().position.sub(neck.position)
+		equip.mesh().position.y -= this.dim().y / 2;
+		
+		this._equip = equip;
+		neck.add(this._equip.mesh());
+	}
+
+	removeEquip() {
+		if (Util.defined(this._equip)) {
+			this.mesh().getObjectByName("neck").remove(this._equip.mesh());
+		}
 	}
 
 	weapon() : RenderWeapon { return this._weapon; }
@@ -197,8 +219,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 		const axis = new THREE.Vector3(1, 0, 0);
 		const recoil = new THREE.Vector3(0, 0, -0.1);
 		recoil.applyAxisAngle(axis, this._arm.rotation.x);
-
-		console.log(this._arm.rotation.x);
 
 		this._arm.position.y = this._armOrigin.y - recoil.z;
 		this._arm.position.z = this._armOrigin.z + recoil.y;

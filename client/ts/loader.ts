@@ -18,11 +18,14 @@ export enum Model {
 
 	ROCKET = "ROCKET",
 
+	JETPACK = "JETPACK",
+
 	ARCH_BASE = "ARCH_BASE",
 	ARCH_ROOF = "ARCH_ROOF",
 	ARCH_BALCONY = "ARCH_BALCONY",
 
 	TABLE = "TABLE",
+	BEACH_BALL = "BEACH_BALL",
 	TRASH_CAN = "TRASH_CAN",
 	POTTED_TREE = "POTTED_TREE",
 }
@@ -123,6 +126,7 @@ class Loader {
 			case Model.BAZOOKA:
 			case Model.SNIPER:
 			case Model.STAR_GUN:
+			case Model.JETPACK:
 			case Model.ROCKET:
 				data.scene.animations = data.animations;
 				data.scene.traverse((child) => {
@@ -137,6 +141,7 @@ class Loader {
 			case Model.ARCH_BALCONY:
 			case Model.TABLE:
 			case Model.POTTED_TREE:
+			case Model.BEACH_BALL:
 			case Model.TRASH_CAN:
 				data.scene.traverse((child) => {
 					let processed = new Set<string>();
@@ -148,6 +153,7 @@ class Loader {
 						child.material.side = imported.side;
 						child.material.shadowSide = imported.shadowSide;
 						child.material.color = imported.color;
+						child.material.map = imported.map;
 						processed.add(name);
 					}
 					if (child instanceof THREE.Mesh) {
@@ -155,6 +161,11 @@ class Loader {
 						child.receiveShadow = options.enableShadows;
 					}
 				});
+
+				if (model === Model.BEACH_BALL) {
+					data.scene.getObjectByName("mesh").position.y += 0.4;
+					data.scene.getObjectByName("mesh").rotation.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI);
+				}
 				break;
 			default:
 				LogUtil.d("Model " + model + " processing skipped.");

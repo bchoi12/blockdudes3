@@ -14,10 +14,12 @@ export enum Particle {
 	LASER = 5,
 	LASER_SPARKS = 6,
 	CONFETTI = 7,
+	FINE_SMOKE = 8,
 }
 
 export class Particles extends SceneComponent {
 	private readonly _sphere = new THREE.SphereGeometry(1.0, 6, 6);
+	private readonly _fineSphere = new THREE.SphereGeometry(1.0, 12, 12);
 	private readonly _cube = new THREE.BoxGeometry(1, 1, 1);
 	private readonly _plane = new THREE.PlaneGeometry(1, 1);
 	private readonly _trail = new THREE.ExtrudeGeometry(new THREE.Shape([
@@ -31,6 +33,7 @@ export class Particles extends SceneComponent {
 		]), { depth: 0.1, bevelEnabled: false });
 
 	private readonly _smokeMaterial = new THREE.MeshLambertMaterial( {color: 0xb0b0b0} );
+	private readonly _lightSmokeMaterial = new THREE.MeshLambertMaterial( {color: 0xfbfbfb} );
 	private readonly _cubeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff})
 	private readonly _sparksMaterial = new THREE.MeshBasicMaterial({
 		opacity: 0.4,
@@ -42,7 +45,7 @@ export class Particles extends SceneComponent {
 	private readonly _confettiMaterial = new THREE.MeshBasicMaterial( {
 		side: THREE.DoubleSide,
 		color: 0xffffff,
-	})
+	});
 
 	private _geometries : Map<Particle, THREE.BufferGeometry>;
 	private _materials : Map<Particle, () => THREE.Material>;
@@ -61,6 +64,7 @@ export class Particles extends SceneComponent {
 		this._geometries.set(Particle.LASER, this._plane);
 		this._geometries.set(Particle.LASER_SPARKS, this._cube);
 		this._geometries.set(Particle.CONFETTI, this._plane);
+		this._geometries.set(Particle.FINE_SMOKE, this._fineSphere);
 
 		this._materials = new Map<Particle, () => THREE.Material>();
 		this._materials.set(Particle.SMOKE, () => { return this._smokeMaterial; });
@@ -70,6 +74,7 @@ export class Particles extends SceneComponent {
 		this._materials.set(Particle.LASER, () => { return this._laserMaterial; });
 		this._materials.set(Particle.LASER_SPARKS, () => { return this._sparksMaterial; });
 		this._materials.set(Particle.CONFETTI, () => { return this._confettiMaterial; });
+		this._materials.set(Particle.FINE_SMOKE, () => { return this._lightSmokeMaterial; });
 
 		this._sizes = new Map<Particle, number>();
 		this._sizes.set(Particle.SMOKE, 24);

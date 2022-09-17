@@ -25,6 +25,7 @@ export class RenderWeapon extends RenderObject {
 
 	constructor(space : number, id : number) {
 		super(space, id);
+		this.disableAutoUpdatePos();
 
 		this._weaponType = 0;
 		this._player = null;

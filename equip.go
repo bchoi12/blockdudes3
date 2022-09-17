@@ -19,6 +19,14 @@ const (
 	jetpackEquip
 )
 
+type PartStateType uint8
+const (
+	unknownPartState PartStateType = iota
+	readyPartState
+	activePartState
+	rechargingPartState
+)
+
 type EquipPart interface {
 	SetPressed(pressed bool)
 	Update(grid *Grid, now time.Time)
@@ -90,6 +98,14 @@ func (e *Equip) Update(grid *Grid, now time.Time) {
 	for _, part := range(e.parts) {
 		part.Update(grid, now)
 	}
+
+	for _, part := range(e.parts) {
+		if part.State() != unknownPartState {
+			e.SetByteAttribute(stateByteAttribute, uint8(part.State()))
+			break
+		}		
+	}
+
 	grid.Upsert(e)
 }
 

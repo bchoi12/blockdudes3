@@ -90,14 +90,14 @@ export class RenderBlock extends RenderObject {
 				}
 
 				if (components.has("random")) {
-					let valid = true;
-					if (opening.getCardinals(components).length > 0) {
+					let valid = Math.random() < 0.5;
+					if (valid && opening.getCardinals(components).length > 0) {
 						valid = false;
 					}
 
 					if (valid) {
 						let random = mesh.getObjectByName(name);
-						loader.load(Math.random() < 0.4 ? Model.TRASH_CAN : Model.POTTED_TREE, (thing) => {
+						loader.load(Math.random() < 0.66 ? Model.BEACH_BALL : Model.POTTED_TREE, (thing) => {
 							thing.position.copy(random.position);
 							mesh.add(thing);
 						});

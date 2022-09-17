@@ -82,6 +82,7 @@ declare var visibleAttribute : number;
 
 declare var typeByteAttribute : number;
 declare var subtypeByteAttribute : number;
+declare var stateByteAttribute : number;
 declare var teamByteAttribute : number;
 declare var openingByteAttribute : number;
 declare var healthByteAttribute : number;

@@ -14,6 +14,7 @@ export class RenderObject extends RenderMesh {
 	private _initializeTime : number;
 	private _deleted : boolean;
 
+	private _autoUpdatePos : boolean;
 	private _timestep : number;
 	private _lastUpdate : number;
 	private _wasmLastSeqNum : number;
@@ -36,6 +37,7 @@ export class RenderObject extends RenderMesh {
 		this._msg = new Message();
 		this._initialized = false;
 		this._deleted = false;
+		this._autoUpdatePos = true;
 		this._timestep = 0;
 		this._lastUpdate = Date.now();
 		this._wasmLastSeqNum = 0;
@@ -92,13 +94,15 @@ export class RenderObject extends RenderMesh {
 			return;
 		}
 
-		let mesh = this.mesh();
-		const pos = this.pos3();
-		mesh.position.x = pos.x;
-		mesh.position.y = pos.y;
+		if (this._autoUpdatePos) {
+			let mesh = this.mesh();
+			const pos = this.pos3();
+			mesh.position.x = pos.x;
+			mesh.position.y = pos.y;
 
-		if (this.hasPosZ()) {
-			mesh.position.z = pos.z;
+			if (this.hasPosZ()) {
+				mesh.position.z = pos.z;
+			}
 		}
 
 		this._timestep = (Date.now() - this._lastUpdate) / 1000;
@@ -320,5 +324,9 @@ export class RenderObject extends RenderMesh {
 			return this._msg.get(deathProp);
 		}
 		return 0;
+	}
+
+	protected disableAutoUpdatePos() {
+		this._autoUpdatePos = false;
 	}
 }
