@@ -79,6 +79,7 @@ export class Particles extends SceneComponent {
 		this._sizes = new Map<Particle, number>();
 		this._sizes.set(Particle.SMOKE, 24);
 		this._sizes.set(Particle.CUBE, 18);
+		this._sizes.set(Particle.FINE_SMOKE, 20);
 
 		this._counts = new Map<Particle, number>();
 		this._counts.set(Particle.PELLET_SPARKS, 12);
