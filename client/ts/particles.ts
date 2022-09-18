@@ -8,13 +8,14 @@ import { MathUtil, Util } from './util.js'
 export enum Particle {
 	UNKNOWN = 0,
 	SMOKE = 1,
-	COLOR_TRAIL = 2,
-	CUBE = 3,
-	PELLET_SPARKS = 4,
-	LASER = 5,
-	LASER_SPARKS = 6,
-	CONFETTI = 7,
-	FINE_SMOKE = 8,
+	DUST = 2,
+	COLOR_TRAIL = 3,
+	CUBE = 4,
+	PELLET_SPARKS = 5,
+	LASER = 6,
+	LASER_SPARKS = 7,
+	CONFETTI = 8,
+	FINE_SMOKE = 9,
 }
 
 export class Particles extends SceneComponent {
@@ -32,8 +33,8 @@ export class Particles extends SceneComponent {
 			new THREE.Vector2(0, -0.5),
 		]), { depth: 0.1, bevelEnabled: false });
 
-	private readonly _smokeMaterial = new THREE.MeshLambertMaterial( {color: 0xb0b0b0} );
-	private readonly _lightSmokeMaterial = new THREE.MeshLambertMaterial( {color: 0xfbfbfb} );
+	private readonly _smokeMaterial = new THREE.MeshLambertMaterial( {color: 0xfbfbfb } );
+	private readonly _dustMaterial = new THREE.MeshLambertMaterial( {color: 0xbfbfbf } );
 	private readonly _cubeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff})
 	private readonly _sparksMaterial = new THREE.MeshBasicMaterial({
 		opacity: 0.4,
@@ -58,6 +59,7 @@ export class Particles extends SceneComponent {
 
 		this._geometries = new Map<Particle, THREE.BufferGeometry>();
 		this._geometries.set(Particle.SMOKE, this._sphere);
+		this._geometries.set(Particle.DUST, this._sphere);
 		this._geometries.set(Particle.COLOR_TRAIL, this._trail);
 		this._geometries.set(Particle.CUBE, this._cube);
 		this._geometries.set(Particle.PELLET_SPARKS, this._sphere);
@@ -68,16 +70,17 @@ export class Particles extends SceneComponent {
 
 		this._materials = new Map<Particle, () => THREE.Material>();
 		this._materials.set(Particle.SMOKE, () => { return this._smokeMaterial; });
+		this._materials.set(Particle.DUST, () => { return this._dustMaterial; });
 		this._materials.set(Particle.COLOR_TRAIL, () => { return new THREE.MeshLambertMaterial(); })
 		this._materials.set(Particle.CUBE, () => { return this._cubeMaterial; });
 		this._materials.set(Particle.PELLET_SPARKS, () => { return this._sparksMaterial; });
 		this._materials.set(Particle.LASER, () => { return this._laserMaterial; });
 		this._materials.set(Particle.LASER_SPARKS, () => { return this._sparksMaterial; });
 		this._materials.set(Particle.CONFETTI, () => { return this._confettiMaterial; });
-		this._materials.set(Particle.FINE_SMOKE, () => { return this._lightSmokeMaterial; });
+		this._materials.set(Particle.FINE_SMOKE, () => { return this._smokeMaterial; });
 
 		this._sizes = new Map<Particle, number>();
-		this._sizes.set(Particle.SMOKE, 24);
+		this._sizes.set(Particle.DUST, 24);
 		this._sizes.set(Particle.CUBE, 18);
 		this._sizes.set(Particle.FINE_SMOKE, 20);
 
