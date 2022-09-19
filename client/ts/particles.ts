@@ -16,6 +16,7 @@ export enum Particle {
 	LASER_SPARKS = 7,
 	CONFETTI = 8,
 	FINE_SMOKE = 9,
+	LINES = 10,
 }
 
 export class Particles extends SceneComponent {
@@ -35,7 +36,7 @@ export class Particles extends SceneComponent {
 
 	private readonly _smokeMaterial = new THREE.MeshLambertMaterial( {color: 0xfbfbfb } );
 	private readonly _dustMaterial = new THREE.MeshLambertMaterial( {color: 0xbfbfbf } );
-	private readonly _cubeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff})
+	private readonly _basicWhiteMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff})
 	private readonly _sparksMaterial = new THREE.MeshBasicMaterial({
 		opacity: 0.4,
 		transparent: true,
@@ -67,17 +68,19 @@ export class Particles extends SceneComponent {
 		this._geometries.set(Particle.LASER_SPARKS, this._cube);
 		this._geometries.set(Particle.CONFETTI, this._plane);
 		this._geometries.set(Particle.FINE_SMOKE, this._fineSphere);
+		this._geometries.set(Particle.LINES, this._plane);
 
 		this._materials = new Map<Particle, () => THREE.Material>();
 		this._materials.set(Particle.SMOKE, () => { return this._smokeMaterial; });
 		this._materials.set(Particle.DUST, () => { return this._dustMaterial; });
 		this._materials.set(Particle.COLOR_TRAIL, () => { return new THREE.MeshLambertMaterial(); })
-		this._materials.set(Particle.CUBE, () => { return this._cubeMaterial; });
+		this._materials.set(Particle.CUBE, () => { return this._basicWhiteMaterial; });
 		this._materials.set(Particle.PELLET_SPARKS, () => { return this._sparksMaterial; });
 		this._materials.set(Particle.LASER, () => { return this._laserMaterial; });
 		this._materials.set(Particle.LASER_SPARKS, () => { return this._sparksMaterial; });
 		this._materials.set(Particle.CONFETTI, () => { return this._confettiMaterial; });
 		this._materials.set(Particle.FINE_SMOKE, () => { return this._smokeMaterial; });
+		this._materials.set(Particle.LINES, () => { return this._basicWhiteMaterial; });
 
 		this._sizes = new Map<Particle, number>();
 		this._sizes.set(Particle.DUST, 24);
@@ -89,6 +92,7 @@ export class Particles extends SceneComponent {
 		this._counts.set(Particle.LASER, 8);
 		this._counts.set(Particle.LASER_SPARKS, 3);
 		this._counts.set(Particle.CONFETTI, 18);
+		this._counts.set(Particle.LINES, 7);
 
 		this._emitters = new Map<Particle, ObjectBuffer<THREE.Object3D>>();
 

@@ -141,6 +141,10 @@ func setGlobals() {
 	js.Global().Set("chargerEquip", int(chargerEquip))
 	js.Global().Set("jetpackEquip", int(jetpackEquip))
 
+	js.Global().Set("readyPartState", int(readyPartState))
+	js.Global().Set("activePartState", int(activePartState))
+	js.Global().Set("rechargingPartState", int(rechargingPartState))
+
 	js.Global().Set("platformWall", int(platformWall))
 	js.Global().Set("stairWall", int(stairWall))
 	js.Global().Set("tableWallSubtype", int(tableWallSubtype))

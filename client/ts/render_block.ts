@@ -56,10 +56,6 @@ export class RenderBlock extends RenderObject {
 
 					const name = material.name.toLowerCase();
 					const components = new Set(name.split("-"));
-					if (components.has("transparent")) {
-						material.transparent = true;
-						material.opacity = 0.5;
-					}
 					if (components.has("front")) {
 						this._frontMaterials.set(material, Util.defined(material.opacity) ? material.opacity : 1);
 					}

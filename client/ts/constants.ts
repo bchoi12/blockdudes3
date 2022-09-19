@@ -110,6 +110,10 @@ declare var boosterEquip : number;
 declare var chargerEquip : number;
 declare var jetpackEquip : number;
 
+declare var readyPartState : number;
+declare var activePartState : number;
+declare var rechargingPartState : number;
+
 declare var platformWall : number;
 declare var stairWall : number;
 declare var tableWallSubtype : number;

@@ -36,11 +36,11 @@ export class ObjectBuffer<T extends THREE.Object3D> {
 			material.transparent = false;
 		}
 
+		object.position.copy(overrides.position);
+
 		if (overrides.attach) {
 			overrides.attach.add(object);
 		}
-
-		object.position.copy(overrides.position);
 		if (overrides.scale instanceof THREE.Vector3) {
 			object.scale.copy(overrides.scale);
 		} else {

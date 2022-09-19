@@ -19,6 +19,8 @@ export enum Model {
 	ROCKET = "ROCKET",
 
 	JETPACK = "JETPACK",
+	HEADBAND = "HEADBAND",
+	SCOUTER = "SCOUTER",
 
 	ARCH_BASE = "ARCH_BASE",
 	ARCH_ROOF = "ARCH_ROOF",
@@ -127,6 +129,8 @@ class Loader {
 			case Model.SNIPER:
 			case Model.STAR_GUN:
 			case Model.JETPACK:
+			case Model.HEADBAND:
+			case Model.SCOUTER:
 			case Model.ROCKET:
 				data.scene.animations = data.animations;
 				data.scene.traverse((child) => {
@@ -154,6 +158,12 @@ class Loader {
 						child.material.shadowSide = imported.shadowSide;
 						child.material.color = imported.color;
 						child.material.map = imported.map;
+
+						const components = new Set(name.split("-"));
+						if (components.has("transparent")) {
+							child.material.transparent = true;
+							child.material.opacity = 0.5;
+						}
 						processed.add(name);
 					}
 					if (child instanceof THREE.Mesh) {

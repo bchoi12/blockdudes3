@@ -37,6 +37,7 @@ func (b *Booster) SetPressed(pressed bool) {
 func (b *Booster) Update(grid *Grid, now time.Time) {
 	player := grid.Get(b.equip.GetOwner())
 	if player == nil {
+		b.state = unknownPartState
 		return
 	}
 
@@ -62,6 +63,7 @@ func (b *Booster) Update(grid *Grid, now time.Time) {
 	}
 
 	if enabled {
+		b.state = readyPartState
 		return
 	}
 
@@ -70,6 +72,7 @@ func (b *Booster) Update(grid *Grid, now time.Time) {
 	player.Stop()
 	player.AddForce(dash)
 
+	b.state = activePartState
 	b.canBoost = false
 	b.timer.Start()
 }

@@ -10,7 +10,7 @@ import { RenderEquip } from './render_equip.js'
 import { RenderObject } from './render_object.js'
 import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
-import { MathUtil, Util } from './util.js'
+import { LogUtil, MathUtil, Util } from './util.js'
 
 // enum name has to be the same as value
 enum PlayerAction {
@@ -173,14 +173,32 @@ export class RenderPlayer extends RenderAnimatedObject {
 			return;
 		}
 
-		const jetpack = this.mesh().getObjectByName("equip-jetpack");
-		let neck = this.mesh().getObjectByName("neck");
-		equip.mesh().position.copy(jetpack.position);
-		equip.mesh().position.sub(neck.position)
-		equip.mesh().position.y -= this.dim().y / 2;
+		this.removeEquip();
+
+		const type = equip.byteAttribute(subtypeByteAttribute);
+		let equipPos;
+		if (type === jetpackEquip) {
+			equipPos = this.mesh().getObjectByName("equip-back");
+		} else if (type === boosterEquip) {
+			equipPos = this.mesh().getObjectByName("equip-forehead");
+		} else if (type === chargerEquip) {
+			equipPos = this.mesh().getObjectByName("equip-eye");
+		}
 		
-		this._equip = equip;
-		neck.add(this._equip.mesh());
+		if (Util.defined(equipPos)) {
+			let neck = this.mesh().getObjectByName("neck");
+
+			equip.mesh().position.copy(equipPos.position);
+			let cur = neck;
+			while (cur instanceof THREE.Bone) {
+				equip.mesh().position.sub(cur.position);
+				cur = cur.parent;
+			}
+			this._equip = equip;
+			neck.add(this._equip.mesh());
+		} else {
+			LogUtil.d("Skipped equip due to missing position: " + type)
+		}
 	}
 
 	removeEquip() {
