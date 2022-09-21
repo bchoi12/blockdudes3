@@ -24,6 +24,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private readonly _hitDuration = 0.15;
 
 	private _name : SpriteText;
+	private _pointer : THREE.Mesh;
 	private _playerMesh : THREE.Mesh;
 	private _arm : THREE.Object3D;
 	private _armOrigin : THREE.Vector3;
@@ -31,6 +32,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private _weapon : RenderWeapon;
 	private _equip : RenderEquip;
 
+	private _lastTeam : number;
 	private _lastCanJump : boolean;
 	private _lastDoubleJump : boolean;
 	private _lastHit : number;
@@ -38,6 +40,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	constructor(space : number, id : number) {
 		super(space, id);
 
+		this._lastTeam = -1;
 		this._lastHit = 0;
 	}
 
@@ -74,11 +77,11 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._name.position.y = 1.33;
 		mesh.add(this._name);
 
-		const pointer = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.2, 4, 1), new THREE.MeshToonMaterial({ color: this.color() }));
-		pointer.rotation.x = Math.PI;
-		pointer.rotation.y = Math.PI / 4;
-		pointer.position.y = 1.1;
-		mesh.add(pointer);
+		this._pointer = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.2, 4, 1), new THREE.MeshToonMaterial({ color: this.color() }));
+		this._pointer.rotation.x = Math.PI;
+		this._pointer.rotation.y = Math.PI / 4;
+		this._pointer.position.y = 1.1;
+		mesh.add(this._pointer);
 
 		for (const action in PlayerAction) {
 			this.initializeClip(PlayerAction[action]);
@@ -129,6 +132,13 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this.emitClouds(3);
 		}
 
+		const team = this.byteAttribute(teamByteAttribute);
+		if (this._lastTeam !== team) {
+			this._lastTeam = team;
+			// @ts-ignore
+			this._pointer.material.color = new THREE.Color(this.intAttribute(colorIntAttribute));
+		}
+
 		if ((Date.now() - this._lastHit) / 1000 <= this._hitDuration) {
 			// @ts-ignore
 			this._playerMesh.material.emissive = new THREE.Color(0xFFFFFF);
@@ -162,7 +172,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 		}
 
 		this._weapon = weapon;
-		this._arm.remove(...this._arm.children);
+		// this._arm.remove(...this._arm.children);
 		this._arm.add(this._weapon.mesh());
 		this._weapon.mesh().rotation.x = Math.PI / 2;
 		this._weapon.mesh().scale.z = -1;
@@ -172,8 +182,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 		if (!this.hasMesh()) {
 			return;
 		}
-
-		this.removeEquip();
 
 		const type = equip.byteAttribute(subtypeByteAttribute);
 		let equipPos;
@@ -198,12 +206,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 			neck.add(this._equip.mesh());
 		} else {
 			LogUtil.d("Skipped equip due to missing position: " + type)
-		}
-	}
-
-	removeEquip() {
-		if (Util.defined(this._equip)) {
-			this.mesh().getObjectByName("neck").remove(this._equip.mesh());
 		}
 	}
 

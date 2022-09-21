@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -65,7 +66,7 @@ func NewPlayer(init Init) *Player {
 	profile.AddSubProfile(bodySubProfile, subProfile)
 
 	overlapOptions := NewColliderOptions()
-	overlapOptions.SetSpaces(wallSpace, pickupSpace)
+	overlapOptions.SetSpaces(wallSpace, pickupSpace, portalSpace)
 	profile.SetOverlapOptions(overlapOptions)
 
 	snapOptions := NewColliderOptions()
@@ -120,9 +121,16 @@ func (p Player) UpdateScore(g *Grid) {
 	g.IncrementScore(sid, killProp, 1)
 }
 
-func (p *Player) SetRespawn(respawn Vec2) {
-	p.respawn = respawn
-	p.Respawn()
+func (p *Player) SetTeam(team uint8, grid *Grid) {
+	spawn := grid.Get(Id(spawnSpace, IdType(team)))
+	if spawn == nil {
+		Log(fmt.Sprintf("Invalid team %d", team))
+		return
+	}
+
+	p.SetByteAttribute(teamByteAttribute, team)
+	p.SetIntAttribute(colorIntAttribute, teamColors[team])
+	p.respawn = spawn.Pos()
 }
 
 func (p *Player) Respawn() {
@@ -301,6 +309,13 @@ func (p *Player) checkCollisions(grid *Grid) {
 
 				p.weapon.SetType(object.GetType(), object.GetSubtype())
 				p.equip.SetType(object.GetType(), object.GetSubtype())
+			}
+		case *Portal:
+			if !isWasm && p.KeyDown(interactKey) {
+				if team, ok := object.GetByteAttribute(teamByteAttribute); ok {
+					p.SetTeam(team, grid)
+					p.Respawn()
+				}
 			}
 		}
 	}

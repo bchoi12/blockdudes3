@@ -80,6 +80,8 @@ func setGlobals() {
 	js.Global().Set("starSpace", int(starSpace))
 	js.Global().Set("grapplingHookSpace", int(grapplingHookSpace))
 	js.Global().Set("pickupSpace", int(pickupSpace))
+	js.Global().Set("portalSpace", int(portalSpace))
+	js.Global().Set("spawnSpace", int(spawnSpace))
 
 	js.Global().Set("initializedProp", int(initializedProp))
 	js.Global().Set("deletedProp", int(deletedProp))

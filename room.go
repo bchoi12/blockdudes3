@@ -208,16 +208,9 @@ func (r *Room) initClient(client *Client) error {
 	if !r.game.Has(playerId) {
 		player := r.game.Add(NewInit(playerId, NewVec2(0, 0), NewVec2(0.8, 1.44))).(*Player)
 
-		if client.id % 2 == 0 {
-			player.SetByteAttribute(teamByteAttribute, 0)
-			player.SetIntAttribute(colorIntAttribute, 0xFF0000)
-			player.SetRespawn(r.game.level.GetRespawn(0))
-		} else {
-			player.SetByteAttribute(teamByteAttribute, 1)
-			player.SetIntAttribute(colorIntAttribute, 0x0000FF)
-			player.SetRespawn(r.game.level.GetRespawn(1))
-		}
 		player.SetInitProp(nameProp, client.GetDisplayName())
+		player.SetTeam(0, r.game.GetGrid())
+		player.Respawn()
 	} else {
 		player := r.game.Get(playerId)
 		player.RemoveTTL()

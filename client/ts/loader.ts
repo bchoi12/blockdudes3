@@ -117,7 +117,17 @@ class Loader {
 
 	private preload() : void {
 		this.load(Model.CHICKEN);
+		this.load(Model.ARCH_BASE);
+		this.load(Model.ARCH_ROOF);
+		this.load(Model.ARCH_BALCONY);
 		this.load(Model.ROCKET);
+		this.load(Model.UZI);
+		this.load(Model.BAZOOKA);
+		this.load(Model.SNIPER);
+		this.load(Model.STAR_GUN);
+		this.load(Model.JETPACK);
+		this.load(Model.HEADBAND);
+		this.load(Model.SCOUTER);
 	}
 
 	private process(model : Model, data : any) : void {

@@ -41,7 +41,6 @@ func NewProjectile(object BaseObject) Projectile {
 	overlapOptions.SetSpaces(playerSpace, wallSpace)
 	overlapOptions.SetAttributes(deadAttribute)
 	p.SetOverlapOptions(overlapOptions)
-
 	return p
 }
 

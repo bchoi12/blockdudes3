@@ -36,7 +36,7 @@ func (b *Building) AddBlock(subtype BlockSubtype) *Block {
 	x := b.attributes.pos.X
 	y := b.currentY
 
-	init := NewInitC(Id(blockSpace, 0), NewVec2(x, y), blockSizes[b.attributes.blockType][subtype], defaultOrigin)
+	init := NewInit(Id(blockSpace, 0), NewVec2(x, y), blockSizes[b.attributes.blockType][subtype])
 	block := NewBlock(init)
 
 	block.SetBlockType(b.attributes.blockType)

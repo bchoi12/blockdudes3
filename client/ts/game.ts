@@ -15,6 +15,7 @@ import { RenderObject } from './render_object.js'
 import { RenderPellet } from './render_pellet.js'
 import { RenderPickup } from './render_pickup.js'
 import { RenderPlayer } from './render_player.js'
+import { RenderPortal } from './render_portal.js'
 import { RenderRocket } from './render_rocket.js'
 import { RenderStar } from './render_star.js'
 import { RenderWall } from './render_wall.js'
@@ -46,7 +47,7 @@ class Game {
 
 	private _numObjectsAdded : number;
 	private _numObjectsExtrapolated: number;
-	private _numObjectsUpdated : number;
+	private _numUpdates : number;
 
 	constructor() {
 		this._id = -1;
@@ -61,7 +62,7 @@ class Game {
 
 		this._numObjectsAdded = 0;
 		this._numObjectsExtrapolated = 0;
-		this._numObjectsUpdated = 0;
+		this._numUpdates = 0;
 	}
 
 	reset() : void {
@@ -104,8 +105,8 @@ class Game {
 	}
 
 	flushUpdated() : number {
-		const copy = this._numObjectsUpdated;
-		this._numObjectsUpdated = 0;
+		const copy = this._numUpdates;
+		this._numUpdates = 0;
 		return copy;
 	}
 
@@ -206,6 +207,10 @@ class Game {
 						renderObj = new RenderGrapplingHook(space, id);
 					} else if (space === pickupSpace) {
 						renderObj = new RenderPickup(space, id);
+					} else if (space === portalSpace) {
+						renderObj = new RenderPortal(space, id);
+					} else if (space === spawnSpace) {
+						renderObj = new RenderObject(space, id);
 					}else {
 						console.error("Unable to construct object for type " + space);
 						continue;
@@ -215,7 +220,7 @@ class Game {
 				}
 
 				this.sceneMap().setData(space, id, object, seqNum);
-				this._numObjectsUpdated++;
+				this._numUpdates++;
 			}
 		}
 	}

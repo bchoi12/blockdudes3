@@ -11,7 +11,8 @@ import { Util } from './util.js'
 import { WallBuilder } from './wall_builder.js'
 
 export class RenderBlock extends RenderObject {
-	
+	private readonly _minOpacity = 0.1;
+
 	private _bbox : THREE.Box2;
 	private _windows : THREE.Object3D;
 	private _frontMaterials : Map<THREE.Material, number>;
@@ -135,7 +136,7 @@ export class RenderBlock extends RenderObject {
 				if (inside && !mat.transparent) {
 					mat.transparent = true;
 				}
-				mat.opacity = Math.min(opacity, Math.max(0.2, mat.opacity + this.timestep() * (inside ? -3 : 5)));
+				mat.opacity = Math.min(opacity, Math.max(this._minOpacity, mat.opacity + this.timestep() * (inside ? -3 : 5)));
 			} else {
 				mat.visible = !inside;
 			}

@@ -8,7 +8,7 @@ import { RenderProjectile } from './render_projectile.js'
 import { MathUtil, Util } from './util.js'
 
 export class RenderPellet extends RenderProjectile {
-	private readonly _material = new THREE.MeshPhongMaterial( {color: 0xf6ff00 });
+	private readonly _material = new THREE.MeshLambertMaterial( {color: 0xf6ff00 });
 	private readonly _particleColors = [0xf6ff00, 0xffc800, 0xff9100];
 	private readonly _particleInterval = 30;
 

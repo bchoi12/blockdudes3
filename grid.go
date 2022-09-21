@@ -86,6 +86,10 @@ func (g *Grid) New(init Init) Object {
 		return NewGrapplingHook(init)
 	case pickupSpace:
 		return NewPickup(init)
+	case portalSpace:
+		return NewPortal(init)
+	case spawnSpace:
+		return NewSpawn(init)
 	default:
 		Log(fmt.Sprintf("Unknown space! %+v", init))
 		return nil

@@ -46,7 +46,7 @@ export class RenderObject extends RenderMesh {
 	override setMesh(mesh : THREE.Object3D) : void {
 		super.setMesh(mesh);
 
-		if (this.hasPos()) {
+		if (this.hasPos() && this._autoUpdatePos) {
 			const pos = this.pos();
 			mesh.position.x = pos.x;
 			mesh.position.y = pos.y;

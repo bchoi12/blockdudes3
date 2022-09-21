@@ -48,6 +48,8 @@ declare var rocketSpace : number;
 declare var starSpace : number;
 declare var grapplingHookSpace : number;
 declare var pickupSpace : number;
+declare var portalSpace : number;
+declare var spawnSpace : number;
 
 declare var initializedProp : number;
 declare var deletedProp : number;

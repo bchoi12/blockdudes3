@@ -13,25 +13,16 @@ const (
 type Level struct {
 	id LevelIdType
 	blockGrid BlockGrid
-	teamSpawn map[uint8]Vec2
 }
 
 func NewLevel() *Level {
 	return &Level {
 		id: unknownLevel,
-		teamSpawn: make(map[uint8]Vec2),
 	}
 }
 
 func (l Level) GetId() LevelIdType {
 	return l.id
-}
-
-func (l Level) GetRespawn(team uint8) Vec2 {
-	if pos, ok := l.teamSpawn[team]; ok {
-		return pos
-	}
-	return NewVec2(0, 0)
 }
 
 // TODO: currently loading is done via WASM then sent redundantly over network & skipped
@@ -48,12 +39,101 @@ func (l *Level) LoadLevel(id LevelIdType, grid *Grid) {
 
 func (l *Level) loadTestLevel(grid *Grid) {
 	l.blockGrid = NewBlockGrid()
-	l.blockGrid.SetYOffsets(2, 0)
 	var b *Block
 
 	{
 		blockType := archBlock
 		pos := l.blockGrid.GetNextPos(blockType, 0)
+		color := teamColors[1]
+
+		building := NewBuilding(BuildingAttributes{
+			pos: pos,
+			blockType: blockType,
+			color: color,
+		})
+
+		building.AddBlock(baseBlockSubtype)
+		building.AddBlock(baseBlockSubtype)
+		b = building.AddBlock(baseBlockSubtype)
+		b.AddOpenings(rightCardinal)
+
+		portalPos := b.Pos()
+		portalPos.Y += 0.5
+		portal := NewPortal(NewInitC(grid.NextSpacedId(portalSpace), portalPos, NewVec2(b.Dim().X / 2, 2), bottomCardinal))
+		portal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[blockType] / 2)
+		portal.SetTeam(1)
+		grid.Upsert(portal)
+
+		b = building.AddBlock(roofBlockSubtype)
+		b.AddOpenings(rightCardinal)
+
+		l.blockGrid.AddBuilding(building)
+	}
+
+	{
+		blockType := archBlock
+		pos := l.blockGrid.GetNextPos(blockType, 0)
+		color := teamColors[0]
+
+		building := NewBuilding(BuildingAttributes{
+			pos: pos,
+			blockType: blockType,
+			color: color,
+		})
+
+		building.AddBlock(baseBlockSubtype)
+		building.AddBlock(baseBlockSubtype)
+		b = building.AddBlock(baseBlockSubtype)
+		b.AddOpenings(leftCardinal, rightCardinal)
+		b.LoadTemplate(weaponsBlockTemplate)
+
+		spawn := NewSpawn(NewInit(
+			Id(spawnSpace, 0),
+			NewVec2(b.Pos().X, b.Pos().Y + b.Dim().Y / 2),
+			NewVec2(1, 1),
+		))
+		grid.Upsert(spawn)
+
+		b = building.AddBlock(roofBlockSubtype)
+		b.AddOpenings(leftCardinal, rightCardinal)
+
+		l.blockGrid.AddBuilding(building)
+	}
+
+	{
+		blockType := archBlock
+		pos := l.blockGrid.GetNextPos(blockType, 0)
+		color := teamColors[2]
+
+		building := NewBuilding(BuildingAttributes{
+			pos: pos,
+			blockType: blockType,
+			color: color,
+		})
+
+		building.AddBlock(baseBlockSubtype)
+		building.AddBlock(baseBlockSubtype)
+		b = building.AddBlock(baseBlockSubtype)
+		b.AddOpenings(leftCardinal)
+
+		portalPos := b.Pos()
+		portalPos.Y += 0.5
+		portal := NewPortal(NewInitC(grid.NextSpacedId(portalSpace), portalPos, NewVec2(b.Dim().X / 2, 2), bottomCardinal))
+		portal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[blockType] / 2)
+		portal.SetTeam(2)
+		grid.Upsert(portal)
+
+		b = building.AddBlock(roofBlockSubtype)
+		b.AddOpenings(leftCardinal)
+
+		l.blockGrid.AddBuilding(building)
+	}
+
+	l.blockGrid.SetYOffsets(2, 0)
+
+	{
+		blockType := archBlock
+		pos := l.blockGrid.GetNextPos(blockType, 20)
 		color := 0x0ffc89
 
 		building := NewBuilding(BuildingAttributes{
@@ -70,9 +150,12 @@ func (l *Level) loadTestLevel(grid *Grid) {
 		b = building.AddBlock(roofBlockSubtype)
 		b.LoadTemplate(weaponsBlockTemplate)
 
-		spawn := b.Pos()
-		spawn.Y += 4
-		l.teamSpawn[0] = spawn
+		spawn := NewSpawn(NewInit(
+			Id(spawnSpace, 1),
+			NewVec2(b.Pos().X, b.Pos().Y + b.Dim().Y / 2),
+			NewVec2(1, 1),
+		))
+		grid.Upsert(spawn)
 
 		l.blockGrid.AddBuilding(building)
 	}
@@ -172,9 +255,12 @@ func (l *Level) loadTestLevel(grid *Grid) {
 		b = building.AddBlock(roofBlockSubtype)
 		b.LoadTemplate(weaponsBlockTemplate)
 
-		spawn := b.Pos()
-		spawn.Y += 4
-		l.teamSpawn[1] = spawn
+		spawn := NewSpawn(NewInit(
+			Id(spawnSpace, 2),
+			NewVec2(b.Pos().X, b.Pos().Y + b.Dim().Y / 2),
+			NewVec2(1, 1),
+		))
+		grid.Upsert(spawn)
 
 		l.blockGrid.AddBuilding(building)
 	}

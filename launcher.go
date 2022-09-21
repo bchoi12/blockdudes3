@@ -188,11 +188,13 @@ func (l *Launcher) Shoot(grid *Grid, now time.Time) {
 		overlapOptions.SetIds(false, owner.GetSpacedId())
 		projectile.SetOverlapOptions(overlapOptions)
 
-		if team, ok := owner.GetByteAttribute(teamByteAttribute); ok {
-			projectile.SetByteAttribute(teamByteAttribute, team)
-			overlapOptions := projectile.GetOverlapOptions()
-			overlapOptions.ExcludeByteAttributes(teamByteAttribute, team)
-			projectile.SetOverlapOptions(overlapOptions)
+		if l.space != grapplingHookSpace {
+			if team, ok := owner.GetByteAttribute(teamByteAttribute); ok && team > 0 {
+				projectile.SetByteAttribute(teamByteAttribute, team)
+				overlapOptions := projectile.GetOverlapOptions()
+				overlapOptions.ExcludeByteAttributes(teamByteAttribute, team)
+				projectile.SetOverlapOptions(overlapOptions)
+			}
 		}
 	}
 	projectile.SetDir(l.weapon.Dir())

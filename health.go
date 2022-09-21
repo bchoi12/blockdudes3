@@ -76,7 +76,7 @@ func (h Health) GetLastDamageId(duration time.Duration) SpacedId {
 }
 
 func (h *Health) TakeDamage(sid SpacedId, damage int) {
-	if !h.enabled || h.Dead() || isWasm {
+	if !h.enabled || h.Dead() || isWasm || damage == 0 {
 		return
 	}
 	h.SetHealth(h.health - damage)

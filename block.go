@@ -127,22 +127,22 @@ func (b *Block) LoadTemplate(template BlockTemplate) {
 
 	switch (template) {
 	case weaponsBlockTemplate:
-		uzi := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x - width / 3, y + b.thick), NewVec2(1.2, 1.2), bottomOrigin))
+		uzi := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x - width / 3, y + b.thick), NewVec2(1.2, 1.2), bottomCardinal))
 		uzi.SetByteAttribute(typeByteAttribute, uint8(uziWeapon))
 		uzi.SetByteAttribute(subtypeByteAttribute, uint8(grapplingHookWeapon))
 		b.objects = append(b.objects, uzi)
 
-		star := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x - width / 9, y + b.thick), NewVec2(1.2, 1.2), bottomOrigin))
+		star := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x - width / 9, y + b.thick), NewVec2(1.2, 1.2), bottomCardinal))
 		star.SetByteAttribute(typeByteAttribute, uint8(starWeapon))
 		star.SetByteAttribute(subtypeByteAttribute, uint8(boosterEquip))
 		b.objects = append(b.objects, star)
 
-		bazooka := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x + width / 9, y + b.thick), NewVec2(1.2, 1.2), bottomOrigin))
+		bazooka := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x + width / 9, y + b.thick), NewVec2(1.2, 1.2), bottomCardinal))
 		bazooka.SetByteAttribute(typeByteAttribute, uint8(bazookaWeapon))
 		bazooka.SetByteAttribute(subtypeByteAttribute, uint8(jetpackEquip))
 		b.objects = append(b.objects, bazooka)
 
-		sniper := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x + width / 3, y + b.thick), NewVec2(1.2, 1.2), bottomOrigin))
+		sniper := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x + width / 3, y + b.thick), NewVec2(1.2, 1.2), bottomCardinal))
 		sniper.SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
 		sniper.SetByteAttribute(subtypeByteAttribute, uint8(chargerEquip))
 		b.objects = append(b.objects, sniper)
@@ -158,7 +158,7 @@ func (b *Block) LoadTemplate(template BlockTemplate) {
 		b.objects = append(b.objects, platform)
 
 	case tableBlockTemplate:
-		table := NewWall(NewInitC(Id(wallSpace, 0), NewVec2(x, y + b.thick), NewVec2(3, 1), bottomOrigin))
+		table := NewWall(NewInitC(Id(wallSpace, 0), NewVec2(x, y + b.thick), NewVec2(3, 1), bottomCardinal))
 		table.SetByteAttribute(subtypeByteAttribute, uint8(tableWallSubtype))
 		table.AddAttribute(visibleAttribute)
 		table.SetIntAttribute(colorIntAttribute, 0x996312)
@@ -177,11 +177,11 @@ func (b *Block) LoadSidedTemplate(template SidedBlockTemplate, cardinal Cardinal
 	baseHeight := baseDim.Y
 
 	dir := 1.0
-	origin := bottomRightOrigin
+	origin := bottomRightCardinal
 	innerDimZ := blockDimZs[b.blockType] - 2 * b.thick
 	if cardinal.AnyLeft() {
 		dir = -1
-		origin = bottomLeftOrigin
+		origin = bottomLeftCardinal
 	}
 
 	switch (template) {
@@ -258,16 +258,16 @@ func (b *Block) LoadWalls() {
 	case baseBlockSubtype:
 		if b.openings.AnyBottom() {
 			if !b.openings.Get(bottomLeftCardinal) {
-				left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2(width / 2, b.thick), bottomLeftOrigin)
+				left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2(width / 2, b.thick), bottomLeftCardinal)
 				b.objects = append(b.objects, NewWall(left))
 			}
 
 			if !b.openings.Get(bottomRightCardinal) {
-				right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2(width / 2, b.thick), bottomRightOrigin)
+				right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2(width / 2, b.thick), bottomRightCardinal)
 				b.objects = append(b.objects, NewWall(right))
 			}
 		} else {
-			floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, b.thick), bottomOrigin)
+			floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, b.thick), bottomCardinal)
 			b.objects = append(b.objects, NewWall(floor))
 		}
 
@@ -275,23 +275,23 @@ func (b *Block) LoadWalls() {
 		if b.openings.Get(leftCardinal) {
 			leftOpening = b.sideOpening
 		}
-		left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y + leftOpening * height), NewVec2(b.thick, (1.0 - leftOpening) * height), bottomLeftOrigin)
+		left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y + leftOpening * height), NewVec2(b.thick, (1.0 - leftOpening) * height), bottomLeftCardinal)
 		b.objects = append(b.objects, NewWall(left))
 
 		rightOpening := 0.0
 		if b.openings.Get(rightCardinal) {
 			rightOpening = b.sideOpening
 		}
-		right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + rightOpening * height), NewVec2(b.thick, (1.0 - rightOpening) * height), bottomRightOrigin)
+		right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + rightOpening * height), NewVec2(b.thick, (1.0 - rightOpening) * height), bottomRightCardinal)
 		b.objects = append(b.objects, NewWall(right))
 	case tallBlockSubtype:
 		if b.openings.Get(bottomCardinal) {
-			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomLeftOrigin)
+			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomLeftCardinal)
 			b.objects = append(b.objects, NewWall(left))
-			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomRightOrigin)
+			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomRightCardinal)
 			b.objects = append(b.objects, NewWall(right))
 		} else {
-			floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, b.thick), bottomOrigin)
+			floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, b.thick), bottomCardinal)
 			b.objects = append(b.objects, NewWall(floor))
 		}
 
@@ -299,7 +299,7 @@ func (b *Block) LoadWalls() {
 		var side = [4]float64 { -1, -1, 1, 1}
 		var heightOffset = [4]float64 {0, baseHeight, 0, baseHeight}
 		var heightExtension = [4]float64 {b.thick, 0, b.thick, 0}
-		var centering = [4]OriginType {bottomLeftOrigin, bottomLeftOrigin, bottomRightOrigin, bottomRightOrigin}
+		var centering = [4]CardinalType {bottomLeftCardinal, bottomLeftCardinal, bottomRightCardinal, bottomRightCardinal}
 
 		for i := 0; i < len(cardinals); i += 1 {
 			opening := 0.0
@@ -315,36 +315,36 @@ func (b *Block) LoadWalls() {
 		}
 	case balconyBlockSubtype:
 		if b.openings.AnyRight() {
-			floor := NewInitC(Id(wallSpace, 0), NewVec2(x, y), NewVec2(width, b.thick), bottomLeftOrigin)
+			floor := NewInitC(Id(wallSpace, 0), NewVec2(x, y), NewVec2(width, b.thick), bottomLeftCardinal)
 			b.objects = append(b.objects, NewWall(floor))
 
-			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width, y), NewVec2(b.thick, height), bottomRightOrigin)
+			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width, y), NewVec2(b.thick, height), bottomRightCardinal)
 			b.objects = append(b.objects, NewWall(right))
 		} else if b.openings.AnyLeft() {
-			floor := NewInitC(Id(wallSpace, 0), NewVec2(x, y), NewVec2(width, b.thick), bottomRightOrigin)
+			floor := NewInitC(Id(wallSpace, 0), NewVec2(x, y), NewVec2(width, b.thick), bottomRightCardinal)
 			b.objects = append(b.objects, NewWall(floor))
 
-			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width, y), NewVec2(b.thick, height), bottomLeftOrigin)
+			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width, y), NewVec2(b.thick, height), bottomLeftCardinal)
 			b.objects = append(b.objects, NewWall(left))
 		}
 	case roofBlockSubtype:
 		if b.openings.Get(bottomCardinal) {
-			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomLeftOrigin)
+			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomLeftCardinal)
 			b.objects = append(b.objects, NewWall(left))
-			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomRightOrigin)
+			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomRightCardinal)
 			b.objects = append(b.objects, NewWall(right))
 		} else {
-			floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, b.thick), bottomOrigin)
+			floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, b.thick), bottomCardinal)
 			b.objects = append(b.objects, NewWall(floor))
 		}
 
 		if !b.openings.Get(leftCardinal) {
-			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2(b.thick, 1), bottomLeftOrigin)
+			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2(b.thick, 1), bottomLeftCardinal)
 			b.objects = append(b.objects, NewWall(left))
 		}
 
 		if !b.openings.Get(rightCardinal) {
-			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2(b.thick, 1), bottomRightOrigin)
+			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2(b.thick, 1), bottomRightCardinal)
 			b.objects = append(b.objects, NewWall(right))
 		}
 	}

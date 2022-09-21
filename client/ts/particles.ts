@@ -17,6 +17,8 @@ export enum Particle {
 	CONFETTI = 8,
 	FINE_SMOKE = 9,
 	LINES = 10,
+	SMOKE_RING = 11,
+	PORTAL = 12,
 }
 
 export class Particles extends SceneComponent {
@@ -24,6 +26,7 @@ export class Particles extends SceneComponent {
 	private readonly _fineSphere = new THREE.SphereGeometry(1.0, 12, 12);
 	private readonly _cube = new THREE.BoxGeometry(1, 1, 1);
 	private readonly _plane = new THREE.PlaneGeometry(1, 1);
+	private readonly _torus = new THREE.TorusGeometry(1, 0.5, 16, 16);
 	private readonly _trail = new THREE.ExtrudeGeometry(new THREE.Shape([
 			new THREE.Vector2(0, 0.5),
 			new THREE.Vector2(-1, 0.25),
@@ -69,6 +72,8 @@ export class Particles extends SceneComponent {
 		this._geometries.set(Particle.CONFETTI, this._plane);
 		this._geometries.set(Particle.FINE_SMOKE, this._fineSphere);
 		this._geometries.set(Particle.LINES, this._plane);
+		this._geometries.set(Particle.SMOKE_RING, this._torus);
+		this._geometries.set(Particle.PORTAL, this._cube);
 
 		this._materials = new Map<Particle, () => THREE.Material>();
 		this._materials.set(Particle.SMOKE, () => { return this._smokeMaterial; });
@@ -81,6 +86,8 @@ export class Particles extends SceneComponent {
 		this._materials.set(Particle.CONFETTI, () => { return this._confettiMaterial; });
 		this._materials.set(Particle.FINE_SMOKE, () => { return this._smokeMaterial; });
 		this._materials.set(Particle.LINES, () => { return this._basicWhiteMaterial; });
+		this._materials.set(Particle.SMOKE_RING, () => { return this._smokeMaterial; });
+		this._materials.set(Particle.PORTAL, () => { return this._basicWhiteMaterial; });
 
 		this._sizes = new Map<Particle, number>();
 		this._sizes.set(Particle.DUST, 24);
@@ -93,6 +100,7 @@ export class Particles extends SceneComponent {
 		this._counts.set(Particle.LASER_SPARKS, 3);
 		this._counts.set(Particle.CONFETTI, 18);
 		this._counts.set(Particle.LINES, 7);
+		this._counts.set(Particle.PORTAL, 16);
 
 		this._emitters = new Map<Particle, ObjectBuffer<THREE.Object3D>>();
 

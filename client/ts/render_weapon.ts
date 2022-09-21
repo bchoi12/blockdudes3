@@ -47,9 +47,7 @@ export class RenderWeapon extends RenderObject {
 
 	override delete() : void {
 		super.delete();
-
 		game.sceneMap().returnPointLight(this._chargeLight);
-		this._chargeLight = null;
 	}
 
 	override setMesh(mesh : THREE.Object3D) : void {
@@ -69,6 +67,7 @@ export class RenderWeapon extends RenderObject {
 
 		if (this._weaponType !== this.byteAttribute(typeByteAttribute)) {
 			this._weaponType = this.byteAttribute(typeByteAttribute);
+			this.mesh().parent.remove(this.mesh());
 			this.loadMesh();
 		}
 

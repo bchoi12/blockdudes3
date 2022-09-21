@@ -67,13 +67,15 @@ export class RenderEquip extends RenderObject {
 	}
 
 	private loadMesh() : void {
-		this._player.removeEquip();
+		if (this.hasMesh() && this.mesh().parent) {
+			this.mesh().parent.remove(this.mesh());
+		}
+
 		if (this._equipType === jetpackEquip) {
 			loader.load(Model.JETPACK, (mesh : THREE.Mesh) => {
 				this._emit = mesh.getObjectByName("emit");
 				this._fire = mesh.getObjectByName("fire");
 				this.setMesh(mesh);
-				this._player.removeEquip();
 				this._player.setEquip(this);
 			});
 		} else if (this._equipType === boosterEquip) {
@@ -120,49 +122,27 @@ export class RenderEquip extends RenderObject {
 		// TODO: need triggers to make this better
 		/*
 		if (state === activePartState) {
-			game.particles().emit(Particle.LINES, 125, (object : THREE.InstancedMesh, ts : number) => {
-				object.position.copy(this._player.pos3());
+			const weapon = this._player.weapon();
 
-				for (let i = 0; i < object.count; ++i) {
-					let matrix = new THREE.Matrix4();
-					object.getMatrixAt(i, matrix);
+			if (!Util.defined(weapon)) {
+				return;
+			}
 
-					let pos = new THREE.Vector3();
-					let rotation = new THREE.Quaternion();
-					let scale = new THREE.Vector3();
-					matrix.decompose(pos, rotation, scale);
+			// TODO: fix weapon dir and use it here
+			const angle = this._player.dir().angle();
+			let offset = new THREE.Vector3(-1, 0, 0);
+			offset.applyEuler(new THREE.Euler(0, 0, angle));
 
-					rotation.z += MathUtil.randomRange(-0.1, 0.1);
-					scale.x *= 0.9;
+			let pos = this._player.pos3();
+			pos.add(offset.clone().multiplyScalar(0.5));
 
-					matrix.compose(pos, rotation, scale);
-					object.setMatrixAt(i, matrix);
-				}
-
-				if (object.instanceMatrix) {
-					object.instanceMatrix.needsUpdate = true;
-				}
+			game.particles().emit(Particle.SMOKE_RING, 400, (object : THREE.Mesh, ts : number) => {
+				object.scale.multiplyScalar(0.95);
+				object.position.add(offset.clone().multiplyScalar(20 * object.scale.x * ts));
 			}, {
-				position: this._player.pos3(),
-				rotation: new THREE.Euler(0, 0, this._player.dir().angle()),
-				scale: 1,
-				instances: {
-					posFn: (object, i) => {
-						let pos = new THREE.Vector3(MathUtil.randomRange(-0.1, 0.1), MathUtil.randomRange(-0.8, 0.8), object.position.z);
-						let dir = new THREE.Vector3(1, 0, 0);
-						dir.applyEuler(0, 0, this._player.dir().angle());
-						dir.multiplyScalar();
-				pos = dir;
-						return pos;
-					},
-					scaleFn: (object, i) => {
-						return new THREE.Vector3(1.5 + MathUtil.randomRange(0, 1), 0.04, 0);
-					},
-					colorFn: (object, i) => {
-						const color = MathUtil.randomRange(0, 1);
-						return new THREE.Color(color, color, color);
-					}
-				},
+				position: pos,
+				scale: 0.4,
+				rotation: new THREE.Euler(0, Math.PI / 2 + Math.sign(this._player.weapon().dir().x) * 0.2, Math.PI / 2),
 			});
 		}
 		*/

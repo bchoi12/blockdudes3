@@ -18,6 +18,8 @@ const (
 	starSpace
 	grapplingHookSpace
 	pickupSpace
+	portalSpace
+	spawnSpace
 )
 
 type SpacedId struct {
@@ -70,20 +72,6 @@ func (sid SpacedId) Invalid() bool {
 	return sid.GetSpace() == 0
 }
 
-type OriginType uint8
-const (
-	unknownOrigin OriginType = iota
-	defaultOrigin
-	rightOrigin
-	topRightOrigin
-	topOrigin
-	topLeftOrigin
-	leftOrigin
-	bottomLeftOrigin
-	bottomOrigin
-	bottomRightOrigin
-)
-
 type Init struct {
 	SpacedId
 
@@ -114,23 +102,23 @@ func NewInit(sid SpacedId, pos Vec2, dim Vec2) Init {
 	}
 }
 
-func NewInitC(sid SpacedId, pos Vec2, dim Vec2, center OriginType) Init {
+func NewInitC(sid SpacedId, pos Vec2, dim Vec2, center CardinalType) Init {
 	switch center {
-	case rightOrigin:
+	case rightCardinal:
 		return NewInit(sid, NewVec2(pos.X - dim.X/2, pos.Y), dim)
-	case topRightOrigin:
+	case topRightCardinal:
 		return NewInit(sid, NewVec2(pos.X - dim.X/2, pos.Y - dim.Y/2), dim)
-	case topOrigin:
+	case topCardinal:
 		return NewInit(sid, NewVec2(pos.X, pos.Y - dim.Y/2), dim)
-	case topLeftOrigin:
+	case topLeftCardinal:
 		return NewInit(sid, NewVec2(pos.X + dim.X/2, pos.Y - dim.Y/2), dim)
-	case leftOrigin:
+	case leftCardinal:
 		return NewInit(sid, NewVec2(pos.X + dim.X/2, pos.Y), dim)
-	case bottomLeftOrigin:
+	case bottomLeftCardinal:
 		return NewInit(sid, NewVec2(pos.X + dim.X/2, pos.Y + dim.Y/2), dim)
-	case bottomOrigin:
+	case bottomCardinal:
 		return NewInit(sid, NewVec2(pos.X, pos.Y + dim.Y/2), dim)
-	case bottomRightOrigin:
+	case bottomRightCardinal:
 		return NewInit(sid, NewVec2(pos.X - dim.X/2, pos.Y + dim.Y/2), dim)
 	}
 	return NewInit(sid, pos, dim)

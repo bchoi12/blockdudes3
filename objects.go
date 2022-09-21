@@ -57,3 +57,28 @@ func (p Pickup) GetSubtype() EquipType {
 	typeByte, _ := p.GetByteAttribute(subtypeByteAttribute)
 	return EquipType(typeByte)
 }
+
+type Portal struct {
+	BaseObject
+}
+
+func NewPortal(init Init) *Portal {
+	return &Portal {
+		BaseObject: NewRec2Object(init),
+	}
+}
+
+func (p *Portal) SetTeam(team uint8) {
+	p.SetByteAttribute(teamByteAttribute, team)
+	p.SetIntAttribute(colorIntAttribute, teamColors[team])
+}
+
+type Spawn struct {
+	BaseObject
+}
+
+func NewSpawn(init Init) *Spawn {
+	return &Spawn {
+		BaseObject: NewCircleObject(init),
+	}
+}

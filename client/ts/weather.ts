@@ -22,9 +22,9 @@ export class Weather extends SceneComponent {
 
 	private readonly _cloudColors = new RingBuffer<THREE.Color>([
 		new THREE.Color(0xfbfbfb),
-		new THREE.Color(0xfbfbfb),
+		new THREE.Color(0xf0f0f0),
 		new THREE.Color(0xebebeb),
-		new THREE.Color(0xebebeb),
+		new THREE.Color(0xe0e0e0),
 		new THREE.Color(0xcbcbcb),
 	]);
 
