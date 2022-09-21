@@ -25,8 +25,8 @@ export enum Model {
 	ARCH_BASE = "ARCH_BASE",
 	ARCH_ROOF = "ARCH_ROOF",
 	ARCH_BALCONY = "ARCH_BALCONY",
-
 	TABLE = "TABLE",
+
 	BEACH_BALL = "BEACH_BALL",
 	TRASH_CAN = "TRASH_CAN",
 	POTTED_TREE = "POTTED_TREE",
@@ -41,6 +41,22 @@ export enum Texture {
 class Loader {
 	private readonly _modelPrefix = "./model/";
 	private readonly _texturePrefix = "./texture/";
+
+	private readonly _preloadSet = [
+		Model.CHICKEN,
+		Model.UZI,
+		Model.BAZOOKA,
+		Model.SNIPER,
+		Model.STAR_GUN,
+		Model.ROCKET,
+		Model.JETPACK,
+		Model.HEADBAND,
+		Model.SCOUTER,
+		Model.ARCH_BASE,
+		Model.ARCH_ROOF,
+		Model.ARCH_BALCONY,
+		Model.TABLE,
+	];
 
 	private _loader : GLTFLoader;
 	private _paths : Map<Model, string>;
@@ -116,18 +132,14 @@ class Loader {
 	}
 
 	private preload() : void {
-		this.load(Model.CHICKEN);
-		this.load(Model.ARCH_BASE);
-		this.load(Model.ARCH_ROOF);
-		this.load(Model.ARCH_BALCONY);
-		this.load(Model.ROCKET);
-		this.load(Model.UZI);
-		this.load(Model.BAZOOKA);
-		this.load(Model.SNIPER);
-		this.load(Model.STAR_GUN);
-		this.load(Model.JETPACK);
-		this.load(Model.HEADBAND);
-		this.load(Model.SCOUTER);
+		this.preloadHelper(0);
+	}
+
+	private preloadHelper(i : number) : void {
+		if (i >= this._preloadSet.length) {
+			return;
+		}
+		this.load(this._preloadSet[i], () => { this.preloadHelper(i + 1); });
 	}
 
 	private process(model : Model, data : any) : void {

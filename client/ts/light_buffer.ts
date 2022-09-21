@@ -59,7 +59,6 @@ export class LightBuffer {
 		}
 
 		light.intensity = 0;
-
 		// Hack to prevent lag from destroying light
 		this._scene.add(light);
 		this._pointLights.add(light);

@@ -47,13 +47,6 @@ export class RenderProjectile extends RenderObject {
 			return;
 		}
 
-		if (this.hasTarget()) {
-			const target = this.target();
-			if (game.sceneMap().has(target.space(), target.id())) {
-				game.sceneMap().get(target.space(), target.id()).takeHit(this);
-			}
-		}
-
 		if (this.stopped()) {
 			this.mesh().position.z = 0;
 		}

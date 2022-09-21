@@ -14,7 +14,7 @@ export class VoiceWrapper extends HtmlWrapper {
 
 		if (id === connection.id()) {
 			this._micButton = Html.span();
-			this._micButton.append(Icon.microphone());
+			this._micButton.append(Icon.mutedMicrophone());
 			Html.textButton(this._micButton);
 			this.elm().onclick = (e) => {
 				ui.toggleVoice();
@@ -22,9 +22,9 @@ export class VoiceWrapper extends HtmlWrapper {
 					this._micButton.removeChild(this._micButton.firstChild);
 				}
 				if (ui.voiceEnabled()) {
-					this._micButton.append(Icon.mutedMicrophone());
-				} else {
 					this._micButton.append(Icon.microphone());
+				} else {
+					this._micButton.append(Icon.mutedMicrophone());
 				}
 				e.stopPropagation();
 			};

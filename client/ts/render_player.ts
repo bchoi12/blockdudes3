@@ -21,7 +21,6 @@ enum PlayerAction {
 
 export class RenderPlayer extends RenderAnimatedObject {
 	private readonly _rotationOffset = -0.1;
-	private readonly _hitDuration = 0.15;
 
 	private _name : SpriteText;
 	private _pointer : THREE.Mesh;
@@ -33,6 +32,8 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private _equip : RenderEquip;
 
 	private _lastTeam : number;
+	private _lastHealth : number;
+	private _hitDuration : number;
 	private _lastCanJump : boolean;
 	private _lastDoubleJump : boolean;
 	private _lastHit : number;
@@ -42,6 +43,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		this._lastTeam = -1;
 		this._lastHit = 0;
+		this._hitDuration = 0;
 	}
 
 	override ready() : boolean {
@@ -132,6 +134,19 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this.emitClouds(3);
 		}
 
+		const health = this.byteAttribute(healthByteAttribute);
+		if (!Util.defined(this._lastHealth)) {
+			this._lastHealth = health;
+		}
+		if (this._lastHealth !== health) {
+			if (health < this._lastHealth) {
+				this._lastHit = Date.now();
+				this._hitDuration = (this._lastHealth - health) / 25 * 0.2;
+			}
+
+			this._lastHealth = health;
+		}
+
 		const team = this.byteAttribute(teamByteAttribute);
 		if (this._lastTeam !== team) {
 			this._lastTeam = team;
@@ -160,10 +175,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this.fadeOut(PlayerAction.Jump, 0.1);
 			this.fadeIn(PlayerAction.Idle, 0.1);
 		}
-	}
-
-	override takeHit(from : RenderObject) : void {
-		this._lastHit = Date.now();
 	}
 
 	setWeapon(weapon : RenderWeapon) : void {

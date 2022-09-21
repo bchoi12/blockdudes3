@@ -114,8 +114,6 @@ export class RenderObject extends RenderMesh {
 		this._deleted = true;
 	}
 
-	takeHit(from : RenderObject) {}
-
 	seqNum(prop : number) : number {
 		return this._msg.seqNum(prop);
 	}
