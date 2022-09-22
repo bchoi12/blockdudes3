@@ -94,7 +94,7 @@ class Loader {
 			return;
 		}
 
-		this._loader.load(this._paths.get(model), (data) => {
+		new GLTFLoader().load(this._paths.get(model), (data) => {
 			this.process(model, data);
 
 			if (Util.defined(cb)) {
@@ -110,7 +110,7 @@ class Loader {
 			return;
 		}
 
-		return this._textureLoader.load(this._texturePaths.get(texture), (texture) => {
+		return new THREE.TextureLoader().load(this._texturePaths.get(texture), (texture) => {
 			if (Util.defined(cb)) {
 				cb(texture);
 			}
