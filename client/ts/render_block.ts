@@ -30,9 +30,11 @@ export class RenderBlock extends RenderObject {
 		super.initialize();
 
 		let model;
-		switch (this.byteAttribute(typeByteAttribute)) {
+		const type = this.byteAttribute(typeByteAttribute);
+		const subtype = this.byteAttribute(subtypeByteAttribute);
+		switch (type) {
 		case archBlock:
-			switch (this.byteAttribute(subtypeByteAttribute)) {
+			switch (subtype) {
 			case baseBlockSubtype:
 				model = Model.ARCH_BASE;
 				break;
@@ -42,7 +44,14 @@ export class RenderBlock extends RenderObject {
 			case balconyBlockSubtype:
 				model = Model.ARCH_BALCONY;
 				break;
+			default:
+				console.error("Unknown block subtype: " + subtype);
+				return;
 			}
+			break;
+		default:
+			console.error("Unknown block type: " + type);
+			return;
 		}
 
 		const opening = new Cardinal(this.byteAttribute(openingByteAttribute));

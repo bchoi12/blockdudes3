@@ -125,8 +125,9 @@ func (g *Game) createObjectInitMsg() GameStateMsg {
 }
 
 func (g *Game) createGameInitMsg() GameStateMsg {
+	// Use objectUpdateType to ensure this data gets parsed by client.
 	return GameStateMsg{
-		T: objectDataType,
+		T: objectUpdateType,
 		S: g.seqNum,
 		Os: g.grid.GetObjectInitData(),
 	}

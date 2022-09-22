@@ -58,17 +58,17 @@ class Loader {
 		Model.TABLE,
 	];
 
-	private _loader : GLTFLoader;
-	private _paths : Map<Model, string>;
-
+	private _gltfLoader : GLTFLoader;
 	private _textureLoader : THREE.TextureLoader;
+
+	private _paths : Map<Model, string>;
 	private _texturePaths : Map<Texture, string>;
 
 	constructor() {
-		this._loader = new GLTFLoader();
-		this._paths = new Map<Model, string>();
-
+		this._gltfLoader = new GLTFLoader();
 		this._textureLoader = new THREE.TextureLoader();
+
+		this._paths = new Map<Model, string>();
 		this._texturePaths = new Map<Texture, string>();
 
 		for (const model in Model) {
@@ -94,7 +94,7 @@ class Loader {
 			return;
 		}
 
-		new GLTFLoader().load(this._paths.get(model), (data) => {
+		this._gltfLoader.load(this._paths.get(model), (data) => {
 			this.process(model, data);
 
 			if (Util.defined(cb)) {
@@ -110,7 +110,7 @@ class Loader {
 			return;
 		}
 
-		return new THREE.TextureLoader().load(this._texturePaths.get(texture), (texture) => {
+		return this._textureLoader.load(this._texturePaths.get(texture), (texture) => {
 			if (Util.defined(cb)) {
 				cb(texture);
 			}
@@ -131,12 +131,15 @@ class Loader {
 		return Model.UNKNOWN;
 	}
 
-	private preload() : void {
-		this.preloadHelper(0);
+	preload(cb? : () => void) : void {
+		this.preloadHelper(0, cb);
 	}
 
-	private preloadHelper(i : number) : void {
+	private preloadHelper(i : number, cb? : () => void) : void {
 		if (i >= this._preloadSet.length) {
+			if (Util.defined(cb)) {
+				cb();
+			}
 			return;
 		}
 		this.load(this._preloadSet[i], () => { this.preloadHelper(i + 1); });
