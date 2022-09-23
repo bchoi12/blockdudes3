@@ -1,1 +1,1 @@
-build.bat && heroku local web
+go build -o bin/blockdudes3.exe -v . && "bin/blockdudes3.exe"

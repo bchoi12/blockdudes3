@@ -240,6 +240,11 @@ class Game {
 
 		this.sceneMap().snapshotWasm();
 		const state = JSON.parse(wasmUpdate());
+		if (state.length === 0 || !Util.defined(state.Os)) {
+			LogUtil.d("Failed to extrapolate objects");
+			return;
+		}
+
 		for (const [stringSpace, objects] of Object.entries(state.Os) as [string, any]) {
 			for (const [stringId, object] of Object.entries(objects) as [string, any]) {
 				const space = Number(stringSpace);

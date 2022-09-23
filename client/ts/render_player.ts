@@ -1,15 +1,17 @@
 import * as THREE from 'three'
-import SpriteText from 'three-spritetext';
 
+import { CustomObject } from './custom_object.js'
 import { game } from './game.js'
 import { loader, Model } from './loader.js'
 import { Particle, Particles } from './particles.js'
 import { RenderAnimatedObject } from './render_animated_object.js'
+import { RenderBlock } from './render_block.js'
 import { RenderCustom } from './render_custom.js'
 import { RenderEquip } from './render_equip.js'
 import { RenderObject } from './render_object.js'
 import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
+import { ChangeTracker } from './tracker.js'
 import { LogUtil, MathUtil, Util } from './util.js'
 
 // enum name has to be the same as value
@@ -22,26 +24,58 @@ enum PlayerAction {
 export class RenderPlayer extends RenderAnimatedObject {
 	private readonly _rotationOffset = -0.1;
 
-	private _name : SpriteText;
+	private _name : THREE.Object3D;
 	private _pointer : THREE.Mesh;
 	private _playerMesh : THREE.Mesh;
 	private _arm : THREE.Object3D;
 	private _armOrigin : THREE.Vector3;
+	private _neck : THREE.Object3D;
 
 	private _weapon : RenderWeapon;
 	private _equip : RenderEquip;
 
-	private _lastTeam : number;
-	private _lastHealth : number;
+	private _teamTracker : ChangeTracker<number>;
+	private _healthTracker : ChangeTracker<number>;
+	private _jumpTracker : ChangeTracker<boolean>;
+	private _doubleJumpTracker : ChangeTracker<boolean>;
+
 	private _hitDuration : number;
-	private _lastCanJump : boolean;
-	private _lastDoubleJump : boolean;
 	private _lastHit : number;
 
 	constructor(space : number, id : number) {
 		super(space, id);
 
-		this._lastTeam = -1;
+		this._teamTracker = new ChangeTracker<number>(() => {
+			return this.byteAttribute(teamByteAttribute);
+		}, () => {
+			if (!Util.defined(this._pointer)) {
+				LogUtil.d("Changed teams before mesh was initialized.");
+				return;
+			}
+			// @ts-ignore
+			this._pointer.material.color = new THREE.Color(this.intAttribute(colorIntAttribute));
+		});
+		this._healthTracker = new ChangeTracker<number>(() => {
+			return this.byteAttribute(healthByteAttribute);
+		}, (health : number, lastHealth : number) => {
+			if (health < lastHealth) {
+				this._lastHit = Date.now();
+				this._hitDuration = (lastHealth - health) / 25 * 0.2;
+			}
+		});
+		this._jumpTracker = new ChangeTracker<boolean>(() => {
+			return this.attribute(canJumpAttribute);
+		}, () => {
+			this.emitClouds(3);
+		});
+		this._doubleJumpTracker = new ChangeTracker<boolean>(() => {
+			return this.attribute(canDoubleJumpAttribute);
+		}, (canDoubleJump : boolean) => {
+			if (!canDoubleJump) {
+				this.emitClouds(1);
+			}
+		});
+
 		this._lastHit = 0;
 		this._hitDuration = 0;
 	}
@@ -62,7 +96,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 		super.setMesh(mesh);
 
 		// Avoid z artifacts
-		mesh.position.z = 0.01 * (this.id() % 10);
+		mesh.position.z = 0.01 * (this.id() % 7);
 
 		// @ts-ignore
 		this._playerMesh = mesh.getObjectByName("mesh");
@@ -72,17 +106,18 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		this._arm = this.mesh().getObjectByName("armR");
 		this._armOrigin = this._arm.position.clone();
+		this._neck = this.mesh().getObjectByName("neck");
 
-		// TODO: hide when not moving or inside
-		this._name = new SpriteText(this.name(), 0.3, "black");
-		this._name.fontSize = 100;
-		this._name.position.y = 1.33;
+
+		const pointerHeight = 0.2;
+		this._name = CustomObject.textSprite(this.name(), {});
+		this._name.position.y = this.dim().y + pointerHeight / 2;
 		mesh.add(this._name);
 
-		this._pointer = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.2, 4, 1), new THREE.MeshToonMaterial({ color: this.color() }));
+		this._pointer = new THREE.Mesh(new THREE.ConeGeometry(pointerHeight, pointerHeight, 4, 1), new THREE.MeshToonMaterial({ color: this.color() }));
 		this._pointer.rotation.x = Math.PI;
 		this._pointer.rotation.y = Math.PI / 4;
-		this._pointer.position.y = 1.1;
+		this._pointer.position.y = this.dim().y - pointerHeight;
 		mesh.add(this._pointer);
 
 		for (const action in PlayerAction) {
@@ -99,7 +134,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 			return;
 		}
 
-		const pos = this.pos3();
+	const pos = this.pos3();
 		const dim = this.dim();
 		const vel = this.vel();
 		const acc = this.acc();
@@ -115,44 +150,19 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this._arm.position.add(armOffset);
 		}
 
-		const doubleJump = this.attribute(canDoubleJumpAttribute);
-		if (!Util.defined(this._lastDoubleJump)) {
-			this._lastDoubleJump = doubleJump;
-		} else if (doubleJump != this._lastDoubleJump) {
-			this._lastDoubleJump = doubleJump;
-
-			if (!this._lastDoubleJump) {
-				this.emitClouds(1);
-			}
+		if (this.id() !== game.id()) {
+		const blocks = game.sceneMap().getMap(blockSpace);
+			blocks.forEach((block : RenderBlock) => {
+				if (block.contains(this.pos())) {
+					this._name.visible = block.inside();
+				}
+			});
 		}
 
-		const canJump = this.attribute(canJumpAttribute);
-		if (!Util.defined(this._lastCanJump)) {
-			this._lastCanJump = canJump;
-		} else if (canJump != this._lastCanJump) {
-			this._lastCanJump = canJump;
-			this.emitClouds(3);
-		}
-
-		const health = this.byteAttribute(healthByteAttribute);
-		if (!Util.defined(this._lastHealth)) {
-			this._lastHealth = health;
-		}
-		if (this._lastHealth !== health) {
-			if (health < this._lastHealth) {
-				this._lastHit = Date.now();
-				this._hitDuration = (this._lastHealth - health) / 25 * 0.2;
-			}
-
-			this._lastHealth = health;
-		}
-
-		const team = this.byteAttribute(teamByteAttribute);
-		if (this._lastTeam !== team) {
-			this._lastTeam = team;
-			// @ts-ignore
-			this._pointer.material.color = new THREE.Color(this.intAttribute(colorIntAttribute));
-		}
+		this._healthTracker.check();
+		this._teamTracker.check();
+		this._jumpTracker.check();
+		this._doubleJumpTracker.check();
 
 		if ((Date.now() - this._lastHit) / 1000 <= this._hitDuration) {
 			// @ts-ignore
@@ -162,7 +172,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 			this._playerMesh.material.emissive = new THREE.Color(0x0);
 		}
 
-		if (!canJump) {
+		if (!this._jumpTracker.value()) {
 			this.fadeOut(PlayerAction.Idle, 0.1);
 			this.fadeOut(PlayerAction.Walk, 0.1);
 			this.fadeIn(PlayerAction.Jump, 0.1);
@@ -183,7 +193,6 @@ export class RenderPlayer extends RenderAnimatedObject {
 		}
 
 		this._weapon = weapon;
-		// this._arm.remove(...this._arm.children);
 		this._arm.add(this._weapon.mesh());
 		this._weapon.mesh().rotation.x = Math.PI / 2;
 		this._weapon.mesh().scale.z = -1;
@@ -205,16 +214,14 @@ export class RenderPlayer extends RenderAnimatedObject {
 		}
 		
 		if (Util.defined(equipPos)) {
-			let neck = this.mesh().getObjectByName("neck");
-
 			equip.mesh().position.copy(equipPos.position);
-			let cur = neck;
+			let cur = this._neck;
 			while (cur instanceof THREE.Bone) {
 				equip.mesh().position.sub(cur.position);
 				cur = cur.parent;
 			}
 			this._equip = equip;
-			neck.add(this._equip.mesh());
+			this._neck.add(this._equip.mesh());
 		} else {
 			LogUtil.d("Skipped equip due to missing position: " + type)
 		}
@@ -260,15 +267,13 @@ export class RenderPlayer extends RenderAnimatedObject {
 			return;
 		}
 
-		let neck = this.mesh().getObjectByName("neck");
-
 		if (this.attribute(deadAttribute)) {
-			neck.rotation.x = 0;
+			this._neck.rotation.x = 0;
 			this.mesh().rotation.z = MathUtil.signPos(this._playerMesh.scale.z) * Math.PI / 2;
 			return;
 		} else {
 			this.mesh().rotation.z = 0;
-			neck.rotation.x = dir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI : 0);
+			this._neck.rotation.x = dir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI : 0);
 
 			if (MathUtil.signPos(dir.x) != MathUtil.signPos(this._playerMesh.scale.z)) {
 				this._playerMesh.scale.z = MathUtil.signPos(dir.x);

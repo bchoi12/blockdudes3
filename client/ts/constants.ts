@@ -1,6 +1,6 @@
 /* WASM variables */
 declare var frameMillis : number;
-declare var wasmVersion : number;
+declare var wasmVersion : string;
 
 declare var leftCardinal : number;
 declare var rightCardinal : number;

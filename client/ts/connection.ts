@@ -52,8 +52,10 @@ class Connection {
 	ready() : boolean { return Util.defined(this._id) && this.wsReady() && this.dcReady(); }
 
 	connect(vars : Map<string, string>, socketSuccess : () => void, dcSuccess : () => void) : void {
-		const prefix = Util.isDev() ? "ws://" : "wss://"
-		let endpoint = prefix + window.location.host + "/bd3/"
+		const prefix = Util.isDev() ? "ws://" : "wss://";
+		const server = Util.isDev() ? "localhost:8080" : window.location.host.includes("herokuapp") ? window.location.host : "blockdudes3.uc.r.appspot.com";
+		let endpoint = prefix + server + "/bd3/"
+		console.log("Using endpoint " + endpoint);
 		for (const [key, value] of vars) {
 			endpoint += key + "=" + value + "&";
 		}
@@ -154,9 +156,6 @@ class Connection {
 		};
 		this._ws.onmessage = (event) => {	
 			this.handlePayload(event.data);
-		};
-		this._ws.onerror = (event) => {
-			console.error("Websocket error!");
 		};
 		this._ws.onclose = (event) => {
 			console.error("Websocket closed!");

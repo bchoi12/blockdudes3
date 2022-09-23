@@ -7,6 +7,8 @@ import { ui, InputMode } from './ui.js'
 
 declare var Go: any;
 
+const clientVersion = "0.1";
+
 document.addEventListener('DOMContentLoaded', (event) => {
 	Html.elm(Html.loginInfo).textContent = "Loading game instance..."
 	game.startRender();
@@ -23,7 +25,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 		Html.elm(Html.loginInfo).textContent = ""
 
 		// TODO: ErrorHandler ui component
-		if (!Util.defined(wasmVersion) || wasmVersion !== 2) {
+		if (!Util.defined(wasmVersion) || wasmVersion !== clientVersion) {
 			ui.print("Your game is outdated. Please refresh to download the latest stuff");
 			return;
 		}

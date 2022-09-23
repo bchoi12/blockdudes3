@@ -3,9 +3,11 @@ import * as THREE from 'three';
 import { Cardinal } from './cardinal.js'
 import { EffectType } from './effects.js'
 import { ForegroundGroup } from './foreground_group.js'
+import { game } from './game.js'
 import { loader, Model } from './loader.js'
 import { options } from './options.js'
 import { RenderObject } from './render_object.js'
+import { RenderPlayer } from './render_player.js'
 import { renderer } from './renderer.js'
 import { Util } from './util.js'
 import { WallBuilder } from './wall_builder.js'
@@ -13,12 +15,14 @@ import { WallBuilder } from './wall_builder.js'
 export class RenderBlock extends RenderObject {
 	private readonly _minOpacity = 0.1;
 
+	private _inside : boolean;
 	private _bbox : THREE.Box2;
 	private _windows : THREE.Object3D;
 	private _frontMaterials : Map<THREE.Material, number>;
 
 	constructor(space : number, id : number) {
 		super(space, id);
+		this._inside = false;
 		this._frontMaterials = new Map<THREE.Material, number>();
 	}
 
@@ -114,7 +118,7 @@ export class RenderBlock extends RenderObject {
 
 			mesh.position.copy(this.pos3());
 
-			if (this.byteAttribute(subtypeByteAttribute) === balconyBlockSubtype) {
+			if (subtype === balconyBlockSubtype) {
 				if (opening.anyLeft()) {
 					mesh.rotation.set(0, -Math.PI / 2, 0);
 				} else if (opening.anyRight()) {
@@ -126,7 +130,12 @@ export class RenderBlock extends RenderObject {
 
 			const pos = this.pos();
 			const dim = this.dim();
-			this._bbox = new THREE.Box2(new THREE.Vector2(pos.x - dim.x/2, pos.y), new THREE.Vector2(pos.x + dim.x/2, pos.y + dim.y));
+
+			if (subtype !== balconyBlockSubtype) {
+				this._bbox = new THREE.Box2(
+					new THREE.Vector2(pos.x - dim.x/2 - 0.1, pos.y - 0.1),
+					new THREE.Vector2(pos.x + dim.x/2 + 0.1, pos.y + dim.y + 0.1));
+			}
 		});
 	}
 
@@ -138,22 +147,32 @@ export class RenderBlock extends RenderObject {
 		}
 
 		const anchor = renderer.cameraAnchor();
-		const inside = this._bbox.containsPoint(new THREE.Vector2(anchor.x, anchor.y));
+		this._inside = this.contains(new THREE.Vector2(anchor.x, anchor.y));
 
 		this._frontMaterials.forEach((opacity, mat) => {
 			if (options.enableEffects) {
-				if (inside && !mat.transparent) {
+				if (this._inside && !mat.transparent) {
 					mat.transparent = true;
 				}
-				mat.opacity = Math.min(opacity, Math.max(this._minOpacity, mat.opacity + this.timestep() * (inside ? -3 : 5)));
+				mat.opacity = Math.min(opacity, Math.max(this._minOpacity, mat.opacity + this.timestep() * (this._inside ? -3 : 5)));
 			} else {
-				mat.visible = !inside;
+				mat.visible = !this._inside;
 			}
 		});
 
 		if (Util.defined(this._windows)) {
-			this._windows.visible = !inside;
+			this._windows.visible = !this._inside;
 		}
+	}
 
+	inside() : boolean {
+		return this._inside;
+	}
+
+	contains(pos : THREE.Vector2) {
+		if (!Util.defined(this._bbox)) {
+			return false;
+		}
+		return this._bbox.containsPoint(pos);
 	}
 }

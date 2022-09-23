@@ -11,7 +11,6 @@ import (
 
 const (
 	isWasm bool = true
-	wasmVersion int = 2
 )
 
 type WasmStats struct {
@@ -32,7 +31,7 @@ func main() {
 
 func setGlobals() {
 	js.Global().Set("frameMillis", frameMillis)
-	js.Global().Set("wasmVersion", wasmVersion)
+	js.Global().Set("wasmVersion", gameVersion)
 
 	js.Global().Set("leftCardinal", int(leftCardinal))
 	js.Global().Set("rightCardinal", int(rightCardinal))
@@ -337,6 +336,7 @@ func LoadLevel() js.Func {
 		if err != nil {
 			fmt.Println("LoadLevel: ", err)
 			fmt.Println("objects: ", objects)
+			return ""
 		}
 		return string(b)
 	})
@@ -350,6 +350,7 @@ func Update() js.Func {
 		if err != nil {
 			fmt.Println("Update: ", err)
 			fmt.Println("state: ", state)
+			return ""
 		}
 		return string(b)
     })

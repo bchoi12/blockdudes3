@@ -7,6 +7,7 @@ import (
 const (
 	frameMillis int = 16
 	frameTime time.Duration = 16 * time.Millisecond
+	gameVersion string = "0.1"
 )
 
 type Game struct {

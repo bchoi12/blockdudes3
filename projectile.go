@@ -146,10 +146,6 @@ func (p *Projectile) SelfDestruct(grid *Grid) {
 }
 
 func (p *Projectile) Hit(grid *Grid, collider Object) {
-	if p.GetDamage() == 0 {
-		return
-	}
-
 	p.target = p.collider.GetSpacedId()
 
 	switch object := collider.(type) {

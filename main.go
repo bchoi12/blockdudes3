@@ -14,10 +14,27 @@ const (
 	clientEndpoint string = "/bd3/"
 )
 
-var upgrader = websocket.Upgrader{}
+var allowedOrigins = map[string]bool {
+	"http://localhost:8080": true,
+	"https://localhost:8080": true,	
+	"http://localhost:8081": true,
+	"https://localhost:8081": true,
+	"https://blockdudes3.uc.r.appspot.com": true,
+	"https://blockdudes3.herokuapp.com": true,
+}
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+	    origin := r.Header.Get("Origin")
+		allowed, ok := allowedOrigins[origin]
+	    return ok && allowed
+	},
+}
 
 func main() {
 	http.HandleFunc(clientEndpoint, clientEndpointHandler)
+
+	// TODO: remove this eventually
 	serveFiles("/")
 
 	port := os.Getenv("PORT")
