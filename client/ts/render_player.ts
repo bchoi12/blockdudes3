@@ -110,7 +110,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 
 		const pointerHeight = 0.2;
-		this._name = CustomObject.textSprite(this.name(), {});
+		this._name = CustomObject.nameSprite(this.name());
 		this._name.position.y = this.dim().y + pointerHeight / 2;
 		mesh.add(this._name);
 

@@ -7,9 +7,9 @@
 
 The third version of Block Dudes, a 2.5D multiplayer shooter that runs in your browser. The game is still under development, but here are some screenshots:
 
-![devlog 37](https://raw.githubusercontent.com/bchoi12/blockdudes3/master/screenshots/devlog37.png)
+![devlog 39](https://raw.githubusercontent.com/bchoi12/blockdudes3/master/screenshots/devlog39.png)
 
-![devlog 32](https://raw.githubusercontent.com/bchoi12/blockdudes3/master/screenshots/devlog32.png)
+![devlog 43](https://raw.githubusercontent.com/bchoi12/blockdudes3/master/screenshots/devlog43.png)
 
 ## Credits
 
@@ -29,7 +29,6 @@ Client
  * [msgpack](https://msgpack.org/) for data compression
  * [Howler](https://howlerjs.com/) for audio
  * [webpack](https://webpack.js.org/) for bundling code
- * [vasturiano three-spritext](https://github.com/vasturiano/three-spritetext) for player names
 
  Offline
  * [Blender](https://www.blender.org/) for art
