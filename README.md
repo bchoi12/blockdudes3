@@ -7,7 +7,7 @@
 
 The third version of Block Dudes, a 2.5D multiplayer shooter that runs in your browser. The game is still under development, but here are some screenshots:
 
-![devlog 39](https://raw.githubusercontent.com/bchoi12/blockdudes3/master/screenshots/devlog39.png)
+![devlog 40](https://raw.githubusercontent.com/bchoi12/blockdudes3/master/screenshots/devlog40.png)
 
 ![devlog 43](https://raw.githubusercontent.com/bchoi12/blockdudes3/master/screenshots/devlog43.png)
 
