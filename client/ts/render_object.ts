@@ -186,6 +186,14 @@ export class RenderObject extends RenderMesh {
 		return 0;
 	}
 
+	hasSecondaryColor() : boolean { return this.hasIntAttribute(secondaryColorIntAttribute); }
+	secondaryColor() : number {
+		if (this.hasSecondaryColor()) {
+			return this.intAttribute(secondaryColorIntAttribute);
+		}
+		return 0;
+	}
+
 	hasDimZ() : boolean { return this.hasFloatAttribute(dimZFloatAttribute); }
 	dimZ() : number {
 		if (this.hasDimZ()) {

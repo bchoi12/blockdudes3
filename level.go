@@ -134,7 +134,7 @@ func (l *Level) loadTestLevel(grid *Grid) {
 	{
 		blockType := archBlock
 		pos := l.blockGrid.GetNextPos(blockType, 20)
-		color := 0x0ffc89
+		color := archGreen
 
 		building := NewBuilding(BuildingAttributes{
 			pos: pos,
@@ -146,7 +146,7 @@ func (l *Level) loadTestLevel(grid *Grid) {
 		b = building.AddBlock(baseBlockSubtype)
 		b.AddOpenings(rightCardinal)
 		b = building.AddBlock(balconyBlockSubtype)
-		b.AddOpenings(rightCardinal)
+		b.SetInitDir(NewVec2(1, 0))
 		b = building.AddBlock(roofBlockSubtype)
 		b.LoadTemplate(weaponsBlockTemplate)
 
@@ -163,7 +163,7 @@ func (l *Level) loadTestLevel(grid *Grid) {
 	{
 		blockType := archBlock
 		pos := l.blockGrid.GetNextPos(blockType, 9.0)
-		color := 0xfc1f0f
+		color := archRed
 
 		building := NewBuilding(BuildingAttributes{
 			pos: pos,
@@ -175,11 +175,11 @@ func (l *Level) loadTestLevel(grid *Grid) {
 		b = building.AddBlock(baseBlockSubtype)
 		b.AddOpenings(leftCardinal, rightCardinal)
 		b = building.AddBlock(balconyBlockSubtype)
-		b.AddOpenings(leftCardinal)
+		b.SetInitDir(NewVec2(-1, 0))
 		b = building.AddBlock(baseBlockSubtype)
 		b.AddOpenings(leftCardinal, rightCardinal)
 		b = building.AddBlock(balconyBlockSubtype)
-		b.AddOpenings(leftCardinal)
+		b.SetInitDir(NewVec2(-1, 0))
 		b = building.AddBlock(roofBlockSubtype)
 		b.AddOpenings(rightCardinal)
 
@@ -189,7 +189,7 @@ func (l *Level) loadTestLevel(grid *Grid) {
 	{
 		blockType := archBlock
 		pos := l.blockGrid.GetNextPos(blockType, 0)
-		color := 0x0fdcfc
+		color := archBlue
 
 		building := NewBuilding(BuildingAttributes{
 			pos: pos,
@@ -207,7 +207,7 @@ func (l *Level) loadTestLevel(grid *Grid) {
 		b = building.AddBlock(baseBlockSubtype)
 		b.AddOpenings(leftCardinal, bottomRightCardinal, rightCardinal)
 		b = building.AddBlock(balconyBlockSubtype)
-		b.AddOpenings(rightCardinal)
+		b.SetInitDir(NewVec2(1, 0))
 		b = building.AddBlock(roofBlockSubtype)
 
 		l.blockGrid.AddBuilding(building)
@@ -216,7 +216,7 @@ func (l *Level) loadTestLevel(grid *Grid) {
 	{
 		blockType := archBlock
 		pos := l.blockGrid.GetNextPos(blockType, 0)
-		color := 0xb50ffc
+		color := archPurple
 
 		building := NewBuilding(BuildingAttributes{
 			pos: pos,
@@ -228,7 +228,7 @@ func (l *Level) loadTestLevel(grid *Grid) {
 		b = building.AddBlock(baseBlockSubtype)
 		b.AddOpenings(leftCardinal, rightCardinal)
 		b = building.AddBlock(balconyBlockSubtype)
-		b.AddOpenings(rightCardinal)
+		b.SetInitDir(NewVec2(1, 0))
 		b = building.AddBlock(roofBlockSubtype)
 		b.AddOpenings(leftCardinal)
 		b.LoadTemplate(middlePlatformBlockTemplate)
@@ -239,7 +239,7 @@ func (l *Level) loadTestLevel(grid *Grid) {
 	{
 		blockType := archBlock
 		pos := l.blockGrid.GetNextPos(blockType, 9.0)
-		color := 0x0ffc89
+		color := archGreen
 
 		building := NewBuilding(BuildingAttributes{
 			pos: pos,
@@ -251,7 +251,7 @@ func (l *Level) loadTestLevel(grid *Grid) {
 		b = building.AddBlock(baseBlockSubtype)
 		b.AddOpenings(leftCardinal)
 		b = building.AddBlock(balconyBlockSubtype)
-		b.AddOpenings(leftCardinal)
+		b.SetInitDir(NewVec2(-1, 0))
 		b = building.AddBlock(roofBlockSubtype)
 		b.LoadTemplate(weaponsBlockTemplate)
 

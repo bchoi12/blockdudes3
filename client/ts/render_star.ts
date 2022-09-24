@@ -27,7 +27,7 @@ export class RenderStar extends RenderProjectile {
 	}
 
 	override ready() : boolean {
-		return super.ready() && this.hasColor();
+		return super.ready() && this.hasColor() && this.hasSecondaryColor();
 	}
 
 	override initialize() : void {
@@ -35,7 +35,7 @@ export class RenderStar extends RenderProjectile {
 
 		const dim = this.dim();
 		const group = new THREE.Group();
-		const colorPair = [this.color(), Math.min(0xFFFFFF, this.color() + 0x42A11B)];
+		const colorPair = [this.color(), this.secondaryColor()];
 
 		this._materials.push(new THREE.MeshLambertMaterial({ color: colorPair[0] }));
 		this._materials.push(new THREE.MeshLambertMaterial({ color: colorPair[1] }));

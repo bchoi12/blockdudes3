@@ -10,7 +10,8 @@ import { renderer } from './renderer.js'
 import { MathUtil, Util } from './util.js'
 
 export class RenderExplosion extends RenderObject {
-	private readonly _confettiColors = [0xAD07DB, 0xc306d1, 0xed0505, 0xed8805, 0x020f9e, 0x5805ab];
+	// Copied from the server.
+	private readonly _confettiColors = [0xc306d1, 0xed0505, 0xed8805, 0x020f9e, 0x5805ab];
 
 	private _scale : number;
 	private _confetti : RenderCustom;
@@ -27,13 +28,13 @@ export class RenderExplosion extends RenderObject {
 
 	override initialize() : void {
 		super.initialize();
-		const material = new THREE.MeshLambertMaterial({color: this.color() });
 
 		let mesh;
 		const radius = this.dim().x / 2;
 		if (radius > 1) {
+			const material = new THREE.MeshLambertMaterial({color: this.color() });
 			// Add a random number for overlapping explosions
-			mesh = new THREE.Mesh(new THREE.SphereGeometry(radius + MathUtil.randomRange(0, 0.05), 12, 8), material);
+			mesh = new THREE.Mesh(new THREE.SphereGeometry(radius + (this.id() % 5) * 0.01, 12, 8), material);
 			renderer.playSound(Sound.EXPLOSION, this.pos());
 		} else {
 			mesh = new THREE.Object3D();

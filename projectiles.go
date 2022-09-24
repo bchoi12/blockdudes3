@@ -36,7 +36,7 @@ func NewBolt(init Init) *Bolt {
 	}
 	bolt.SetTTL(800 * time.Millisecond)
 	bolt.SetDamage(10)
-	bolt.SetIntAttribute(colorIntAttribute, 0xffa610)
+	bolt.SetIntAttribute(colorIntAttribute, boltColor)
 	return bolt
 }
 
@@ -44,13 +44,13 @@ func (b *Bolt) AddAttribute(attribute AttributeType) {
 	b.Projectile.AddAttribute(attribute)
 
 	if attribute == chargedAttribute {
-		b.SetIntAttribute(colorIntAttribute, 0x10b3ff)
+		b.SetIntAttribute(colorIntAttribute, chargedBoltColor)
 		b.SetTTL(1600 * time.Millisecond)
 		b.SetDamage(80)
 		b.SetExplosionOptions(ExplosionOptions {
 			explode: true,
 			size: NewVec2(5, 5),
-			color: 0x10b3ff,
+			color: chargedBoltColor,
 		})
 	}
 }
@@ -68,13 +68,13 @@ func NewRocket(init Init) *Rocket {
 	rocket.SetExplosionOptions(ExplosionOptions {
 		explode: true,
 		size: NewVec2(4, 4),
-		color: 0xbb4444,
+		color: rocketExplosionColor,
 	})
 	rocket.SetDamage(50)
 	return rocket
 }
 
-var starColors = [...]int {0xAD07DB, 0xc306d1, 0xed0505, 0xed8805, 0x020f9e, 0x5805ab}
+var starColors = [...]int { starRed, starOrange, starBlue, starPurple, starDarkPurple }
 
 type Star struct {
 	Projectile
@@ -97,6 +97,7 @@ func NewStar(init Init) *Star {
 	star.SetDamage(25)
 	star.SetSticky(true)
 	star.SetIntAttribute(colorIntAttribute, color)
+	star.SetIntAttribute(secondaryColorIntAttribute, starSecondary)
 	return star
 }
 

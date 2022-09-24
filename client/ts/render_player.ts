@@ -62,10 +62,11 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._healthTracker = new ChangeTracker<number>(() => {
 			return this.byteAttribute(healthByteAttribute);
 		}, (health : number, lastHealth : number) => {
-			this._tearLevel = 4 - Math.ceil(health / 25);
-			this._tearInterval = 250 + 750 * Math.ceil(health / 25);
-			if (health === 0) {
+			if (health === 0 || health > 60) {
 				this._tearLevel = 0;
+			} else {
+				this._tearLevel = (70 - health) / 10;
+				this._tearInterval = 1000 + 500 * health / 20;
 			}
 
 			let lostHealth = Math.round(lastHealth - health);
@@ -387,7 +388,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	}
 
 	private emitTears() : void {
-		game.particles().emit(Particle.TEARS, 100 + 100 * this._tearLevel, (object : THREE.InstancedMesh, ts : number) => {
+		game.particles().emit(Particle.TEARS, 150 + 50 * this._tearLevel, (object : THREE.InstancedMesh, ts : number) => {
 			object.position.copy(this.pos3());
 			for (let i = 0; i < object.count; ++i) {
 				let matrix = new THREE.Matrix4();
@@ -399,7 +400,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 				let dir = new THREE.Vector3(0, -1, 0);
 				dir.applyQuaternion(rotation);
-				dir.multiplyScalar(3 / Math.max(1, Math.abs(6 * pos.x)) * ts);
+				dir.multiplyScalar(4 / Math.max(1, Math.abs(6 * pos.x)) * ts);
 				pos.add(dir);
 
 				scale.sub(new THREE.Vector3(0.3 * ts, 0.3 * ts, 0.3 * ts));
@@ -425,7 +426,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 					);						
 				},
 				scaleFn: (object, i) => {
-					const scale = 0.1 + 0.05 * this._tearLevel;
+					const scale = 0.1 + 0.04 * this._tearLevel;
 					return new THREE.Vector3(scale, scale, scale);
 				},
 				rotationFn: (object, i) => {

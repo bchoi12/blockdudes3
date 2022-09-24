@@ -92,7 +92,7 @@ func (b *Block) SetBlockType(blockType BlockType) {
 		b.thick = 0.5
 		b.sideOpening = 0.75
 		b.bottomOpening = 0.5
-		b.SetIntAttribute(secondaryColorIntAttribute, 0xffffff)
+		b.SetIntAttribute(secondaryColorIntAttribute, archSecondary)
 	default:
 		return
 	}
@@ -161,7 +161,7 @@ func (b *Block) LoadTemplate(template BlockTemplate) {
 		table := NewWall(NewInitC(Id(wallSpace, 0), NewVec2(x, y + b.thick), NewVec2(3, 1), bottomCardinal))
 		table.SetByteAttribute(subtypeByteAttribute, uint8(tableWallSubtype))
 		table.AddAttribute(visibleAttribute)
-		table.SetIntAttribute(colorIntAttribute, 0x996312)
+		table.SetIntAttribute(colorIntAttribute, tableColor)
 		b.objects = append(b.objects, table)
 	}
 }
@@ -232,14 +232,11 @@ func (b *Block) LoadSidedTemplate(template SidedBlockTemplate, cardinal Cardinal
 func (b *Block) LoadWalls() {
 	if b.blockSubtype == balconyBlockSubtype {
 		initPos := b.InitPos()
-		if b.openings.AnyLeft() {
+		if b.InitDir().X < 0 {
 			initPos.X -= blockSizes[b.blockType][baseBlockSubtype].X / 2
 		}
-		if b.openings.AnyRight() {
+		if b.InitDir().X > 0 {
 			initPos.X += blockSizes[b.blockType][baseBlockSubtype].X / 2
-		}
-		if b.openings.AnyTop() {
-			initPos.Y += blockSizes[b.blockType][baseBlockSubtype].Y
 		}
 		b.SetInitPos(initPos)
 	}
@@ -314,13 +311,13 @@ func (b *Block) LoadWalls() {
 			b.objects = append(b.objects, NewWall(wall))
 		}
 	case balconyBlockSubtype:
-		if b.openings.AnyRight() {
+		if b.InitDir().X > 0 {
 			floor := NewInitC(Id(wallSpace, 0), NewVec2(x, y), NewVec2(width, b.thick), bottomLeftCardinal)
 			b.objects = append(b.objects, NewWall(floor))
 
 			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width, y), NewVec2(b.thick, height), bottomRightCardinal)
 			b.objects = append(b.objects, NewWall(right))
-		} else if b.openings.AnyLeft() {
+		} else if b.InitDir().X < 0 {
 			floor := NewInitC(Id(wallSpace, 0), NewVec2(x, y), NewVec2(width, b.thick), bottomRightCardinal)
 			b.objects = append(b.objects, NewWall(floor))
 

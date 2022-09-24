@@ -119,9 +119,9 @@ export class RenderBlock extends RenderObject {
 			mesh.position.copy(this.pos3());
 
 			if (subtype === balconyBlockSubtype) {
-				if (opening.anyLeft()) {
+				if (this.dir().x < 0) {
 					mesh.rotation.set(0, -Math.PI / 2, 0);
-				} else if (opening.anyRight()) {
+				} else if (this.dir().x > 0) {
 					mesh.rotation.set(0, Math.PI / 2, 0);
 				}
 			}
