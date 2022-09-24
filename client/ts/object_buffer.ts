@@ -63,8 +63,15 @@ export class ObjectBuffer<T extends THREE.Object3D> {
 				let scale = overrides.instances.scaleFn ? overrides.instances.scaleFn(object, i) : new THREE.Vector3(1, 1, 1);
 				let rotation = overrides.instances.rotationFn ? overrides.instances.rotationFn(object, i) : new THREE.Quaternion();
 
+				let quaternion = new THREE.Quaternion();
+				if (rotation instanceof THREE.Euler) {
+					quaternion.setFromEuler(rotation);	
+				} else {
+					quaternion.copy(rotation);
+				}
+
 				let matrix = new THREE.Matrix4();
-				matrix.compose(pos, rotation, scale);
+				matrix.compose(pos, quaternion, scale);
 				object.setMatrixAt(i, matrix);
 
 				let color = new THREE.Color();
@@ -116,7 +123,7 @@ export class ObjectBuffer<T extends THREE.Object3D> {
 export interface InstanceOptions {
 	posFn? : (object? : THREE.InstancedMesh, i? : number) => THREE.Vector3;
 	scaleFn? : (object? : THREE.InstancedMesh, i? : number) => THREE.Vector3;
-	rotationFn? : (object? : THREE.InstancedMesh, i? : number) => THREE.Quaternion
+	rotationFn? : (object? : THREE.InstancedMesh, i? : number) => THREE.Quaternion | THREE.Euler
 	colorFn? : (object? : THREE.InstancedMesh, i? : number) => any;
 }
 

@@ -42,6 +42,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 	private _hitDuration : number;
 	private _lastHit : number;
+	private _lastTears : number;
+	private _tearInterval : number;
+	private _tearLevel : number;
 
 	constructor(space : number, id : number) {
 		super(space, id);
@@ -59,6 +62,12 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._healthTracker = new ChangeTracker<number>(() => {
 			return this.byteAttribute(healthByteAttribute);
 		}, (health : number, lastHealth : number) => {
+			this._tearLevel = 4 - Math.ceil(health / 25);
+			this._tearInterval = 250 + 750 * Math.ceil(health / 25);
+			if (health === 0) {
+				this._tearLevel = 0;
+			}
+
 			let lostHealth = Math.round(lastHealth - health);
 			if (lostHealth > 0) {
 				let scale = Math.max(lostHealth / 25, 1);
@@ -68,7 +77,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 				if (this.hasPos()) {
 					let damageText = SpriteCreator.text("" + Math.round(lastHealth - health), {
 						fontFace: "Impact",
-						fontSize: 128,
+						fontSize: 96,
 						buffer: 0.1,
 						color: "#" + (this.color() & 0x00FFFFFF).toString(16).padStart(6, "0"),
 						shadow: "white",
@@ -96,8 +105,8 @@ export class RenderPlayer extends RenderAnimatedObject {
 						object.position.x += vel.x * ts;
 						object.position.y += vel.y * ts;
 
-						object.scale.x += 0.5 * vel.y * ts;
-						object.scale.y += 0.5 * vel.y * ts;
+						object.scale.x += 0.3 * vel.y * ts;
+						object.scale.y += 0.3 * vel.y * ts;
 						if (object.scale.x < 0) {
 							object.scale.x = 0;
 						}
@@ -105,7 +114,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 							object.scale.y = 0;
 						}
 
-						vel.y -= 8 * ts;
+						vel.y -= 10 * ts;
 					});
 				}
 			}
@@ -125,6 +134,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		this._lastHit = 0;
 		this._hitDuration = 0;
+		this._lastTears = 0;
+		this._tearLevel = 0;
+		this._tearInterval = 4000;
 	}
 
 	override ready() : boolean {
@@ -229,6 +241,11 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._teamTracker.check();
 		this._jumpTracker.check();
 		this._doubleJumpTracker.check();
+
+		if (this._tearLevel > 0 && Date.now() - this._lastTears > this._tearInterval) {
+			this.emitTears();
+			this._lastTears = Date.now();
+		}
 
 		if ((Date.now() - this._lastHit) / 1000 <= this._hitDuration) {
 			// @ts-ignore
@@ -365,6 +382,56 @@ export class RenderPlayer extends RenderAnimatedObject {
 						pos.z + MathUtil.randomRange(-0.3, 0.3)),
 					scale : scale,
 				});
+			}
+		});
+	}
+
+	private emitTears() : void {
+		game.particles().emit(Particle.TEARS, 100 + 100 * this._tearLevel, (object : THREE.InstancedMesh, ts : number) => {
+			object.position.copy(this.pos3());
+			for (let i = 0; i < object.count; ++i) {
+				let matrix = new THREE.Matrix4();
+				object.getMatrixAt(i, matrix);
+				let pos = new THREE.Vector3();
+				let rotation = new THREE.Quaternion();
+				let scale = new THREE.Vector3();
+				matrix.decompose(pos, rotation, scale);
+
+				let dir = new THREE.Vector3(0, -1, 0);
+				dir.applyQuaternion(rotation);
+				dir.multiplyScalar(3 / Math.max(1, Math.abs(6 * pos.x)) * ts);
+				pos.add(dir);
+
+				scale.sub(new THREE.Vector3(0.3 * ts, 0.3 * ts, 0.3 * ts));
+
+				matrix.compose(pos, rotation, scale);
+				object.setMatrixAt(i, matrix);
+			}
+
+			if (object.instanceMatrix) {
+				object.instanceMatrix.needsUpdate = true;
+			}
+		}, {
+			position: this.pos3(),
+			rotation: new THREE.Euler(0, 0, this.dir().angle() + this.dir().x < 0 ? Math.PI : 0),
+			scale: 1,
+			instances: {
+				posFn: (object, i) => {
+					let sign = i % 2 === 0 ? -1 : 1;
+					return new THREE.Vector3(
+						sign * (0.8 - (i % 2) * 0.4),
+						0.8 + Math.floor(i / 2) * 0.2,
+						0,
+					);						
+				},
+				scaleFn: (object, i) => {
+					const scale = 0.1 + 0.05 * this._tearLevel;
+					return new THREE.Vector3(scale, scale, scale);
+				},
+				rotationFn: (object, i) => {
+					let sign = i % 2 === 0 ? -1 : 1;
+					return new THREE.Euler(0, 0, (0.7 + Math.floor(i / 2) * 0.1) * sign * Math.PI);
+				},
 			}
 		});
 	}

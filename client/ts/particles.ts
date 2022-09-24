@@ -19,6 +19,7 @@ export enum Particle {
 	LINES = 10,
 	SMOKE_RING = 11,
 	PORTAL = 12,
+	TEARS = 13,
 }
 
 export class Particles extends SceneComponent {
@@ -36,6 +37,7 @@ export class Particles extends SceneComponent {
 			new THREE.Vector2(-1, -0.25),
 			new THREE.Vector2(0, -0.5),
 		]), { depth: 0.1, bevelEnabled: false });
+	private readonly _tear;
 
 	private readonly _smokeMaterial = new THREE.MeshLambertMaterial( {color: 0xfbfbfb } );
 	private readonly _dustMaterial = new THREE.MeshLambertMaterial( {color: 0xbfbfbf } );
@@ -51,6 +53,7 @@ export class Particles extends SceneComponent {
 		side: THREE.DoubleSide,
 		color: 0xffffff,
 	});
+	private readonly _tearMaterial = new THREE.MeshLambertMaterial({ color: 0xbefffd })
 
 	private _geometries : Map<Particle, THREE.BufferGeometry>;
 	private _materials : Map<Particle, () => THREE.Material>;
@@ -60,6 +63,15 @@ export class Particles extends SceneComponent {
 
 	constructor() {
 		super();
+
+		let tear = [];
+		const tearSegments = 10;
+		for (let i = 0; i <= tearSegments; ++i) {
+			let t = i / tearSegments * Math.PI;
+			let x = Math.sin(t / 2);
+			tear.push(new THREE.Vector2(0.5 * Math.sin(t) * x * x, 0.5 * Math.cos(t)));
+		}
+		this._tear = new THREE.LatheGeometry(tear, 6);
 
 		this._geometries = new Map<Particle, THREE.BufferGeometry>();
 		this._geometries.set(Particle.SMOKE, this._sphere);
@@ -74,6 +86,7 @@ export class Particles extends SceneComponent {
 		this._geometries.set(Particle.LINES, this._plane);
 		this._geometries.set(Particle.SMOKE_RING, this._torus);
 		this._geometries.set(Particle.PORTAL, this._cube);
+		this._geometries.set(Particle.TEARS, this._tear);
 
 		this._materials = new Map<Particle, () => THREE.Material>();
 		this._materials.set(Particle.SMOKE, () => { return this._smokeMaterial; });
@@ -88,6 +101,7 @@ export class Particles extends SceneComponent {
 		this._materials.set(Particle.LINES, () => { return this._basicWhiteMaterial; });
 		this._materials.set(Particle.SMOKE_RING, () => { return this._smokeMaterial; });
 		this._materials.set(Particle.PORTAL, () => { return this._basicWhiteMaterial; });
+		this._materials.set(Particle.TEARS, () => { return this._tearMaterial; });
 
 		this._sizes = new Map<Particle, number>();
 		this._sizes.set(Particle.DUST, 24);
@@ -101,6 +115,7 @@ export class Particles extends SceneComponent {
 		this._counts.set(Particle.CONFETTI, 18);
 		this._counts.set(Particle.LINES, 7);
 		this._counts.set(Particle.PORTAL, 16);
+		this._counts.set(Particle.TEARS, 4);
 
 		this._emitters = new Map<Particle, ObjectBuffer<THREE.Object3D>>();
 

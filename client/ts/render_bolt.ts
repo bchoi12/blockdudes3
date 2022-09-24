@@ -37,7 +37,7 @@ export class RenderBolt extends RenderProjectile {
 			object.rotation.z = this.dir().angle();
 		}, {
 			position: this.pos3(),
-			scale: new THREE.Vector3(dim.x, dim.y, 0),
+			scale: new THREE.Vector3(dim.x, dim.y, 1),
 			instances: {
 				posFn: (object, i) => {
 					return new THREE.Vector3(0, 0, 0.04 * i);
