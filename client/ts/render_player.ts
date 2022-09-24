@@ -413,7 +413,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 			}
 		}, {
 			position: this.pos3(),
-			rotation: new THREE.Euler(0, 0, this.dir().angle() + this.dir().x < 0 ? Math.PI : 0),
+			rotation: new THREE.Euler(0, 0, this.dir().angle() + (this.dir().x < 0 ? Math.PI : 0)),
 			scale: 1,
 			instances: {
 				posFn: (object, i) => {

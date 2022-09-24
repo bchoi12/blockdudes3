@@ -49,6 +49,7 @@ export class CameraController {
 			this._orbitControls.enableRotate = true;
 			this._orbitControls.enablePan =  true;
 			this._orbitControls.enableZoom = true;
+			this._orbitControls.target.copy(this._anchor);
 		}
 
 		this._free = free;
