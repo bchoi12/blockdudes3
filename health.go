@@ -38,6 +38,10 @@ func (h *Health) Die() {
 
 func (h *Health) SetHealth(health int) {
 	h.enabled = true
+
+	if health < 0 {
+		health = 0
+	}
 	h.health = health
 }
 

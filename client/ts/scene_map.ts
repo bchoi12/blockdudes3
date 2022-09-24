@@ -37,6 +37,7 @@ export class SceneMap {
 		this._deleted = new Map();
 
 		this._components = new Map<SceneComponentType, SceneComponent>();
+		this.addComponent(SceneComponentType.BASE, new SceneComponent());
 		this.addComponent(SceneComponentType.LIGHTING, new Lighting());
 		this.addComponent(SceneComponentType.WEATHER, new Weather());
 		this.addComponent(SceneComponentType.PARTICLES, new Particles());

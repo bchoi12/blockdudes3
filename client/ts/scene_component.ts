@@ -4,12 +4,13 @@ import { RenderCustom } from './render_custom.js'
 
 export enum SceneComponentType {
 	UNKNOWN = 0,
-	LIGHTING = 1,
-	WEATHER = 2,
-	PARTICLES = 3,
+	BASE = 1,
+	LIGHTING = 2,
+	WEATHER = 3,
+	PARTICLES = 4,
 }
 
-export abstract class SceneComponent {
+export class SceneComponent {
 	protected _scene : THREE.Scene;
 
 	private _nextId : number;

@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 
-import { CustomObject } from './custom_object.js'
 import { game } from './game.js'
 import { loader, Model } from './loader.js'
 import { Particle, Particles } from './particles.js'
@@ -11,6 +10,7 @@ import { RenderEquip } from './render_equip.js'
 import { RenderObject } from './render_object.js'
 import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
+import { SpriteCreator } from './sprite_creator.js'
 import { ChangeTracker } from './tracker.js'
 import { LogUtil, MathUtil, Util } from './util.js'
 
@@ -33,6 +33,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 	private _weapon : RenderWeapon;
 	private _equip : RenderEquip;
+	private _currentBlock : RenderBlock;
 
 	private _teamTracker : ChangeTracker<number>;
 	private _healthTracker : ChangeTracker<number>;
@@ -58,9 +59,55 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._healthTracker = new ChangeTracker<number>(() => {
 			return this.byteAttribute(healthByteAttribute);
 		}, (health : number, lastHealth : number) => {
-			if (health < lastHealth) {
+			let lostHealth = Math.round(lastHealth - health);
+			if (lostHealth > 0) {
+				let scale = Math.max(lostHealth / 25, 1);
 				this._lastHit = Date.now();
-				this._hitDuration = (lastHealth - health) / 25 * 0.2;
+				this._hitDuration = scale * 0.2;
+
+				if (this.hasPos()) {
+					let damageText = SpriteCreator.text("" + Math.round(lastHealth - health), {
+						fontFace: "Impact",
+						fontSize: 128,
+						buffer: 0.1,
+						color: "#" + (this.color() & 0x00FFFFFF).toString(16).padStart(6, "0"),
+						shadow: "white",
+						shadowBlur: 20,
+					});
+
+					let offset = new THREE.Vector3(
+						MathUtil.randomRange(-0.8, 0.8),
+						MathUtil.randomRange(1, 2),
+						MathUtil.randomRange(-1, 1),
+					);
+					damageText.position.copy(this.pos3());
+					damageText.position.add(offset);
+
+					let softScale = Math.max(1, 0.5 * scale);
+					let vel = new THREE.Vector3(
+						offset.x * softScale,
+						offset.y * softScale,
+						offset.z * softScale,
+					);
+					damageText.scale.x *= softScale
+					damageText.scale.y *= softScale;
+
+					game.particles().emitObject(damageText, 1000 * softScale, (object : THREE.Object3D, ts : number) => {
+						object.position.x += vel.x * ts;
+						object.position.y += vel.y * ts;
+
+						object.scale.x += 0.5 * vel.y * ts;
+						object.scale.y += 0.5 * vel.y * ts;
+						if (object.scale.x < 0) {
+							object.scale.x = 0;
+						}
+						if (object.scale.y < 0) {
+							object.scale.y = 0;
+						}
+
+						vel.y -= 8 * ts;
+					});
+				}
 			}
 		});
 		this._jumpTracker = new ChangeTracker<boolean>(() => {
@@ -110,7 +157,14 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 
 		const pointerHeight = 0.2;
-		this._name = CustomObject.nameSprite(this.name());
+		this._name = SpriteCreator.text(this.name(), {
+			fontFace: "Lato",
+			fontSize: 96,
+			restrictWidth: true,
+			buffer: 0.1,
+			background: "rgba(33, 33, 33, 0.1)",
+			color: "rgba(255, 255, 255, 1.0)",
+		});
 		this._name.position.y = this.dim().y + pointerHeight / 2;
 		mesh.add(this._name);
 
@@ -151,12 +205,24 @@ export class RenderPlayer extends RenderAnimatedObject {
 		}
 
 		if (this.id() !== game.id()) {
-		const blocks = game.sceneMap().getMap(blockSpace);
-			blocks.forEach((block : RenderBlock) => {
-				if (block.contains(this.pos())) {
-					this._name.visible = block.inside();
+			if (Util.defined(this._currentBlock)) {
+				if (!this._currentBlock.contains(this.pos())) {
+					this._currentBlock = null;
 				}
-			});
+			}
+			if (!Util.defined(this._currentBlock)) {
+				const blocks = game.sceneMap().getMap(blockSpace);
+				blocks.forEach((block : RenderBlock) => {
+					if (block.contains(this.pos())) {
+						this._currentBlock = block;
+					}
+				});
+			}
+		}
+		if (Util.defined(this._currentBlock)) {
+			this._name.visible = this._currentBlock.inside();
+		} else {
+			this._name.visible = true;
 		}
 
 		this._healthTracker.check();

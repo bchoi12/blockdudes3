@@ -125,6 +125,14 @@ export class Particles extends SceneComponent {
 		return custom;
 	}
 
+	emitObject(obj : THREE.Object3D, ttl : number, update : (object : THREE.Object3D, ts : number) => void) : RenderCustom {
+		let custom = new RenderCustom(this.nextId());
+		custom.setMesh(obj);
+		custom.setUpdate(update);
+		this.addCustomTemp(custom, ttl, (object : THREE.Object3D) => {});
+		return custom;
+	}
+
 	delete(particle : Particle, custom : RenderCustom) {
 		if (!Util.defined(custom)) {
 			return;
