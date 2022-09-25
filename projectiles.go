@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+const (
+	shortRange time.Duration = 800 * time.Millisecond
+	mediumRange time.Duration = 1000 * time.Millisecond
+	longRange time.Duration = 1200 * time.Millisecond
+)
+
 type Pellet struct {
 	Projectile
 }
@@ -13,7 +19,7 @@ func NewPellet(init Init) *Pellet {
 	pellet := &Pellet {
 		Projectile: NewProjectile(NewCircleObject(init)),
 	}
-	pellet.SetTTL(800 * time.Millisecond)
+	pellet.SetTTL(shortRange)
 	pellet.SetDamage(10)
 	return pellet
 }
@@ -34,7 +40,7 @@ func NewBolt(init Init) *Bolt {
 	bolt := &Bolt {
 		Projectile: NewProjectile(NewBaseObject(init, profile)),
 	}
-	bolt.SetTTL(800 * time.Millisecond)
+	bolt.SetTTL(shortRange)
 	bolt.SetDamage(10)
 	bolt.SetIntAttribute(colorIntAttribute, boltColor)
 	return bolt
@@ -45,7 +51,7 @@ func (b *Bolt) AddAttribute(attribute AttributeType) {
 
 	if attribute == chargedAttribute {
 		b.SetIntAttribute(colorIntAttribute, chargedBoltColor)
-		b.SetTTL(1600 * time.Millisecond)
+		b.SetTTL(longRange)
 		b.SetDamage(80)
 		b.SetExplosionOptions(ExplosionOptions {
 			explode: true,
@@ -64,7 +70,7 @@ func NewRocket(init Init) *Rocket {
 		Projectile: NewProjectile(NewCircleObject(init)),
 	}
 	rocket.SetMaxSpeed(80)
-	rocket.SetTTL(1 * time.Second)
+	rocket.SetTTL(mediumRange)
 	rocket.SetExplosionOptions(ExplosionOptions {
 		explode: true,
 		size: NewVec2(4, 4),
@@ -88,13 +94,13 @@ func NewStar(init Init) *Star {
 	rand.Seed(UnixMilli())
 	color := starColors[rand.Intn(len(starColors))]
 
-	star.SetTTL(1 * time.Second)
+	star.SetTTL(shortRange)
 	star.SetExplosionOptions(ExplosionOptions {
 		explode: true,
 		size: NewVec2(1, 1),
 		color: color,
 	})
-	star.SetDamage(25)
+	star.SetDamage(20)
 	star.SetSticky(true)
 	star.SetIntAttribute(colorIntAttribute, color)
 	star.SetIntAttribute(secondaryColorIntAttribute, starSecondary)
@@ -114,7 +120,7 @@ func NewGrapplingHook(init Init) *GrapplingHook {
 		attractFactor: 4,
 	}
 
-	hook.SetTTL(800 * time.Millisecond)
+	hook.SetTTL(shortRange)
 	hook.SetDamage(0)
 	hook.SetSticky(true)
 	return hook

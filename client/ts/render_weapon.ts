@@ -143,15 +143,16 @@ export class RenderWeapon extends RenderObject {
 	private loadMesh() {
 		game.sceneMap().returnPointLight(this._chargeLight);
 		this._chargeLight = null;
-		if (this.hasMesh() && this.mesh().parent) {
-			this.mesh().parent.remove(this.mesh());
-		}
 
 		if (this.weaponType() === 0) {
 			return;
 		}
 
 		loader.load(loader.getWeaponModel(this.weaponType()), (mesh : THREE.Mesh) => {
+			if (this.hasMesh() && this.mesh().parent) {
+				this.mesh().parent.remove(this.mesh());
+			}
+
 			this.setMesh(mesh);
 		});
 	}

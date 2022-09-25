@@ -88,6 +88,7 @@ type InitMethods interface {
 	InitDim() Vec2
 	InitDir() Vec2
 	HasInitDir() bool
+	SetInitDir(dir Vec2)
 	GetInitData() Data
 }
 

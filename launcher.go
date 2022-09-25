@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math"
+	"math/rand"
 	"time"
 )
 
@@ -24,6 +26,8 @@ type Launcher struct {
 	projectileAcc float64
 	projectileJerk float64
 	projectileLimit int
+	projectileNumber int
+	projectileSpread float64
 
 	chargedSize Vec2
 	chargedVel float64
@@ -50,6 +54,8 @@ func NewLauncher(weapon *Weapon, space SpaceType) *Launcher {
 		projectileAcc: 0,
 		projectileJerk: 0,
 		projectileLimit: 0,
+		projectileNumber: 1,
+		projectileSpread: 0,
 
 		chargedSize: NewVec2(0, 0),
 		chargedVel: 0,
@@ -60,9 +66,11 @@ func NewLauncher(weapon *Weapon, space SpaceType) *Launcher {
 	switch space {
 	case pelletSpace:
 		l.maxAmmo = 1
-		l.reloadTimer.SetDuration(120 * time.Millisecond)
+		l.reloadTimer.SetDuration(500 * time.Millisecond)
 		l.projectileSize = NewVec2(0.2, 0.2)
 		l.projectileVel = 30
+		l.projectileNumber = 4
+		l.projectileSpread = 0.03 * math.Pi
 	case boltSpace:
 		l.maxAmmo = 3
 		l.ammoTimer.SetDuration(100 * time.Millisecond)
@@ -77,13 +85,12 @@ func NewLauncher(weapon *Weapon, space SpaceType) *Launcher {
 		l.projectileSize = NewVec2(0.5, 0.5)
 		l.projectileVel = 0
 		l.projectileRelativeSpeed = true
-		l.projectileAcc = 24
-		l.projectileJerk = 48
+		l.projectileAcc = 50
 	case starSpace:
 		l.maxAmmo = 4
 		l.ammoTimer.SetDuration(125 * time.Millisecond)
 		l.reloadTimer.SetDuration(700 * time.Millisecond)
-		l.projectileVel = 30
+		l.projectileVel = 25
 		l.projectileSize = NewVec2(0.3, 0.3)
 	case grapplingHookSpace:
 		l.maxAmmo = 1
@@ -173,63 +180,73 @@ func (l *Launcher) Shoot(grid *Grid, now time.Time) {
 		return
 	}
 
-	size := l.projectileSize
-	if charged {
-		size = l.chargedSize
-	}
-	owner := grid.Get(l.weapon.GetOwner())
+	rand.Seed(time.Now().UnixNano())
+	for i := 0; i < l.projectileNumber; i += 1 {
+		size := l.projectileSize
+		if charged {
+			size = l.chargedSize
+		}
+		owner := grid.Get(l.weapon.GetOwner())
 
-	init := NewInit(grid.NextSpacedId(l.space), l.weapon.GetShotOrigin(), size)
-	projectile := grid.New(init)
+		init := NewInit(grid.NextSpacedId(l.space), l.weapon.GetShotOrigin(), size)
+		projectile := grid.New(init)
 
-	if owner != nil {
-		projectile.SetOwner(owner.GetSpacedId())
-		overlapOptions := projectile.GetOverlapOptions()
-		overlapOptions.SetIds(false, owner.GetSpacedId())
-		projectile.SetOverlapOptions(overlapOptions)
+		if owner != nil {
+			projectile.SetOwner(owner.GetSpacedId())
+			overlapOptions := projectile.GetOverlapOptions()
+			overlapOptions.SetIds(false, owner.GetSpacedId())
+			projectile.SetOverlapOptions(overlapOptions)
 
-		if l.space != grapplingHookSpace {
-			if team, ok := owner.GetByteAttribute(teamByteAttribute); ok && team > 0 {
-				projectile.SetByteAttribute(teamByteAttribute, team)
-				overlapOptions := projectile.GetOverlapOptions()
-				overlapOptions.ExcludeByteAttributes(teamByteAttribute, team)
-				projectile.SetOverlapOptions(overlapOptions)
+			if l.space != grapplingHookSpace {
+				if team, ok := owner.GetByteAttribute(teamByteAttribute); ok && team > 0 {
+					projectile.SetByteAttribute(teamByteAttribute, team)
+					overlapOptions := projectile.GetOverlapOptions()
+					overlapOptions.ExcludeByteAttributes(teamByteAttribute, team)
+					projectile.SetOverlapOptions(overlapOptions)
+				}
 			}
 		}
-	}
-	projectile.SetDir(l.weapon.Dir())
-	if charged {
-		projectile.AddAttribute(chargedAttribute)
-	}
 
-	vel := l.weapon.Dir()
-	if charged {
-		vel.Scale(l.chargedVel)
-	} else {
-		vel.Scale(l.projectileVel)
-	}
-
-	if l.projectileRelativeSpeed {
-		if owner != nil {
-			addedVel := l.weapon.Dir()
-			addedVel.Scale(Max(1, Abs(addedVel.Dot(owner.Vel()))))
-			vel.Add(addedVel, 1.0)
+		dir := l.weapon.Dir()
+		if l.projectileSpread > 0 {
+			dir.Rotate(2.0 * (rand.Float64() - 0.5) * l.projectileSpread)
 		}
-	}
-	projectile.SetVel(vel)
+		projectile.SetInitDir(dir)
 
-	acc := l.weapon.Dir()
-	acc.Scale(l.projectileAcc)
-	projectile.SetAcc(acc)
+		if charged {
+			projectile.AddAttribute(chargedAttribute)
+		}
 
-	jerk := l.weapon.Dir()
-	jerk.Scale(l.projectileJerk)
-	projectile.SetJerk(jerk)
+		vel := dir
+		if charged {
+			vel.Scale(l.chargedVel)
+		} else {
+			vel.Scale(l.projectileVel)
+		}
 
-	grid.Upsert(projectile)
+		if l.projectileRelativeSpeed {
+			if owner != nil {
+				addedVel := l.weapon.Dir()
+				addedVel.Scale(Max(1, Abs(addedVel.Dot(owner.Vel()))))
+				vel.Add(addedVel, 1.0)
+			}
+		}
+		projectile.SetVel(vel)
 
-	if l.projectileLimit > 0 {
-		l.currentProjectiles[projectile.GetSpacedId()] = true
+		acc := l.weapon.Dir()
+		acc.Scale(l.projectileAcc)
+		projectile.SetAcc(acc)
+
+		jerk := l.weapon.Dir()
+		jerk.Scale(l.projectileJerk)
+		projectile.SetJerk(jerk)
+
+		grid.Upsert(projectile)
+
+		// Note: tracking only works for 1 projectile
+		if l.projectileLimit > 0 {
+			l.currentProjectiles[projectile.GetSpacedId()] = true
+		}
 	}
 }
 

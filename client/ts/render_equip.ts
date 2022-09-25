@@ -26,11 +26,13 @@ export class RenderEquip extends RenderObject {
 	}
 
 	override ready() : boolean {
-		return this.hasOwner();
+		return this.hasOwner() && this.hasByteAttribute(subtypeByteAttribute);
 	}
 
 	override initialize() : void {
 		super.initialize();
+
+		console.log("init equip");
 
 		const owner = this.owner();
 		this._player = game.sceneMap().getAsAny(owner.space(), owner.id());
@@ -45,10 +47,6 @@ export class RenderEquip extends RenderObject {
 	override update() : void {
 		super.update();
 
-		if (!this.hasMesh()) {
-			return;
-		}
-
 		if (!Util.defined(this._player)) {
 			return;
 		}
@@ -56,6 +54,10 @@ export class RenderEquip extends RenderObject {
 		if (this._equipType !== this.byteAttribute(subtypeByteAttribute)) {
 			this._equipType = this.byteAttribute(subtypeByteAttribute);
 			this.loadMesh();
+		}
+
+		if (!this.hasMesh()) {
+			return;
 		}
 
 		const state = this.byteAttribute(stateByteAttribute);
@@ -67,27 +69,38 @@ export class RenderEquip extends RenderObject {
 	}
 
 	private loadMesh() : void {
-		if (this.hasMesh() && this.mesh().parent) {
-			this.mesh().parent.remove(this.mesh());
-		}
-
 		if (this._equipType === jetpackEquip) {
 			loader.load(Model.JETPACK, (mesh : THREE.Mesh) => {
 				this._emit = mesh.getObjectByName("emit");
 				this._fire = mesh.getObjectByName("fire");
+
+				if (this.hasMesh() && this.mesh().parent) {
+					this.mesh().parent.remove(this.mesh());
+				}
 				this.setMesh(mesh);
 				this._player.setEquip(this);
 			});
 		} else if (this._equipType === boosterEquip) {
 			loader.load(Model.HEADBAND, (mesh: THREE.Mesh) => {
+				if (this.hasMesh() && this.mesh().parent) {
+					this.mesh().parent.remove(this.mesh());
+				}
 				this.setMesh(mesh);
 				this._player.setEquip(this);
+
 			});
 		} else if (this._equipType === chargerEquip) {
 			loader.load(Model.SCOUTER, (mesh : THREE.Mesh) => {
+				if (this.hasMesh() && this.mesh().parent) {
+					this.mesh().parent.remove(this.mesh());
+				}
 				this.setMesh(mesh);
 				this._player.setEquip(this);
 			});
+		} else {
+			if (this.hasMesh() && this.mesh().parent) {
+				this.mesh().parent.remove(this.mesh());
+			}
 		}
 	}
 

@@ -98,6 +98,7 @@ func (l *Line) Scale(scale float64) {
 	l.R.Scale(scale)
 }
 
+// Angle is in radians
 func (l *Line) Rotate(angle float64) {
 	l.O.Rotate(angle)
 	l.R.Rotate(angle)
@@ -191,6 +192,7 @@ func (v Vec2) Area() float64 {
 	return Abs(v.X * v.Y)
 }
 
+// Angle is in radians
 func (v Vec2) Angle() float64 {
 	if v.IsZero() {
 		return 0

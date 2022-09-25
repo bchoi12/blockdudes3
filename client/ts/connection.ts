@@ -1,5 +1,6 @@
 import { encode, decode } from "@msgpack/msgpack"
 import { Pinger } from './pinger.js'
+import { PerSecondTracker } from './tracker.js'
 import { ui } from './ui.js'
 import { LogUtil, Util } from './util.js'
 
@@ -29,9 +30,13 @@ class Connection {
 	private _candidates : Array<RTCIceCandidate>;
 	private _pinger : Pinger;
 
+	private _dataTracker : PerSecondTracker;
+
 	constructor() {
 		this._handlers = new Map();
 		this._senders = new Map();
+
+		this._dataTracker = new PerSecondTracker();
 	}
 
 	setup() : void {
@@ -100,6 +105,10 @@ class Connection {
 
 	deleteSender(type : number) : void {
 		this._senders.delete(type);
+	}
+
+	bytesPerSecond() : number {
+		return this._dataTracker.flush();
 	}
 
 	ping() : number {
@@ -240,7 +249,12 @@ class Connection {
 	}
 
 	private handlePayload(payload : any) {
-		const msg : any = decode(new Uint8Array(payload));
+		const bytes = new Uint8Array(payload);
+		const msg : any = decode(bytes);
+
+		if (Util.isDev()) {
+			this._dataTracker.add(bytes.length);
+		}
 
 		if (!Util.defined(msg.T)) {
 			LogUtil.d("Error! Missing type for payload");

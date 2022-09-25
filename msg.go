@@ -95,6 +95,7 @@ type PlayerInitMsg struct {
 type LevelInitMsg struct {
 	T MessageType
 	L LevelIdType
+	S LevelSeedType
 }
 
 type KeyMsg struct {

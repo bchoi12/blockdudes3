@@ -4,12 +4,21 @@ import (
 	"fmt"
 )
 
+type GameStateType uint8
+const (
+	unknownGameState GameStateType = iota
+	lobbyGameState
+	activeGameState
+)
+
 type ScoreType uint16
 type StatePropMap map[Prop]*State
 type GameState struct {
+	state GameStateType
 	objectStates map[SpacedId]StatePropMap
 }
 
+// Props published to client
 var gameStateExternalProps = map[Prop]bool {
 	deletedProp: true,
 	killProp: true,
@@ -18,6 +27,7 @@ var gameStateExternalProps = map[Prop]bool {
 
 func NewGameState() GameState {
 	return GameState {
+		state: unknownGameState,
 		objectStates: make(map[SpacedId]StatePropMap),
 	}
 }

@@ -32,6 +32,7 @@ export class StatsHandler implements InterfaceHandler {
 		let text = "Ping : " + ping + " | FPS: " + fps;
 
 		if (Util.isDev()) {
+			text += " | Bytes/s " + Math.round(connection.bytesPerSecond());
 			text += " | Added/s " + Math.round(game.flushAdded() / this._intervalSec);
 			text += " | Extrapolated/s " + Math.round(game.flushExtrapolated() / this._intervalSec);
 			text += " | Updates/s: " + Math.round(game.flushUpdated() / this._intervalSec);

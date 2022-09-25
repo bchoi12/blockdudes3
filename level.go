@@ -9,6 +9,7 @@ const (
 	unknownLevel LevelIdType = iota
 	testLevel
 )
+type LevelSeedType uint32
 
 type Level struct {
 	id LevelIdType

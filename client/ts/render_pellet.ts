@@ -20,7 +20,10 @@ export class RenderPellet extends RenderProjectile {
 
 		this._lastParticle = Date.now();
 
-		this.setSound(Sound.BIT_PEW);
+		// TODO: REMOVE TERRIBLE HACK with triggers
+		if (id % 2 === 0) {
+			this.setSound(Sound.BIT_PEW);
+		}
 	}
 
 	override initialize() : void {

@@ -109,7 +109,7 @@ export class Lighting extends SceneComponent {
 	}
 
 	private updateTimeOfDay(timeOfDay : number) : void {
-		this._sunPos.setFromSphericalCoords(1, this._sunHeightAngle.lerp(timeOfDay),  -0.05 * Math.PI);
+		this._sunPos.setFromSphericalCoords(1, this._sunHeightAngle.lerp(timeOfDay),  -0.025 * Math.PI);
 
 		let uniforms = this._sky.material.uniforms;
 		uniforms['sunPosition'].value.copy(this._sunPos);
