@@ -234,7 +234,7 @@ class Game {
 	}
 
 	private extrapolateState() {
-		if (options.extrapolateWeight <= 0.1) {
+		if (options.extrapolateWeight === 0) {
 			return;
 		}
 

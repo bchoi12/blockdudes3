@@ -14,7 +14,7 @@ enum OverwriteMethod {
 }
 
 export class Message {
-	private readonly _extrapolateMs = 250;
+	private readonly _extrapolateMs = 5000;
 
 	private readonly _extrapolateProps : Set<number> = new Set<number>([posProp, velProp, accProp]);
 	private readonly _mapProps : Map<number, OverwriteMethod> = new Map<number, OverwriteMethod>([
