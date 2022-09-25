@@ -32,8 +32,6 @@ export class RenderEquip extends RenderObject {
 	override initialize() : void {
 		super.initialize();
 
-		console.log("init equip");
-
 		const owner = this.owner();
 		this._player = game.sceneMap().getAsAny(owner.space(), owner.id());
 		if (!Util.defined(this._player)) {

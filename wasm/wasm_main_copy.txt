@@ -261,11 +261,22 @@ func UpdateKeys() js.Func {
 			return nil
 		}
 
+		m, mOk := parseVec2(args[1].Get("M"))
+		if !mOk {
+			fmt.Println("UpdateKeys: failed to parse M vector")
+			return nil
+		}
+		d, dOk := parseVec2(args[1].Get("D"))
+		if !dOk {
+			fmt.Println("UpdateKeys: failed to parse D vector")
+			return nil
+		}
+
 		keyMsg := KeyMsg {
 			S: SeqNumType(args[1].Get("S").Int()),
 			K: parseKeysAsArray(args[1].Get("K").String()),
-			M: parseVec2(args[1].Get("M")),
-			D: parseVec2(args[1].Get("D")),
+			M: m,
+			D: d,
 		}
 
 		game.ProcessKeyMsg(id, keyMsg)
@@ -389,28 +400,43 @@ func getData(data js.Value) Data {
 		d.Set(byteAttributesProp, parseByteAttributesAsProp(prop.String()))
 	}
 
+	// Note: int and float attributes skipped for now
+
 	if prop, ok = getPropData(data, dimProp); ok {
-		d.Set(dimProp, parseVec2(prop))
+		if vec, vecOk := parseVec2(prop); vecOk {
+			d.Set(dimProp, vec)
+		}
 	}
 
 	if prop, ok = getPropData(data, posProp); ok {
-		d.Set(posProp, parseVec2(prop))
+		if vec, vecOk := parseVec2(prop); vecOk {
+			d.Set(posProp, vec)
+		}
 	}
 
 	if prop, ok = getPropData(data, velProp); ok {
-		d.Set(velProp, parseVec2(prop))
+		if vec, vecOk := parseVec2(prop); vecOk {
+			d.Set(velProp, vec)
+		}
 	}
 
 	if prop, ok = getPropData(data, accProp); ok {
-		d.Set(accProp, parseVec2(prop))
+		if vec, vecOk := parseVec2(prop); vecOk {
+			d.Set(accProp, vec)
+		}
 	}
 
+	// TODO: not needed?
 	if prop, ok = getPropData(data, jerkProp); ok {
-		d.Set(jerkProp, parseVec2(prop))
+		if vec, vecOk := parseVec2(prop); vecOk {
+			d.Set(jerkProp, vec)
+		}
 	}
 
 	if prop, ok = getPropData(data, dirProp); ok {
-		d.Set(dirProp, parseVec2(prop))
+		if vec, vecOk := parseVec2(prop); vecOk {
+			d.Set(dirProp, vec)
+		}
 	}
 
 	if prop, ok = getPropData(data, keysProp); ok {
@@ -429,12 +455,33 @@ func getPropData(data js.Value, prop Prop) (js.Value, bool) {
 	return propData, true
 }
 
-func parseSpacedId(sid js.Value) SpacedId {
-	return Id(SpaceType(sid.Get("S").Int()), IdType(sid.Get("Id").Int()))
+func parseSpacedId(sid js.Value) (SpacedId, bool) {
+	space := sid.Get("S")
+	id := sid.Get("Id")
+
+	if space.IsNull() || space.IsNaN() || space.IsUndefined() {
+		return InvalidId(), false
+	}
+	if id.IsNull() || id.IsNaN() || id.IsUndefined() {
+		return InvalidId(), false
+	}
+	return Id(SpaceType(space.Int()), IdType(id.Int())), true
 }
 
-func parseVec2(vec js.Value) Vec2 {
-	return NewVec2(vec.Get("X").Float(), vec.Get("Y").Float())
+func parseVec2(vec js.Value) (Vec2, bool) {
+	result := NewVec2(0, 0)
+	x := vec.Get("X")
+	y := vec.Get("Y")
+
+	if x.IsNull() || x.IsNaN() || x.IsUndefined() {
+		return result, false
+	}
+	if y.IsNull() || y.IsNaN() || y.IsUndefined() {
+		return result, false
+	}
+	result.X = x.Float()
+	result.Y = y.Float()
+	return result, true
 }
 
 // Key format: "1,3,4"
