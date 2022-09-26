@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { game } from './game.js'
 import { Message } from './message.js'
 import { RenderMesh } from './render_mesh.js'
 import { renderer } from './renderer.js'
@@ -61,7 +62,7 @@ export class RenderObject extends RenderMesh {
 	lastSeqNum() : number { return this._msg.lastSeqNum(); }
 
 	initializeTime() : number { return this._initializeTime; }
-	timestep() : number { return this._timestep; }
+	timestep() : number { return this._timestep * game.updateSpeed(); }
 	ready() : boolean { return this._msg.has(posProp) && this._msg.has(dimProp); }
 	initialized() : boolean { return this._initialized; }
 	deleted() : boolean { return this._deleted || this._msg.has(deletedProp) && this._msg.get(deletedProp); }

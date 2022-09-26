@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { Announcement, AnnouncementHandler } from './announcement_handler.js'
 import { ChatHandler } from './chat_handler.js'
 import { ClientHandler } from './client_handler.js'
 import { connection } from './connection.js'
@@ -29,6 +30,7 @@ class UI {
 	private _mode : InputMode;
 	private _handlers : Array<InterfaceHandler>;
 
+	private _announcementHandler : AnnouncementHandler;
 	private _chatHandler : ChatHandler;
 	private _clientHandler : ClientHandler;
 	private _inputHandler : InputHandler;
@@ -41,6 +43,9 @@ class UI {
 	constructor() {
 		this._mode = InputMode.UNKNOWN;
 		this._handlers = new Array();
+
+		this._announcementHandler = new AnnouncementHandler();
+		this._handlers.push(this._announcementHandler);
 
 		this._chatHandler = new ChatHandler();
 		this._handlers.push(this._chatHandler);
@@ -86,6 +91,9 @@ class UI {
 	getClientName(id : number) : string { return this._clientHandler.displayName(id); }
 	voiceEnabled() : boolean { return this._clientHandler.voiceEnabled(); }
 
+	announce(announcement : Announcement) {
+		this._announcementHandler.announce(announcement);
+	}
 	disconnected() : void {
 		game.setState(GameState.PAUSED);
 		this.changeInputMode(InputMode.LOGIN);

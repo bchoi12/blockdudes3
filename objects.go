@@ -73,6 +73,21 @@ func (p *Portal) SetTeam(team uint8) {
 	p.SetIntAttribute(colorIntAttribute, teamColors[team])
 }
 
+type Goal struct {
+	BaseObject
+}
+
+func NewGoal(init Init) *Goal {
+	return &Goal {
+		BaseObject: NewRec2Object(init),
+	}
+}
+
+func (g *Goal) SetTeam(team uint8) {
+	g.SetByteAttribute(teamByteAttribute, team)
+	g.SetIntAttribute(colorIntAttribute, 0xffff00)
+}
+
 type Spawn struct {
 	BaseObject
 }

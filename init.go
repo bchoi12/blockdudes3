@@ -19,6 +19,7 @@ const (
 	grapplingHookSpace
 	pickupSpace
 	portalSpace
+	goalSpace
 	spawnSpace
 )
 

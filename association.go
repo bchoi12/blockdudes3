@@ -1,11 +1,5 @@
 package main
 
-var teamColors = map[uint8]int {
-	0: 0x333333,
-	1: 0xFF0000,
-	2: 0x0000FF,
-}
-
 type Association struct {
 	owner SpacedId
 	ownerFlag *Flag

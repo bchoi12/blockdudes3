@@ -38,6 +38,7 @@ type Object interface {
 	SetFloatAttribute(attribute FloatAttributeType, float float64)
 	GetFloatAttribute(attribute FloatAttributeType) (float64, bool)
 
+	SetUpdateSpeed(updateSpeed float64)
 	PreUpdate(grid *Grid, now time.Time)
 	Update(grid *Grid, now time.Time)
 	PostUpdate(grid *Grid, now time.Time)
@@ -54,6 +55,7 @@ type BaseObject struct {
 	Attribute
 	Attachment
 
+	updateSpeed float64
 	lastUpdateTime time.Time
 }
 
@@ -67,6 +69,8 @@ func NewBaseObject(init Init, profile Profile) BaseObject {
 		Expiration: NewExpiration(),
 		Attribute: NewAttribute(),
 		Attachment: NewAttachment(init.GetSpacedId()),
+
+		updateSpeed: 1,
 		lastUpdateTime: time.Time{},
 	}
 	return object
@@ -88,8 +92,12 @@ func (o BaseObject) GetProfile() Profile {
 	return o.Profile
 }
 
+func (o *BaseObject) SetUpdateSpeed(updateSpeed float64) {
+	o.updateSpeed = updateSpeed
+}
+
 func (o *BaseObject) PrepareUpdate(now time.Time) float64 {
-	ts := GetTimestep(now, o.lastUpdateTime)
+	ts := GetTimestep(now, o.lastUpdateTime) * o.updateSpeed
 	if ts >= 0 {
 		o.lastUpdateTime = now
 	}

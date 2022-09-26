@@ -28,6 +28,8 @@ const (
 	ownerProp
 	targetProp
 
+	stateProp
+	scoreProp
 	killProp
 	deathProp
 )

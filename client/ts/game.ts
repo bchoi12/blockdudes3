@@ -38,8 +38,10 @@ class Game {
 
 	// TODO: move to SceneMap
 	private _timeOfDay : number;
+	private _updateSpeed : number;
 
 	private _sceneMap : SceneMap;
+	private _teamScores : Map<number, number>;
 	private _keys : Keys;
 	private _keySeqNum : number;
 	private _lastSeqNum : number;
@@ -53,8 +55,10 @@ class Game {
 		this._id = -1;
 		this._state = GameState.PAUSED;
 		this._timeOfDay = 0;
+		this._updateSpeed = 1;
 
 		this._sceneMap = new SceneMap();
+		this._teamScores = new Map<number, number>();
 		this._keys = new Keys();
 		this._keySeqNum = 0;
 		this._lastSeqNum = 0;
@@ -73,8 +77,8 @@ class Game {
 	setup() : void {
 		this._sceneMap.setup();
 
-		connection.addHandler(objectDataType, (msg : { [k: string]: any }) => { this.updateGameState(msg); });
-		connection.addHandler(objectUpdateType, (msg : { [k: string]: any }) => { this.updateGameState(msg); });
+		connection.addHandler(objectDataType, (msg : { [k: string]: any }) => { this.update(msg); });
+		connection.addHandler(objectUpdateType, (msg : { [k: string]: any }) => { this.update(msg); });
 		connection.addHandler(playerInitType, (msg : { [k: string]: any }) => { this.initPlayer(msg); });
 		connection.addHandler(levelInitType, (msg : { [k: string]: any }) => { this.initLevel(msg); });
 	}
@@ -83,6 +87,7 @@ class Game {
 	id() : number { return this._id; }
 	state() : GameState { return this._state; }
 	timeOfDay() : number { return this._timeOfDay; }
+	updateSpeed() : number { return this._updateSpeed; }
 	sceneMap() : SceneMap { return this._sceneMap; }
 
 	particles() : Particles { return this._sceneMap.getComponentAsAny(SceneComponentType.PARTICLES); }
@@ -153,19 +158,55 @@ class Game {
 		LogUtil.d("Initializing player with id " + this._id);
 	}
 
-	private updateGameState(msg : { [k: string]: any }) : void {
+	private update(msg : { [k: string]: any }) : void {
 		const seqNum = msg.S;
 		if (msg.T === objectDataType) {
 			if (seqNum <= this._lastSeqNum) {
 				return;
-			}  else {
+			} else {
 				this._lastStateUpdate = Date.now();
 				this._lastSeqNum = seqNum;
+			}
+		} else {
+			if (Util.defined(msg.G)) {
+				this.parseGameState(msg.G);
 			}
 		}
 
 		if (Util.defined(msg.Os)) {
 			this.parseObjectPropMap(msg.Os, seqNum);
+		}
+	}
+
+	private parseGameState(gameState : Object) : void {
+		console.log(gameState);
+
+		[1, 2].forEach((i) => {
+			if (gameState.hasOwnProperty(i)) {
+				const team = gameState[i];
+				if (team.hasOwnProperty(scoreProp)) {
+					this._teamScores[i] = team[scoreProp];
+				}
+			}
+		})
+
+		if (gameState.hasOwnProperty(0)) {
+			const system = gameState[0];
+			if (system.hasOwnProperty(stateProp)) {
+				const state = system[stateProp];
+				console.log(state);
+				if (state === victoryGameState) {
+					// TODO: make this wasm variable
+					this._updateSpeed = 0.3;
+					ui.announce({
+						enabled: true,
+						text: this._teamScores[1] + " - " + this._teamScores[2],
+					});
+				} else {
+					this._updateSpeed = 1.0;
+					ui.announce({ enabled: false });
+				}
+			}
 		}
 	}
 
@@ -207,7 +248,7 @@ class Game {
 						renderObj = new RenderGrapplingHook(space, id);
 					} else if (space === pickupSpace) {
 						renderObj = new RenderPickup(space, id);
-					} else if (space === portalSpace) {
+					} else if (space === portalSpace || space === goalSpace) {
 						renderObj = new RenderPortal(space, id);
 					} else if (space === spawnSpace) {
 						renderObj = new RenderObject(space, id);

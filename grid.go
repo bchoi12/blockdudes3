@@ -88,6 +88,8 @@ func (g *Grid) New(init Init) Object {
 		return NewPickup(init)
 	case portalSpace:
 		return NewPortal(init)
+	case goalSpace:
+		return NewGoal(init)
 	case spawnSpace:
 		return NewSpawn(init)
 	default:
@@ -175,7 +177,14 @@ func (g *Grid) deleteObject(sid SpacedId) {
 }
 
 func (g *Grid) Update(now time.Time) {
+	gameState, _ := g.gameState.GetState()
+
 	for _, object := range(g.GetAllObjects()) {
+		if gameState == victoryGameState {
+			object.SetUpdateSpeed(0.3)
+		} else {
+			object.SetUpdateSpeed(1.0)
+		}
 		object.PreUpdate(g, now)
 	}
 
@@ -194,6 +203,8 @@ func (g *Grid) Update(now time.Time) {
 	for _, object := range(g.GetAllObjects()) {
 		object.PostUpdate(g, now)
 	}
+
+	g.gameState.Update(g)
 }
 
 func (g *Grid) updateObject(object Object, now time.Time) {
@@ -334,12 +345,20 @@ func (g *Grid) GetObjectUpdates() ObjectPropMap {
 	return objects
 }
 
-func (g *Grid) IncrementScore(sid SpacedId, prop Prop, delta int) {
+func (g Grid) GetGameStateProps() SpacedPropMap {
+	return g.gameState.GetProps()
+}
+
+func (g *Grid) IncrementProp(sid SpacedId, prop Prop, delta int) {
 	if sid.Invalid() {
 		return
 	}
 	
-	g.gameState.IncrementScore(sid, prop, delta)
+	g.gameState.IncrementProp(sid, prop, delta)
+}
+
+func (g *Grid) SignalVictory(team uint8) {
+	g.gameState.SignalVictory(team)
 }
 
 func (g *Grid) NextId(space SpaceType) IdType {

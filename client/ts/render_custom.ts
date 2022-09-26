@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {Howl} from 'howler';
 
+import { game } from './game.js'
 import { RenderMesh } from './render_mesh.js'
 import { renderer } from './renderer.js'
 
@@ -31,7 +32,7 @@ export class RenderCustom extends RenderMesh {
 			return;
 		}
 
-		const ts = Math.min((Date.now() - this._lastUpdate) / 1000, .03);
+		const ts = Math.min((Date.now() - this._lastUpdate) / 1000, .03) * game.updateSpeed();
 		this._update(this.mesh(), ts);
 		this._lastUpdate = Date.now();
 	}

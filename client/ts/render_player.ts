@@ -39,6 +39,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 	private _healthTracker : ChangeTracker<number>;
 	private _jumpTracker : ChangeTracker<boolean>;
 	private _doubleJumpTracker : ChangeTracker<boolean>;
+	
+	// TODO: combine with TeamTracker & change to color tracker?
+	private _vipTracker : ChangeTracker<boolean>;
 
 	private _hitDuration : number;
 	private _lastHit : number;
@@ -132,6 +135,20 @@ export class RenderPlayer extends RenderAnimatedObject {
 				this.emitClouds(1);
 			}
 		});
+		this._vipTracker = new ChangeTracker<boolean>(() => {
+			return this.attribute(vipAttribute);
+		}, (vip : boolean) => {
+			if (!Util.defined(this._pointer)) {
+				return;
+			}
+			if (vip) {
+				// @ts-ignore
+				this._pointer.material.color = new THREE.Color(0xFFFF00);
+			} else {
+				// @ts-ignore
+				this._pointer.material.color = new THREE.Color(this.color());
+			}
+		});
 
 		this._lastHit = 0;
 		this._hitDuration = 0;
@@ -201,7 +218,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 			return;
 		}
 
-	const pos = this.pos3();
+		const pos = this.pos3();
 		const dim = this.dim();
 		const vel = this.vel();
 		const acc = this.acc();
@@ -242,6 +259,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._teamTracker.check();
 		this._jumpTracker.check();
 		this._doubleJumpTracker.check();
+		this._vipTracker.check();
 
 		if (this._tearLevel > 0 && Date.now() - this._lastTears > this._tearInterval) {
 			this.emitTears();

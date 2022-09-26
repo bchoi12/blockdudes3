@@ -12,6 +12,7 @@ const (
 	dashingAttribute
 	deadAttribute
 	visibleAttribute
+	vipAttribute
 )
 
 type ByteAttributeType uint8

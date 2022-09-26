@@ -41,10 +41,9 @@ const (
 	levelInitType
 )
 
-type PlayerPropMap map[IdType]PropMap
 type ShotPropMaps []PropMap
-type ObjectPropMap map[SpaceType]map[IdType]PropMap
 type SpacedPropMap map[IdType]PropMap
+type ObjectPropMap map[SpaceType]map[IdType]PropMap
 
 type PingMsg struct {
 	T MessageType
@@ -84,12 +83,13 @@ type ObjectStateMsg struct {
 	T MessageType
 	S SeqNumType
 	Os ObjectPropMap
+	G SpacedPropMap
 }
 
 type PlayerInitMsg struct {
 	T MessageType
 	Id IdType
-	Ps PlayerPropMap
+	Ps SpacedPropMap
 }
 
 type LevelInitMsg struct {

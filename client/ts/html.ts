@@ -18,6 +18,7 @@ export namespace Html {
 	export const divMessage = "div-message";
 	export const inputMessage = "input-message";
 
+	export const divAnnouncement = "div-announcement";
 	export const divScoreboard = "div-scoreboard";
 
 	export const divPause = "div-pause";

@@ -87,7 +87,7 @@ func (g *Game) Update() {
 }
 
 func (g* Game) createPlayerInitMsg(id IdType) PlayerInitMsg {
-	players := make(PlayerPropMap)
+	players := make(SpacedPropMap)
 
 	for _, player := range(g.grid.GetObjects(playerSpace)) {
 		players[player.GetId()] = player.GetInitData().Props()
@@ -144,9 +144,10 @@ func (g *Game) createObjectDataMsg() ObjectStateMsg {
 
 func (g *Game) createObjectUpdateMsg() (ObjectStateMsg, bool) {
 	updates := g.grid.GetObjectUpdates()
-	if len(updates) == 0 {
+	gameStateProps := g.grid.GetGameStateProps()
+	if len(updates) == 0 && len(gameStateProps) == 0 {
 		return ObjectStateMsg{}, false
-	}	
+	}
 
 	msg := ObjectStateMsg {
 		T: objectUpdateType,
@@ -155,6 +156,9 @@ func (g *Game) createObjectUpdateMsg() (ObjectStateMsg, bool) {
 
 	if len(updates) > 0 {
 		msg.Os = updates
+	}
+	if len(gameStateProps) > 0 {
+		msg.G = gameStateProps
 	}
 	return msg, true
 }

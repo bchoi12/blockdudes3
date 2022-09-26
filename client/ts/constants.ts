@@ -34,6 +34,10 @@ declare var objectUpdateType : number;
 declare var playerInitType : number;
 declare var levelInitType : number;
 
+declare var lobbyGameState : number;
+declare var activeGameState : number;
+declare var victoryGameState : number;
+
 declare var playerSpace : number;
 declare var blockSpace : number;
 declare var wallSpace : number;
@@ -49,6 +53,7 @@ declare var starSpace : number;
 declare var grapplingHookSpace : number;
 declare var pickupSpace : number;
 declare var portalSpace : number;
+declare var goalSpace : number;
 declare var spawnSpace : number;
 
 declare var initializedProp : number;
@@ -70,6 +75,9 @@ declare var dirProp : number;
 declare var keysProp : number;
 declare var ownerProp : number;
 declare var targetProp : number;
+
+declare var stateProp : number;
+declare var scoreProp : number;
 declare var killProp : number;
 declare var deathProp : number;
 
@@ -81,6 +89,7 @@ declare var canDoubleJumpAttribute : number;
 declare var dashingAttribute : number;
 declare var deadAttribute : number;
 declare var visibleAttribute : number;
+declare var vipAttribute : number;
 
 declare var typeByteAttribute : number;
 declare var subtypeByteAttribute : number;

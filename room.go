@@ -247,7 +247,7 @@ func (r *Room) unregisterClient(client *Client) error {
 
 		player := r.game.Get(Id(playerSpace, client.id))
 		if player != nil {
-			player.SetTTL(20 * time.Second)
+			player.SetTTL(10 * time.Second)
 		}
 	}
 	r.print(fmt.Sprintf("unregistered %s, total=%d", client.GetDisplayName(), len(r.clients)))

@@ -58,9 +58,11 @@ func (l *Level) loadTestLevel(grid *Grid) {
 		b = building.AddBlock(baseBlockSubtype)
 		b.AddOpenings(rightCardinal)
 
-		portalPos := b.Pos()
-		portalPos.Y += 0.5
-		portal := NewPortal(NewInitC(grid.NextSpacedId(portalSpace), portalPos, NewVec2(b.Dim().X / 2, 2), bottomCardinal))
+		portal := NewPortal(NewInitC(
+			grid.NextSpacedId(portalSpace),
+			NewVec2(b.Pos().X, b.Pos().Y + b.Thickness()),
+			NewVec2(b.Dim().X / 2, 2),
+			bottomCardinal))
 		portal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[blockType] / 2)
 		portal.SetTeam(1)
 		grid.Upsert(portal)
@@ -117,9 +119,11 @@ func (l *Level) loadTestLevel(grid *Grid) {
 		b = building.AddBlock(baseBlockSubtype)
 		b.AddOpenings(leftCardinal)
 
-		portalPos := b.Pos()
-		portalPos.Y += 0.5
-		portal := NewPortal(NewInitC(grid.NextSpacedId(portalSpace), portalPos, NewVec2(b.Dim().X / 2, 2), bottomCardinal))
+		portal := NewPortal(NewInitC(
+			grid.NextSpacedId(portalSpace),
+			NewVec2(b.Pos().X, b.Pos().Y + b.Thickness()),
+			NewVec2(b.Dim().X / 2, 2),
+			bottomCardinal))
 		portal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[blockType] / 2)
 		portal.SetTeam(2)
 		grid.Upsert(portal)
@@ -149,7 +153,15 @@ func (l *Level) loadTestLevel(grid *Grid) {
 		b = building.AddBlock(balconyBlockSubtype)
 		b.SetInitDir(NewVec2(1, 0))
 		b = building.AddBlock(roofBlockSubtype)
-		b.LoadTemplate(weaponsBlockTemplate)
+
+		goal := NewGoal(NewInitC(
+			grid.NextSpacedId(goalSpace),
+			NewVec2(b.Pos().X, b.Pos().Y + b.Thickness()),
+			NewVec2(b.Dim().X / 2, 2),
+			bottomCardinal))
+		goal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[blockType] / 2)
+		goal.SetTeam(2)
+		grid.Upsert(goal)
 
 		spawn := NewSpawn(NewInit(
 			Id(spawnSpace, 1),
@@ -254,7 +266,15 @@ func (l *Level) loadTestLevel(grid *Grid) {
 		b = building.AddBlock(balconyBlockSubtype)
 		b.SetInitDir(NewVec2(-1, 0))
 		b = building.AddBlock(roofBlockSubtype)
-		b.LoadTemplate(weaponsBlockTemplate)
+
+		goal := NewGoal(NewInitC(
+			grid.NextSpacedId(goalSpace),
+			NewVec2(b.Pos().X, b.Pos().Y + b.Thickness()),
+			NewVec2(b.Dim().X / 2, 2),
+			bottomCardinal))
+		goal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[blockType] / 2)
+		goal.SetTeam(1)
+		grid.Upsert(goal)
 
 		spawn := NewSpawn(NewInit(
 			Id(spawnSpace, 2),

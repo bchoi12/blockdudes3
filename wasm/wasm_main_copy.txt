@@ -65,6 +65,10 @@ func setGlobals() {
 	js.Global().Set("playerInitType", int(playerInitType))
 	js.Global().Set("levelInitType", int(levelInitType))
 
+	js.Global().Set("lobbyGameState", int(lobbyGameState))
+	js.Global().Set("activeGameState", int(activeGameState))
+	js.Global().Set("victoryGameState", int(victoryGameState))
+
 	js.Global().Set("playerSpace", int(playerSpace))
 	js.Global().Set("blockSpace", int(blockSpace))
 	js.Global().Set("wallSpace", int(wallSpace))
@@ -80,6 +84,7 @@ func setGlobals() {
 	js.Global().Set("grapplingHookSpace", int(grapplingHookSpace))
 	js.Global().Set("pickupSpace", int(pickupSpace))
 	js.Global().Set("portalSpace", int(portalSpace))
+	js.Global().Set("goalSpace", int(goalSpace))
 	js.Global().Set("spawnSpace", int(spawnSpace))
 
 	js.Global().Set("initializedProp", int(initializedProp))
@@ -100,6 +105,8 @@ func setGlobals() {
 	js.Global().Set("keysProp", int(keysProp))
 	js.Global().Set("ownerProp", int(ownerProp))
 	js.Global().Set("targetProp", int(targetProp))
+	js.Global().Set("stateProp", int(stateProp))
+	js.Global().Set("scoreProp", int(scoreProp))
 	js.Global().Set("killProp", int(killProp))
 	js.Global().Set("deathProp", int(deathProp))
 
@@ -111,6 +118,7 @@ func setGlobals() {
 	js.Global().Set("dashingAttribute", int(dashingAttribute))
 	js.Global().Set("deadAttribute", int(deadAttribute))
 	js.Global().Set("visibleAttribute", int(visibleAttribute))
+	js.Global().Set("vipAttribute", int(vipAttribute))
 
 	js.Global().Set("typeByteAttribute", int(typeByteAttribute))
 	js.Global().Set("subtypeByteAttribute", int(subtypeByteAttribute))
@@ -400,7 +408,13 @@ func getData(data js.Value) Data {
 		d.Set(byteAttributesProp, parseByteAttributesAsProp(prop.String()))
 	}
 
-	// Note: int and float attributes skipped for now
+	if prop, ok = getPropData(data, intAttributesProp); ok {
+		d.Set(intAttributesProp, parseIntAttributesAsProp(prop.String()))
+	}
+
+	if prop, ok = getPropData(data, floatAttributesProp); ok {
+		d.Set(floatAttributesProp, parseFloatAttributesAsProp(prop.String()))
+	}
 
 	if prop, ok = getPropData(data, dimProp); ok {
 		if vec, vecOk := parseVec2(prop); vecOk {
@@ -503,7 +517,7 @@ func parseKeysAsProp(keyStr string) map[KeyType]bool {
 	parsedMap := parseStringMap(keyStr)
 
 	for k, v := range(parsedMap) {
-		if v == 1 {
+		if v == "1" {
 			keys[KeyType(k)] = true
 		} else {
 			keys[KeyType(k)] = false
@@ -522,7 +536,7 @@ func parseAttributesAsProp(attributeStr string) map[AttributeType]bool {
 			continue
 		}
 
-		if v == 1 {
+		if v == "1" {
 			attributes[AttributeType(k)] = true
 		} else {
 			attributes[AttributeType(k)] = false
@@ -540,13 +554,46 @@ func parseByteAttributesAsProp(attributeStr string) map[ByteAttributeType]uint8 
 		if _, ok := wasmIgnoreByteAttributes[ByteAttributeType(k)]; ok {
 			continue
 		}
-		attributes[ByteAttributeType(k)] = v
+		if int, err := strconv.Atoi(v); err == nil {
+			attributes[ByteAttributeType(k)] = uint8(int)
+		}
 	}
 	return attributes
 }
 
-func parseStringMap(stringMap string) map[int]uint8 {
-	resultMap := make(map[int]uint8)
+func parseIntAttributesAsProp(attributeStr string) map[IntAttributeType]int {
+	attributes := make(map[IntAttributeType]int)
+	parsedMap := parseStringMap(attributeStr)
+
+	for k, v := range(parsedMap) {
+		if _, ok := wasmIgnoreIntAttributes[IntAttributeType(k)]; ok {
+			continue
+		}
+		if int, err := strconv.Atoi(v); err == nil {
+			attributes[IntAttributeType(k)] = int
+		}
+	}
+	return attributes
+}
+
+func parseFloatAttributesAsProp(attributeStr string) map[FloatAttributeType]float64 {
+	attributes := make(map[FloatAttributeType]float64)
+	parsedMap := parseStringMap(attributeStr)
+
+	for k, v := range(parsedMap) {
+		if _, ok := wasmIgnoreFloatAttributes[FloatAttributeType(k)]; ok {
+			continue
+		}
+		if float, err := strconv.ParseFloat(v, 64); err == nil {
+			attributes[FloatAttributeType(k)] = float
+		}
+	}
+	return attributes
+}
+
+
+func parseStringMap(stringMap string) map[int]string {
+	resultMap := make(map[int]string)
 	for _, entry := range(strings.Split(stringMap, ",")) {
 		pair := strings.Split(entry, ":")
 
@@ -560,13 +607,7 @@ func parseStringMap(stringMap string) map[int]uint8 {
 			continue
 		}
 
-		value, err2 := strconv.Atoi(pair[1])
-		if err2 != nil {
-			fmt.Println("parseStringMap: ", err)
-			continue
-		}
-
-		resultMap[key] = uint8(value)
+		resultMap[key] = pair[1]
 	}
 	return resultMap
 }

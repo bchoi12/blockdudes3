@@ -70,7 +70,7 @@ func NewLauncher(weapon *Weapon, space SpaceType) *Launcher {
 		l.projectileSize = NewVec2(0.2, 0.2)
 		l.projectileVel = 30
 		l.projectileNumber = 4
-		l.projectileSpread = 0.03 * math.Pi
+		l.projectileSpread = 0.04 * math.Pi
 	case boltSpace:
 		l.maxAmmo = 3
 		l.ammoTimer.SetDuration(100 * time.Millisecond)

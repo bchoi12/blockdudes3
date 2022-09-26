@@ -49,7 +49,7 @@ type Player struct {
 	jumpTimer Timer
 	jumpGraceTimer Timer
 	knockbackTimer Timer
-	deathTimer Timer
+	respawnTimer Timer
 }
 
 func NewPlayer(init Init) *Player {
@@ -66,7 +66,7 @@ func NewPlayer(init Init) *Player {
 	profile.AddSubProfile(bodySubProfile, subProfile)
 
 	overlapOptions := NewColliderOptions()
-	overlapOptions.SetSpaces(wallSpace, pickupSpace, portalSpace)
+	overlapOptions.SetSpaces(wallSpace, pickupSpace, portalSpace, goalSpace)
 	profile.SetOverlapOptions(overlapOptions)
 
 	snapOptions := NewColliderOptions()
@@ -83,7 +83,7 @@ func NewPlayer(init Init) *Player {
 		jumpTimer: NewTimer(jumpDuration),
 		jumpGraceTimer: NewTimer(jumpGraceDuration),
 		knockbackTimer: NewTimer(knockbackDuration),
-		deathTimer: NewTimer(2 * time.Second),
+		respawnTimer: NewTimer(2 * time.Second),
 	}
 
 	player.SetByteAttribute(typeByteAttribute, 0)
@@ -112,13 +112,13 @@ func (p Player) Dead() bool {
 
 func (p Player) UpdateScore(g *Grid) {
 	sid := p.Health.GetLastDamageId(lastDamageTime)
-	g.IncrementScore(p.GetSpacedId(), deathProp, 1)
+	g.IncrementProp(p.GetSpacedId(), deathProp, 1)
 
 	if sid.Invalid() {
 		return
 	}
 
-	g.IncrementScore(sid, killProp, 1)
+	g.IncrementProp(sid, killProp, 1)
 }
 
 func (p *Player) SetTeam(team uint8, grid *Grid) {
@@ -135,11 +135,12 @@ func (p *Player) SetTeam(team uint8, grid *Grid) {
 
 func (p *Player) Respawn() {
 	p.Health.Respawn()
-
 	p.SetHealth(100)
-	p.AddAttribute(canDoubleJumpAttribute)
+	p.RemoveAttribute(deadAttribute)
+	p.Keys.SetEnabled(true)
 
 	p.SetPos(p.respawn)
+	p.AddAttribute(canDoubleJumpAttribute)
 	p.Stop()
 }
 
@@ -159,14 +160,15 @@ func (p *Player) Update(grid *Grid, now time.Time) {
 
 	p.SetByteAttribute(healthByteAttribute, uint8(p.GetHealth()))
 	if p.Dead() {
+		team, _ := p.GetByteAttribute(teamByteAttribute)
 		if !p.HasAttribute(deadAttribute) {
 			p.AddAttribute(deadAttribute)
 			p.Keys.SetEnabled(false)
-			p.deathTimer.Start()
 			p.UpdateScore(grid)
+			p.respawnTimer.Start()
 		}
 
-		if !p.deathTimer.On() {
+		if team == 0 && !p.respawnTimer.On() {
 			p.RemoveAttribute(deadAttribute)
 			p.Keys.SetEnabled(true)
 			p.Respawn()
@@ -314,8 +316,16 @@ func (p *Player) checkCollisions(grid *Grid) {
 			if !isWasm && p.KeyDown(interactKey) {
 				if team, ok := object.GetByteAttribute(teamByteAttribute); ok {
 					p.SetTeam(team, grid)
-					p.Respawn()
 				}
+			}
+		case *Goal:
+			if !isWasm && p.HasAttribute(vipAttribute) && p.grounded {
+				team, _ := p.GetByteAttribute(teamByteAttribute)
+				if goalTeam, ok := object.GetByteAttribute(teamByteAttribute); !ok || team != goalTeam {
+					break
+				}
+
+				grid.SignalVictory(team)
 			}
 		}
 	}

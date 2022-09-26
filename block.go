@@ -86,6 +86,10 @@ func (b Block) GetObjects() []Object {
 	return b.objects
 }
 
+func (b Block) Thickness() float64 {
+	return b.thick
+}
+
 func (b *Block) SetBlockType(blockType BlockType) {
 	switch (blockType) {
 	case archBlock:

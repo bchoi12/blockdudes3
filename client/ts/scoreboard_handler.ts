@@ -23,6 +23,7 @@ export class ScoreboardHandler implements InterfaceHandler {
 
 			this.updateScoreboard();
 			Html.displayBlock(this._scoreboardElm);
+			e.preventDefault();
 		});
 
 		document.addEventListener("keyup", (e : any) => {
@@ -31,6 +32,7 @@ export class ScoreboardHandler implements InterfaceHandler {
 			}
 
 			Html.displayNone(this._scoreboardElm);
+			e.preventDefault();
 		});
 	}
 

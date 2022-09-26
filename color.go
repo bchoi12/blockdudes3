@@ -19,3 +19,9 @@ const (
 	starPurple = 0xc306d1
 	starSecondary = 0xfbfbfb
 )
+
+var teamColors = map[uint8]int {
+	0: 0x333333,
+	1: 0xFF0000,
+	2: 0x0000FF,
+}
