@@ -26,7 +26,7 @@ export class RenderEquip extends RenderObject {
 	}
 
 	override ready() : boolean {
-		return this.hasOwner() && this.hasByteAttribute(subtypeByteAttribute);
+		return super.ready() && this.hasOwner() && this.hasByteAttribute(subtypeByteAttribute);
 	}
 
 	override initialize() : void {
