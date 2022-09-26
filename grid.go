@@ -190,16 +190,14 @@ func (g *Grid) Update(now time.Time) {
 	for _, object := range(g.GetObjects(playerSpace)) {
 		object.Update(g, now)
 	}
+
+	for _, object := range(g.GetAllObjects()) {
+		object.PostUpdate(g, now)
+	}
 }
 
 func (g *Grid) updateObject(object Object, now time.Time) {
 	object.Update(g, now)
-}
-
-func (g *Grid) PostUpdate(now time.Time) {
-	for _, object := range(g.GetAllObjects()) {
-		object.PostUpdate(g, now)
-	}
 }
 
 func (g *Grid) Delete(sid SpacedId) {

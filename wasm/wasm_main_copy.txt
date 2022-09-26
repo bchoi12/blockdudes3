@@ -342,7 +342,7 @@ func LoadLevel() js.Func {
 		level := LevelIdType(args[0].Int())
 		game.LoadLevel(level)
 
-		objects := game.createObjectInitMsg()
+		objects := game.createWallInitMsg()
 		b, err := json.Marshal(objects)
 		if err != nil {
 			fmt.Println("LoadLevel: ", err)
@@ -356,7 +356,7 @@ func LoadLevel() js.Func {
 func Update() js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		game.Update()
-		state := game.createGameStateMsg()
+		state := game.createObjectDataMsg()
 		b, err := json.Marshal(state)
 		if err != nil {
 			fmt.Println("Update: ", err)

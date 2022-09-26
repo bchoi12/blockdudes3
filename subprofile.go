@@ -28,12 +28,15 @@ func (sp *SubProfile) SetOffset(offset Vec2) { sp.offset = offset }
 func (sp *SubProfile) SetDirOffset(dirOffset Vec2) { sp.dirOffset = dirOffset }
 
 func (sp SubProfile) GetInitData() Data {
-	return NewData()
+	data := NewData()
+	data.Set(posProp, sp.Pos())
+	data.Set(dimProp, sp.Dim())
+	return data
 }
 func (sp SubProfile) GetData() Data {
 	data := NewData()
-	data.Set(posProp, sp.Profile.Pos())
-	data.Set(dirProp, sp.Profile.Dir())
+	data.Set(posProp, sp.Pos())
+	data.Set(dirProp, sp.Dir())
 	return data
 }
 func (sp SubProfile) GetUpdates() Data {

@@ -80,7 +80,7 @@ type ChatMsg struct {
 	M string
 }
 
-type GameStateMsg struct {
+type ObjectStateMsg struct {
 	T MessageType
 	S SeqNumType
 	Os ObjectPropMap

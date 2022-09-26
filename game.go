@@ -83,7 +83,6 @@ func (g *Game) ProcessKeyMsg(id IdType, keyMsg KeyMsg) {
 func (g *Game) Update() {
 	now := time.Now()
 	g.grid.Update(now)
-	g.grid.PostUpdate(now)
 	g.seqNum++
 }
 
@@ -108,7 +107,8 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 	}
 }
 
-func (g *Game) createObjectInitMsg() GameStateMsg {
+// TODO: deprecate function in favor of createObjectInitMsg
+func (g *Game) createWallInitMsg() ObjectStateMsg {
 	objs := make(ObjectPropMap)
 
 	for space, objects := range(g.grid.GetManyObjects(wallSpace)) {
@@ -118,37 +118,37 @@ func (g *Game) createObjectInitMsg() GameStateMsg {
 		}
 	}
 
-	return GameStateMsg {
+	return ObjectStateMsg {
 		T: objectDataType,
 		S: g.seqNum,
 		Os: objs,
 	}
 }
 
-func (g *Game) createGameInitMsg() GameStateMsg {
+func (g *Game) createObjectInitMsg() ObjectStateMsg {
 	// Use objectUpdateType to ensure this data gets parsed by client.
-	return GameStateMsg{
+	return ObjectStateMsg{
 		T: objectUpdateType,
 		S: g.seqNum,
 		Os: g.grid.GetObjectInitData(),
 	}
 }
 
-func (g *Game) createGameStateMsg() GameStateMsg {
-	return GameStateMsg{
+func (g *Game) createObjectDataMsg() ObjectStateMsg {
+	return ObjectStateMsg{
 		T: objectDataType,
 		S: g.seqNum,
 		Os: g.grid.GetObjectData(),
 	}
 }
 
-func (g *Game) createGameUpdateMsg() (GameStateMsg, bool) {
+func (g *Game) createObjectUpdateMsg() (ObjectStateMsg, bool) {
 	updates := g.grid.GetObjectUpdates()
 	if len(updates) == 0 {
-		return GameStateMsg{}, false
+		return ObjectStateMsg{}, false
 	}	
 
-	msg := GameStateMsg {
+	msg := ObjectStateMsg {
 		T: objectUpdateType,
 		S: g.seqNum,
 	}

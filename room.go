@@ -222,8 +222,8 @@ func (r *Room) initClient(client *Client) error {
 		return err
 	}
 
-	gameInitMsg := r.game.createGameInitMsg()
-	err = client.Send(&gameInitMsg)
+	objectInitMsg := r.game.createObjectInitMsg()
+	err = client.Send(&objectInitMsg)
 	if err != nil {
 		return err
 	}
@@ -357,10 +357,10 @@ func (r *Room) send(msg interface{}) {
 }
 
 func (r *Room) sendGameState() {
-	state := r.game.createGameStateMsg()
+	state := r.game.createObjectDataMsg()
 	r.sendUDP(&state)
 
-	if updates, ok := r.game.createGameUpdateMsg(); ok {
+	if updates, ok := r.game.createObjectUpdateMsg(); ok {
 		r.send(&updates)
 	}
 }
