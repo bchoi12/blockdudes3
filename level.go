@@ -56,7 +56,9 @@ func (l *Level) loadTestLevel(grid *Grid) {
 		building.AddBlock(baseBlockSubtype)
 		building.AddBlock(baseBlockSubtype)
 		b = building.AddBlock(baseBlockSubtype)
-		b.AddOpenings(rightCardinal)
+		b.AddOpenings(leftCardinal, rightCardinal)
+		balc := building.AddBlock(balconyBlockSubtype)
+		balc.SetInitDir(NewVec2(-1, 0))
 
 		portal := NewPortal(NewInitC(
 			grid.NextSpacedId(portalSpace),
@@ -117,7 +119,9 @@ func (l *Level) loadTestLevel(grid *Grid) {
 		building.AddBlock(baseBlockSubtype)
 		building.AddBlock(baseBlockSubtype)
 		b = building.AddBlock(baseBlockSubtype)
-		b.AddOpenings(leftCardinal)
+		b.AddOpenings(leftCardinal, rightCardinal)
+		balc := building.AddBlock(balconyBlockSubtype)
+		balc.SetInitDir(NewVec2(1, 0))
 
 		portal := NewPortal(NewInitC(
 			grid.NextSpacedId(portalSpace),

@@ -313,7 +313,7 @@ func (p *Player) checkCollisions(grid *Grid) {
 				p.equip.SetType(object.GetType(), object.GetSubtype())
 			}
 		case *Portal:
-			if !isWasm && p.KeyDown(interactKey) {
+			if !isWasm && p.grounded {
 				if team, ok := object.GetByteAttribute(teamByteAttribute); ok {
 					p.SetTeam(team, grid)
 				}

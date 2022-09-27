@@ -179,8 +179,6 @@ class Game {
 	}
 
 	private parseGameState(gameState : Object) : void {
-		console.log(gameState);
-
 		[1, 2].forEach((i) => {
 			if (gameState.hasOwnProperty(i)) {
 				const team = gameState[i];
@@ -194,7 +192,6 @@ class Game {
 			const system = gameState[0];
 			if (system.hasOwnProperty(stateProp)) {
 				const state = system[stateProp];
-				console.log(state);
 				if (state === victoryGameState) {
 					// TODO: make this wasm variable
 					this._updateSpeed = 0.3;
