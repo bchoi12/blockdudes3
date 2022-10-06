@@ -293,12 +293,16 @@ func (p *Player) checkCollisions(grid *Grid) {
 		switch object := collider.(type) {
 		case *Pickup:
 			if !isWasm && p.KeyDown(interactKey) {
-				if p.weapon == nil {
+				if p.weapon == nil || p.weapon.GetType() != object.GetType() {
+					if p.weapon != nil {
+						grid.Delete(p.weapon.GetSpacedId())
+					}
 					weapon := grid.New(NewInit(grid.NextSpacedId(weaponSpace), p.Pos(), p.Dim()))
 					grid.Upsert(weapon)
 					p.weapon = weapon.(*Weapon)
 					p.weapon.AddConnection(p.GetSpacedId(), NewOffsetConnection(NewVec2(0, bodySubProfileOffsetY)))
-					p.weapon.SetOwner(p.GetSpacedId())
+					p.weapon.SetOwner(p.GetSpacedId())					
+					p.weapon.SetType(object.GetType(), object.GetSubtype())
 				}
 
 				if p.equip == nil {
@@ -309,7 +313,6 @@ func (p *Player) checkCollisions(grid *Grid) {
 					p.equip.SetOwner(p.GetSpacedId())
 				}
 
-				p.weapon.SetType(object.GetType(), object.GetSubtype())
 				p.equip.SetType(object.GetType(), object.GetSubtype())
 			}
 		case *Portal:

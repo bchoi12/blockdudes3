@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 
+import { game } from './game.js'
 import { RenderCustom } from './render_custom.js'
 
 export enum SceneComponentType {
 	UNKNOWN = 0,
-	BASE = 1,
+	GAME_OVERLAY = 1,
 	LIGHTING = 2,
 	WEATHER = 3,
 	PARTICLES = 4,
@@ -32,22 +33,28 @@ export class SceneComponent {
 		this._lastUpdate = Date.now();
 	}
 
+	scene() : THREE.Scene { return this._scene; }
+	reset() : void {}
+	timestep() : number { return this._timestep * game.updateSpeed(); }
+	postCamera() : boolean { return false; }
+
 	addObject(object : THREE.Object3D) : void {
 		this.addObjectTemp(object, -1);
 	}
 
 	addObjectTemp(object : THREE.Object3D, ttl : number, onDelete? : (object : THREE.Object3D) => void) : void {
-		const id = this.nextId();
-		this._objects.set(id, object);
 		this._scene.add(object);
 
 		if (ttl > 0) {
 			setTimeout(() => {
-				this._objects.delete(id);
-				this._scene.remove(object);
-				onDelete(object);
+				this.deleteObject(object, onDelete);
 			}, ttl);
 		}
+	}
+
+	deleteObject(object : THREE.Object3D, onDelete? : (object : THREE.Object3D) => void) {
+		this._scene.remove(object);
+		onDelete(object);
 	}
 
 	addCustom(custom : RenderCustom) : void {
@@ -62,23 +69,17 @@ export class SceneComponent {
 
 			if (ttl > 0) {
 				setTimeout(() => {
-					this.deleteCustomTemp(custom, onDelete);
+					this.deleteCustom(custom, onDelete);
 				}, ttl);
 			}
 		});
 	}
 
-	deleteCustomTemp(custom : RenderCustom, onDelete? : (object : THREE.Object3D) => void) {
+	deleteCustom(custom : RenderCustom, onDelete? : (object : THREE.Object3D) => void) {
 		this._customObjects.delete(custom.id());
 		this._scene.remove(custom.mesh());
 		onDelete(custom.mesh());
 	}
-
-	scene() : THREE.Scene { return this._scene; }
-
-	reset() : void {}
-
-	timestep() : number { return this._timestep; }
 
 	update() : void {
 		this._customObjects.forEach((custom, id) => {

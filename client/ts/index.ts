@@ -1,7 +1,7 @@
 import { LogUtil, Util } from './util.js'
 
 import { connection } from './connection.js'
-import { game, GameState } from './game.js'
+import { game } from './game.js'
 import { Html } from './html.js'
 import { ui, InputMode } from './ui.js'
 

@@ -26,7 +26,7 @@ import { SceneMap } from './scene_map.js'
 import { ui } from './ui.js'
 import { LogUtil, Util } from './util.js'
 
-export enum GameState {
+export enum GameInputMode {
 	UNKNOWN = 0,
 	PAUSED = 1,
 	GAME = 2,
@@ -34,7 +34,8 @@ export enum GameState {
 
 class Game {
 	private _id : number;
-	private _state : GameState;
+	private _state : number;
+	private _inputMode : GameInputMode;
 
 	// TODO: move to SceneMap
 	private _timeOfDay : number;
@@ -53,7 +54,8 @@ class Game {
 
 	constructor() {
 		this._id = -1;
-		this._state = GameState.PAUSED;
+		this._state = 0;
+		this._inputMode = GameInputMode.PAUSED;
 		this._timeOfDay = 0;
 		this._updateSpeed = 1;
 
@@ -85,16 +87,19 @@ class Game {
 
 	hasId() : boolean { return this._id >= 0; }
 	id() : number { return this._id; }
-	state() : GameState { return this._state; }
+	state() : number { return this._state; }
+	inputMode() : GameInputMode { return this._inputMode; }
 	timeOfDay() : number { return this._timeOfDay; }
 	updateSpeed() : number { return this._updateSpeed; }
 	sceneMap() : SceneMap { return this._sceneMap; }
+
+	keys() : Keys { return this._keys; }
 
 	particles() : Particles { return this._sceneMap.getComponentAsAny(SceneComponentType.PARTICLES); }
 	sceneComponent(type : SceneComponentType) : SceneComponent { return this._sceneMap.getComponent(type); }
 
 	startRender() : void { this.animate(); }
-	setState(state : GameState) { this._state = state; }
+	setInputMode(inputMode : GameInputMode) { this._inputMode = inputMode; }
 	setTimeOfDay(timeOfDay : number) { this._timeOfDay = timeOfDay; }
 
 	flushAdded() : number {
@@ -116,16 +121,18 @@ class Game {
 	}
 
 	private animate() : void {
-		if (this.state() === GameState.GAME) {
+		if (this.inputMode() === GameInputMode.GAME) {
 			this._keys.snapshotKeys();
 			this.extrapolateState();
 		}
 		this.sceneMap().update()
 
-		if (this.state() === GameState.GAME) {
+		if (this.inputMode() === GameInputMode.GAME) {
 			this.updateCamera();
 			this.extrapolatePlayer();
+			this.sceneMap().postCameraUpdate()
 		}
+
 		renderer.render();
 		requestAnimationFrame(() => { this.animate(); });
 	}
@@ -144,7 +151,7 @@ class Game {
 		}
 
 		connection.addSender(keyType, () => {
-			if (this.state() !== GameState.GAME || !connection.ready()) return;
+			if (this.inputMode() !== GameInputMode.GAME || !connection.ready()) return;
 
 			this._keySeqNum++;
 			const msg = this._keys.keyMsg(this._keySeqNum);
@@ -154,7 +161,7 @@ class Game {
 			}
 		}, frameMillis);
 
-		this.setState(GameState.GAME);
+		this.setInputMode(GameInputMode.GAME);
 		LogUtil.d("Initializing player with id " + this._id);
 	}
 
@@ -169,7 +176,7 @@ class Game {
 			}
 		} else {
 			if (Util.defined(msg.G)) {
-				this.parseGameState(msg.G);
+				this.parseGameInputMode(msg.G);
 			}
 		}
 
@@ -178,7 +185,7 @@ class Game {
 		}
 	}
 
-	private parseGameState(gameState : Object) : void {
+	private parseGameInputMode(gameState : Object) : void {
 		[1, 2].forEach((i) => {
 			if (gameState.hasOwnProperty(i)) {
 				const team = gameState[i];
@@ -191,8 +198,8 @@ class Game {
 		if (gameState.hasOwnProperty(0)) {
 			const system = gameState[0];
 			if (system.hasOwnProperty(stateProp)) {
-				const state = system[stateProp];
-				if (state === victoryGameState) {
+				this._state = system[stateProp];
+				if (this._state === victoryGameState) {
 					// TODO: make this wasm variable
 					this._updateSpeed = 0.3;
 					ui.announce({
@@ -338,25 +345,9 @@ class Game {
 		if (!this.hasId()) return;
 		if (!this.sceneMap().has(playerSpace, this.id())) return;
 
+		let camera = renderer.cameraController();
 		const player : RenderPlayer = this.sceneMap().getAsAny(playerSpace, this.id());
-
-		const playerPos = player.pos();
-		renderer.setCameraAnchor(new THREE.Vector3(playerPos.x, playerPos.y, 0));
-
-		const panEnabled = renderer.cameraController().panEnabled();
-		if (Util.defined(player.weapon()) && player.weapon().byteAttribute(subtypeByteAttribute) === chargerEquip) {
-			if (!panEnabled && this._keys.keyDown(altMouseClick)) {
-				const mouseScreen = renderer.getMouseScreen();
-				let pan = new THREE.Vector3(mouseScreen.x, mouseScreen.y, 0);
-				pan.normalize();
-				pan.multiplyScalar(10);
-				renderer.cameraController().enablePan(pan);
-			} else if (panEnabled && !this._keys.keyDown(altMouseClick)) {
-				renderer.cameraController().disablePan();
-			}
-		} else if (panEnabled) {
-				renderer.cameraController().disablePan();		
-		}
+		camera.setObject(player);
 	}
 }
 

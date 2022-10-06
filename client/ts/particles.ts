@@ -131,6 +131,8 @@ export class Particles extends SceneComponent {
 		});
 	}
 
+	override postCamera() : boolean { return true; }
+
 	emit(particle : Particle, ttl : number, update : (object : THREE.Object3D, ts : number) => void, overrides? : ObjectOverrides) : RenderCustom {
 		let obj = this._emitters.get(particle).getObject(overrides);
 		let custom = new RenderCustom(this.nextId());
@@ -153,7 +155,7 @@ export class Particles extends SceneComponent {
 			return;
 		}
 
-		this.deleteCustomTemp(custom, (object : THREE.Object3D) => { this._emitters.get(particle).returnObject(object); });
+		this.deleteCustom(custom, (object : THREE.Object3D) => { this._emitters.get(particle).returnObject(object); });
 	}
 
 	private createEmitter(particle : Particle, size? : number) : void {

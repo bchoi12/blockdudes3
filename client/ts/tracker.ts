@@ -30,6 +30,10 @@ export class ChangeTracker<T> {
 		}
 	}
 
+	set(value : T) {
+		this._value = value;
+	}
+
 	value() : T {
 		return this._value;
 	}

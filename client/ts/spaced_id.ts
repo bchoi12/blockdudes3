@@ -8,6 +8,10 @@ export class SpacedId {
 		this._id = id;
 	}
 
+	static invalidId() {
+		return new SpacedId(0, 0);
+	}
+
 	space() : number { return this._space; }
 	id() : number { return this._id; }
 
@@ -23,5 +27,9 @@ export class SpacedId {
 
 	parseId(sid : string) : number {
 		return Number(sid.split(",")[1])	
+	}
+
+	equals(other : SpacedId) : boolean {
+		return this.valid() && this.space() === other.space() && this.id() === other.id();
 	}
 }

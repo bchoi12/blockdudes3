@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { game } from './game.js'
+import { GameOverlay } from './game_overlay.js'
 import { LightBuffer, LightOverrides } from './light_buffer.js'
 import { Lighting } from './lighting.js'
 import { Particles } from './particles.js'
@@ -25,19 +26,19 @@ export class SceneMap {
 		this.reset();
 	}
 
-	setup() : void {
-		this._lightBuffer = new LightBuffer(this._scene);
-	}
-
 	reset() : void {
 		this._scene = new THREE.Scene();
 		this._scene.fog = new THREE.Fog(0x4444bb, 100, 400);
 
 		this._renders = new Map();
 		this._deleted = new Map();
-
 		this._components = new Map<SceneComponentType, SceneComponent>();
-		this.addComponent(SceneComponentType.BASE, new SceneComponent());
+	}
+
+	setup() : void {
+		this._lightBuffer = new LightBuffer(this._scene);
+		this._components.clear();
+		this.addComponent(SceneComponentType.GAME_OVERLAY, new GameOverlay());
 		this.addComponent(SceneComponentType.LIGHTING, new Lighting());
 		this.addComponent(SceneComponentType.WEATHER, new Weather());
 		this.addComponent(SceneComponentType.PARTICLES, new Particles());
@@ -63,10 +64,9 @@ export class SceneMap {
 
 	update() : void {
 		this._components.forEach((component, type) => {
-			if (type === SceneComponentType.PARTICLES) {
-				return;
+			if (!component.postCamera()) {
+				component.update();
 			}
-			component.update();
 		});
 
 		this._renders.forEach((map, space) => {
@@ -85,9 +85,14 @@ export class SceneMap {
 				object.update();
 			});
 		});
+	}
 
-		// Update particles after object updates.
-		this._components.get(SceneComponentType.PARTICLES).update();
+	postCameraUpdate() : void {
+		this._components.forEach((component, type) => {
+			if (component.postCamera()) {
+				component.update();
+			}
+		});
 	}
 
 	snapshotWasm() : void {

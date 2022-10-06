@@ -10,6 +10,7 @@ import { Util } from './util.js'
 export class RenderObject extends RenderMesh {
 	private _space : number;
 	private _id : number;
+	private _sid : SpacedId;
 	private _msg : Message;
 	private _initialized : boolean;
 	private _initializeTime : number;
@@ -35,6 +36,7 @@ export class RenderObject extends RenderMesh {
 
 		this._space = space;
 		this._id = id;
+		this._sid = new SpacedId(space, id);
 		this._msg = new Message();
 		this._initialized = false;
 		this._deleted = false;
@@ -57,6 +59,7 @@ export class RenderObject extends RenderMesh {
 
 	space() : number { return this._space; }
 	id() : number { return this._id; }
+	spacedId() : SpacedId { return this._sid; }
 	msg() : Message { return this._msg; }
 	data() : { [k: string]: any } { return this._msg.data(); }
 	lastSeqNum() : number { return this._msg.lastSeqNum(); }
@@ -111,6 +114,10 @@ export class RenderObject extends RenderMesh {
 	}
 
 	delete() : void {
+		if (this.hasMesh() && Util.defined(this.mesh().parent)) {
+			this.mesh().parent.remove(this.mesh());
+		}
+
 		wasmDelete(this.space(), this.id());
 		this._deleted = true;
 	}

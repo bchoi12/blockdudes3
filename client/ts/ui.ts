@@ -4,7 +4,7 @@ import { Announcement, AnnouncementHandler } from './announcement_handler.js'
 import { ChatHandler } from './chat_handler.js'
 import { ClientHandler } from './client_handler.js'
 import { connection } from './connection.js'
-import { game, GameState } from './game.js'
+import { game, GameInputMode } from './game.js'
 import { Html } from './html.js'
 import { Icon } from './icon.js'
 import { InputHandler } from './input_handler.js'
@@ -95,7 +95,7 @@ class UI {
 		this._announcementHandler.announce(announcement);
 	}
 	disconnected() : void {
-		game.setState(GameState.PAUSED);
+		game.setInputMode(GameInputMode.PAUSED);
 		this.changeInputMode(InputMode.LOGIN);
 		this.print("Error: disconnected from server.")
 	}

@@ -6,6 +6,7 @@ import { Effects, EffectType } from './effects.js'
 import { game } from './game.js'
 import { Html } from './html.js'
 import { options } from './options.js'
+import { RenderObject } from './render_object.js'
 import { Util } from './util.js'
 
 class Renderer {
@@ -41,7 +42,7 @@ class Renderer {
 			canvas: this._canvas,
 			powerPreference: "high-performance",
 			precision: "highp",
-			antialias: !options.enableEffects && options.enableAntialiasing,
+			antialias: options.enableAntialiasing,
 			depth: true,
 		});
 
@@ -95,23 +96,15 @@ class Renderer {
 			this._effects = new Effects(this._renderer);
 		}
 
-		/*
-		if (options.enableEffects) {
-			this._effects.render(game.sceneMap().scene(), this._cameraController.camera());
-		} else {
-			this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
-		}
-		*/
-
 		this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
 		this._renderCounter++;
 	}
 	fps() : number { return this._fps; }
 
 	cameraController() : CameraController { return this._cameraController; }
+	cameraObject() : RenderObject { return this._cameraController.object(); }
 	cameraAnchor() : THREE.Vector3 { return this._cameraController.anchor(); }
 	cameraTarget() : THREE.Vector3 { return this._cameraController.target(); }
-	setCameraAnchor(anchor : THREE.Vector3) : void { this._cameraController.setAnchor(anchor); }
 
 	setEffect(effect : EffectType, enabled : boolean, object : THREE.Object3D) : void { this._effects.setEffect(effect, enabled, object); }
 

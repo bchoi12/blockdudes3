@@ -25,12 +25,12 @@ class Options {
 		this.enablePointerLock = true;
 		this.enableShadows = true;
 		this.enableEffects = true;
-		this.enableAntialiasing = true;
+		this.enableAntialiasing = false;
 
 		this.rendererScale = 1.0;
-		this.rendererMultisampling = 2;
+		this.rendererMultisampling = 0;
 		this.soundVolume = 0.5;
-		this.extrapolateWeight = 0.5;
+		this.extrapolateWeight = 1.0;
 
 		this.debugShowWalls = false;
 

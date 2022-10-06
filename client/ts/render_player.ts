@@ -33,6 +33,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 	private _weapon : RenderWeapon;
 	private _equip : RenderEquip;
+	private _compass : THREE.Mesh;
 	private _currentBlock : RenderBlock;
 
 	private _teamTracker : ChangeTracker<number>;
@@ -42,6 +43,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 	
 	// TODO: combine with TeamTracker & change to color tracker?
 	private _vipTracker : ChangeTracker<boolean>;
+	private _panTracker : ChangeTracker<boolean>;
 
 	private _hitDuration : number;
 	private _lastHit : number;
@@ -149,6 +151,24 @@ export class RenderPlayer extends RenderAnimatedObject {
 				this._pointer.material.color = new THREE.Color(this.color());
 			}
 		});
+		this._panTracker = new ChangeTracker<boolean>(() => {
+			return this.spacedId().equals(renderer.cameraController().objectId())
+				&& Util.defined(this.weapon())
+				&& this.weapon().byteAttribute(subtypeByteAttribute) === chargerEquip
+				&& game.keys().keyDown(altMouseClick);
+		}, (pan : boolean) => {
+			let camera = renderer.cameraController();
+			const panEnabled = camera.panEnabled();
+			if (pan && !panEnabled) {
+				const mouseScreen = renderer.getMouseScreen();
+				let pan = new THREE.Vector3(mouseScreen.x, mouseScreen.y, 0);
+				pan.normalize();
+				pan.multiplyScalar(10);
+				camera.enablePan(pan);
+			} else if (!pan && panEnabled) {
+				camera.disablePan();		
+			}
+		})
 
 		this._lastHit = 0;
 		this._hitDuration = 0;
@@ -260,6 +280,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 		this._jumpTracker.check();
 		this._doubleJumpTracker.check();
 		this._vipTracker.check();
+		this._panTracker.check();
 
 		if (this._tearLevel > 0 && Date.now() - this._lastTears > this._tearInterval) {
 			this.emitTears();

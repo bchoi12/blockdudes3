@@ -17,7 +17,7 @@ export class Lighting extends SceneComponent {
 	private readonly _shadowMapHeight = 1024;
 	private readonly _shadowBias = -0.001;
 
-	private readonly _sunHeightAngle = new Range(Math.PI / 4, Math.PI / 2 - 0.1);
+	private readonly _sunHeightAngle = new Range(5 * Math.PI / 16, Math.PI / 2 - 0.1);
 	private readonly _turbidity = new Range(5, 0);
 	private readonly _rayleigh = new Range(0.12, 0);
 	private readonly _mieCoefficient = new Range(0.002, 0.005);
@@ -109,7 +109,7 @@ export class Lighting extends SceneComponent {
 	}
 
 	private updateTimeOfDay(timeOfDay : number) : void {
-		this._sunPos.setFromSphericalCoords(1, this._sunHeightAngle.lerp(timeOfDay),  -0.025 * Math.PI);
+		this._sunPos.setFromSphericalCoords(1, this._sunHeightAngle.lerp(timeOfDay),  -0.01 * Math.PI);
 
 		let uniforms = this._sky.material.uniforms;
 		uniforms['sunPosition'].value.copy(this._sunPos);

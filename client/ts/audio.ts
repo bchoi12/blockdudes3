@@ -13,18 +13,25 @@ export enum Sound {
 	TOM_SCREAM,
 }
 
+export enum Music {
+	UNKNOWN,
+	PIANO,
+}
+
 export enum SystemSound {
 	UNKNOWN,
 }
 
 export class Audio {
 	private readonly _soundPrefix = "./sound/";
+	private readonly _musicPrefix = "./music/";
 	private readonly _distThresholdSq : number = 80;
 
-	private _sounds : Map<Sound, Howl>;
+	private _sound : Map<Sound, Howl>;
+	private _music : Map<Music, Howl>;
 
 	constructor() {
-		this._sounds = new Map<Sound, Howl>();
+		this._sound = new Map<Sound, Howl>();
 		this.registerSound(Sound.PEW, this._soundPrefix + "pew.wav");
 		this.registerSound(Sound.BIT_PEW, this._soundPrefix + "bitpew.wav");
 		this.registerSound(Sound.LASER , this._soundPrefix + "laser.wav");
@@ -32,14 +39,17 @@ export class Audio {
 		this.registerSound(Sound.THROW, this._soundPrefix + "throw.wav");
 		this.registerSound(Sound.EXPLOSION, this._soundPrefix + "explosion.wav");
 		this.registerSound(Sound.TOM_SCREAM, this._soundPrefix + "tom_scream.mp3");
+
+		this._music = new Map<Music, Howl>();
+		this.registerMusic(Music.PIANO, this._musicPrefix + "piano.mp3");
 	}
 
 	getSound(sound : Sound) : Howl {
-		return this._sounds.get(sound);
+		return this._sound.get(sound);
 	}
 
 	playSystemSound(sound : Sound) : number {
-		const howl = this._sounds.get(sound);
+		const howl = this._sound.get(sound);
 		howl.volume(options.soundVolume);
 		return howl.play();
 	}
@@ -49,7 +59,7 @@ export class Audio {
 			return -1;
 		}
 
-		const howl = this._sounds.get(sound);
+		const howl = this._sound.get(sound);
 		const id = howl.play();
 		this.adjustVolume(howl, dist.lengthSq(), id);
 		howl.stereo(Math.min(1, Math.max(-1, dist.x / 10)), id);
@@ -61,7 +71,7 @@ export class Audio {
 			return -1;
 		}
 
-		const howl = this._sounds.get(sound);
+		const howl = this._sound.get(sound);
 		const id = howl.play();	
 		this.adjustVolume(howl, dist.lengthSq(), id);
 		howl.stereo(Math.min(1, Math.max(-1, dist.x / 10)));
@@ -69,16 +79,16 @@ export class Audio {
 	}
 
 	adjustSoundDist(sound : Sound, dist : THREE.Vector2, id : number) : void {
-		this.adjustVolume(this._sounds.get(sound), dist.lengthSq(), id);
+		this.adjustVolume(this._sound.get(sound), dist.lengthSq(), id);
 	}
 
 	fadeoutSound(sound : Sound, id : number) : void {
-		const howl = this._sounds.get(sound);
+		const howl = this._sound.get(sound);
 		howl.fade(howl.volume(id), 0, 1000 * (howl.duration() - howl.seek()), id);
 	}
 
 	stopSound(sound : Sound, id : number) : void {
-		this._sounds.get(sound).stop(id);
+		this._sound.get(sound).stop(id);
 	}
 
 	private adjustVolume(howl : Howl, distSq : number, id : number) {
@@ -94,6 +104,10 @@ export class Audio {
 	}
 
 	private registerSound(sound : Sound, srcFile : string) : void {
-		this._sounds.set(sound, new Howl({ src: [srcFile]}));
+		this._sound.set(sound, new Howl({ src: [srcFile]}));
+	}
+
+	private registerMusic(music : Music, srcFile : string) : void {
+		this._music.set(music, new Howl({src: [srcFile]}));
 	}
 }

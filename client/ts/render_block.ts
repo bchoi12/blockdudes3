@@ -13,6 +13,7 @@ import { Util } from './util.js'
 import { WallBuilder } from './wall_builder.js'
 
 export class RenderBlock extends RenderObject {
+	private readonly _boxBuffer = 0.1;
 	private readonly _minOpacity = 0.1;
 
 	private _inside : boolean;
@@ -131,10 +132,10 @@ export class RenderBlock extends RenderObject {
 			const pos = this.pos();
 			const dim = this.dim();
 
-			if (subtype !== balconyBlockSubtype) {
+			if (this._frontMaterials.size > 0) {
 				this._bbox = new THREE.Box2(
-					new THREE.Vector2(pos.x - dim.x/2 - 0.1, pos.y - 0.1),
-					new THREE.Vector2(pos.x + dim.x/2 + 0.1, pos.y + dim.y + 0.1));
+					new THREE.Vector2(pos.x - dim.x/2 - this._boxBuffer, pos.y - this._boxBuffer),
+					new THREE.Vector2(pos.x + dim.x/2 + this._boxBuffer, pos.y + dim.y + this._boxBuffer));
 			}
 		});
 	}

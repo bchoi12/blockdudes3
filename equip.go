@@ -60,6 +60,16 @@ func NewEquip(init Init) *Equip {
 	return e
 }
 
+func (e Equip) GetType() EquipType {
+	typeByte, _ := e.GetByteAttribute(typeByteAttribute)
+	return EquipType(typeByte)
+}
+
+func (e Equip) GetSubtype() EquipType {
+	typeByte, _ := e.GetByteAttribute(subtypeByteAttribute)
+	return EquipType(typeByte)
+}
+
 func (e *Equip) SetType(equipType EquipType, equipSubtype EquipType) {
 	if isWasm {
 		return
@@ -81,7 +91,6 @@ func (e *Equip) SetType(equipType EquipType, equipSubtype EquipType) {
 	if sub != nil {
 		e.parts[altMouseClick] = sub
 	}
-
 }
 
 func (e *Equip) Update(grid *Grid, now time.Time) {
