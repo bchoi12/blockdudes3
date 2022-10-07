@@ -16,6 +16,7 @@ import { PauseHandler } from './pause_handler.js'
 import { renderer } from './renderer.js'
 import { ScoreboardHandler } from './scoreboard_handler.js'
 import { StatsHandler } from './stats_handler.js'
+import { Tooltip, TooltipHandler } from './tooltip_handler.js'
 import { Util } from './util.js'
 
 export enum InputMode {
@@ -24,6 +25,12 @@ export enum InputMode {
 	GAME = 2,
 	PAUSE = 3,
 	CHAT = 4,
+}
+
+export enum TooltipType {
+	UNKNOWN = 0,
+	HELLO = 1,
+	PICKUP = 2,
 }
 
 class UI {
@@ -39,6 +46,7 @@ class UI {
 	private _pauseHandler : PauseHandler;
 	private _scoreboardHandler : ScoreboardHandler;
 	private _statsHandler : StatsHandler;
+	private _tooltipHandler : TooltipHandler;
 
 	constructor() {
 		this._mode = InputMode.UNKNOWN;
@@ -70,6 +78,9 @@ class UI {
 
 		this._statsHandler = new StatsHandler();
 		this._handlers.push(this._statsHandler);
+
+		this._tooltipHandler = new TooltipHandler();
+		this._handlers.push(this._tooltipHandler);
 	}
 
 	setup() : void {
@@ -91,9 +102,8 @@ class UI {
 	getClientName(id : number) : string { return this._clientHandler.displayName(id); }
 	voiceEnabled() : boolean { return this._clientHandler.voiceEnabled(); }
 
-	announce(announcement : Announcement) {
-		this._announcementHandler.announce(announcement);
-	}
+	announce(announcement : Announcement) { this._announcementHandler.announce(announcement); }
+	tooltip(tooltip : Tooltip) { this._tooltipHandler.tooltip(tooltip); }
 	disconnected() : void {
 		game.setInputMode(GameInputMode.PAUSED);
 		this.changeInputMode(InputMode.LOGIN);

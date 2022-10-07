@@ -18,6 +18,8 @@ export namespace Html {
 	export const divMessage = "div-message";
 	export const inputMessage = "input-message";
 
+	export const divTooltips = "div-tooltips";
+	export const divTooltip = "div-tooltip";
 	export const divAnnouncement = "div-announcement";
 	export const divScoreboard = "div-scoreboard";
 

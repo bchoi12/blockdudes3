@@ -99,6 +99,32 @@ fieldset legend {
 	bottom: 0;
 }
 
+#div-tooltips {
+	position: absolute;
+	display: block;
+	text-align: center;
+	width: 60%;
+
+	bottom: 5%;
+	left: 20%;
+
+  color: #f2f2f2;
+}
+
+.div-tooltip {
+	text-align: center;
+	width: 50%;
+	margin: 0.5em auto;
+
+	padding: 1em;
+	border-radius: 10px;
+
+	white-space: pre-line;
+
+  background-color: rgba(0,0,0,0.4);
+  color: #f2f2f2;
+}
+
 #div-announcement {
 	position: absolute;
 	display: none;

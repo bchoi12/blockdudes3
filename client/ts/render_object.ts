@@ -126,6 +126,16 @@ export class RenderObject extends RenderMesh {
 		return this._msg.seqNum(prop);
 	}
 
+	bbox(buffer? : number) : THREE.Box2 {
+		const pos = this.pos();
+		const dim = this.dim();
+		const buf = Util.defined(buffer) ? buffer : 0
+		return new THREE.Box2(
+			new THREE.Vector2(pos.x - dim.x / 2 - buf, pos.y - dim.y / 2 - buf),
+			new THREE.Vector2(pos.x + dim.x / 2 + buf, pos.y + dim.y / 2 + buf),
+		)
+	}
+
 	hasAttributes() : boolean { return this._msg.has(attributesProp); }
 	attributes() : Map<number, number> {
 		if (this.hasAttributes()) {

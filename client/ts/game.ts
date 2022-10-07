@@ -23,7 +23,7 @@ import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
 import { SceneComponent, SceneComponentType } from './scene_component.js'
 import { SceneMap } from './scene_map.js'
-import { ui } from './ui.js'
+import { ui, TooltipType } from './ui.js'
 import { LogUtil, Util } from './util.js'
 
 export enum GameInputMode {
@@ -87,6 +87,7 @@ class Game {
 
 	hasId() : boolean { return this._id >= 0; }
 	id() : number { return this._id; }
+	player() : RenderPlayer { return <RenderPlayer>this._sceneMap.get(playerSpace, this.id()); }
 	state() : number { return this._state; }
 	inputMode() : GameInputMode { return this._inputMode; }
 	timeOfDay() : number { return this._timeOfDay; }
@@ -162,6 +163,10 @@ class Game {
 		}, frameMillis);
 
 		this.setInputMode(GameInputMode.GAME);
+		ui.tooltip({
+			type: TooltipType.HELLO,
+			ttl: 5000,
+		})
 		LogUtil.d("Initializing player with id " + this._id);
 	}
 
