@@ -40,7 +40,6 @@ const (
 
 type Player struct {
 	BaseObject
-	Keys
 	weapon *Weapon
 	equip *Equip
 	respawn Vec2
@@ -75,7 +74,6 @@ func NewPlayer(init Init) *Player {
 
 	player := &Player {
 		BaseObject: NewBaseObject(init, profile),
-		Keys: NewKeys(),
 		weapon: nil,
 		equip: nil,
 		grounded: false,
@@ -274,6 +272,7 @@ func (p *Player) PostUpdate(grid *Grid, now time.Time) {
 }
 
 func (p *Player) OnDelete(grid *Grid) {
+	p.BaseObject.OnDelete(grid)
 	if p.weapon != nil {
 		grid.Delete(p.weapon.GetSpacedId())
 	}
@@ -300,20 +299,18 @@ func (p *Player) checkCollisions(grid *Grid) {
 					weapon := grid.New(NewInit(grid.NextSpacedId(weaponSpace), p.Pos(), p.Dim()))
 					grid.Upsert(weapon)
 					p.weapon = weapon.(*Weapon)
-					p.weapon.AddConnection(p.GetSpacedId(), NewOffsetConnection(NewVec2(0, bodySubProfileOffsetY)))
 					p.weapon.SetOwner(p.GetSpacedId())					
 					p.weapon.SetType(object.GetType(), object.GetSubtype())
-				}
 
-				if p.equip == nil {
+					if p.equip != nil {
+						grid.Delete(p.equip.GetSpacedId())
+					}
 					equip := grid.New(NewInit(grid.NextSpacedId(equipSpace), p.Pos(), p.Dim()))
 					grid.Upsert(equip)
 					p.equip = equip.(*Equip)
-					p.equip.AddConnection(p.GetSpacedId(), NewOffsetConnection(NewVec2(0, bodySubProfileOffsetY)))
 					p.equip.SetOwner(p.GetSpacedId())
+					p.equip.SetType(object.GetType(), object.GetSubtype())
 				}
-
-				p.equip.SetType(object.GetType(), object.GetSubtype())
 			}
 		case *Portal:
 			if !isWasm && p.grounded {
@@ -338,15 +335,7 @@ func (p *Player) UpdateKeys(keyMsg KeyMsg) {
 	if p.HasAttribute(deadAttribute) {
 		return
 	}
-
 	p.Keys.UpdateKeys(keyMsg)
-
-	if p.weapon != nil {
-		p.weapon.UpdateKeys(keyMsg)
-	}
-	if p.equip != nil {
-		p.equip.UpdateKeys(keyMsg)
-	}
 
 	// Don't turn around right at dir.X = 0
 	// Note: any changes here should also be done in the frontend

@@ -42,4 +42,11 @@ func (sp SubProfile) GetData() Data {
 func (sp SubProfile) GetUpdates() Data {
 	return NewData()
 }
-func (sp *SubProfile) SetData(data Data) {}
+func (sp *SubProfile) SetData(data Data) {
+	if data.Has(posProp) {
+		sp.SetPos(data.Get(posProp).(Vec2))
+	}
+	if data.Has(dirProp) {
+		sp.SetDir(data.Get(dirProp).(Vec2))
+	}
+}

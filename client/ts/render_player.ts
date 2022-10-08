@@ -12,6 +12,7 @@ import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
 import { SpriteCreator } from './sprite_creator.js'
 import { ChangeTracker } from './tracker.js'
+import { ui } from './ui.js'
 import { LogUtil, MathUtil, Util } from './util.js'
 
 // enum name has to be the same as value
@@ -187,6 +188,11 @@ export class RenderPlayer extends RenderAnimatedObject {
 		loader.load(this.byteAttribute(typeByteAttribute) == 0 ? Model.CHICKEN : Model.DUCK, (mesh : THREE.Mesh) => {
 			this.setMesh(mesh);
 		});
+	}
+
+	override delete() : void {
+		super.delete();
+		ui.print(this.name() + " was removed from the game.")
 	}
 
 	override setMesh(mesh : THREE.Object3D) {

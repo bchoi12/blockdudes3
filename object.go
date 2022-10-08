@@ -24,6 +24,7 @@ type Object interface {
 	SetOwner(sid SpacedId)
 
 	AddConnection(parent SpacedId, connection Connection)
+	GetConnections() map[SpacedId]Connection
 
 	SetTTL(duration time.Duration)
 	RemoveTTL()
@@ -37,6 +38,9 @@ type Object interface {
 	GetIntAttribute(attribute IntAttributeType) (int, bool)
 	SetFloatAttribute(attribute FloatAttributeType, float float64)
 	GetFloatAttribute(attribute FloatAttributeType) (float64, bool)
+
+	KeyDown(key KeyType) bool
+	MouseDir() Vec2
 
 	SetUpdateSpeed(updateSpeed float64)
 	PreUpdate(grid *Grid, now time.Time)
@@ -54,6 +58,7 @@ type BaseObject struct {
 	Expiration
 	Attribute
 	Attachment
+	Keys
 
 	updateSpeed float64
 	lastUpdateTime time.Time
@@ -69,6 +74,7 @@ func NewBaseObject(init Init, profile Profile) BaseObject {
 		Expiration: NewExpiration(),
 		Attribute: NewAttribute(),
 		Attachment: NewAttachment(init.GetSpacedId()),
+		Keys: NewKeys(),
 
 		updateSpeed: 1,
 		lastUpdateTime: time.Time{},

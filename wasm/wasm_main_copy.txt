@@ -457,6 +457,12 @@ func getData(data js.Value) Data {
 		d.Set(keysProp, parseKeysAsProp(prop.String()))
 	}
 
+	if prop, ok = getPropData(data, ownerProp); ok {
+		if sid, sidOk := parseSpacedId(prop); sidOk {
+			d.Set(ownerProp, sid)
+		}
+	}
+
 	return d
 }
 

@@ -93,7 +93,7 @@ func NewAttribute() Attribute {
 }
 
 func (a *Attribute) AddAttribute(attribute AttributeType) {
-	if has, ok := a.attributes[attribute]; ok && has {
+	if a.HasAttribute(attribute) {
 		return
 	}
 

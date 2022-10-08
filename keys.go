@@ -20,6 +20,8 @@ const (
 type Keys struct {
 	enabled bool
 	keys map[KeyType]bool
+	mouse Vec2
+	dir Vec2
 	lastKeys map[KeyType]bool
 	lastKeyChange map[KeyType]SeqNumType
 }
@@ -28,6 +30,8 @@ func NewKeys() Keys {
 	return Keys {
 		enabled: true,
 		keys: make(map[KeyType]bool),
+		mouse: NewVec2(0, 0),
+		dir: NewVec2(0, 0),
 		lastKeys: make(map[KeyType]bool),
 		lastKeyChange: make(map[KeyType]SeqNumType),
 	}
@@ -64,6 +68,14 @@ func (k Keys) KeyPressed(key KeyType) bool {
 	return pressed
 }
 
+func (k Keys) Mouse() Vec2 {
+	return k.mouse
+}
+
+func (k Keys) MouseDir() Vec2 {
+	return k.dir
+}
+
 func (k *Keys) UpdateKeys(keyMsg KeyMsg) {
 	seqNum := keyMsg.S
 
@@ -81,6 +93,9 @@ func (k *Keys) UpdateKeys(keyMsg KeyMsg) {
 		}
 		k.maybeUpdateKey(key, false, seqNum)
 	}
+
+	k.dir = keyMsg.D
+	k.mouse = keyMsg.M
 }
 
 func (k *Keys) SetKeys(keys map[KeyType]bool) {

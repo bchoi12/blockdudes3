@@ -322,12 +322,6 @@ class Game {
 		this.updateKeys();
 		player.setData(JSON.parse(wasmGetData(playerSpace, this.id())));
 		player.update();
-
-		// TODO: this is sort of hacky
-		if (player.hasWeapon()) {
-			const weaponDir = this._keys.weaponDir();
-			player.setWeaponDir(new THREE.Vector2(weaponDir.X, weaponDir.Y));
-		}
 	}
 
 	private initLevel(msg : { [k: string]: any }) : void {

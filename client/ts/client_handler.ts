@@ -128,7 +128,7 @@ export class ClientHandler implements InterfaceHandler {
 
 	private removeClient(id : number) : void {
 		let client = this._clients.get(id);
-		ui.print(client.displayName() + " left");
+		ui.print(client.displayName() + " lost connection...");
 
 		this._clientsElm.removeChild(client.elm());
 		this._clients.delete(id);

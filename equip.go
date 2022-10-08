@@ -47,14 +47,12 @@ func NewEquipPart(equip* Equip, equipType EquipType) EquipPart {
 
 type Equip struct {
 	BaseObject
-	Keys
 	parts map[KeyType]EquipPart
 }
 
 func NewEquip(init Init) *Equip {
 	e := &Equip {
 		BaseObject: NewSubObject(init),
-		Keys: NewKeys(),
 		parts: make(map[KeyType]EquipPart),
 	}
 	return e
@@ -98,9 +96,22 @@ func (e *Equip) Update(grid *Grid, now time.Time) {
 	e.BaseObject.Update(grid, now)
 
 	owner := grid.Get(e.GetOwner())
-	if owner != nil && owner.HasAttribute(deadAttribute) {
-		for _, part := range(e.parts) {
-			part.SetPressed(false)
+	if owner != nil {
+		if len(e.GetConnections()) == 0 {
+			e.AddConnection(e.GetOwner(), NewOffsetConnection(NewVec2(0, bodySubProfileOffsetY)))
+		}
+		if owner.HasAttribute(deadAttribute) {
+			for _, part := range(e.parts) {
+				part.SetPressed(false)
+			}
+		} else {
+			for key, part := range(e.parts) {
+				part.SetPressed(owner.KeyDown(key))
+			}
+			if !isWasm {
+				// Wasm doesn't have access to mouse dir for other players
+				e.SetDir(owner.MouseDir())
+			}
 		}
 	}
 
@@ -122,12 +133,4 @@ func (e *Equip) OnDelete(grid *Grid) {
 	for _, part := range(e.parts) {
 		part.OnDelete(grid)
 	}
-}
-
-func (e *Equip) UpdateKeys(keyMsg KeyMsg) {
-	e.Keys.UpdateKeys(keyMsg)
-	for key, part := range(e.parts) {
-		part.SetPressed(e.KeyDown(key))
-	}
-	e.SetDir(keyMsg.D)
 }

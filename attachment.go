@@ -66,20 +66,28 @@ func (a *Attachment) AddConnection(parent SpacedId, connection Connection) {
 	a.connections[parent] = connection
 }
 
+func (a Attachment) GetConnections() map[SpacedId]Connection {
+	return a.connections
+}
+
+func (a *Attachment) removeConnection(parent SpacedId) {
+	delete(a.connections, parent)
+}
+
 func (a *Attachment) PreUpdate(grid *Grid, now time.Time) {
-	child := grid.Get(a.sid)
-	if child == nil {
+	self := grid.Get(a.sid)
+	if self == nil {
 		return
 	}
 
-	for parentId, connection := range(a.GetConnections()) {
+	for parentId, connection := range(a.connections) {
 		parent := grid.Get(parentId)
 
-		if parent == nil || child == nil {
-			a.RemoveConnection(parentId)
+		if parent == nil {
+			a.removeConnection(parentId)
 
-			if len(a.GetConnections()) == 0 {
-				child.RemoveAttribute(attachedAttribute)
+			if len(a.connections) == 0 {
+				self.RemoveAttribute(attachedAttribute)
 			}
 			continue
 		}
@@ -87,7 +95,7 @@ func (a *Attachment) PreUpdate(grid *Grid, now time.Time) {
 		if connection.GetType() == attractConnectionType {
 			force := parent.Pos()
 			force.Add(connection.GetOffset(), 1.0)
-			force.Sub(child.Pos(), 1.0)
+			force.Sub(self.Pos(), 1.0)
 
 			forceLen := force.Len() - connection.GetDistance()
 			force.Normalize()
@@ -98,26 +106,30 @@ func (a *Attachment) PreUpdate(grid *Grid, now time.Time) {
 				force.Scale(forceLen / smoothingDistance)
 				force.Scale(forceLen / smoothingDistance)
 			}
-			child.AddForce(force)
+			self.AddForce(force)
 		}
 
-		if !child.HasAttribute(attachedAttribute) {
-			child.AddAttribute(attachedAttribute)
+		if !self.HasAttribute(attachedAttribute) {
+			self.AddAttribute(attachedAttribute)
 		}
 	}
 }
 
 func (a *Attachment) PostUpdate(grid *Grid, now time.Time) {
 	// TODO: refactor so code is not duplicated
-	child := grid.Get(a.sid)
-	for parentId, connection := range(a.GetConnections()) {
+	self := grid.Get(a.sid)
+	if self == nil {
+		return
+	}
+
+	for parentId, connection := range(a.connections) {
 		parent := grid.Get(parentId)
 
-		if parent == nil || child == nil {
-			a.RemoveConnection(parentId)
+		if parent == nil {
+			a.removeConnection(parentId)
 
-			if len(a.GetConnections()) == 0 {
-				child.RemoveAttribute(attachedAttribute)
+			if len(a.connections) == 0 {
+				self.RemoveAttribute(attachedAttribute)
 			}
 			continue
 		}
@@ -125,21 +137,13 @@ func (a *Attachment) PostUpdate(grid *Grid, now time.Time) {
 		if connection.GetType() == offsetConnectionType {
 			pos := parent.Pos()
 			pos.Add(connection.GetOffset(), 1.0)
-			child.SetPos(pos)
-			child.SetVel(parent.Vel())
-			grid.Upsert(child)
+			self.SetPos(pos)
+			self.SetVel(parent.Vel())
+			grid.Upsert(self)
 		}
 
-		if !child.HasAttribute(attachedAttribute) {
-			child.AddAttribute(attachedAttribute)
+		if !self.HasAttribute(attachedAttribute) {
+			self.AddAttribute(attachedAttribute)
 		}
 	}
-}
-
-func (a *Attachment) RemoveConnection(parentId SpacedId) {
-	delete(a.connections, parentId)
-}
-
-func (a Attachment) GetConnections() map[SpacedId]Connection {
-	return a.connections
 }
