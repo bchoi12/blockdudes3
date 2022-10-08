@@ -29,7 +29,8 @@ import { LogUtil, Util } from './util.js'
 export enum GameInputMode {
 	UNKNOWN = 0,
 	PAUSED = 1,
-	GAME = 2,
+	SPECTATOR = 2,
+	GAME = 3,
 }
 
 class Game {
@@ -55,7 +56,7 @@ class Game {
 	constructor() {
 		this._id = -1;
 		this._state = 0;
-		this._inputMode = GameInputMode.PAUSED;
+		this._inputMode = GameInputMode.UNKNOWN;
 		this._timeOfDay = 0;
 		this._updateSpeed = 1;
 

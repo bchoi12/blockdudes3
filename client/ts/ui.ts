@@ -9,6 +9,7 @@ import { Html } from './html.js'
 import { Icon } from './icon.js'
 import { InputHandler } from './input_handler.js'
 import { InterfaceHandler } from './interface_handler.js'
+import { KeyBindingsHandler } from './key_bindings_handler.js'
 import { LoginHandler } from './login_handler.js'
 import { options } from './options.js'
 import { OptionsHandler } from './options_handler.js'
@@ -41,6 +42,7 @@ class UI {
 	private _chatHandler : ChatHandler;
 	private _clientHandler : ClientHandler;
 	private _inputHandler : InputHandler;
+	private _keyBindingsHandler : KeyBindingsHandler;
 	private _loginHandler : LoginHandler;
 	private _optionsHandler : OptionsHandler;
 	private _pauseHandler : PauseHandler;
@@ -63,6 +65,9 @@ class UI {
 
 		this._inputHandler = new InputHandler();
 		this._handlers.push(this._inputHandler);
+
+		this._keyBindingsHandler = new KeyBindingsHandler();
+		this._handlers.push(this._keyBindingsHandler);
 
 		this._loginHandler = new LoginHandler();
 		this._handlers.push(this._loginHandler);

@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 
 import { Cardinal } from './cardinal.js'
-import { EffectType } from './effects.js'
 import { ForegroundGroup } from './foreground_group.js'
 import { game } from './game.js'
 import { loader, Model } from './loader.js'

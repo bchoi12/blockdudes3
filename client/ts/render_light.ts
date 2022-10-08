@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 
-import { EffectType } from './effects.js'
 import { options } from './options.js'
 import { RenderObject } from './render_object.js'
 import { renderer } from './renderer.js' 
@@ -94,7 +93,6 @@ export class RenderLight extends RenderObject {
 		}
 
 		if (Util.defined(this._bulb)) {
-			renderer.setEffect(EffectType.BLOOM, true, this._bulb);
 			scene.add(this._bulb);
 		}
 		if (Util.defined(lamp)) {
@@ -105,12 +103,6 @@ export class RenderLight extends RenderObject {
 		}
 
 		this.setMesh(scene);
-	}
-
-	override delete() : void {
-		if (Util.defined(this._bulb)) {
-			renderer.setEffect(EffectType.BLOOM, false, this._bulb);
-		}
 	}
 }
 

@@ -3,16 +3,22 @@ import * as THREE from 'three';
 import { Util } from './util.js'
 
 class Options {
-	public scoreboardKeyCode : number = 9;
-	public pauseKeyCode : number = 27;
-	public chatKeyCode : number = 13;
+	public leftKeyCode : number;
+	public rightKeyCode : number;
+	public jumpKeyCode : number;
+	public interactKeyCode : number;
+	public altMouseClickKeyCode : number;
+
+	public scoreboardKeyCode : number;
+	public pauseKeyCode : number;
+	public chatKeyCode : number;
 
 	public enablePointerLock : boolean;
 	public enableShadows : boolean;
 	public enableEffects : boolean;
 	public enableAntialiasing : boolean;
 
-	public rendererScale : number;
+	public resolution : number;
 	public rendererMultisampling : number;
 	public soundVolume : number;
 	public extrapolateWeight : number;
@@ -22,13 +28,22 @@ class Options {
 	constructor() {
 		THREE.Cache.enabled = true;
 
+		this.leftKeyCode = 65;
+		this.rightKeyCode = 68;
+		this.jumpKeyCode = 32;
+		this.interactKeyCode = 69;
+		this.altMouseClickKeyCode = 16;
+
+		this.pauseKeyCode = 27;
+		this.chatKeyCode = 13;
+		this.scoreboardKeyCode = 9;
+
 		this.enablePointerLock = true;
 		this.enableShadows = true;
 		this.enableEffects = true;
-		this.enableAntialiasing = false;
+		this.enableAntialiasing = true;
 
-		this.rendererScale = 1.0;
-		this.rendererMultisampling = 0;
+		this.resolution = 1.0;
 		this.soundVolume = 0.5;
 		this.extrapolateWeight = 1.0;
 

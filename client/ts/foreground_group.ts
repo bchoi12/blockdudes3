@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 
-import { EffectType } from './effects.js'
 import { options } from './options.js'
 import { renderer } from './renderer.js'
 

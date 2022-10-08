@@ -1,8 +1,12 @@
 import * as THREE from 'three'
 
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
+
 import { Audio, Sound } from './audio.js'
 import { CameraController } from './camera_controller.js'
-import { Effects, EffectType } from './effects.js'
 import { game } from './game.js'
 import { Html } from './html.js'
 import { options } from './options.js'
@@ -21,7 +25,10 @@ class Renderer {
 	private _fps : number;
 
 	private _renderer : THREE.WebGLRenderer;
-	private _effects : Effects;
+
+	private _fxaaPass : ShaderPass;
+	private _effectsComposer : EffectComposer;
+	private _effectsInitialized : boolean;
 
 	constructor() {
 		this._canvas = Html.canvasElm(this._elmRenderer);
@@ -42,11 +49,11 @@ class Renderer {
 			canvas: this._canvas,
 			powerPreference: "high-performance",
 			precision: "highp",
-			antialias: options.enableAntialiasing,
+			antialias: false,
 			depth: true,
 		});
 
-		this._renderer.setClearColor(0x91d6f2, 1.0);
+		this._renderer.setClearColor(0xFFFFFF, 1.0);
 		this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
 		this._renderer.toneMappingExposure = 1.0;
 
@@ -55,11 +62,14 @@ class Renderer {
 			this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		}
 
+		this._effectsComposer = new EffectComposer(this._renderer);
+		this._fxaaPass = new ShaderPass(FXAAShader);
+		this._effectsInitialized = false;
 		this.resize();
 	}
 
 	resize() : void {
-		if (options.rendererScale <= 0) {
+		if (options.resolution <= 0) {
 			return;
 		}
 
@@ -67,23 +77,22 @@ class Renderer {
 		const height = window.innerHeight;
 		const dpr = window.devicePixelRatio;
 
-		const rendererWidth = width * options.rendererScale;
-		const rendererHeight = height * options.rendererScale;
-		this._renderer.setSize(width * options.rendererScale, height * options.rendererScale);
+		const rendererWidth = width * options.resolution;
+		const rendererHeight = height * options.resolution;
+		this._renderer.setSize(rendererWidth, rendererHeight);
 		this._renderer.setPixelRatio(dpr);
 
 		this._canvas.width = rendererWidth * dpr;
-		this._canvas.width = rendererHeight * dpr;
-		this._canvas.style.width = width + "px";
-		this._canvas.style.height = height + "px";
+		this._canvas.height = rendererHeight * dpr;
 		this._canvas.style.transformOrigin = "0 0";
-		this._canvas.style.transform = "scale(" + 1 / options.rendererScale + ")";
+		this._canvas.style.transform = "scale(" + 1 / options.resolution + ")";
 
 		this._cameraController.setAspect(width / height);
 
-		if (Util.defined(this._effects)) {
-			this._effects.reset(this._renderer);
-		}
+		const pixelRatio = this._renderer.getPixelRatio();
+		this._fxaaPass.material.uniforms["resolution"].value.x = 1 / (width * dpr);
+		this._fxaaPass.material.uniforms["resolution"].value.y = 1 / (height * dpr);
+		this._effectsComposer.setSize(width, height);
 	}
 
 	domElement() : HTMLElement { return this._renderer.domElement; }
@@ -91,11 +100,19 @@ class Renderer {
 	elm() : HTMLElement { return this._canvas; }
 	compile(scene : THREE.Scene) { this._renderer.compile(scene, this._cameraController.camera()); }
 	render() : void {
-		if (!Util.defined(this._effects)) {
-			this._effects = new Effects(this._renderer);
+		if (options.enableAntialiasing) {
+			if (!this._effectsInitialized) {
+				const renderPass = new RenderPass(game.sceneMap().scene(), this._cameraController.camera());
+				renderPass.clearColor = new THREE.Color(0, 0, 0);
+				renderPass.clearAlpha = 0;
+				this._effectsComposer.addPass(renderPass);
+				this._effectsComposer.addPass(this._fxaaPass);
+				this._effectsInitialized = true;
+			}
+			this._effectsComposer.render();
+		} else {
+			this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
 		}
-
-		this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
 		this._renderCounter++;
 	}
 	fps() : number { return this._fps; }
@@ -104,8 +121,6 @@ class Renderer {
 	cameraObject() : RenderObject { return this._cameraController.object(); }
 	cameraAnchor() : THREE.Vector3 { return this._cameraController.anchor(); }
 	cameraTarget() : THREE.Vector3 { return this._cameraController.target(); }
-
-	setEffect(effect : EffectType, enabled : boolean, object : THREE.Object3D) : void { this._effects.setEffect(effect, enabled, object); }
 
 	playSystemSound(sound : Sound) : number { return this._audio.playSystemSound(sound); }
 	playSound(sound : Sound, pos : THREE.Vector2) : number {

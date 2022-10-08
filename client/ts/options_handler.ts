@@ -16,9 +16,7 @@ export class OptionsHandler implements InterfaceHandler {
 
 	private _extrapolationInputElm : HTMLInputElement;
 	private _soundVolumeInputElm : HTMLInputElement;
-	private _rendererScaleInputElm : HTMLInputElement;
-	private _multisamplingElm : HTMLElement;
-	private _multisamplingInputElm : HTMLInputElement;
+	private _resolutionInputElm : HTMLInputElement;
 
 	constructor() {
 		this._optionsElm = Html.elm(Html.fieldsetOptions);
@@ -31,9 +29,7 @@ export class OptionsHandler implements InterfaceHandler {
 
 		this._extrapolationInputElm = Html.inputElm(Html.inputExtrapolation);
 		this._soundVolumeInputElm = Html.inputElm(Html.inputSoundVolume);
-		this._rendererScaleInputElm = Html.inputElm(Html.inputRendererScale);
-		this._multisamplingElm = Html.elm(Html.optionsMultisampling);
-		this._multisamplingInputElm = Html.inputElm(Html.inputMultisampling);
+		this._resolutionInputElm = Html.inputElm(Html.inputResolution);
 	}
 
 	setup() : void {
@@ -48,19 +44,7 @@ export class OptionsHandler implements InterfaceHandler {
 
 		this._extrapolationInputElm.value = "" + options.extrapolateWeight;
 		this._soundVolumeInputElm.value = "" + options.soundVolume;
-		this._rendererScaleInputElm.value = "" + options.rendererScale;
-		this._multisamplingInputElm.value = "" + options.rendererMultisampling;
-
-		const toggleEffects = () => {
-			if (options.enableEffects) {
-				this._antialiasingElm.style.display = "block";
-				this._multisamplingElm.style.display = "none";
-			} else {
-				this._antialiasingElm.style.display = "block";
-				this._multisamplingElm.style.display = "none";
-			}
-		};
-		toggleEffects();
+		this._resolutionInputElm.value = "" + options.resolution;
 
 		this._pointerLockInputElm.onchange = () => {
 			options.enablePointerLock = this._pointerLockInputElm.checked;
@@ -71,14 +55,10 @@ export class OptionsHandler implements InterfaceHandler {
 		};
 		this._effectsInputElm.onchange = () => {
 			options.enableEffects = this._effectsInputElm.checked;
-			toggleEffects();
-			renderer.reset();
 		};
 		this._antialiasingInputElm.onchange = () => {
 			options.enableAntialiasing = this._antialiasingInputElm.checked;
-			renderer.reset();
 		};
-
 
 		this._extrapolationInputElm.onchange = () => {
 			const weight = Math.min(1, Math.max(0, Number(this._extrapolationInputElm.value)));
@@ -88,14 +68,10 @@ export class OptionsHandler implements InterfaceHandler {
 			const volume = Math.min(1, Math.max(0, Number(this._soundVolumeInputElm.value)));
 			options.soundVolume = volume;
 		};
-		this._rendererScaleInputElm.onchange = () => {
-			const scale = Math.min(1, Math.max(0.25, Number(this._rendererScaleInputElm.value)));
-			options.rendererScale = scale;
+		this._resolutionInputElm.onchange = () => {
+			const scale = Math.min(1, Math.max(0.25, Number(this._resolutionInputElm.value)));
+			options.resolution = scale;
 			renderer.resize();
-		};
-		this._multisamplingInputElm.onchange = () => {
-			const multisampling = Math.min(8, Math.max(0, Number(this._multisamplingInputElm.value)));
-			options.rendererMultisampling = multisampling;
 		};
 	}
 

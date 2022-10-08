@@ -33,14 +33,7 @@ export class InputHandler implements InterfaceHandler {
 	}
 
 	setup() : void {
-		this.mapKey(37, leftKey);
-		this.mapKey(65, leftKey);
-		this.mapKey(39, rightKey);
-		this.mapKey(68, rightKey);
-		this.mapKey(32, jumpKey);
-		this.mapKey(38, jumpKey);
-		this.mapKey(69, interactKey);
-		this.mapKey(16, altMouseClick);		
+		this.reset();
 
 		// TODO: consolidate this between handlers somehow
 		document.addEventListener("keydown", (e : any) => {
@@ -81,7 +74,13 @@ export class InputHandler implements InterfaceHandler {
 		});
 	}
 
-	reset() : void {}
+	reset() : void {
+		this.mapKey(options.leftKeyCode, leftKey);
+		this.mapKey(options.rightKeyCode, rightKey);
+		this.mapKey(options.jumpKeyCode, jumpKey);
+		this.mapKey(options.interactKeyCode, interactKey);
+		this.mapKey(options.altMouseClickKeyCode, altMouseClick);		
+	}
 
 	changeInputMode(mode : InputMode) : void {
 		if (mode === InputMode.GAME) {

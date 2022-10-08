@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 
-import { EffectType } from './effects.js'
 import { Sound } from './audio.js'
 import { game } from './game.js'
 import { Particle } from './particles.js'

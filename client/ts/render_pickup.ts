@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 
-import { EffectType } from './effects.js'
 import { game } from './game.js'
 import { Model, loader } from './loader.js'
 import { options } from './options.js'
@@ -31,12 +30,6 @@ export class RenderPickup extends RenderObject {
 		});
 	}
 
-	override delete() : void {
-		super.delete();
-
-		renderer.setEffect(EffectType.OUTLINE, false, this.mesh().getObjectByName("mesh"));
-	}
-
 	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
 
@@ -46,8 +39,6 @@ export class RenderPickup extends RenderObject {
 		if (options.enableShadows) {
 			mesh.receiveShadow = true;
 		}
-
-		renderer.setEffect(EffectType.OUTLINE, true, mesh.getObjectByName("mesh"));
 	}
 
 	override update() : void {
@@ -62,7 +53,7 @@ export class RenderPickup extends RenderObject {
 			if (this._bbox.containsPoint(player.pos()) || this._bbox.intersectsBox(player.bbox())) {
 				ui.tooltip( { 
 					type: TooltipType.PICKUP,
-					ttl: 1000,
+					ttl: 500,
 					name: this.getName(),
 				});
 			}
