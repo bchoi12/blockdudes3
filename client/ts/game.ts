@@ -130,7 +130,7 @@ class Game {
 
 		if (this.inputMode() === GameInputMode.GAME) {
 			this.updateCamera();
-			this.extrapolatePlayer();
+			this.smoothPlayerDir();
 			this.sceneMap().postCameraUpdate()
 		}
 
@@ -309,7 +309,7 @@ class Game {
 		}
 	}
 
-	private extrapolatePlayer() : void {
+	private smoothPlayerDir() : void {
 		if (!this.sceneMap().has(playerSpace, this.id())) {
 			return;
 		}
@@ -323,9 +323,10 @@ class Game {
 		player.setData(JSON.parse(wasmGetData(playerSpace, this.id())));
 		player.update();
 
-		// make weapon smooth bog
-		if (player.hasWeapon()) {
-			player.weapon().update();
+		// more smooth bog
+		if (player.hasWeapon()) { 
+			const weaponDir = this._keys.weaponDir();
+			player.setWeaponDir(new THREE.Vector2(weaponDir.X, weaponDir.Y));
 		}
 	}
 
