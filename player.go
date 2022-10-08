@@ -335,16 +335,17 @@ func (p *Player) checkCollisions(grid *Grid) {
 }
 
 func (p *Player) UpdateKeys(keyMsg KeyMsg) {
+	if p.HasAttribute(deadAttribute) {
+		return
+	}
+
 	p.Keys.UpdateKeys(keyMsg)
+
 	if p.weapon != nil {
 		p.weapon.UpdateKeys(keyMsg)
 	}
 	if p.equip != nil {
 		p.equip.UpdateKeys(keyMsg)
-	}
-
-	if p.HasAttribute(deadAttribute) {
-		return
 	}
 
 	// Don't turn around right at dir.X = 0

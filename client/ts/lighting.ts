@@ -97,19 +97,23 @@ export class Lighting extends SceneComponent {
 	override update() : void {
 		super.update();
 
-		const cameraTarget = renderer.cameraTarget();
-		this._sunLight.target.position.copy(cameraTarget);
-
 		if (!Util.defined(this._skyTime) || Math.abs(game.timeOfDay() - this._skyTime) > .01) {
 			this._skyTime = game.timeOfDay();
 			this.updateTimeOfDay(this._skyTime);
 		}
 
+		this._sunLightOffset = this._sunPos.clone();
+		// TODO: put this closer and tweak shadow bias or something
+		this._sunLightOffset.multiplyScalar(86);
+		this._sunLightOffset.add(renderer.cameraTarget());
+		this._sunLight.position.copy(this._sunLightOffset);
+		this._sunLight.target.position.copy(renderer.cameraTarget());
+
 		this._water.material.uniforms['time'].value -= 15 * this.timestep();
 	}
 
 	private updateTimeOfDay(timeOfDay : number) : void {
-		this._sunPos.setFromSphericalCoords(1, this._sunHeightAngle.lerp(timeOfDay),  -0.01 * Math.PI);
+		this._sunPos.setFromSphericalCoords(1, this._sunHeightAngle.lerp(timeOfDay),  -0.025 * Math.PI);
 
 		let uniforms = this._sky.material.uniforms;
 		uniforms['sunPosition'].value.copy(this._sunPos);
@@ -126,12 +130,6 @@ export class Lighting extends SceneComponent {
 		this._hemisphereLight.intensity = this._hemisphereLightIntensity.lerp(timeOfDay);
 		const color = this._hemisphereLightColor.lerp(timeOfDay);
 		this._hemisphereLight.color = new THREE.Color(color, color, color);
-
-		this._sunLightOffset = this._sunPos.clone();
-
-		// TODO: put this closer and tweak shadow bias or something
-		this._sunLightOffset.multiplyScalar(86);
-		this._sunLight.position.copy(this._sunLightOffset);
 
 		this._skyTime = timeOfDay;
 	}

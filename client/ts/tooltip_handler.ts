@@ -31,23 +31,24 @@ export class TooltipHandler implements InterfaceHandler {
 	}
 
 	tooltip(tooltip : Tooltip) {
+		let wrapper;
 		if (this._tooltips.has(tooltip.type)) {
-			this._tooltipsElm.removeChild(this._tooltips.get(tooltip.type).elm());
-			this._tooltips.delete(tooltip.type);
-		} 
+			wrapper = this._tooltips.get(tooltip.type);
+		} else {
+			for (let [type, activeWrapper] of this._tooltips) {
+				if (this._tooltips.size < this._maxTooltips) {
+					break;
+				}
 
-		for (let [type, activeWrapper] of this._tooltips) {
-			if (this._tooltips.size < this._maxTooltips) {
-				break;
+				wrapper.delete(() => {
+					this._tooltips.delete(type);
+				})
 			}
 
-			this._tooltips.delete(type);
-			this._tooltipsElm.removeChild(activeWrapper.elm());
+			wrapper = new TooltipWrapper(tooltip.type);
+			this._tooltips.set(tooltip.type, wrapper);
+			this._tooltipsElm.appendChild(wrapper.elm());
 		}
-
-		let wrapper = new TooltipWrapper(tooltip.type);
-		this._tooltips.set(tooltip.type, wrapper);
-		this._tooltipsElm.appendChild(wrapper.elm());
 
 		wrapper.setText(this.getText(tooltip));
 		wrapper.setTTL(Util.defined(tooltip.ttl) ? tooltip.ttl : 1000, () => {

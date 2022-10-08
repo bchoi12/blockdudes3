@@ -15,6 +15,8 @@ export class ChatHandler implements InterfaceHandler {
 	private _messageElm : HTMLElement;
 	private _messageInputElm : HTMLInputElement;
 
+	private _timeoutId : number;
+
 	constructor() {
 		this._chatElm = Html.elm(Html.divChat);
 		this._messageElm = Html.elm(Html.divMessage);
@@ -41,6 +43,7 @@ export class ChatHandler implements InterfaceHandler {
 
 	changeInputMode(mode : InputMode) : void {
 		if (mode === InputMode.CHAT) {
+			this.showChat();
 			Html.notSlightlyOpaque(this._chatElm);
 			Html.selectable(this._chatElm);
 			Html.displayBlock(this._messageElm);
@@ -66,12 +69,23 @@ export class ChatHandler implements InterfaceHandler {
 	}
 
 	print(message : string) : void {
+		this.showChat();
 		const messageSpan = Html.span();
 		messageSpan.textContent = message;
 
 		this._chatElm.append(messageSpan);
 		this._chatElm.append(Html.br());
 		this._chatElm.scrollTop = this._chatElm.scrollHeight;
+	}
+
+	private showChat() : void {
+		Html.displayBlock(this._chatElm);
+		if (Util.defined(this._timeoutId)) {
+			window.clearTimeout(this._timeoutId);
+		}
+		this._timeoutId = window.setTimeout(() => {
+			Html.displayNone(this._chatElm);
+		}, 10000);
 	}
 
 	private command(message : string) {

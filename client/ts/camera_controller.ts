@@ -104,6 +104,7 @@ export class CameraController {
 
 		this._camera.position.add(pan);
 		this._target.add(pan);
+		this._target.y = Math.max(this._cameraMinY, this._target.y);
 
 		this._camera.position.y = Math.max(this._cameraMinY + this._cameraOffset.y, this._camera.position.y);
 		this._camera.lookAt(this._target);

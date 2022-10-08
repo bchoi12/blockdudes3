@@ -10,24 +10,32 @@ export class TooltipWrapper extends HtmlWrapper {
 	constructor(type : TooltipType) {
 		super(Html.div());
 		this.elm().classList.add(Html.divTooltip);
+
+		setTimeout(() => {
+			this.elm().classList.add("tooltip-show");
+		}, 5);
 	}
 
 	type() : TooltipType {
 		return this._type;
 	}
 
-	setTTL(ttl : number, cb : () => void) : void {
+	setTTL(ttl : number, onDelete : () => void) : void {
 		if (Util.defined(this._timeoutId)) {
 			window.clearTimeout(this._timeoutId);
 		}
 
 		this._timeoutId = window.setTimeout(() => {
-			this.elm().parentNode.removeChild(this.elm());
-			cb();
+			this.delete(onDelete);
 		}, ttl);
 	}
 
 	setText(text : string) : void {
 		this.elm().textContent = text;
+	}
+
+	delete(onDelete : () => void) : void {
+		this.elm().parentNode.removeChild(this.elm());
+		onDelete();
 	}
 }

@@ -71,7 +71,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 				this._tearLevel = 0;
 			} else {
 				this._tearLevel = (70 - health) / 10;
-				this._tearInterval = 1000 + 500 * health / 20;
+				this._tearInterval = 750 + 250 * health / 20;
 			}
 
 			let lostHealth = Math.round(lastHealth - health);
