@@ -323,10 +323,9 @@ class Game {
 		player.setData(JSON.parse(wasmGetData(playerSpace, this.id())));
 		player.update();
 
-		// more smooth bog
+		// make weapon smooth bog
 		if (player.hasWeapon()) {
-			const weaponDir = this._keys.weaponDir();
-			player.setWeaponDir(new THREE.Vector2(weaponDir.X, weaponDir.Y));
+			player.weapon().update();
 		}
 	}
 
