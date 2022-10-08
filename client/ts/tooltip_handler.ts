@@ -63,7 +63,7 @@ export class TooltipHandler implements InterfaceHandler {
 		case TooltipType.HELLO:
 			return "Hello!\r\nWelcome";
 		case TooltipType.PICKUP:
-			return "Press \'" + String.fromCharCode(69) + "\' to pickup " + tooltip.name;
+			return "Press \'" + String.fromCharCode(options.interactKeyCode) + "\' to pickup " + tooltip.name;
 		default:
 			return "testing 123";
 		}

@@ -75,6 +75,7 @@ export class InputHandler implements InterfaceHandler {
 	}
 
 	reset() : void {
+		this._keyMap.clear();
 		this.mapKey(options.leftKeyCode, leftKey);
 		this.mapKey(options.rightKeyCode, rightKey);
 		this.mapKey(options.jumpKeyCode, jumpKey);

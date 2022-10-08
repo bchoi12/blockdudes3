@@ -19,12 +19,15 @@ export namespace Html {
 	export const inputMessage = "input-message";
 
 	export const divTooltips = "div-tooltips";
-	export const divTooltip = "div-tooltip";
+	export const classTooltip = "tooltip";
+	export const classTooltipShow = "tooltip-show";
 	export const divAnnouncement = "div-announcement";
 	export const divScoreboard = "div-scoreboard";
 
 	export const divPause = "div-pause";
+	export const pauseContinue = "pause-continue";
 	export const fieldsetClients = "fieldset-clients";
+
 	export const fieldsetOptions = "fieldset-options";
 	export const optionsAntialiasing = "options-antialiasing";
 	export const inputPointerLock = "input-pointer-lock";
@@ -35,8 +38,8 @@ export namespace Html {
 	export const inputExtrapolation = "input-extrapolation";
 	export const inputSoundVolume = "input-sound-volume";
 	export const inputResolution = "input-resolution";
+
 	export const fieldsetKeyBindings = "fieldset-key-bindings";
-	export const pauseContinue = "pause-continue";
 
 	export const cursor = "cursor";
 
@@ -54,6 +57,11 @@ export namespace Html {
 		let range = <HTMLInputElement>document.createElement("input");
 		range.type = "range";
 		return range;
+	}
+	export function divider(borderStyle : string) : HTMLElement {
+		let hr = document.createElement("hr");
+		hr.style.borderTop = borderStyle;
+		return hr;
 	}
 
 	export function hide(elm : HTMLElement) : void {

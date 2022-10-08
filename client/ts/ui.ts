@@ -101,6 +101,7 @@ class UI {
 	}
 
 	inputMode() : InputMode { return this._mode; }
+	updateKeyBindings() : void { this._inputHandler.reset(); }
 	getKeys() : Set<number> { return this._inputHandler.keys(); }
 	getKeysAsArray() : Array<number> { return Array.from(this._inputHandler.keys()); }
 	hasClient(id : number) : boolean { return this._clientHandler.hasClient(id); }
@@ -110,7 +111,7 @@ class UI {
 	announce(announcement : Announcement) { this._announcementHandler.announce(announcement); }
 	tooltip(tooltip : Tooltip) { this._tooltipHandler.tooltip(tooltip); }
 	disconnected() : void {
-		game.setInputMode(GameInputMode.PAUSED);
+		game.setInputMode(GameInputMode.PAUSE);
 		this.changeInputMode(InputMode.LOGIN);
 		this.print("Error: disconnected from server.")
 	}

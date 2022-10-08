@@ -28,7 +28,7 @@ import { LogUtil, Util } from './util.js'
 
 export enum GameInputMode {
 	UNKNOWN = 0,
-	PAUSED = 1,
+	PAUSE = 1,
 	SPECTATOR = 2,
 	GAME = 3,
 }

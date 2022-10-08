@@ -9,10 +9,10 @@ export class TooltipWrapper extends HtmlWrapper {
 
 	constructor(type : TooltipType) {
 		super(Html.div());
-		this.elm().classList.add(Html.divTooltip);
+		this.elm().classList.add(Html.classTooltip);
 
 		setTimeout(() => {
-			this.elm().classList.add("tooltip-show");
+			this.elm().classList.add(Html.classTooltipShow);
 		}, 5);
 	}
 

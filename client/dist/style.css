@@ -111,7 +111,7 @@ fieldset legend {
   color: #f2f2f2;
 }
 
-.div-tooltip {
+.tooltip {
 	text-align: center;
 	width: 50%;
 	margin-left: auto;
@@ -132,9 +132,16 @@ fieldset legend {
   margin-bottom: -3em;
 }
 
-.div-tooltip.tooltip-show {
+.tooltip.tooltip-show {
 	opacity: 1.0;
 	margin-bottom: 0;
+}
+
+.key-binding {
+	width: 100%;
+	font-size: 1em;
+	height: 1em;
+	margin-bottom: 0.3em;
 }
 
 #div-announcement {

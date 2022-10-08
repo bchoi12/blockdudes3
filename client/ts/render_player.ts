@@ -192,7 +192,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 	override delete() : void {
 		super.delete();
-		ui.print(this.name() + " was removed from the game.")
+		if (this.name().length > 0) {
+			ui.print(this.name() + " was removed from the game.")
+		}
 	}
 
 	override setMesh(mesh : THREE.Object3D) {
