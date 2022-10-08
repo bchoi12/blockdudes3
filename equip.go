@@ -104,6 +104,7 @@ func (e *Equip) Update(grid *Grid, now time.Time) {
 			for _, part := range(e.parts) {
 				part.SetPressed(false)
 			}
+			e.SetDir(NewVec2(FSignPos(owner.Dir().X), 0))
 		} else {
 			for key, part := range(e.parts) {
 				part.SetPressed(owner.KeyDown(key))
