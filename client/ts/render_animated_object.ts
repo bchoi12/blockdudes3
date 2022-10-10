@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { game } from './game.js'
 import { RenderObject } from './render_object.js'
 import { Util } from './util.js'
 
@@ -13,7 +14,6 @@ export class RenderAnimatedObject extends RenderObject {
 
 	// TODO: action groups
 	protected _actionGroups : Map<string, Set<string>>;
-
 	protected _activeActions : Set<string>;
 
 	constructor(space : number, id : number) {
@@ -57,7 +57,7 @@ export class RenderAnimatedObject extends RenderObject {
 
 	protected setWeight(action : any, weight : number) : void {
 		action.enabled = true;
-		action.setEffectiveTimeScale(1);
+		action.setEffectiveTimeScale(game.updateSpeed());
 		action.setEffectiveWeight(weight);
 	}
 

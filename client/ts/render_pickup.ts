@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 
 import { game } from './game.js'
+import { KeyNames } from './key_names.js'
 import { Model, loader } from './loader.js'
 import { options } from './options.js'
 import { RenderObject } from './render_object.js'
 import { renderer } from './renderer.js'
-import { ui, TooltipType } from './ui.js'
+import { ui, TooltipType, TooltipName } from './ui.js'
 import { Util } from './util.js'
 
 export class RenderPickup extends RenderObject {
@@ -54,7 +55,9 @@ export class RenderPickup extends RenderObject {
 				ui.tooltip( { 
 					type: TooltipType.PICKUP,
 					ttl: 500,
-					name: this.getName(),
+					names: [{
+						text: "[" + KeyNames.get(options.interactKeyCode) + "]",
+					}, this.getWeaponName()],
 				});
 			}
 		}
@@ -63,19 +66,32 @@ export class RenderPickup extends RenderObject {
 		this.mesh().rotation.x += 0.6 * this.timestep();
 	}
 
-	// TODO: maybe put this somewhere central
-	private getName() {
+	private getWeaponName() : TooltipName {
 		switch (this.byteAttribute(typeByteAttribute)) {
 		case uziWeapon:
-			return "8-bit shotgun";
+			return {
+				text: "8-bit shotgun",
+				color: "#00ff00",
+			};
 		case bazookaWeapon:
-			return "bazooka";
+			return {
+				text: "bazooka",
+				color: "#ff0000",
+			};
 		case starWeapon:
-			return "exploding paper stars";
+			return {
+				text: "exploding paper stars",
+				color: "#ff00ff",
+			};
 		case sniperWeapon:
-			return "laser sniper";
+			return {
+				text: "laser sniper",
+				color: "#00ffff",
+			};
 		default:
-			return "unknown weapon";
+			return {
+				text: "unknown weapon",
+			};
 		}
 	}
 }

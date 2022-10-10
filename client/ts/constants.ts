@@ -90,6 +90,7 @@ declare var dashingAttribute : number;
 declare var deadAttribute : number;
 declare var visibleAttribute : number;
 declare var vipAttribute : number;
+declare var autoRespawnAttribute : number;
 
 declare var typeByteAttribute : number;
 declare var subtypeByteAttribute : number;
@@ -107,6 +108,9 @@ declare var dimZFloatAttribute : number;
 declare var intensityFloatAttribute : number;
 declare var distanceFloatAttribute : number;
 declare var fovFloatAttribute : number;
+
+declare var redTeam : number;
+declare var blueTeam : number;
 
 declare var spotLight : number;
 declare var pointLight : number;
@@ -131,7 +135,6 @@ declare var tableWallSubtype : number;
 
 declare var archBlock : number;
 declare var baseBlockSubtype : number;
-declare var tallBlockSubtype : number;
 declare var roofBlockSubtype : number;
 declare var balconyBlockSubtype : number;
 

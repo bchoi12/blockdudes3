@@ -11,8 +11,6 @@ const (
 	unknownBlockSubtype BlockSubtype = iota
 	baseBlockSubtype
 
-	// TODO: deprecate tall block
-	tallBlockSubtype
 	roofBlockSubtype
 	balconyBlockSubtype
 )
@@ -35,7 +33,6 @@ const (
 var blockSizes = map[BlockType]map[BlockSubtype]Vec2 {
 	archBlock: {
 		baseBlockSubtype: NewVec2(12, 6),
-		tallBlockSubtype: NewVec2(12, 12),
 		roofBlockSubtype: NewVec2(12, 2),
 		balconyBlockSubtype: NewVec2(3, 2),
 	},
@@ -252,9 +249,6 @@ func (b *Block) LoadWalls() {
 	width := dim.X
 	height := dim.Y
 
-	baseDim := blockSizes[b.blockType][baseBlockSubtype]
-	baseHeight := baseDim.Y
-
 	switch (b.blockSubtype) {
 	case baseBlockSubtype:
 		if b.openings.AnyBottom() {
@@ -285,35 +279,6 @@ func (b *Block) LoadWalls() {
 		}
 		right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + rightOpening * height), NewVec2(b.thick, (1.0 - rightOpening) * height), bottomRightCardinal)
 		b.objects = append(b.objects, NewWall(right))
-	case tallBlockSubtype:
-		if b.openings.Get(bottomCardinal) {
-			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomLeftCardinal)
-			b.objects = append(b.objects, NewWall(left))
-			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomRightCardinal)
-			b.objects = append(b.objects, NewWall(right))
-		} else {
-			floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, b.thick), bottomCardinal)
-			b.objects = append(b.objects, NewWall(floor))
-		}
-
-		var cardinals = [4]CardinalType { bottomLeftCardinal, topLeftCardinal, bottomRightCardinal, topRightCardinal }
-		var side = [4]float64 { -1, -1, 1, 1}
-		var heightOffset = [4]float64 {0, baseHeight, 0, baseHeight}
-		var heightExtension = [4]float64 {b.thick, 0, b.thick, 0}
-		var centering = [4]CardinalType {bottomLeftCardinal, bottomLeftCardinal, bottomRightCardinal, bottomRightCardinal}
-
-		for i := 0; i < len(cardinals); i += 1 {
-			opening := 0.0
-			if b.openings.Get(cardinals[i]) {
-				opening = b.sideOpening
-			}
-
-			wall := NewInitC(Id(wallSpace, 0),
-				NewVec2(x + side[i] * width / 2, y + heightOffset[i] + opening * baseHeight),
-				NewVec2(b.thick, (1.0 - opening) * baseHeight + heightExtension[i]),
-				centering[i])
-			b.objects = append(b.objects, NewWall(wall))
-		}
 	case balconyBlockSubtype:
 		if b.InitDir().X > 0 {
 			floor := NewInitC(Id(wallSpace, 0), NewVec2(x, y), NewVec2(width, b.thick), bottomLeftCardinal)

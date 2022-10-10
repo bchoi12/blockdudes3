@@ -5,10 +5,13 @@ import { options } from './options.js'
 import { Particle } from './particles.js'
 import { RenderCustom } from './render_custom.js'
 import { RenderObject } from './render_object.js'
+import { ui, TooltipType, TooltipName } from './ui.js'
+import { Util } from './util.js'
 
 export class RenderPortal extends RenderObject {
 	private readonly _platformHeight = 0.05;
 
+	private _bbox : THREE.Box2;
 	private _particles : RenderCustom;
 
 	constructor(space : number, id : number) {
@@ -22,6 +25,8 @@ export class RenderPortal extends RenderObject {
 
 	override initialize() : void {
 		super.initialize();
+
+		this._bbox = this.bbox();
 
 		const dim = this.dim3();
 		const initScale = new THREE.Vector3(1, 0.2 / dim.y, 0.1 / dim.z);
@@ -104,6 +109,53 @@ export class RenderPortal extends RenderObject {
 	override delete() : void {
 		super.delete();
 		game.particles().delete(Particle.PORTAL, this._particles);
+	}
+
+	override update() : void {
+		super.update();
+
+			const player = game.player();
+			if (Util.defined(player)) {
+
+				if (this._bbox.containsPoint(player.pos()) || this._bbox.intersectsBox(player.bbox())) {
+					if (this.space() === portalSpace) {
+						ui.tooltip( { 
+							type: TooltipType.TEAM_PORTAL,
+							ttl: 500,
+							names: [this.getTeamName()],
+						});
+					} else if (this.space() === goalSpace && player.byteAttribute(teamByteAttribute) !== this.byteAttribute(teamByteAttribute)) {
+						ui.tooltip({
+							type: TooltipType.GOAL,
+							ttl: 500,
+							names: [{
+								text: "VIP",
+								color: "#FFF000",
+							}]
+						})
+					}
+				}
+			}
+	}
+
+	private getTeamName() : TooltipName {
+		switch(this.byteAttribute(teamByteAttribute)) {
+		case redTeam:
+			return {
+				text: "red team",
+				color: "#FF0000",
+			};
+		case blueTeam:
+			return {
+				text: "blue team",
+				color: "#0000FF"
+			}
+		default:
+			return {
+				text: "neutral team",
+				color: "#333333",
+			}
+		}
 	}
 }
 

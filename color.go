@@ -2,9 +2,11 @@ package main
 
 const (
 	archRed int = 0xfc1f0f
+	archOrange int = 0xfc910f
+	archYellow int = 0xfcf40f
 	archGreen int = 0x0ffc89
 	archBlue int = 0x0fdcfc
-	archPurple int = 0xb50ffc
+	archPurple int = 0x910ffc
 	archSecondary int = 0xffffff
 
 	boltColor int = 0xffa610

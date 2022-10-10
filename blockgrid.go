@@ -43,7 +43,7 @@ func (b *Building) AddBlock(subtype BlockSubtype) *Block {
 	block.SetBlockSubtype(subtype)
 	block.SetIntAttribute(colorIntAttribute, b.attributes.color)
 
-	if subtype == baseBlockSubtype || subtype == tallBlockSubtype {
+	if subtype == baseBlockSubtype {
 		b.lastBlock = block
 	}
 

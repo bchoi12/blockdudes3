@@ -91,8 +91,8 @@ func NewStar(init Init) *Star {
 		Projectile: NewProjectile(NewCircleObject(init)),
 	}
 
-	rand.Seed(UnixMilli())
-	color := starColors[rand.Intn(len(starColors))]
+	r := rand.New(rand.NewSource(UnixMilli()))
+	color := starColors[r.Intn(len(starColors))]
 
 	star.SetTTL(shortRange)
 	star.SetExplosionOptions(ExplosionOptions {

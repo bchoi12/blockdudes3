@@ -41,6 +41,7 @@ export class KeyBindWrapper extends HtmlWrapper {
 
 			this._update(e.keyCode)
 			this.setActive(false);
+			e.preventDefault();
 		});
 	}
 

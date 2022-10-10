@@ -1,5 +1,12 @@
 package main
 
+type TeamType uint8
+const (
+	unknownTeam TeamType = iota
+	redTeam
+	blueTeam
+)
+
 type Association struct {
 	owner SpacedId
 	ownerFlag *Flag

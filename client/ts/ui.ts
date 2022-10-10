@@ -32,6 +32,13 @@ export enum TooltipType {
 	UNKNOWN = 0,
 	HELLO = 1,
 	PICKUP = 2,
+	TEAM_PORTAL = 3,
+	GOAL = 4,
+}
+
+export interface TooltipName {
+	text : string
+	color? : string
 }
 
 class UI {

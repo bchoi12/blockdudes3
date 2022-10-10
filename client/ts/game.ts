@@ -88,7 +88,7 @@ class Game {
 
 	hasId() : boolean { return this._id >= 0; }
 	id() : number { return this._id; }
-	player() : RenderPlayer { return <RenderPlayer>this._sceneMap.get(playerSpace, this.id()); }
+	player(id? : number) : RenderPlayer { return <RenderPlayer>this._sceneMap.get(playerSpace, Util.defined(id) ? id : this.id()); }
 	state() : number { return this._state; }
 	inputMode() : GameInputMode { return this._inputMode; }
 	timeOfDay() : number { return this._timeOfDay; }
@@ -318,7 +318,11 @@ class Game {
 			return;
 		}
 
-		let player : RenderPlayer = this.sceneMap().getAsAny(playerSpace, this.id());
+		let player = this.player();
+		if (player.attribute(deadAttribute)) {
+			return;
+		}
+
 		wasmSetData(playerSpace, this.id(), player.data());
 		this.updateKeys();
 		player.setData(JSON.parse(wasmGetData(playerSpace, this.id())));
@@ -332,9 +336,9 @@ class Game {
 	}
 
 	private initLevel(msg : { [k: string]: any }) : void {
-		LogUtil.d("Loading level " + msg.L);
+		LogUtil.d("Loading level " + msg.L + " with seed " + msg.S);
 
-		const level = JSON.parse(wasmLoadLevel(msg.L));
+		const level = JSON.parse(wasmLoadLevel(msg.L, msg.S));
 		for (const [stringSpace, objects] of Object.entries(level.Os) as [string, any]) {
 			for (const [stringId, data] of Object.entries(objects) as [string, any]) {
 				const space = Number(stringSpace);

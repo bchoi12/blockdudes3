@@ -158,7 +158,6 @@ func (p *Player) Update(grid *Grid, now time.Time) {
 
 	p.SetByteAttribute(healthByteAttribute, uint8(p.GetHealth()))
 	if p.Dead() {
-		team, _ := p.GetByteAttribute(teamByteAttribute)
 		if !p.HasAttribute(deadAttribute) {
 			p.AddAttribute(deadAttribute)
 			p.Keys.SetEnabled(false)
@@ -166,7 +165,7 @@ func (p *Player) Update(grid *Grid, now time.Time) {
 			p.respawnTimer.Start()
 		}
 
-		if team == 0 && !p.respawnTimer.On() {
+		if p.HasAttribute(autoRespawnAttribute) && !p.respawnTimer.On() {
 			p.RemoveAttribute(deadAttribute)
 			p.Keys.SetEnabled(true)
 			p.Respawn()

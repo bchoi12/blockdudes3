@@ -119,6 +119,7 @@ func setGlobals() {
 	js.Global().Set("deadAttribute", int(deadAttribute))
 	js.Global().Set("visibleAttribute", int(visibleAttribute))
 	js.Global().Set("vipAttribute", int(vipAttribute))
+	js.Global().Set("autoRespawnAttribute", int(autoRespawnAttribute))
 
 	js.Global().Set("typeByteAttribute", int(typeByteAttribute))
 	js.Global().Set("subtypeByteAttribute", int(subtypeByteAttribute))
@@ -136,6 +137,9 @@ func setGlobals() {
 	js.Global().Set("intensityFloatAttribute", int(intensityFloatAttribute))
 	js.Global().Set("distanceFloatAttribute", int(distanceFloatAttribute))
 	js.Global().Set("fovFloatAttribute", int(fovFloatAttribute))
+
+	js.Global().Set("redTeam", int(redTeam))
+	js.Global().Set("blueTeam", int(blueTeam))
 
 	js.Global().Set("pointLight", int(pointLight))
 	js.Global().Set("spotLight", int(spotLight))
@@ -160,7 +164,6 @@ func setGlobals() {
 
 	js.Global().Set("archBlock", int(archBlock))
 	js.Global().Set("baseBlockSubtype", int(baseBlockSubtype))
-	js.Global().Set("tallBlockSubtype", int(tallBlockSubtype))
 	js.Global().Set("roofBlockSubtype", int(roofBlockSubtype))
 	js.Global().Set("balconyBlockSubtype", int(balconyBlockSubtype))
 
@@ -342,13 +345,14 @@ func SetData() js.Func {
 
 func LoadLevel() js.Func {  
     return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		if len(args) != 1 {
-			fmt.Println("LoadLevel: Expected 1 argument(s), got ", len(args))
+		if len(args) != 2 {
+			fmt.Println("LoadLevel: Expected 2 argument(s), got ", len(args))
 			return nil
 		}
 
 		level := LevelIdType(args[0].Int())
-		game.LoadLevel(level)
+		seed := LevelSeedType(args[1].Int())
+		game.LoadLevel(level, seed)
 
 		objects := game.createWallInitMsg()
 		b, err := json.Marshal(objects)

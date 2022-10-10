@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
 )
 
 type GameStateType uint8
@@ -17,23 +15,13 @@ const (
 type ScoreType uint16
 type StatePropMap map[Prop]*State
 type GameState struct {
-	state GameStateType
-	stateChanged bool
-	restartTimer Timer
-
-	winningTeam uint8
-	teamScores map[uint8]int
+	mode GameMode
 	objectStates map[SpacedId]StatePropMap
 }
 
 func NewGameState() GameState {
 	return GameState {
-		state: lobbyGameState,
-		stateChanged: false,
-		restartTimer: NewTimer(5 * time.Second),
-
-		winningTeam: 0,
-		teamScores: make(map[uint8]int),
+		mode: NewVipMode(),
 		objectStates: make(map[SpacedId]StatePropMap),
 	}
 }
@@ -62,91 +50,15 @@ func (gs *GameState) RegisterId(sid SpacedId) {
 }
 
 func (gs GameState) GetState() (GameStateType, bool) {
-	return gs.state, gs.stateChanged
+	return gs.mode.GetState()
 }
 
 func (gs *GameState) Update(g *Grid) {
-	gs.stateChanged = false
-	if gs.state == unknownGameState {
-		return
-	}
-
-	players := g.GetObjects(playerSpace)
-	if gs.state == lobbyGameState {
-		teams := make(map[uint8][]*Player)
-		for _, player := range(players) {
-			team, _ := player.GetByteAttribute(teamByteAttribute)
-			teams[team] = append(teams[team], player.(*Player))
-		}
-
-		if len(teams[0]) > 0 {
-			return
-		}
-		if len(teams[1]) == 0 || len(teams[2]) == 0 {
-			return
-		}
-
-		rand.Seed(time.Now().UnixNano())
-		offense := uint8(rand.Intn(2) + 1)
-		vip := rand.Intn(len(teams[offense]))
-		teams[offense][vip].AddAttribute(vipAttribute)
-
-		// Start game
-		for _, player := range(players) {
-			// TODO: Respawn should be Object method, just reset Pos to InitPos
-			player.(*Player).Respawn()
-		}
-
-		gs.SetState(activeGameState)
-	} else if gs.state == activeGameState {
-		alive := make(map[uint8]int)
-		for _, player := range(players) {
-			team, _ := player.GetByteAttribute(teamByteAttribute)
-			if team == 0 {
-				continue
-			}
-
-			if !player.HasAttribute(deadAttribute) {
-				alive[team] += 1
-			} else if player.HasAttribute(vipAttribute) {
-				gs.winningTeam = 3 - team
-			}
-		}
-
-		if gs.winningTeam == 0 {
-			if alive[1] == 0 {
-				gs.winningTeam = 2
-			}
-			if alive[2] == 0 {
-				gs.winningTeam = 1
-			}
-		}
-
-		if gs.winningTeam != 0 {
-			gs.teamScores[gs.winningTeam] += 1
-			gs.SetState(victoryGameState)
-			gs.restartTimer.Start()
-		}
-	} else if gs.state == victoryGameState {
-		if gs.restartTimer.On() {
-			return
-		}
-
-		gs.winningTeam = 0
-		for _, player := range(players) {
-			player.RemoveAttribute(vipAttribute)
-			player.(*Player).SetTeam(0, g)
-			player.(*Player).Respawn()
-		}
-		gs.SetState(lobbyGameState)
-	}
+	gs.mode.Update(g)
 }
 
-func (gs *GameState) SetState(state GameStateType) {
-	if gs.state != state {
-		gs.state = state
-		gs.stateChanged = true
-	}
+func (gs *GameState) SignalVictory(team uint8) {
+	gs.mode.SignalVictory(team)
 }
 
 func (gs GameState) ValidProp(prop Prop) bool {
@@ -163,12 +75,6 @@ func (gs *GameState) IncrementProp(sid SpacedId, prop Prop, delta int) {
 	}
 
 	gs.objectStates[sid][prop].Set(gs.objectStates[sid][prop].Peek().(ScoreType) + ScoreType(delta))
-}
-
-func (gs *GameState) SignalVictory(team uint8) {
-	if gs.winningTeam == 0 {
-		gs.winningTeam = team
-	}
 }
 
 func (gs GameState) HasId(sid SpacedId) bool {
@@ -260,15 +166,17 @@ func (gs GameState) GetProps() SpacedPropMap {
 		return props
 	}
 
-	if gs.stateChanged {
+	state, stateChanged := gs.GetState()
+	teamScores := gs.mode.GetTeamScores()
+	if stateChanged {
 		props[0] = make(PropMap)
-		props[0][stateProp] = gs.state
+		props[0][stateProp] = state
 
 		props[1] = make(PropMap)
-		props[1][scoreProp] = gs.teamScores[1]
+		props[1][scoreProp] = teamScores[1]
 
 		props[2] = make(PropMap)
-		props[2][scoreProp] = gs.teamScores[2]
+		props[2][scoreProp] = teamScores[2]
 	}
 
 	return props

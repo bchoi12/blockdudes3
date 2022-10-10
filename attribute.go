@@ -13,6 +13,7 @@ const (
 	deadAttribute
 	visibleAttribute
 	vipAttribute
+	autoRespawnAttribute
 )
 
 type ByteAttributeType uint8

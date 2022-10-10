@@ -2,7 +2,6 @@ package main
 
 import (
 	"math"
-	"math/rand"
 	"time"
 )
 
@@ -70,7 +69,7 @@ func NewLauncher(weapon *Weapon, space SpaceType) *Launcher {
 		l.projectileSize = NewVec2(0.2, 0.2)
 		l.projectileVel = 30
 		l.projectileNumber = 4
-		l.projectileSpread = 0.04 * math.Pi
+		l.projectileSpread = 0.02 * math.Pi
 	case boltSpace:
 		l.maxAmmo = 3
 		l.ammoTimer.SetDuration(100 * time.Millisecond)
@@ -180,7 +179,6 @@ func (l *Launcher) Shoot(grid *Grid, now time.Time) {
 		return
 	}
 
-	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < l.projectileNumber; i += 1 {
 		size := l.projectileSize
 		if charged {
@@ -209,7 +207,8 @@ func (l *Launcher) Shoot(grid *Grid, now time.Time) {
 
 		dir := l.weapon.Dir()
 		if l.projectileSpread > 0 {
-			dir.Rotate(2.0 * (rand.Float64() - 0.5) * l.projectileSpread)
+			mult := float64(i - l.projectileNumber) + 0.5 * float64(l.projectileNumber + 1)
+			dir.Rotate(mult * l.projectileSpread)
 		}
 		projectile.SetInitDir(dir)
 

@@ -22,6 +22,10 @@ export namespace Util {
 	    }
 	}
 
+	export function colorString(color : number) : string {
+		return "#" + (color & 0x00FFFFFF).toString(16).padStart(6, "0")
+	}
+
 	export function isDev() : boolean {
 		return dev;
 	}

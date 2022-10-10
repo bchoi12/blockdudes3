@@ -25,7 +25,7 @@ enum PlayerAction {
 export class RenderPlayer extends RenderAnimatedObject {
 	private readonly _rotationOffset = -0.1;
 
-	private _name : THREE.Object3D;
+	private _name : THREE.Sprite;
 	private _pointer : THREE.Mesh;
 	private _playerMesh : THREE.Mesh;
 	private _arm : THREE.Object3D;
@@ -86,7 +86,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 						fontFace: "Impact",
 						fontSize: 96,
 						buffer: 0.1,
-						color: "#" + (this.color() & 0x00FFFFFF).toString(16).padStart(6, "0"),
+						color: Util.colorString(this.color()),
 						shadow: "white",
 						shadowBlur: 20,
 					});
@@ -377,7 +377,16 @@ export class RenderPlayer extends RenderAnimatedObject {
 		if (!this.hasMesh()) {
 			return;
 		}
-		this._arm.rotation.x = weaponDir.angle() * Math.sign(-this._playerMesh.scale.z) + (this._playerMesh.scale.z < 0 ? Math.PI / 2 : 3 * Math.PI / 2);	
+
+		let angle;
+		if (Math.abs(this.dir().angle() - weaponDir.angle()) > Math.PI / 3 && this.dir().x !== weaponDir.x) {
+			// Dir & weapon dir can get out of sync for AFK players.
+			angle = this.dir().angle();
+		} else {
+			angle = weaponDir.angle();
+		}
+
+		this._arm.rotation.x = angle * Math.sign(-this._playerMesh.scale.z) + (this._playerMesh.scale.z < 0 ? Math.PI / 2 : 3 * Math.PI / 2);	
 	}
 
 	shoot() : void {
@@ -401,10 +410,12 @@ export class RenderPlayer extends RenderAnimatedObject {
 		if (this.attribute(deadAttribute)) {
 			this._neck.rotation.x = 0;
 			this.mesh().rotation.z = MathUtil.signPos(this._playerMesh.scale.z) * Math.PI / 2;
+			this._name.material.rotation = this.mesh().rotation.z;
 			return;
 		} else {
-			this.mesh().rotation.z = 0;
 			this._neck.rotation.x = dir.angle() * Math.sign(-dir.x) + (dir.x < 0 ? Math.PI : 0);
+			this.mesh().rotation.z = 0;
+			this._name.material.rotation = 0;
 
 			if (MathUtil.signPos(dir.x) != MathUtil.signPos(this._playerMesh.scale.z)) {
 				this._playerMesh.scale.z = MathUtil.signPos(dir.x);

@@ -30,8 +30,8 @@ export class TooltipWrapper extends HtmlWrapper {
 		}, ttl);
 	}
 
-	setText(text : string) : void {
-		this.elm().textContent = text;
+	setHtml(html : string) : void {
+		this.elm().innerHTML = html;
 	}
 
 	delete(onDelete : () => void) : void {

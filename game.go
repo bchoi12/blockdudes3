@@ -68,8 +68,8 @@ func (g Game) GetGrid() *Grid {
 	return g.grid
 }
 
-func (g *Game) LoadLevel(id LevelIdType) {
-	g.level.LoadLevel(id, g.grid)
+func (g *Game) LoadLevel(id LevelIdType, seed LevelSeedType) {
+	g.level.LoadLevel(id, seed, g.grid)
 }
 
 func (g *Game) ProcessKeyMsg(id IdType, keyMsg KeyMsg) {
@@ -104,6 +104,7 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 	return LevelInitMsg{
 		T: levelInitType,
 		L: g.level.GetId(),
+		S: g.level.GetSeed(),
 	}
 }
 

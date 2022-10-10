@@ -69,7 +69,7 @@ func CreateOrJoinRoom(vars map[string]string, ws *websocket.Conn) {
 		}
 		rooms[roomName].print("created room")
 
-		rooms[roomName].game.LoadLevel(testLevel)
+		rooms[roomName].game.LoadLevel(testLevel, 3333)
 		go rooms[roomName].run()
 	}
 

@@ -265,6 +265,11 @@ export class KeyNames {
 			return "INVALID";
 		}
 
-		return this._keys[keyCode];
+		let key = this._keys[keyCode];
+
+		if (key.length > 0) {
+			return key;
+		}
+		return "?";
 	}
 }
