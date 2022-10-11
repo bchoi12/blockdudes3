@@ -56,11 +56,10 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 	blockType := archBlock
 
 	{
-		pos := l.blockGrid.GetNextPos(blockType, 0)
 		color := 0x444444
 
-		building := NewBuilding(BuildingAttributes{
-			pos: pos,
+		building := l.blockGrid.AddBuilding(BuildingAttributes{
+			gap: 0,
 			blockType: blockType,
 			color: color,
 		})
@@ -83,16 +82,13 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 
 		b = building.AddBlock(roofBlockSubtype)
 		b.AddOpenings(rightCardinal)
-
-		l.blockGrid.AddBuilding(building)
 	}
 
 	{
-		pos := l.blockGrid.GetNextPos(blockType, 0)
 		color := 0x444444
 
-		building := NewBuilding(BuildingAttributes{
-			pos: pos,
+		building := l.blockGrid.AddBuilding(BuildingAttributes{
+			gap: 0,
 			blockType: blockType,
 			color: color,
 		})
@@ -112,16 +108,13 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 
 		b = building.AddBlock(roofBlockSubtype)
 		b.AddOpenings(leftCardinal, rightCardinal)
-
-		l.blockGrid.AddBuilding(building)
 	}
 
 	{
-		pos := l.blockGrid.GetNextPos(blockType, 0)
 		color := 0x444444
 
-		building := NewBuilding(BuildingAttributes{
-			pos: pos,
+		building := l.blockGrid.AddBuilding(BuildingAttributes{
+			gap: 0,
 			blockType: blockType,
 			color: color,
 		})
@@ -144,15 +137,13 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 
 		b = building.AddBlock(roofBlockSubtype)
 		b.AddOpenings(leftCardinal)
-
-		l.blockGrid.AddBuilding(building)
 	}
 
 	defaultGap := 9.0
 	gapChance := NewGrowingChance(r, 20, 20)
 
 	currentHeight := 1
-	heightChance := NewGrowingChance(r, 30, 15)
+	heightChance := NewGrowingChance(r, 40, 30)
 
 	growChance := NewGrowingChance(r, 60, 20)
 
@@ -172,11 +163,10 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 			currentHeight += 1
 		}
 
-		pos := l.blockGrid.GetNextPos(blockType, gap)
 		color := colors[i % len(colors)]
 
-		building := NewBuilding(BuildingAttributes{
-			pos: pos,
+		building := l.blockGrid.AddBuilding(BuildingAttributes{
+			gap: gap,
 			blockType: blockType,
 			color: color,
 		})
@@ -187,7 +177,10 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 		}
 		for j := 0; j < height; j += 1 {
 			b = building.AddBlock(baseBlockSubtype)
-			b.AddOpenings(leftCardinal, rightCardinal)
+
+			if j > IntMax(currentHeight - 2, 0) {
+				b.AddOpenings(leftCardinal, rightCardinal)
+			}
 		}
 		b = building.AddBlock(roofBlockSubtype)
 
@@ -216,9 +209,8 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 			goal.SetTeam(1)
 			grid.Upsert(goal)
 		}
-
-		l.blockGrid.AddBuilding(building)
 	}
 
+	l.blockGrid.Connect()
 	l.blockGrid.UpsertToGrid(grid)
 }

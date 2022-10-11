@@ -33,7 +33,7 @@ const (
 var blockSizes = map[BlockType]map[BlockSubtype]Vec2 {
 	archBlock: {
 		baseBlockSubtype: NewVec2(12, 6),
-		roofBlockSubtype: NewVec2(12, 2),
+		roofBlockSubtype: NewVec2(12, 1),
 		balconyBlockSubtype: NewVec2(3, 2),
 	},
 }
@@ -72,19 +72,20 @@ func NewBlock(init Init) *Block {
 	}
 }
 
-func (b Block) GetRelativePos(percent Vec2, buffer Vec2) Vec2 {
-	pos := b.InitPos()
-	dim := b.Dim()
-	return NewVec2(pos.X - dim.X/2 + buffer.X/2 + percent.X * (dim.X - buffer.X),
-				   pos.Y - dim.Y/2 + buffer.Y/2 + percent.Y * (dim.Y - buffer.Y))
-}
-
 func (b Block) GetObjects() []Object {
 	return b.objects
 }
 
 func (b Block) Thickness() float64 {
 	return b.thick
+}
+
+func (b Block) GetBlockType() BlockType {
+	return b.blockType
+}
+
+func (b Block) GetBlockSubtype() BlockSubtype {
+	return b.blockSubtype
 }
 
 func (b *Block) SetBlockType(blockType BlockType) {
@@ -112,6 +113,10 @@ func (b *Block) AddOpenings(cardinals ...CardinalType) {
 		b.openings.Add(cardinal)
 	}
 	b.SetByteAttribute(openingByteAttribute, b.openings.ToByte())
+}
+
+func (b Block) GetOpening(cardinal CardinalType) bool {
+	return b.openings.Get(cardinal)
 }
 
 func (b *Block) SetOpenings(cardinal Cardinal) {

@@ -5,9 +5,11 @@ const (
 )
 
 type BuildingAttributes struct {
-	pos Vec2
+	gap float64
 	blockType BlockType
 	color int
+
+	pos Vec2
 }
 
 type Building struct {
@@ -18,10 +20,12 @@ type Building struct {
 	blocks []*Block
 }
 
-func NewBuilding(attributes BuildingAttributes) Building {
-	return Building {
+func NewBuilding(attributes BuildingAttributes) *Building {
+	return &Building {
 		attributes: attributes,
+
 		currentY: attributes.pos.Y,
+		lastBlock: nil,
 		blocks: make([]*Block, 0),
 	}
 }
@@ -59,7 +63,7 @@ func (b *Building) UpsertToGrid(g *Grid) {
 }
 
 type BlockGrid struct {
-	buildings []Building
+	buildings []*Building
 
 	yOffsets []float64
 	curOffset int
@@ -67,7 +71,7 @@ type BlockGrid struct {
 
 func NewBlockGrid() BlockGrid {
 	bg := BlockGrid {
-		buildings: make([]Building, 0),
+		buildings: make([]*Building, 0),
 	}
 
 	bg.yOffsets = make([]float64, 1)
@@ -103,8 +107,57 @@ func (bg *BlockGrid) GetNextPos(blockType BlockType, gap float64) Vec2 {
 	return lastPos
 }
 
-func (bg *BlockGrid) AddBuilding(building Building) {
+func (bg *BlockGrid) AddBuilding(attributes BuildingAttributes) *Building {
+	attributes.pos = bg.GetNextPos(attributes.blockType, attributes.gap)
+	building := NewBuilding(attributes)
 	bg.buildings = append(bg.buildings, building)
+	return building
+}
+
+func (bg *BlockGrid) Connect() {
+	for i := 0; i < len(bg.buildings); i += 1 {
+		building := bg.buildings[i]
+		var prevBuilding, nextBuilding *Building
+		if i < len(bg.buildings) - 1 && bg.buildings[i+1].attributes.gap == 0 {
+			nextBuilding = bg.buildings[i + 1]
+		}
+		if i > 0 && building.attributes.gap == 0 {
+			prevBuilding = bg.buildings[i - 1]
+		}
+
+		for j := 0; j < len(building.blocks); j += 1 {
+			block := building.blocks[j]
+			var prevBlock, nextBlock *Block
+			if prevBuilding != nil && len(prevBuilding.blocks) >= len(building.blocks) {
+				prevBlock = prevBuilding.blocks[j]
+			}
+			if nextBuilding != nil && len(nextBuilding.blocks) >= len(building.blocks) {
+				nextBlock = nextBuilding.blocks[j]
+			}
+
+			if block.GetBlockSubtype() == roofBlockSubtype {
+				if prevBlock != nil && prevBlock.GetOpening(rightCardinal) {
+					block.AddOpenings(leftCardinal)
+				}
+				if nextBlock != nil &&  nextBlock.GetOpening(leftCardinal) {
+					block.AddOpenings(rightCardinal)
+				}
+			} else if block.GetBlockSubtype() == baseBlockSubtype {
+				if nextBlock != nil && block.GetOpening(rightCardinal) {
+					if nextBlock.GetBlockSubtype() == roofBlockSubtype {
+						nextBlock.AddOpenings(leftCardinal)
+					} else if !nextBlock.GetOpening(leftCardinal) && !block.GetOpening(bottomRightCardinal) {
+						if len(building.blocks) > j + 1 && building.blocks[j+1].GetBlockSubtype() == baseBlockSubtype {
+							block.LoadSidedTemplate(stairsSidedBlockTemplate, NewRightCardinal())
+							building.blocks[j + 1].AddOpenings(bottomRightCardinal)
+						} else {
+							nextBlock.AddOpenings(leftCardinal, rightCardinal)
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 func (bg *BlockGrid) UpsertToGrid(g *Grid) {

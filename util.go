@@ -51,6 +51,13 @@ func Max(a, b float64) float64 {
 	return b
 }
 
+func IntMax(a, b int) int {
+	if a > b { 
+		return a
+	}
+	return b
+}
+
 func AbsMax(a, b float64) float64 {
 	if Abs(a) > Abs(b) {
 		return a

@@ -67,9 +67,9 @@ func CreateOrJoinRoom(vars map[string]string, ws *websocket.Conn) {
 			incoming: make(chan IncomingMsg),
 			incomingQueue: make([]IncomingMsg, 0),
 		}
-		rooms[roomName].print("created room")
-
-		rooms[roomName].game.LoadLevel(testLevel, 3333)
+		seed := LevelSeedType(UnixMilli() % 10000)
+		rooms[roomName].print(fmt.Sprintf("created room, seed: %d", seed))
+		rooms[roomName].game.LoadLevel(testLevel, seed)
 		go rooms[roomName].run()
 	}
 
