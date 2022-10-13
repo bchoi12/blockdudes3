@@ -5,7 +5,9 @@ type SpaceType uint8
 const (
 	unknownSpace SpaceType = iota
 	playerSpace
-	blockSpace
+	mainBlockSpace
+	roofBlockSpace
+	balconyBlockSpace
 	wallSpace
 	lightSpace
 	explosionSpace
@@ -86,6 +88,7 @@ type Init struct {
 type InitMethods interface {
 	SpacedIdMethods
 	InitPos() Vec2
+	SetInitPos(pos Vec2)
 	InitDim() Vec2
 	InitDir() Vec2
 	HasInitDir() bool

@@ -48,54 +48,45 @@ func (l *Level) LoadLevel(id LevelIdType, seed LevelSeedType, grid *Grid) {
 
 func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 	l.blockGrid = NewBlockGrid()
-	var b *Block
-	r := rand.New(rand.NewSource(int64(seed)))
 	colors := [...]int {archRed, archOrange, archYellow, archGreen, archBlue, archPurple}
+	r := rand.New(rand.NewSource(int64(seed)))
 	r.Shuffle(len(colors), func(i, j int) { colors[i], colors[j] = colors[j], colors[i] })
 
-	blockType := archBlock
+	var b *MainBlock
 
 	{
-		color := 0x444444
-
 		building := l.blockGrid.AddBuilding(BuildingAttributes{
 			gap: 0,
-			blockType: blockType,
-			color: color,
+			blockType: archBlock,
+			color: 0x444444,
+			secondaryColor: archWhite,
+			height: 3,
 		})
 
-		building.AddBlock(baseBlockSubtype)
-		building.AddBlock(baseBlockSubtype)
-		b = building.AddBlock(baseBlockSubtype)
+		b = building.GetBlock(2)
 		b.AddOpenings(leftCardinal, rightCardinal)
-		balc := building.AddBlock(balconyBlockSubtype)
-		balc.SetInitDir(NewVec2(-1, 0))
+		b.AddBalcony(NewVec2(-1, 0))
 
 		portal := NewPortal(NewInitC(
 			grid.NextSpacedId(portalSpace),
-			NewVec2(b.Pos().X, b.Pos().Y + b.Thickness()),
+			NewVec2(b.Pos().X, b.Pos().Y + b.GetThickness()),
 			NewVec2(b.Dim().X / 2, 2),
 			bottomCardinal))
-		portal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[blockType] / 2)
+		portal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[archBlock] / 2)
 		portal.SetTeam(1)
 		grid.Upsert(portal)
-
-		b = building.AddBlock(roofBlockSubtype)
-		b.AddOpenings(rightCardinal)
 	}
 
 	{
-		color := 0x444444
-
 		building := l.blockGrid.AddBuilding(BuildingAttributes{
 			gap: 0,
-			blockType: blockType,
-			color: color,
+			blockType: archBlock,
+			color: 0x444444,
+			secondaryColor: archWhite,
+			height: 3,
 		})
 
-		building.AddBlock(baseBlockSubtype)
-		building.AddBlock(baseBlockSubtype)
-		b = building.AddBlock(baseBlockSubtype)
+		b = building.GetBlock(2)
 		b.AddOpenings(leftCardinal, rightCardinal)
 		b.LoadTemplate(weaponsBlockTemplate)
 
@@ -105,47 +96,38 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 			NewVec2(1, 1),
 		))
 		grid.Upsert(spawn)
-
-		b = building.AddBlock(roofBlockSubtype)
-		b.AddOpenings(leftCardinal, rightCardinal)
 	}
 
 	{
-		color := 0x444444
-
 		building := l.blockGrid.AddBuilding(BuildingAttributes{
 			gap: 0,
-			blockType: blockType,
-			color: color,
+			blockType: archBlock,
+			color: 0x444444,
+			secondaryColor: archWhite,
+			height: 3,
 		})
 
-		building.AddBlock(baseBlockSubtype)
-		building.AddBlock(baseBlockSubtype)
-		b = building.AddBlock(baseBlockSubtype)
+		b = building.GetBlock(2)
 		b.AddOpenings(leftCardinal, rightCardinal)
-		balc := building.AddBlock(balconyBlockSubtype)
-		balc.SetInitDir(NewVec2(1, 0))
+		b.AddBalcony(NewVec2(1, 0))
 
 		portal := NewPortal(NewInitC(
 			grid.NextSpacedId(portalSpace),
-			NewVec2(b.Pos().X, b.Pos().Y + b.Thickness()),
+			NewVec2(b.Pos().X, b.Pos().Y + b.GetThickness()),
 			NewVec2(b.Dim().X / 2, 2),
 			bottomCardinal))
-		portal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[blockType] / 2)
+		portal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[archBlock] / 2)
 		portal.SetTeam(2)
 		grid.Upsert(portal)
-
-		b = building.AddBlock(roofBlockSubtype)
-		b.AddOpenings(leftCardinal)
 	}
 
 	defaultGap := 9.0
-	gapChance := NewGrowingChance(r, 20, 20)
+	gapChance := NewGrowingChance(r, 15, 15)
 
 	currentHeight := 1
-	heightChance := NewGrowingChance(r, 40, 30)
+	heightChance := NewGrowingChance(r, 50, 30)
 
-	growChance := NewGrowingChance(r, 60, 20)
+	growChance := NewGrowingChance(r, 70, 20)
 
 	numBuildings := 8
 
@@ -164,53 +146,61 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 		}
 
 		color := colors[i % len(colors)]
-
-		building := l.blockGrid.AddBuilding(BuildingAttributes{
-			gap: gap,
-			blockType: blockType,
-			color: color,
-		})
-
 		height := currentHeight
 		if growChance.Roll() {
 			height += 1
 		}
-		for j := 0; j < height; j += 1 {
-			b = building.AddBlock(baseBlockSubtype)
 
-			if j > IntMax(currentHeight - 2, 0) {
-				b.AddOpenings(leftCardinal, rightCardinal)
+		building := l.blockGrid.AddBuilding(BuildingAttributes{
+			gap: gap,
+			blockType: archBlock,
+			color: color,
+			secondaryColor: archWhite,
+			height: height,
+		})
+
+		for j := IntMax(1, height - 2); j < height; j += 1 {
+			b = building.GetBlock(j)
+
+			if i > 0 {
+				b.AddOpenings(leftCardinal)
+			}
+			if i < numBuildings - 1 {
+				b.AddOpenings(rightCardinal)
 			}
 		}
-		b = building.AddBlock(roofBlockSubtype)
 
 		if i == 0 {
+			r := building.GetRoof()
 			spawn := NewSpawn(NewInit(
 				Id(spawnSpace, 1),
-				NewVec2(b.Pos().X, b.Pos().Y + b.Dim().Y / 2),
+				NewVec2(r.Pos().X, r.Pos().Y + 2),
 				NewVec2(1, 1),
 			))
 			grid.Upsert(spawn)
 		}
+
 		if i == numBuildings - 1 {
+			r := building.GetRoof()
 			spawn := NewSpawn(NewInit(
 				Id(spawnSpace, 2),
-				NewVec2(b.Pos().X, b.Pos().Y + b.Dim().Y / 2),
+				NewVec2(r.Pos().X, r.Pos().Y + r.Dim().Y + 2),
 				NewVec2(1, 1),
 			))
 			grid.Upsert(spawn)
 
 			goal := NewGoal(NewInitC(
 				grid.NextSpacedId(goalSpace),
-				NewVec2(b.Pos().X, b.Pos().Y + b.Thickness()),
-				NewVec2(b.Dim().X / 2, 2),
+				NewVec2(r.Pos().X, r.Pos().Y + r.GetThickness()),
+				NewVec2(r.Dim().X / 2, 2),
 				bottomCardinal))
-			goal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[blockType] / 2)
+			goal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[archBlock] / 2)
 			goal.SetTeam(1)
 			grid.Upsert(goal)
 		}
 	}
 
 	l.blockGrid.Connect()
+	l.blockGrid.Randomize(r)
 	l.blockGrid.UpsertToGrid(grid)
 }

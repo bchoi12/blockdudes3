@@ -4,22 +4,13 @@ type BlockType uint8
 const (
 	unknownBlock BlockType = iota
 	archBlock
-)
-
-type BlockSubtype uint8
-const (
-	unknownBlockSubtype BlockSubtype = iota
-	baseBlockSubtype
-
-	roofBlockSubtype
-	balconyBlockSubtype
+	gapBlock
 )
 
 type BlockTemplate uint8
 const (
 	unknownBlockTemplate BlockTemplate = iota
 	weaponsBlockTemplate
-	middlePlatformBlockTemplate
 	tableBlockTemplate
 )
 
@@ -27,14 +18,17 @@ type SidedBlockTemplate uint8
 const (
 	unknownSidedBlockTemplate SidedBlockTemplate = iota
 	stairsSidedBlockTemplate
-	secondFloorSidedBlockTemplate
 )
 
-var blockSizes = map[BlockType]map[BlockSubtype]Vec2 {
-	archBlock: {
-		baseBlockSubtype: NewVec2(12, 6),
-		roofBlockSubtype: NewVec2(12, 1),
-		balconyBlockSubtype: NewVec2(3, 2),
+var blockSizes = map[SpaceType]map[BlockType]Vec2 {
+	mainBlockSpace: {
+		archBlock: NewVec2(12, 6),
+	},
+	roofBlockSpace: {
+		archBlock: NewVec2(12, 1),
+	},
+	balconyBlockSpace: {
+		archBlock: NewVec2(3, 2),
 	},
 }
 
@@ -42,291 +36,121 @@ var blockDimZs = map[BlockType]float64 {
 	archBlock: 8.0,
 }
 
-type Block struct {
+type Block interface {
+	Object
+
+	AddObject(object Object)
+	GetObjects() []Object
+	GetThickness() float64
+	GetBlockType() BlockType
+
+	SetBlockType(blockType BlockType)
+
+	AddOpenings(cardinals ...CardinalType)
+	AnyOpenings(cardinals ...CardinalType) bool
+	GetOpening(cardinal CardinalType) bool
+
+	Append(block Block)
+	Load()
+	UpsertToGrid(g *Grid)
+}
+
+type BaseBlock struct {
 	BaseObject
 
 	blockType BlockType
-	blockSubtype BlockSubtype
-
 	openings Cardinal
 	thick float64
 	sideOpening float64
-	bottomOpening float64
 
+	addonBlocks []Block
 	objects []Object
 }
 
-func NewBlock(init Init) *Block {
-	return &Block {
+func NewBaseBlock(init Init) BaseBlock {
+	return BaseBlock {
 		BaseObject: NewRec2Object(init),
 
 		blockType: unknownBlock,
-		blockSubtype: baseBlockSubtype,
-
 		openings: NewCardinal(),
 		thick: 0,
 		sideOpening: 0,
-		bottomOpening: 0,
 
+		addonBlocks: make([]Block, 0),
 		objects: make([]Object, 0),
 	}
 }
 
-func (b Block) GetObjects() []Object {
-	return b.objects
+func (bb *BaseBlock) AddObject(object Object) {
+	bb.objects = append(bb.objects, object)
 }
 
-func (b Block) Thickness() float64 {
-	return b.thick
+func (bb BaseBlock) GetObjects() []Object {
+	return bb.objects
 }
 
-func (b Block) GetBlockType() BlockType {
-	return b.blockType
+func (bb BaseBlock) GetThickness() float64 {
+	return bb.thick
 }
 
-func (b Block) GetBlockSubtype() BlockSubtype {
-	return b.blockSubtype
+func (bb BaseBlock) GetBlockType() BlockType {
+	return bb.blockType
 }
 
-func (b *Block) SetBlockType(blockType BlockType) {
+func (bb *BaseBlock) SetBlockType(blockType BlockType) {
 	switch (blockType) {
 	case archBlock:
-		b.thick = 0.5
-		b.sideOpening = 0.75
-		b.bottomOpening = 0.5
-		b.SetIntAttribute(secondaryColorIntAttribute, archSecondary)
+		bb.thick = 0.5
+		bb.sideOpening = 0.75
+		bb.SetIntAttribute(secondaryColorIntAttribute, archWhite)
 	default:
 		return
 	}
 
-	b.blockType = blockType
-	b.SetByteAttribute(typeByteAttribute, uint8(blockType))
+	bb.blockType = blockType
+	bb.SetByteAttribute(typeByteAttribute, uint8(blockType))
 }
 
-func (b *Block) SetBlockSubtype(blockSubtype BlockSubtype) {
-	b.blockSubtype = blockSubtype
-	b.SetByteAttribute(subtypeByteAttribute, uint8(blockSubtype))
-}
-
-func (b *Block) AddOpenings(cardinals ...CardinalType) {
+func (bb *BaseBlock) AddOpenings(cardinals ...CardinalType) {
 	for _, cardinal := range(cardinals) {
-		b.openings.Add(cardinal)
+		bb.openings.Add(cardinal)
 	}
-	b.SetByteAttribute(openingByteAttribute, b.openings.ToByte())
+	bb.SetByteAttribute(openingByteAttribute, bb.openings.ToByte())
 }
 
-func (b Block) GetOpening(cardinal CardinalType) bool {
-	return b.openings.Get(cardinal)
-}
-
-func (b *Block) SetOpenings(cardinal Cardinal) {
-	b.openings = cardinal
-	b.SetByteAttribute(openingByteAttribute, b.openings.ToByte())
-}
-
-func (b *Block) LoadTemplate(template BlockTemplate) {
-	pos := b.InitPos()
-	x := pos.X
-	y := pos.Y
-	dim := b.Dim()
-	width := dim.X
-
-	switch (template) {
-	case weaponsBlockTemplate:
-		uzi := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x - width / 3, y + b.thick), NewVec2(1.2, 1.2), bottomCardinal))
-		uzi.SetByteAttribute(typeByteAttribute, uint8(uziWeapon))
-		uzi.SetByteAttribute(subtypeByteAttribute, uint8(grapplingHookWeapon))
-		b.objects = append(b.objects, uzi)
-
-		star := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x - width / 9, y + b.thick), NewVec2(1.2, 1.2), bottomCardinal))
-		star.SetByteAttribute(typeByteAttribute, uint8(starWeapon))
-		star.SetByteAttribute(subtypeByteAttribute, uint8(boosterEquip))
-		b.objects = append(b.objects, star)
-
-		bazooka := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x + width / 9, y + b.thick), NewVec2(1.2, 1.2), bottomCardinal))
-		bazooka.SetByteAttribute(typeByteAttribute, uint8(bazookaWeapon))
-		bazooka.SetByteAttribute(subtypeByteAttribute, uint8(jetpackEquip))
-		b.objects = append(b.objects, bazooka)
-
-		sniper := NewPickup(NewInitC(Id(pickupSpace, 0), NewVec2(x + width / 3, y + b.thick), NewVec2(1.2, 1.2), bottomCardinal))
-		sniper.SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
-		sniper.SetByteAttribute(subtypeByteAttribute, uint8(chargerEquip))
-		b.objects = append(b.objects, sniper)
-
-	case middlePlatformBlockTemplate:
-		platform := NewWall(NewInit(Id(wallSpace, 0), NewVec2(x, y + b.thick + 2), NewVec2(width / 3, 0.2)))
-		platform.SetByteAttribute(typeByteAttribute, uint8(platformWall))
-		platform.AddAttribute(visibleAttribute)
-		platform.SetFloatAttribute(dimZFloatAttribute, 4.0)
-		if color, ok := b.GetIntAttribute(secondaryColorIntAttribute); ok {
-			platform.SetIntAttribute(colorIntAttribute, color)
+func (bb BaseBlock) AnyOpenings(cardinals ...CardinalType) bool {
+	for _, cardinal := range(cardinals) {
+		if bb.openings.Get(cardinal) {
+			return true
 		}
-		b.objects = append(b.objects, platform)
+	}
+	return false
+}
 
-	case tableBlockTemplate:
-		table := NewWall(NewInitC(Id(wallSpace, 0), NewVec2(x, y + b.thick), NewVec2(3, 1), bottomCardinal))
-		table.SetByteAttribute(subtypeByteAttribute, uint8(tableWallSubtype))
-		table.AddAttribute(visibleAttribute)
-		table.SetIntAttribute(colorIntAttribute, tableColor)
-		b.objects = append(b.objects, table)
+func (bb BaseBlock) GetOpening(cardinal CardinalType) bool {
+	return bb.openings.Get(cardinal)
+}
+
+func (bb *BaseBlock) Append(block Block) {
+	bb.addonBlocks = append(bb.addonBlocks, block)
+}
+
+func (bb *BaseBlock) Load() {
+	for _, addon := range(bb.addonBlocks) {
+		addon.Load()
 	}
 }
 
-func (b *Block) LoadSidedTemplate(template SidedBlockTemplate, cardinal Cardinal) {
-	pos := b.InitPos()
-	x := pos.X
-	y := pos.Y
-	dim := b.Dim()
-	width := dim.X
-
-	baseDim := blockSizes[b.blockType][baseBlockSubtype]
-	baseHeight := baseDim.Y
-
-	dir := 1.0
-	origin := bottomRightCardinal
-	innerDimZ := blockDimZs[b.blockType] - 2 * b.thick
-	if cardinal.AnyLeft() {
-		dir = -1
-		origin = bottomLeftCardinal
+func (bb *BaseBlock) UpsertToGrid(g *Grid) {
+	for _, addon := range(bb.addonBlocks) {
+		addon.UpsertToGrid(g)
 	}
 
-	switch (template) {
-	case stairsSidedBlockTemplate:
-		wall := NewWall(NewInitC(Id(wallSpace, 0),
-			NewVec2(x + dir * width / 2, y + b.thick),
-			NewVec2(b.thick, baseHeight), origin))
-		wall.AddAttribute(visibleAttribute)
-		wall.SetFloatAttribute(dimZFloatAttribute, innerDimZ / 2)
-		if color, ok := b.GetIntAttribute(secondaryColorIntAttribute); ok {
-			wall.SetIntAttribute(colorIntAttribute, color)
-		}
-		b.objects = append(b.objects, wall)
-
-		numStairs := 8.0
-		stairWidth := baseHeight / numStairs
-		stairHeight := stairWidth
-		for i := 0.0; i < numStairs; i += 1 {
-			stairInit := NewInitC(Id(wallSpace, 0),
-				NewVec2(x + dir * (width / 2 - i * stairWidth - b.thick), y + b.thick),
-				NewVec2(stairWidth, baseHeight - i * stairHeight), origin)
-			stairInit.SetInitDir(NewVec2(-dir, 0))
-			stair := NewWall(stairInit)
-			stair.SetByteAttribute(typeByteAttribute, uint8(stairWall))
-			stair.AddAttribute(visibleAttribute)
-			stair.SetFloatAttribute(dimZFloatAttribute, innerDimZ / 2)
-
-			if color, ok := b.GetIntAttribute(secondaryColorIntAttribute); ok {
-				stair.SetIntAttribute(colorIntAttribute, color)
-			}
-
-			b.objects = append(b.objects, stair)
-		}
-
-	case secondFloorSidedBlockTemplate:
-		wall := NewWall(NewInitC(Id(wallSpace, 0),
-			NewVec2(x + dir * width / 2, y + baseHeight),
-			NewVec2(width / 2, b.thick), origin))
-		wall.AddAttribute(visibleAttribute)
-		wall.SetFloatAttribute(dimZFloatAttribute, innerDimZ)
-		if color, ok := b.GetIntAttribute(secondaryColorIntAttribute); ok {
-			wall.SetIntAttribute(colorIntAttribute, color)
-		}
-		b.objects = append(b.objects, wall)
-	}
-}
-
-func (b *Block) LoadWalls() {
-	if b.blockSubtype == balconyBlockSubtype {
-		initPos := b.InitPos()
-		if b.InitDir().X < 0 {
-			initPos.X -= blockSizes[b.blockType][baseBlockSubtype].X / 2
-		}
-		if b.InitDir().X > 0 {
-			initPos.X += blockSizes[b.blockType][baseBlockSubtype].X / 2
-		}
-		b.SetInitPos(initPos)
-	}
-
-	pos := b.InitPos()
-	x := pos.X
-	y := pos.Y
-	dim := b.Dim()
-	width := dim.X
-	height := dim.Y
-
-	switch (b.blockSubtype) {
-	case baseBlockSubtype:
-		if b.openings.AnyBottom() {
-			if !b.openings.Get(bottomLeftCardinal) {
-				left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2(width / 2, b.thick), bottomLeftCardinal)
-				b.objects = append(b.objects, NewWall(left))
-			}
-
-			if !b.openings.Get(bottomRightCardinal) {
-				right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2(width / 2, b.thick), bottomRightCardinal)
-				b.objects = append(b.objects, NewWall(right))
-			}
-		} else {
-			floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, b.thick), bottomCardinal)
-			b.objects = append(b.objects, NewWall(floor))
-		}
-
-		leftOpening := 0.0
-		if b.openings.Get(leftCardinal) {
-			leftOpening = b.sideOpening
-		}
-		left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y + leftOpening * height), NewVec2(b.thick, (1.0 - leftOpening) * height), bottomLeftCardinal)
-		b.objects = append(b.objects, NewWall(left))
-
-		rightOpening := 0.0
-		if b.openings.Get(rightCardinal) {
-			rightOpening = b.sideOpening
-		}
-		right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y + rightOpening * height), NewVec2(b.thick, (1.0 - rightOpening) * height), bottomRightCardinal)
-		b.objects = append(b.objects, NewWall(right))
-	case balconyBlockSubtype:
-		if b.InitDir().X > 0 {
-			floor := NewInitC(Id(wallSpace, 0), NewVec2(x, y), NewVec2(width, b.thick), bottomLeftCardinal)
-			b.objects = append(b.objects, NewWall(floor))
-
-			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width, y), NewVec2(b.thick, height), bottomRightCardinal)
-			b.objects = append(b.objects, NewWall(right))
-		} else if b.InitDir().X < 0 {
-			floor := NewInitC(Id(wallSpace, 0), NewVec2(x, y), NewVec2(width, b.thick), bottomRightCardinal)
-			b.objects = append(b.objects, NewWall(floor))
-
-			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width, y), NewVec2(b.thick, height), bottomLeftCardinal)
-			b.objects = append(b.objects, NewWall(left))
-		}
-	case roofBlockSubtype:
-		if b.openings.Get(bottomCardinal) {
-			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomLeftCardinal)
-			b.objects = append(b.objects, NewWall(left))
-			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2((1.0 - b.bottomOpening) / 2 * width, b.thick), bottomRightCardinal)
-			b.objects = append(b.objects, NewWall(right))
-		} else {
-			floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, b.thick), bottomCardinal)
-			b.objects = append(b.objects, NewWall(floor))
-		}
-
-		if !b.openings.Get(leftCardinal) {
-			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2(b.thick, 1), bottomLeftCardinal)
-			b.objects = append(b.objects, NewWall(left))
-		}
-
-		if !b.openings.Get(rightCardinal) {
-			right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2(b.thick, 1), bottomRightCardinal)
-			b.objects = append(b.objects, NewWall(right))
-		}
-	}
-}
-
-func (b *Block) UpsertToGrid(g *Grid) {
-	for _, obj := range(b.GetObjects()) {
+	for _, obj := range(bb.GetObjects()) {
 		obj.SetId(g.NextId(obj.GetSpace()))
 		g.Upsert(obj)
 	}
 
-	b.SetId(g.NextId(blockSpace))
-	g.Upsert(b)
+	bb.SetId(g.NextId(bb.GetSpace()))
+	g.Upsert(bb)
 }

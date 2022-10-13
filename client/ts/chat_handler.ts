@@ -127,7 +127,7 @@ export class ChatHandler implements InterfaceHandler {
 			game.sceneMap().clear(wallSpace);
 			break;
 		case "/noblocks":
-			game.sceneMap().clear(blockSpace);
+			game.sceneMap().clear(mainBlockSpace);
 			break;
 		case "/greenbasic":
 			game.sceneMap().scene().overrideMaterial = new THREE.MeshBasicMaterial({ color: 0x00FF00 });

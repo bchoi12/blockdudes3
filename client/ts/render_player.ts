@@ -264,12 +264,12 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		if (this.id() !== game.id()) {
 			if (Util.defined(this._currentBlock)) {
-				if (!this._currentBlock.contains(this.pos())) {
+				if (!this._currentBlock.containsObject(this)) {
 					this._currentBlock = null;
 				}
 			}
 			if (!Util.defined(this._currentBlock)) {
-				const blocks = game.sceneMap().getMap(blockSpace);
+				const blocks = game.sceneMap().getMap(mainBlockSpace);
 				blocks.forEach((block : RenderBlock) => {
 					if (block.contains(this.pos())) {
 						this._currentBlock = block;

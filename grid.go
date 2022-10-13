@@ -60,8 +60,12 @@ func (g *Grid) New(init Init) Object {
 	switch init.GetSpace() {
 	case playerSpace:
 		return NewPlayer(init)
-	case blockSpace:
-		return NewBlock(init)
+	case mainBlockSpace:
+		return NewMainBlock(init)
+	case balconyBlockSpace:
+		return NewBalconyBlock(init)
+	case roofBlockSpace:
+		return NewRoofBlock(init)
 	case wallSpace:
 		return NewWall(init)
 	case explosionSpace:

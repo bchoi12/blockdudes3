@@ -5,18 +5,20 @@ import { Keys } from './keys.js'
 import { Model, loader } from './loader.js'
 import { options } from './options.js'
 import { Particles } from './particles.js'
-import { RenderBlock } from './render_block.js'
+import { RenderBalconyBlock } from './render_balcony_block.js'
 import { RenderBolt } from './render_bolt.js'
 import { RenderEquip } from './render_equip.js'
 import { RenderExplosion } from './render_explosion.js'
 import { RenderGrapplingHook } from './render_grappling_hook.js'
 import { RenderLight } from './render_light.js'
+import { RenderMainBlock } from './render_main_block.js'
 import { RenderObject } from './render_object.js'
 import { RenderPellet } from './render_pellet.js'
 import { RenderPickup } from './render_pickup.js'
 import { RenderPlayer } from './render_player.js'
 import { RenderPortal } from './render_portal.js'
 import { RenderRocket } from './render_rocket.js'
+import { RenderRoofBlock } from './render_roof_block.js'
 import { RenderStar } from './render_star.js'
 import { RenderWall } from './render_wall.js'
 import { RenderWeapon } from './render_weapon.js'
@@ -234,8 +236,12 @@ class Game {
 					let renderObj;
 					if (space === playerSpace) {
 						renderObj = new RenderPlayer(space, id);
-					} else if (space === blockSpace) {
-						renderObj = new RenderBlock(space, id);
+					} else if (space === mainBlockSpace) {
+						renderObj = new RenderMainBlock(space, id);
+					} else if (space === balconyBlockSpace) {
+						renderObj = new RenderBalconyBlock(space, id);
+					} else if (space === roofBlockSpace) {
+						renderObj = new RenderRoofBlock(space, id);
 					} else if (space === wallSpace) {
 						renderObj = new RenderWall(space, id);
 					} else if (space === explosionSpace) {

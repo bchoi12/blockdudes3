@@ -39,7 +39,9 @@ declare var activeGameState : number;
 declare var victoryGameState : number;
 
 declare var playerSpace : number;
-declare var blockSpace : number;
+declare var mainBlockSpace : number;
+declare var balconyBlockSpace : number;
+declare var roofBlockSpace : number;
 declare var wallSpace : number;
 declare var lightSpace : number;
 declare var explosionSpace : number;
@@ -134,9 +136,6 @@ declare var stairWall : number;
 declare var tableWallSubtype : number;
 
 declare var archBlock : number;
-declare var baseBlockSubtype : number;
-declare var roofBlockSubtype : number;
-declare var balconyBlockSubtype : number;
 
 declare var upKey : number;
 declare var downKey : number;

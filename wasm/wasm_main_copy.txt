@@ -70,7 +70,9 @@ func setGlobals() {
 	js.Global().Set("victoryGameState", int(victoryGameState))
 
 	js.Global().Set("playerSpace", int(playerSpace))
-	js.Global().Set("blockSpace", int(blockSpace))
+	js.Global().Set("mainBlockSpace", int(mainBlockSpace))
+	js.Global().Set("balconyBlockSpace", int(balconyBlockSpace))
+	js.Global().Set("roofBlockSpace", int(roofBlockSpace))
 	js.Global().Set("wallSpace", int(wallSpace))
 	js.Global().Set("lightSpace", int(lightSpace))
 	js.Global().Set("explosionSpace", int(explosionSpace))
@@ -163,9 +165,6 @@ func setGlobals() {
 	js.Global().Set("tableWallSubtype", int(tableWallSubtype))
 
 	js.Global().Set("archBlock", int(archBlock))
-	js.Global().Set("baseBlockSubtype", int(baseBlockSubtype))
-	js.Global().Set("roofBlockSubtype", int(roofBlockSubtype))
-	js.Global().Set("balconyBlockSubtype", int(balconyBlockSubtype))
 
 	js.Global().Set("upKey", int(upKey))
 	js.Global().Set("downKey", int(downKey))
