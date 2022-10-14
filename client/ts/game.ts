@@ -5,23 +5,8 @@ import { Keys } from './keys.js'
 import { Model, loader } from './loader.js'
 import { options } from './options.js'
 import { Particles } from './particles.js'
-import { RenderBalconyBlock } from './render_balcony_block.js'
-import { RenderBolt } from './render_bolt.js'
-import { RenderEquip } from './render_equip.js'
-import { RenderExplosion } from './render_explosion.js'
-import { RenderGrapplingHook } from './render_grappling_hook.js'
-import { RenderLight } from './render_light.js'
-import { RenderMainBlock } from './render_main_block.js'
-import { RenderObject } from './render_object.js'
-import { RenderPellet } from './render_pellet.js'
-import { RenderPickup } from './render_pickup.js'
+import { ObjectMarker, RenderObject } from './render_object.js'
 import { RenderPlayer } from './render_player.js'
-import { RenderPortal } from './render_portal.js'
-import { RenderRocket } from './render_rocket.js'
-import { RenderRoofBlock } from './render_roof_block.js'
-import { RenderStar } from './render_star.js'
-import { RenderWall } from './render_wall.js'
-import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
 import { SceneComponent, SceneComponentType } from './scene_component.js'
 import { SceneMap } from './scene_map.js'
@@ -150,7 +135,7 @@ class Game {
 				LogUtil.w("Scene map already contains initialized or deleted player!");
 				return;
 			}
-			this.sceneMap().add(playerSpace, id, new RenderPlayer(playerSpace, id));
+			this.sceneMap().new(playerSpace, id);
 			this.sceneMap().setData(playerSpace, id, data);
 		}
 
@@ -233,46 +218,7 @@ class Game {
 				}
 
 				if (!this.sceneMap().has(space, id)) {
-					let renderObj;
-					if (space === playerSpace) {
-						renderObj = new RenderPlayer(space, id);
-					} else if (space === mainBlockSpace) {
-						renderObj = new RenderMainBlock(space, id);
-					} else if (space === balconyBlockSpace) {
-						renderObj = new RenderBalconyBlock(space, id);
-					} else if (space === roofBlockSpace) {
-						renderObj = new RenderRoofBlock(space, id);
-					} else if (space === wallSpace) {
-						renderObj = new RenderWall(space, id);
-					} else if (space === explosionSpace) {
-						renderObj = new RenderExplosion(space, id);
-					} else if (space === lightSpace) {
-						renderObj = new RenderLight(space, id);
-					} else if (space === equipSpace) {
-						renderObj = new RenderEquip(space, id);
-					} else if (space === weaponSpace) {
-						renderObj = new RenderWeapon(space, id);
-					} else if (space === pelletSpace) {
-						renderObj = new RenderPellet(space, id);
-					} else if (space === boltSpace) {
-						renderObj = new RenderBolt(space, id);
-					} else if (space === rocketSpace) {
-						renderObj = new RenderRocket(space, id);
-					} else if (space === starSpace) {
-						renderObj = new RenderStar(space, id);
-					} else if (space === grapplingHookSpace) {
-						renderObj = new RenderGrapplingHook(space, id);
-					} else if (space === pickupSpace) {
-						renderObj = new RenderPickup(space, id);
-					} else if (space === portalSpace || space === goalSpace) {
-						renderObj = new RenderPortal(space, id);
-					} else if (space === spawnSpace) {
-						renderObj = new RenderObject(space, id);
-					}else {
-						console.error("Unable to construct object for type " + space);
-						continue;
-					}
-					this.sceneMap().add(space, id, renderObj);
+					this.sceneMap().new(space, id);
 					this._numObjectsAdded++;
 				}
 
@@ -342,6 +288,10 @@ class Game {
 	}
 
 	private initLevel(msg : { [k: string]: any }) : void {
+		this.sceneMap().deleteIf((object : RenderObject) => {
+			return object.hasMark(ObjectMarker.LEVEL);
+		})
+
 		LogUtil.d("Loading level " + msg.L + " with seed " + msg.S);
 
 		const level = JSON.parse(wasmLoadLevel(msg.L, msg.S));
@@ -350,8 +300,8 @@ class Game {
 				const space = Number(stringSpace);
 				const id = Number(stringId);
 
-				const wall = new RenderWall(space, id);
-				this.sceneMap().add(space, id, wall);
+				let obj = this.sceneMap().new(space, id);
+				obj.mark(ObjectMarker.LEVEL);
 				this.sceneMap().setData(space, id, data, /*seqNum=*/0);
 			}
 		}
@@ -362,7 +312,7 @@ class Game {
 		if (!this.sceneMap().has(playerSpace, this.id())) return;
 
 		let camera = renderer.cameraController();
-		const player : RenderPlayer = this.sceneMap().getAsAny(playerSpace, this.id());
+		const player = this.sceneMap().get(playerSpace, this.id());
 		camera.setObject(player);
 	}
 }

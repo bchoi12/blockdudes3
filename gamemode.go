@@ -12,6 +12,7 @@ type GameMode interface {
 type BaseGameMode struct {
 	state GameStateType
 	stateChanged bool
+	firstFrame bool
 
 	winningTeam uint8
 	teamScores map[uint8]int
@@ -21,12 +22,18 @@ func NewBaseGameMode() BaseGameMode {
 	return BaseGameMode {
 		state: unknownGameState,
 		stateChanged: false,
+		firstFrame: false,
 		teamScores: make(map[uint8]int),
 	}
 }
 
-func (bgm BaseGameMode) Update(g * Grid) {
-	bgm.stateChanged = false
+func (bgm *BaseGameMode) Update(g * Grid) {
+	if bgm.stateChanged {
+		bgm.stateChanged = false
+		bgm.firstFrame = true
+	} else {
+		bgm.firstFrame = false
+	}
 }
 
 func (bgm BaseGameMode) GetState() (GameStateType, bool) {

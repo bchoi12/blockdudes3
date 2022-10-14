@@ -36,7 +36,7 @@ export class RenderPortal extends RenderObject {
 		mesh.position.copy(this.pos3());
 		mesh.position.y -= dim.y / 2 - this._platformHeight / 2;
 
-		game.particles().emit(Particle.PORTAL, -1, (object : THREE.InstancedMesh, ts : number) => {
+		this._particles = game.particles().emit(Particle.PORTAL, -1, (object : THREE.InstancedMesh, ts : number) => {
 			for (let i = 0; i < object.count; ++i) {
 				let matrix = new THREE.Matrix4();
 				object.getMatrixAt(i, matrix);

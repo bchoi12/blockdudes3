@@ -81,6 +81,12 @@ func (g *Game) ProcessKeyMsg(id IdType, keyMsg KeyMsg) {
 }
 
 func (g *Game) Update() {
+	if state, changed := g.grid.GetGameState(); changed {
+		if state == activeGameState {
+			g.level.LoadLevel(birdTownLevel, LevelSeedType(UnixMilli() % 10000), g.grid)
+		}
+	}
+
 	now := time.Now()
 	g.grid.Update(now)
 	g.seqNum++
@@ -108,16 +114,15 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 	}
 }
 
-// TODO: deprecate function in favor of createObjectInitMsg
-func (g *Game) createWallInitMsg() ObjectStateMsg {
+func (g *Game) createLevelObjectInitMsg() ObjectStateMsg {
 	objs := make(ObjectPropMap)
 
-	for space, objects := range(g.grid.GetManyObjects(wallSpace)) {
+	for space, _ := range(levelSpaces) {
 		objs[space] = make(SpacedPropMap)
-		for id, object := range(objects) {
+		for id, object := range(g.grid.GetObjects(space)) {
 			objs[space][id] = object.GetInitData().Props()
 		}
-	}
+	} 
 
 	return ObjectStateMsg {
 		T: objectDataType,

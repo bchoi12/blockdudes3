@@ -168,26 +168,20 @@ func (g *Grid) deleteCoords(sid SpacedId) {
 	}
 }
 
-func (g *Grid) deleteObject(sid SpacedId) {
-	if object, ok := g.objects[sid]; ok {
-		object.OnDelete(g)
-	}
-	g.deleteCoords(sid)
-	delete(g.objects, sid)
-
-	if _, ok := g.spacedObjects[sid.GetSpace()]; ok {
-		delete(g.spacedObjects[sid.GetSpace()], sid.GetId())
-	}
+func (g *Grid) GetGameState() (GameStateType, bool) {
+	return g.gameState.GetState()
 }
 
 func (g *Grid) Update(now time.Time) {
-	gameState, _ := g.gameState.GetState()
+	gameState, stateChanged := g.gameState.GetState()
 
 	for _, object := range(g.GetAllObjects()) {
-		if gameState == victoryGameState {
-			object.SetUpdateSpeed(0.3)
-		} else {
-			object.SetUpdateSpeed(1.0)
+		if stateChanged {
+			if gameState == victoryGameState {
+				object.SetUpdateSpeed(0.3)
+			} else {
+				object.SetUpdateSpeed(1.0)
+			}			
 		}
 		object.PreUpdate(g, now)
 	}
@@ -217,10 +211,22 @@ func (g *Grid) updateObject(object Object, now time.Time) {
 
 func (g *Grid) Delete(sid SpacedId) {
 	if isWasm {
-		g.deleteObject(sid)
+		g.HardDelete(sid)
 		return
 	}
 	g.gameState.SetObjectState(sid, deletedProp, true)
+}
+
+func (g *Grid) HardDelete(sid SpacedId) {
+	if object, ok := g.objects[sid]; ok {
+		object.OnDelete(g)
+	}
+	g.deleteCoords(sid)
+	delete(g.objects, sid)
+
+	if _, ok := g.spacedObjects[sid.GetSpace()]; ok {
+		delete(g.spacedObjects[sid.GetSpace()], sid.GetId())
+	}
 }
 
 func (g *Grid) Has(sid SpacedId) bool {
@@ -326,7 +332,7 @@ func (g *Grid) GetObjectUpdates() ObjectPropMap {
 		objects[object.GetSpace()][object.GetId()] = updates.Props()
 
 		if deleted {
-			g.deleteObject(object.GetSpacedId())
+			g.HardDelete(object.GetSpacedId())
 		}
 	}
 

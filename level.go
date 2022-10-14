@@ -5,10 +5,22 @@ import (
 	"math/rand"
 )
 
+var levelSpaces = map[SpaceType]bool {
+	mainBlockSpace: true,
+	roofBlockSpace: true,
+	balconyBlockSpace: true,
+	wallSpace: true,
+	pickupSpace: true,
+	portalSpace: true,
+	goalSpace: true,
+	spawnSpace: true,
+}
+
 type LevelIdType uint8
 const (
 	unknownLevel LevelIdType = iota
-	testLevel
+	lobbyLevel
+	birdTownLevel
 )
 type LevelSeedType uint32
 
@@ -35,24 +47,33 @@ func (l Level) GetSeed() LevelSeedType {
 
 // TODO: currently loading is done via WASM then sent redundantly over network & skipped
 func (l *Level) LoadLevel(id LevelIdType, seed LevelSeedType, grid *Grid) {
+	l.Clear(grid)
+
 	l.id = id
 	l.seed = seed
 
 	switch id {
-	case testLevel:
-		l.loadTestLevel(seed, grid)
+	case lobbyLevel:
+		l.loadLobby(grid)
+	case birdTownLevel:
+		l.loadBirdTown(seed, grid)
 	default:
 		Log(fmt.Sprintf("Unknown map: %d", id))
 	}
 }
 
-func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
-	l.blockGrid = NewBlockGrid()
-	colors := [...]int {archRed, archOrange, archYellow, archGreen, archBlue, archPurple}
-	r := rand.New(rand.NewSource(int64(seed)))
-	r.Shuffle(len(colors), func(i, j int) { colors[i], colors[j] = colors[j], colors[i] })
+func (l *Level) Clear(grid *Grid) {
+	for space, _ := range(levelSpaces) {
+		for _, object := range(grid.GetObjects(space)) {
+			grid.Delete(object.GetSpacedId())
+		}
+	} 
+}
 
+func (l *Level) loadLobby(grid *Grid) {
 	var b *MainBlock
+	var r *RoofBlock
+	l.blockGrid = NewBlockGrid()
 
 	{
 		building := l.blockGrid.AddBuilding(BuildingAttributes{
@@ -66,6 +87,8 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 		b = building.GetBlock(2)
 		b.AddOpenings(leftCardinal, rightCardinal)
 		b.AddBalcony(NewVec2(-1, 0))
+		r = building.GetRoof()
+		r.AddOpenings(rightCardinal)
 
 		portal := NewPortal(NewInitC(
 			grid.NextSpacedId(portalSpace),
@@ -83,7 +106,7 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 			blockType: archBlock,
 			color: 0x444444,
 			secondaryColor: archWhite,
-			height: 3,
+			height: 4,
 		})
 
 		b = building.GetBlock(2)
@@ -96,6 +119,9 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 			NewVec2(1, 1),
 		))
 		grid.Upsert(spawn)
+
+		b = building.GetBlock(3)
+		b.AddOpenings(leftCardinal, rightCardinal)
 	}
 
 	{
@@ -110,6 +136,8 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 		b = building.GetBlock(2)
 		b.AddOpenings(leftCardinal, rightCardinal)
 		b.AddBalcony(NewVec2(1, 0))
+		r = building.GetRoof()
+		r.AddOpenings(leftCardinal)
 
 		portal := NewPortal(NewInitC(
 			grid.NextSpacedId(portalSpace),
@@ -120,6 +148,17 @@ func (l *Level) loadTestLevel(seed LevelSeedType, grid *Grid) {
 		portal.SetTeam(2)
 		grid.Upsert(portal)
 	}
+
+	l.blockGrid.UpsertToGrid(grid)
+}
+
+func (l *Level) loadBirdTown(seed LevelSeedType, grid *Grid) {
+	l.blockGrid = NewBlockGrid()
+	colors := [...]int {archRed, archOrange, archYellow, archGreen, archBlue, archPurple}
+	r := rand.New(rand.NewSource(int64(seed)))
+	r.Shuffle(len(colors), func(i, j int) { colors[i], colors[j] = colors[j], colors[i] })
+
+	var b *MainBlock
 
 	defaultGap := 9.0
 	gapChance := NewGrowingChance(r, 15, 15)

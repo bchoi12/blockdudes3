@@ -353,7 +353,7 @@ func LoadLevel() js.Func {
 		seed := LevelSeedType(args[1].Int())
 		game.LoadLevel(level, seed)
 
-		objects := game.createWallInitMsg()
+		objects := game.createLevelObjectInitMsg()
 		b, err := json.Marshal(objects)
 		if err != nil {
 			fmt.Println("LoadLevel: ", err)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -119,16 +118,18 @@ func (p Player) UpdateScore(g *Grid) {
 	g.IncrementProp(sid, killProp, 1)
 }
 
-func (p *Player) SetTeam(team uint8, grid *Grid) {
-	spawn := grid.Get(Id(spawnSpace, IdType(team)))
-	if spawn == nil {
-		Log(fmt.Sprintf("Invalid team %d", team))
-		return
-	}
-
+func (p *Player) SetTeam(team uint8) {
 	p.SetByteAttribute(teamByteAttribute, team)
 	p.SetIntAttribute(colorIntAttribute, teamColors[team])
-	p.respawn = spawn.Pos()
+}
+
+func (p *Player) SetSpawn(g *Grid) {
+	team, _ := p.GetByteAttribute(teamByteAttribute)
+	spawn := g.Get(Id(spawnSpace, IdType(team)))
+	if spawn == nil {
+		return
+	}
+	p.SetInitPos(spawn.Pos())
 }
 
 func (p *Player) Respawn() {
@@ -137,9 +138,9 @@ func (p *Player) Respawn() {
 	p.RemoveAttribute(deadAttribute)
 	p.Keys.SetEnabled(true)
 
-	p.SetPos(p.respawn)
-	p.AddAttribute(canDoubleJumpAttribute)
+	p.SetPos(p.InitPos())
 	p.Stop()
+	p.AddAttribute(canDoubleJumpAttribute)
 }
 
 func (p *Player) Update(grid *Grid, now time.Time) {
@@ -314,7 +315,7 @@ func (p *Player) checkCollisions(grid *Grid) {
 		case *Portal:
 			if !isWasm && p.grounded {
 				if team, ok := object.GetByteAttribute(teamByteAttribute); ok {
-					p.SetTeam(team, grid)
+					p.SetTeam(team)
 				}
 			}
 		case *Goal:

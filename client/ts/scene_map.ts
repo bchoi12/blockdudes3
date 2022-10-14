@@ -5,9 +5,23 @@ import { GameOverlay } from './game_overlay.js'
 import { LightBuffer, LightOverrides } from './light_buffer.js'
 import { Lighting } from './lighting.js'
 import { Particles } from './particles.js'
-import { RenderMesh } from './render_mesh.js'
+import { RenderBalconyBlock } from './render_balcony_block.js'
+import { RenderBolt } from './render_bolt.js'
+import { RenderEquip } from './render_equip.js'
+import { RenderExplosion } from './render_explosion.js'
+import { RenderGrapplingHook } from './render_grappling_hook.js'
+import { RenderLight } from './render_light.js'
+import { RenderMainBlock } from './render_main_block.js'
 import { RenderObject } from './render_object.js'
+import { RenderPellet } from './render_pellet.js'
+import { RenderPickup } from './render_pickup.js'
 import { RenderPlayer } from './render_player.js'
+import { RenderPortal } from './render_portal.js'
+import { RenderRocket } from './render_rocket.js'
+import { RenderRoofBlock } from './render_roof_block.js'
+import { RenderStar } from './render_star.js'
+import { RenderWall } from './render_wall.js'
+import { RenderWeapon } from './render_weapon.js'
 import { SceneComponent, SceneComponentType } from './scene_component.js'
 import { LogUtil, Util } from './util.js'
 import { Weather } from './weather.js'
@@ -116,7 +130,55 @@ export class SceneMap {
 		return this._renders.get(space);
 	}
 
-	add(space : number, id : number, object : RenderObject) : void {
+	new(space : number, id : number) : RenderObject {
+		let renderObj;
+		if (space === playerSpace) {
+			renderObj = new RenderPlayer(space, id);
+		} else if (space === mainBlockSpace) {
+			renderObj = new RenderMainBlock(space, id);
+		} else if (space === balconyBlockSpace) {
+			renderObj = new RenderBalconyBlock(space, id);
+		} else if (space === roofBlockSpace) {
+			renderObj = new RenderRoofBlock(space, id);
+		} else if (space === wallSpace) {
+			renderObj = new RenderWall(space, id);
+		} else if (space === explosionSpace) {
+			renderObj = new RenderExplosion(space, id);
+		} else if (space === lightSpace) {
+			renderObj = new RenderLight(space, id);
+		} else if (space === equipSpace) {
+			renderObj = new RenderEquip(space, id);
+		} else if (space === weaponSpace) {
+			renderObj = new RenderWeapon(space, id);
+		} else if (space === pelletSpace) {
+			renderObj = new RenderPellet(space, id);
+		} else if (space === boltSpace) {
+			renderObj = new RenderBolt(space, id);
+		} else if (space === rocketSpace) {
+			renderObj = new RenderRocket(space, id);
+		} else if (space === starSpace) {
+			renderObj = new RenderStar(space, id);
+		} else if (space === grapplingHookSpace) {
+			renderObj = new RenderGrapplingHook(space, id);
+		} else if (space === pickupSpace) {
+			renderObj = new RenderPickup(space, id);
+		} else if (space === portalSpace || space === goalSpace) {
+			renderObj = new RenderPortal(space, id);
+		} else if (space === spawnSpace) {
+			renderObj = new RenderObject(space, id);
+		} else {
+			console.error("Unable to construct object for type " + space);
+			return null;
+		}
+
+		this.add(renderObj);
+		return renderObj;
+	}
+
+	add(object : RenderObject) : void {
+		const space = object.space();
+		const id = object.id();
+
 		const map = this.getMap(space);
 		if (map.has(id)) {
 			LogUtil.d("Overwriting object space " + space + ", id " + id + "!");
@@ -162,6 +224,18 @@ export class SceneMap {
 			}
 			this._deleted.get(space).add(id);
 		}
+	}
+
+	deleteIf(predicate : (object : RenderObject) => boolean) : void {
+		this._renders.forEach((spacedMap) => {
+			spacedMap.forEach((object) => {
+				console.log("check " + object.spacedId().toString());
+				if (predicate(object)) {
+					console.log("Delete");
+					this.delete(object.space(), object.id());
+				}
+			})
+		})
 	}
 
 	removeMesh(object : THREE.Object3D) : void {

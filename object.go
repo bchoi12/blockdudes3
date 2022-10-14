@@ -108,7 +108,7 @@ func (o *BaseObject) PrepareUpdate(now time.Time) float64 {
 		o.lastUpdateTime = now
 	}
 
-	return Max(0, Min(ts, 2 * float64(frameMillis)))
+	return Max(0, Min(ts, float64(frameMillis)))
 }
 
 func (o *BaseObject) PreUpdate(grid *Grid, now time.Time) {

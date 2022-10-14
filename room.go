@@ -67,9 +67,7 @@ func CreateOrJoinRoom(vars map[string]string, ws *websocket.Conn) {
 			incoming: make(chan IncomingMsg),
 			incomingQueue: make([]IncomingMsg, 0),
 		}
-		seed := LevelSeedType(UnixMilli() % 10000)
-		rooms[roomName].print(fmt.Sprintf("created room, seed: %d", seed))
-		rooms[roomName].game.LoadLevel(testLevel, seed)
+		rooms[roomName].game.LoadLevel(lobbyLevel, 0)
 		go rooms[roomName].run()
 	}
 
@@ -209,7 +207,8 @@ func (r *Room) initClient(client *Client) error {
 		player := r.game.Add(NewInit(playerId, NewVec2(0, 0), NewVec2(0.8, 1.44))).(*Player)
 
 		player.SetInitProp(nameProp, client.GetDisplayName())
-		player.SetTeam(0, r.game.GetGrid())
+		player.SetTeam(0)
+		player.SetSpawn(r.game.GetGrid())
 		player.Respawn()
 	} else {
 		player := r.game.Get(playerId)

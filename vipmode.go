@@ -31,6 +31,7 @@ func NewVipMode() *VipMode {
 
 func (vm *VipMode) Update(g *Grid) {
 	vm.BaseGameMode.Update(g)
+
 	if vm.state == unknownGameState {
 		return
 	}
@@ -55,15 +56,18 @@ func (vm *VipMode) Update(g *Grid) {
 		vip := vm.random.Intn(len(vm.teams[offense]))
 		vm.teams[offense][vip].AddAttribute(vipAttribute)
 
-		// Start game
-		for _, player := range(players) {
-			// TODO: Respawn should be Object method, just reset Pos to InitPos
-			player.(*Player).Respawn()
-			player.RemoveAttribute(autoRespawnAttribute)
-		}
-
 		vm.SetState(activeGameState)
 	} else if vm.state == activeGameState {
+		if vm.firstFrame {
+			// Start game
+			for _, player := range(players) {
+				player.(*Player).SetSpawn(g)
+				// TODO: Respawn should be Object method, just reset Pos to InitPos
+				player.(*Player).Respawn()
+				player.RemoveAttribute(autoRespawnAttribute)
+			}
+		}
+
 		alive := make(map[uint8]int)
 		winningTeam := uint8(0)
 		for _, player := range(players) {
@@ -98,8 +102,6 @@ func (vm *VipMode) Update(g *Grid) {
 
 		for _, player := range(players) {
 			player.RemoveAttribute(vipAttribute)
-			player.(*Player).SetTeam(0, g)
-			player.(*Player).Respawn()
 		}
 		vm.SetState(lobbyGameState)
 	}
