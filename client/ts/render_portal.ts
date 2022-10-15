@@ -114,46 +114,23 @@ export class RenderPortal extends RenderObject {
 	override update() : void {
 		super.update();
 
-			const player = game.player();
-			if (Util.defined(player)) {
+		if (!this.initialized()) {
+			return;
+		}
 
-				if (this._bbox.containsPoint(player.pos()) || this._bbox.intersectsBox(player.bbox())) {
-					if (this.space() === portalSpace) {
-						ui.tooltip( { 
-							type: TooltipType.TEAM_PORTAL,
-							ttl: 500,
-							names: [this.getTeamName()],
-						});
-					} else if (this.space() === goalSpace && player.byteAttribute(teamByteAttribute) !== this.byteAttribute(teamByteAttribute)) {
-						ui.tooltip({
-							type: TooltipType.GOAL,
-							ttl: 500,
-							names: [{
-								text: "VIP",
-								color: "#FFF000",
-							}]
-						})
-					}
+		const player = game.player();
+		if (Util.defined(player) && player.hasAttribute(canJumpAttribute)) {
+			if (this._bbox.containsPoint(player.pos()) || this._bbox.intersectsBox(player.bbox())) {
+				if (this.space() === goalSpace && player.byteAttribute(teamByteAttribute) !== this.byteAttribute(teamByteAttribute)) {
+					ui.tooltip({
+						type: TooltipType.GOAL,
+						ttl: 500,
+						names: [{
+							text: "VIP",
+							color: "#FFF000",
+						}]
+					})
 				}
-			}
-	}
-
-	private getTeamName() : TooltipName {
-		switch(this.byteAttribute(teamByteAttribute)) {
-		case redTeam:
-			return {
-				text: "red team",
-				color: "#FF0000",
-			};
-		case blueTeam:
-			return {
-				text: "blue team",
-				color: "#0000FF"
-			}
-		default:
-			return {
-				text: "neutral team",
-				color: "#333333",
 			}
 		}
 	}

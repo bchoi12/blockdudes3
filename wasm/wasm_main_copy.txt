@@ -89,9 +89,6 @@ func setGlobals() {
 	js.Global().Set("goalSpace", int(goalSpace))
 	js.Global().Set("spawnSpace", int(spawnSpace))
 
-	js.Global().Set("initializedProp", int(initializedProp))
-	js.Global().Set("deletedProp", int(deletedProp))
-
 	js.Global().Set("attributesProp", int(attributesProp))
 	js.Global().Set("byteAttributesProp", int(byteAttributesProp))
 	js.Global().Set("intAttributesProp", int(intAttributesProp))
@@ -109,9 +106,9 @@ func setGlobals() {
 	js.Global().Set("targetProp", int(targetProp))
 	js.Global().Set("stateProp", int(stateProp))
 	js.Global().Set("scoreProp", int(scoreProp))
-	js.Global().Set("killProp", int(killProp))
-	js.Global().Set("deathProp", int(deathProp))
 
+	js.Global().Set("initializedAttribute", int(initializedAttribute))
+	js.Global().Set("deletedAttribute", int(deletedAttribute))
 	js.Global().Set("attachedAttribute", int(attachedAttribute))
 	js.Global().Set("chargingAttribute", int(chargingAttribute))
 	js.Global().Set("chargedAttribute", int(chargedAttribute))
@@ -133,6 +130,8 @@ func setGlobals() {
 
 	js.Global().Set("colorIntAttribute", int(colorIntAttribute))
 	js.Global().Set("secondaryColorIntAttribute", int(secondaryColorIntAttribute))
+	js.Global().Set("killIntAttribute", int(killIntAttribute))
+	js.Global().Set("deathIntAttribute", int(deathIntAttribute))
 
 	js.Global().Set("posZFloatAttribute", int(posZFloatAttribute))
 	js.Global().Set("dimZFloatAttribute", int(dimZFloatAttribute))

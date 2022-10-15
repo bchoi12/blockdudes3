@@ -58,9 +58,6 @@ declare var portalSpace : number;
 declare var goalSpace : number;
 declare var spawnSpace : number;
 
-declare var initializedProp : number;
-declare var deletedProp : number;
-
 declare var attributesProp : number;
 declare var byteAttributesProp : number;
 declare var intAttributesProp : number;
@@ -80,9 +77,9 @@ declare var targetProp : number;
 
 declare var stateProp : number;
 declare var scoreProp : number;
-declare var killProp : number;
-declare var deathProp : number;
 
+declare var initializedAttribute : number;
+declare var deletedAttribute : number;
 declare var attachedAttribute : number;
 declare var chargingAttribute : number;
 declare var chargedAttribute : number;
@@ -104,6 +101,8 @@ declare var juiceByteAttribute : number;
 
 declare var colorIntAttribute : number;
 declare var secondaryColorIntAttribute : number;
+declare var killIntAttribute : number;
+declare var deathIntAttribute : number;
 
 declare var posZFloatAttribute : number;
 declare var dimZFloatAttribute : number;

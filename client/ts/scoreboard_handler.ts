@@ -58,8 +58,8 @@ export class ScoreboardHandler implements InterfaceHandler {
 			}
 
 			let score = this._scores.get(id);
-			score.setKills(player.kills());
-			score.setDeaths(player.deaths());
+			score.setKills(player.intAttribute(killIntAttribute));
+			score.setDeaths(player.intAttribute(deathIntAttribute));
 		});
 	}
 }

@@ -149,7 +149,6 @@ func (g *Grid) insert(sid SpacedId, object Object) {
 	}
 
 	g.objects[sid] = object
-	g.gameState.RegisterId(sid)
 	g.spacedObjects[sid.GetSpace()][sid.GetId()] = object
 
 	if lastId, ok := g.lastId[sid.GetSpace()]; !ok {
@@ -173,16 +172,14 @@ func (g *Grid) GetGameState() (GameStateType, bool) {
 }
 
 func (g *Grid) Update(now time.Time) {
-	gameState, stateChanged := g.gameState.GetState()
+	gameState, _ := g.GetGameState()
 
 	for _, object := range(g.GetAllObjects()) {
-		if stateChanged {
-			if gameState == victoryGameState {
-				object.SetUpdateSpeed(0.3)
-			} else {
-				object.SetUpdateSpeed(1.0)
-			}			
-		}
+		if gameState == victoryGameState {
+			object.SetUpdateSpeed(0.3)
+		} else {
+			object.SetUpdateSpeed(1.0)
+		}			
 		object.PreUpdate(g, now)
 	}
 
@@ -214,7 +211,11 @@ func (g *Grid) Delete(sid SpacedId) {
 		g.HardDelete(sid)
 		return
 	}
-	g.gameState.SetObjectState(sid, deletedProp, true)
+
+	object := g.Get(sid)
+	if object != nil {
+		object.AddAttribute(deletedAttribute)
+	}
 }
 
 func (g *Grid) HardDelete(sid SpacedId) {
@@ -271,23 +272,6 @@ func (g *Grid) GetObjectInitData() ObjectPropMap {
 		}
 		objects[object.GetSpace()][object.GetId()] = data.Props()
 	}
-
-	for space, spacedPropMap := range(g.gameState.GetObjectInitProps()) {
-		if _, ok := objects[space]; !ok {
-			objects[space] = make(SpacedPropMap)
-		}
-		for id, propMap := range(spacedPropMap) {
-			if _, ok := objects[space][id]; !ok {
-				objects[space][id] = propMap
-				continue
-			}
-
-			for prop, data := range(propMap) {
-				objects[space][id][prop] = data
-			}
-		}
-	}
-
 	return objects
 }
 
@@ -311,15 +295,11 @@ func (g *Grid) GetObjectData() ObjectPropMap {
 func (g *Grid) GetObjectUpdates() ObjectPropMap {
 	objects := make(ObjectPropMap)
 
-	for sid, object := range(g.GetAllObjects()) {
+	for _, object := range(g.GetAllObjects()) {
 		updates := object.GetUpdates()
-		if !g.gameState.GetObjectState(sid, initializedProp).Peek().(bool) {
+		if !object.HasAttribute(initializedAttribute) {
 			updates.Merge(object.GetInitData())
-			g.gameState.SetObjectState(sid, initializedProp, true)
-		}
-		deleted := g.gameState.GetObjectState(sid, deletedProp).Peek().(bool)
-		if deleted {
-			updates.Set(deletedProp, true)
+			object.AddAttribute(initializedAttribute)
 		}
 
 		if updates.Size() == 0 {
@@ -331,24 +311,8 @@ func (g *Grid) GetObjectUpdates() ObjectPropMap {
 		}
 		objects[object.GetSpace()][object.GetId()] = updates.Props()
 
-		if deleted {
+		if object.HasAttribute(deletedAttribute) {
 			g.HardDelete(object.GetSpacedId())
-		}
-	}
-
-	for space, spacedPropMap := range(g.gameState.GetObjectPropUpdates()) {
-		if _, ok := objects[space]; !ok {
-			objects[space] = make(SpacedPropMap)
-		}
-		for id, propMap := range(spacedPropMap) {
-			if _, ok := objects[space][id]; !ok {
-				objects[space][id] = propMap
-				continue
-			}
-
-			for prop, data := range(propMap) {
-				objects[space][id][prop] = data
-			}
 		}
 	}
 
@@ -357,14 +321,6 @@ func (g *Grid) GetObjectUpdates() ObjectPropMap {
 
 func (g Grid) GetGameStateProps() SpacedPropMap {
 	return g.gameState.GetProps()
-}
-
-func (g *Grid) IncrementProp(sid SpacedId, prop Prop, delta int) {
-	if sid.Invalid() {
-		return
-	}
-	
-	g.gameState.IncrementProp(sid, prop, delta)
 }
 
 func (g *Grid) SignalVictory(team uint8) {

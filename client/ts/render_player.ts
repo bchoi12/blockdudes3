@@ -12,7 +12,7 @@ import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
 import { SpriteCreator } from './sprite_creator.js'
 import { ChangeTracker } from './tracker.js'
-import { ui } from './ui.js'
+import { ui, TooltipType, TooltipName } from './ui.js'
 import { LogUtil, MathUtil, Util } from './util.js'
 
 // enum name has to be the same as value
@@ -64,6 +64,12 @@ export class RenderPlayer extends RenderAnimatedObject {
 			}
 			// @ts-ignore
 			this._pointer.material.color = new THREE.Color(this.intAttribute(colorIntAttribute));
+
+			ui.tooltip( { 
+				type: TooltipType.JOIN_TEAM,
+				ttl: 5000,
+				names: [this.getTeamName()],
+			});
 		});
 		this._healthTracker = new ChangeTracker<number>(() => {
 			return this.byteAttribute(healthByteAttribute);
@@ -493,5 +499,25 @@ export class RenderPlayer extends RenderAnimatedObject {
 				},
 			}
 		});
+	}
+
+	private getTeamName() : TooltipName {
+		switch(this.byteAttribute(teamByteAttribute)) {
+		case redTeam:
+			return {
+				text: "red team",
+				color: "#FF0000",
+			};
+		case blueTeam:
+			return {
+				text: "blue team",
+				color: "#0000FF"
+			}
+		default:
+			return {
+				text: "neutral team",
+				color: "#333333",
+			}
+		}
 	}
 }

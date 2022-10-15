@@ -78,7 +78,7 @@ export class RenderObject extends RenderMesh {
 	timestep() : number { return this._timestep * game.updateSpeed(); }
 	ready() : boolean { return this._msg.has(posProp) && this._msg.has(dimProp); }
 	initialized() : boolean { return this._initialized; }
-	deleted() : boolean { return this._deleted || this._msg.has(deletedProp) && this._msg.get(deletedProp); }
+	deleted() : boolean { return this.attribute(deletedAttribute); }
 
 	initialize() : void {
 		if (this.initialized()) {
@@ -342,22 +342,6 @@ export class RenderObject extends RenderMesh {
 			this._target.setId(this._msg.get(targetProp).Id);
 		}
 		return this._target;
-	}
-
-	hasKills() : boolean { return this._msg.has(killProp); }
-	kills() : number {
-		if (this.hasKills()) {
-			return this._msg.get(killProp);
-		}
-		return 0;
-	}
-
-	hasDeaths() : boolean { return this._msg.has(deathProp); }
-	deaths() : number {
-		if (this.hasDeaths()) {
-			return this._msg.get(deathProp);
-		}
-		return 0;
 	}
 
 	protected disableAutoUpdatePos() {

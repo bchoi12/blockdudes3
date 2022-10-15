@@ -32,7 +32,7 @@ export enum TooltipType {
 	UNKNOWN = 0,
 	HELLO = 1,
 	PICKUP = 2,
-	TEAM_PORTAL = 3,
+	JOIN_TEAM = 3,
 	GOAL = 4,
 }
 

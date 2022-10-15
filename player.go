@@ -107,15 +107,22 @@ func (p Player) Dead() bool {
 	return p.Health.Dead()
 }
 
-func (p Player) UpdateScore(g *Grid) {
-	sid := p.Health.GetLastDamageId(lastDamageTime)
-	g.IncrementProp(p.GetSpacedId(), deathProp, 1)
-
-	if sid.Invalid() {
-		return
+func (p *Player) UpdateScore(g *Grid) {
+	if deaths, ok := p.GetIntAttribute(deathIntAttribute); ok {
+		p.SetIntAttribute(deathIntAttribute, deaths + 1)
+	} else {
+		p.SetIntAttribute(deathIntAttribute, 1)
 	}
 
-	g.IncrementProp(sid, killProp, 1)
+	sid := p.Health.GetLastDamageId(lastDamageTime)
+	object := g.Get(sid)
+	if object != nil {
+		if kills, ok := object.GetIntAttribute(killIntAttribute); ok {
+			object.SetIntAttribute(killIntAttribute, kills + 1)
+		} else {
+			object.SetIntAttribute(killIntAttribute, 1)
+		}
+	}
 }
 
 func (p *Player) SetTeam(team uint8) {

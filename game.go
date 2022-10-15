@@ -83,7 +83,7 @@ func (g *Game) ProcessKeyMsg(id IdType, keyMsg KeyMsg) {
 func (g *Game) Update() {
 	if state, changed := g.grid.GetGameState(); changed {
 		if state == activeGameState {
-			g.level.LoadLevel(birdTownLevel, LevelSeedType(UnixMilli() % 10000), g.grid)
+			g.level.LoadLevel(birdTownLevel, LevelSeedType(UnixMilli() % 3333333), g.grid)
 		}
 	}
 

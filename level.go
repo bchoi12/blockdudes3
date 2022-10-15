@@ -59,10 +59,14 @@ func (l *Level) LoadLevel(id LevelIdType, seed LevelSeedType, grid *Grid) {
 		l.loadBirdTown(seed, grid)
 	default:
 		Log(fmt.Sprintf("Unknown map: %d", id))
+		return
 	}
+
+	l.blockGrid.UpsertToGrid(grid)
 }
 
 func (l *Level) Clear(grid *Grid) {
+	l.blockGrid = NewBlockGrid()
 	for space, _ := range(levelSpaces) {
 		for _, object := range(grid.GetObjects(space)) {
 			grid.Delete(object.GetSpacedId())
@@ -73,7 +77,6 @@ func (l *Level) Clear(grid *Grid) {
 func (l *Level) loadLobby(grid *Grid) {
 	var b *MainBlock
 	var r *RoofBlock
-	l.blockGrid = NewBlockGrid()
 
 	{
 		building := l.blockGrid.AddBuilding(BuildingAttributes{
@@ -148,12 +151,9 @@ func (l *Level) loadLobby(grid *Grid) {
 		portal.SetTeam(2)
 		grid.Upsert(portal)
 	}
-
-	l.blockGrid.UpsertToGrid(grid)
 }
 
 func (l *Level) loadBirdTown(seed LevelSeedType, grid *Grid) {
-	l.blockGrid = NewBlockGrid()
 	colors := [...]int {archRed, archOrange, archYellow, archGreen, archBlue, archPurple}
 	r := rand.New(rand.NewSource(int64(seed)))
 	r.Shuffle(len(colors), func(i, j int) { colors[i], colors[j] = colors[j], colors[i] })

@@ -8,9 +8,6 @@ type Prop uint8
 const (
 	unknownProp Prop = iota
 
-	initializedProp
-	deletedProp
-
 	attributesProp
 	byteAttributesProp
 	intAttributesProp
@@ -30,8 +27,6 @@ const (
 
 	stateProp
 	scoreProp
-	killProp
-	deathProp
 )
 
 type PropMap map[Prop]interface{}

@@ -64,7 +64,7 @@ export class TooltipHandler implements InterfaceHandler {
 			return "Hello!<br>Welcome to birdtown";
 		case TooltipType.PICKUP:
 			return "Press " + this.formatName(tooltip.names[0]) + " to pickup " + this.formatName(tooltip.names[1]);
-		case TooltipType.TEAM_PORTAL:
+		case TooltipType.JOIN_TEAM:
 			return "Joined the " + this.formatName(tooltip.names[0]) + "<br>Go team!";
 		case TooltipType.GOAL:
 			return "Prevent the " + this.formatName(tooltip.names[0]) + " from reaching this goal";

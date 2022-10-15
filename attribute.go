@@ -4,6 +4,9 @@ type AttributeType uint8
 const (
 	unknownAttribute AttributeType = iota
 
+	initializedAttribute
+	deletedAttribute
+
 	attachedAttribute
 	chargingAttribute
 	chargedAttribute
@@ -36,6 +39,9 @@ const (
 	unknownIntAttribute IntAttributeType = iota
 	colorIntAttribute
 	secondaryColorIntAttribute
+
+	killIntAttribute
+	deathIntAttribute
 )
 
 type FloatAttributeType uint8
