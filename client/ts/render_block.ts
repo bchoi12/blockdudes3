@@ -28,10 +28,6 @@ export class RenderBlock extends RenderObject {
 		return super.ready() && this.hasByteAttribute(typeByteAttribute);
 	}
 
-	override initialize() : void {
-		super.initialize();
-	}
-
 	override update() : void {
 		super.update();
 

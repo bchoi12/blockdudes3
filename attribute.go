@@ -4,9 +4,7 @@ type AttributeType uint8
 const (
 	unknownAttribute AttributeType = iota
 
-	initializedAttribute
 	deletedAttribute
-
 	attachedAttribute
 	chargingAttribute
 	chargedAttribute
@@ -16,6 +14,10 @@ const (
 	deadAttribute
 	visibleAttribute
 	vipAttribute
+	fromLevelAttribute
+
+	// Internal
+	initializedAttribute
 	autoRespawnAttribute
 )
 
@@ -72,6 +74,7 @@ var wasmIgnoreFloatAttributes = map[FloatAttributeType]bool {
 type Attribute struct {
 	changed map[AttributeType]*Flag
 	attributes map[AttributeType]bool
+	internalAttributes map[AttributeType]bool
 
 	byteChanged map[ByteAttributeType]*Flag
 	byteAttributes map[ByteAttributeType]uint8
@@ -87,6 +90,7 @@ func NewAttribute() Attribute {
 	return Attribute {
 		changed: make(map[AttributeType]*Flag),
 		attributes: make(map[AttributeType]bool),
+		internalAttributes: make(map[AttributeType]bool),
 
 		byteChanged: make(map[ByteAttributeType]*Flag),
 		byteAttributes: make(map[ByteAttributeType]uint8),
@@ -110,6 +114,14 @@ func (a *Attribute) AddAttribute(attribute AttributeType) {
 
 	a.changed[attribute].Reset(true)
 	a.attributes[attribute] = true
+}
+
+func (a *Attribute) AddInternalAttribute(attribute AttributeType) {
+	if a.HasAttribute(attribute) {
+		return
+	}
+
+	a.internalAttributes[attribute] = true
 }
 
 func (a *Attribute) SetByteAttribute(attribute ByteAttributeType, byte uint8) {
@@ -152,21 +164,24 @@ func (a *Attribute) SetFloatAttribute(attribute FloatAttributeType, float float6
 }
 
 func (a *Attribute) RemoveAttribute(attribute AttributeType) {
-	if has, ok := a.attributes[attribute]; ok && !has {
-		return
+	if has, ok := a.attributes[attribute]; ok && has {
+		if _, ok := a.changed[attribute]; !ok {
+			a.changed[attribute] = NewFlag()
+		}
+		
+		a.changed[attribute].Reset(true)
+		a.attributes[attribute] = false
 	}
 
-	if _, ok := a.changed[attribute]; !ok {
-		a.changed[attribute] = NewFlag()
+	if has, ok := a.internalAttributes[attribute]; ok && has {
+		a.internalAttributes[attribute] = false
 	}
-	
-	a.changed[attribute].Reset(true)
-	a.attributes[attribute] = false
 }
 
 func (a Attribute) HasAttribute(attribute AttributeType) bool {
 	has, ok := a.attributes[attribute]
-	return ok && has 
+	hasInternal, okInternal := a.internalAttributes[attribute]
+	return (ok && has) || (hasInternal && okInternal) 
 }
 
 func (a Attribute) GetByteAttribute(attribute ByteAttributeType) (uint8, bool) {

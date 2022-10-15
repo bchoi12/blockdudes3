@@ -229,9 +229,7 @@ export class SceneMap {
 	deleteIf(predicate : (object : RenderObject) => boolean) : void {
 		this._renders.forEach((spacedMap) => {
 			spacedMap.forEach((object) => {
-				console.log("check " + object.spacedId().toString());
 				if (predicate(object)) {
-					console.log("Delete");
 					this.delete(object.space(), object.id());
 				}
 			})

@@ -31,8 +31,4 @@ export class RenderMainBlock extends RenderBlock {
 
 		this.loadMesh(model);
 	}
-
-	override update() : void {
-		super.update();
-	}
 }

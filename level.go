@@ -5,17 +5,6 @@ import (
 	"math/rand"
 )
 
-var levelSpaces = map[SpaceType]bool {
-	mainBlockSpace: true,
-	roofBlockSpace: true,
-	balconyBlockSpace: true,
-	wallSpace: true,
-	pickupSpace: true,
-	portalSpace: true,
-	goalSpace: true,
-	spawnSpace: true,
-}
-
 type LevelIdType uint8
 const (
 	unknownLevel LevelIdType = iota
@@ -67,11 +56,13 @@ func (l *Level) LoadLevel(id LevelIdType, seed LevelSeedType, grid *Grid) {
 
 func (l *Level) Clear(grid *Grid) {
 	l.blockGrid = NewBlockGrid()
-	for space, _ := range(levelSpaces) {
-		for _, object := range(grid.GetObjects(space)) {
-			grid.Delete(object.GetSpacedId())
+
+	for _, object := range(grid.GetAllObjects()) {
+		if !object.HasAttribute(fromLevelAttribute) {
+			continue
 		}
-	} 
+		grid.HardDelete(object.GetSpacedId())
+	}
 }
 
 func (l *Level) loadLobby(grid *Grid) {
@@ -100,6 +91,7 @@ func (l *Level) loadLobby(grid *Grid) {
 			bottomCardinal))
 		portal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[archBlock] / 2)
 		portal.SetTeam(1)
+		portal.AddAttribute(fromLevelAttribute)
 		grid.Upsert(portal)
 	}
 
@@ -121,6 +113,7 @@ func (l *Level) loadLobby(grid *Grid) {
 			NewVec2(b.Pos().X, b.Pos().Y + b.Dim().Y / 2),
 			NewVec2(1, 1),
 		))
+		spawn.AddAttribute(fromLevelAttribute)
 		grid.Upsert(spawn)
 
 		b = building.GetBlock(3)
@@ -149,6 +142,7 @@ func (l *Level) loadLobby(grid *Grid) {
 			bottomCardinal))
 		portal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[archBlock] / 2)
 		portal.SetTeam(2)
+		portal.AddAttribute(fromLevelAttribute)
 		grid.Upsert(portal)
 	}
 }
@@ -216,6 +210,7 @@ func (l *Level) loadBirdTown(seed LevelSeedType, grid *Grid) {
 				NewVec2(r.Pos().X, r.Pos().Y + 2),
 				NewVec2(1, 1),
 			))
+			spawn.AddAttribute(fromLevelAttribute)
 			grid.Upsert(spawn)
 		}
 
@@ -226,6 +221,7 @@ func (l *Level) loadBirdTown(seed LevelSeedType, grid *Grid) {
 				NewVec2(r.Pos().X, r.Pos().Y + r.Dim().Y + 2),
 				NewVec2(1, 1),
 			))
+			spawn.AddAttribute(fromLevelAttribute)
 			grid.Upsert(spawn)
 
 			goal := NewGoal(NewInitC(
@@ -235,11 +231,11 @@ func (l *Level) loadBirdTown(seed LevelSeedType, grid *Grid) {
 				bottomCardinal))
 			goal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[archBlock] / 2)
 			goal.SetTeam(1)
+			goal.AddAttribute(fromLevelAttribute)
 			grid.Upsert(goal)
 		}
 	}
 
 	l.blockGrid.Connect()
 	l.blockGrid.Randomize(r)
-	l.blockGrid.UpsertToGrid(grid)
 }

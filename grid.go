@@ -110,8 +110,8 @@ func (g *Grid) Upsert(object Object) {
 		g.spacedObjects[sid.GetSpace()] = make(map[IdType]Object, 0)
 	}
 
-	// Check for equality
 	if g.Has(sid) {
+		// Check for equality
 		currentCoords := g.reverseGrid[sid]
 
 		if len(coords) == len(currentCoords) {
@@ -262,6 +262,10 @@ func (g *Grid) GetObjectInitData() ObjectPropMap {
 	objects := make(ObjectPropMap)
 
 	for _, object := range(g.GetAllObjects()) {
+		if object.HasAttribute(fromLevelAttribute) {
+			continue
+		}
+
 		data := object.GetInitData()
 		if data.Size() == 0 {
 			continue
@@ -298,8 +302,10 @@ func (g *Grid) GetObjectUpdates() ObjectPropMap {
 	for _, object := range(g.GetAllObjects()) {
 		updates := object.GetUpdates()
 		if !object.HasAttribute(initializedAttribute) {
-			updates.Merge(object.GetInitData())
-			object.AddAttribute(initializedAttribute)
+			if !object.HasAttribute(fromLevelAttribute) {
+				updates.Merge(object.GetInitData())
+			}
+			object.AddInternalAttribute(initializedAttribute)
 		}
 
 		if updates.Size() == 0 {

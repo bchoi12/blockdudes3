@@ -107,8 +107,8 @@ func (r *Room) run() {
 		case imsg := <-r.incoming:
 			r.incomingQueue = append(r.incomingQueue, imsg)
 		case _ = <-r.ticker.C:
-			r.game.Update()
-			r.sendGameState()
+			updates := r.game.Update()
+			r.sendGameState(updates)
 			r.gameTicks += 1
 		case _ = <-r.statTicker.C:
 			if len(r.clients) == 0 {
@@ -355,12 +355,19 @@ func (r *Room) send(msg interface{}) {
 	}
 }
 
-func (r *Room) sendGameState() {
-	state := r.game.createObjectDataMsg()
-	r.sendUDP(&state)
+func (r *Room) sendGameState(updates map[GameUpdateType]bool) {
+	if update, ok := updates[levelGameUpdate]; ok && update {
+		level := r.game.createLevelInitMsg()
+		r.send(&level)
+	}
 
-	if updates, ok := r.game.createObjectUpdateMsg(); ok {
-		r.send(&updates)
+	if update, ok := updates[objectGameUpdate]; ok && update {
+		state := r.game.createObjectDataMsg()
+		r.sendUDP(&state)
+
+		if updates, ok := r.game.createObjectUpdateMsg(); ok {
+			r.send(&updates)
+		}
 	}
 }
 

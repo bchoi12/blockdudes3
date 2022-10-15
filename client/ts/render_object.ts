@@ -7,11 +7,6 @@ import { renderer } from './renderer.js'
 import { SpacedId } from './spaced_id.js'
 import { Util } from './util.js'
 
-export enum ObjectMarker {
-	UNKNOWN = 0,
-	LEVEL = 1,
-}
-
 export class RenderObject extends RenderMesh {
 	private _space : number;
 	private _id : number;
@@ -25,7 +20,6 @@ export class RenderObject extends RenderMesh {
 	private _timestep : number;
 	private _lastUpdate : number;
 	private _wasmLastSeqNum : number;
-	private _markers : Set<ObjectMarker>;
 
 	private _pos : THREE.Vector2;
 	private _pos3 : THREE.Vector3;
@@ -51,7 +45,6 @@ export class RenderObject extends RenderMesh {
 		this._timestep = 0;
 		this._lastUpdate = Date.now();
 		this._wasmLastSeqNum = 0;
-		this._markers = new Set<ObjectMarker>();
 	}
 
 	override setMesh(mesh : THREE.Object3D) : void {
@@ -71,8 +64,6 @@ export class RenderObject extends RenderMesh {
 	msg() : Message { return this._msg; }
 	data() : { [k: string]: any } { return this._msg.data(); }
 	lastSeqNum() : number { return this._msg.lastSeqNum(); }
-	mark(mark : ObjectMarker) : void { this._markers.add(mark); }
-	hasMark(mark : ObjectMarker) : boolean { return this._markers.has(mark); }
 
 	initializeTime() : number { return this._initializeTime; }
 	timestep() : number { return this._timestep * game.updateSpeed(); }

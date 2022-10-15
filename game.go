@@ -10,6 +10,13 @@ const (
 	gameVersion string = "0.1"
 )
 
+type GameUpdateType uint8
+const (
+	unknownGameUpdate GameUpdateType = iota
+	objectGameUpdate
+	levelGameUpdate
+)
+
 type Game struct {
 	grid *Grid
 	level *Level
@@ -80,16 +87,23 @@ func (g *Game) ProcessKeyMsg(id IdType, keyMsg KeyMsg) {
 	player.UpdateKeys(keyMsg)
 }
 
-func (g *Game) Update() {
+func (g *Game) Update() map[GameUpdateType]bool {
+	updates := make(map[GameUpdateType]bool)
+
 	if state, changed := g.grid.GetGameState(); changed {
 		if state == activeGameState {
-			g.level.LoadLevel(birdTownLevel, LevelSeedType(UnixMilli() % 3333333), g.grid)
+			seed := LevelSeedType(UnixMilli() % 3333333)
+			g.level.LoadLevel(birdTownLevel, seed, g.grid)
+			updates[levelGameUpdate] = true
 		}
 	}
 
 	now := time.Now()
 	g.grid.Update(now)
+	updates[objectGameUpdate] = true
 	g.seqNum++
+
+	return updates
 }
 
 func (g* Game) createPlayerInitMsg(id IdType) PlayerInitMsg {
@@ -117,11 +131,16 @@ func (g *Game) createLevelInitMsg() LevelInitMsg {
 func (g *Game) createLevelObjectInitMsg() ObjectStateMsg {
 	objs := make(ObjectPropMap)
 
-	for space, _ := range(levelSpaces) {
-		objs[space] = make(SpacedPropMap)
-		for id, object := range(g.grid.GetObjects(space)) {
-			objs[space][id] = object.GetInitData().Props()
+	for _, object := range(g.grid.GetAllObjects()) {
+		if !object.HasAttribute(fromLevelAttribute) {
+			continue
 		}
+
+		if _, ok := objs[object.GetSpace()]; !ok {
+			objs[object.GetSpace()] = make(SpacedPropMap)
+		}
+
+		objs[object.GetSpace()][object.GetId()] = object.GetInitData().Props()
 	} 
 
 	return ObjectStateMsg {

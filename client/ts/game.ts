@@ -5,7 +5,7 @@ import { Keys } from './keys.js'
 import { Model, loader } from './loader.js'
 import { options } from './options.js'
 import { Particles } from './particles.js'
-import { ObjectMarker, RenderObject } from './render_object.js'
+import { RenderObject } from './render_object.js'
 import { RenderPlayer } from './render_player.js'
 import { renderer } from './renderer.js'
 import { SceneComponent, SceneComponentType } from './scene_component.js'
@@ -289,7 +289,10 @@ class Game {
 
 	private initLevel(msg : { [k: string]: any }) : void {
 		this.sceneMap().deleteIf((object : RenderObject) => {
-			return object.hasMark(ObjectMarker.LEVEL);
+			if (object.attribute(fromLevelAttribute)) {
+				console.log("delete " + object.spacedId().toString());
+			}
+			return object.attribute(fromLevelAttribute);
 		})
 
 		LogUtil.d("Loading level " + msg.L + " with seed " + msg.S);
@@ -301,7 +304,6 @@ class Game {
 				const id = Number(stringId);
 
 				let obj = this.sceneMap().new(space, id);
-				obj.mark(ObjectMarker.LEVEL);
 				this.sceneMap().setData(space, id, data, /*seqNum=*/0);
 			}
 		}

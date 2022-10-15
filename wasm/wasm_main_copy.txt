@@ -107,7 +107,6 @@ func setGlobals() {
 	js.Global().Set("stateProp", int(stateProp))
 	js.Global().Set("scoreProp", int(scoreProp))
 
-	js.Global().Set("initializedAttribute", int(initializedAttribute))
 	js.Global().Set("deletedAttribute", int(deletedAttribute))
 	js.Global().Set("attachedAttribute", int(attachedAttribute))
 	js.Global().Set("chargingAttribute", int(chargingAttribute))
@@ -118,7 +117,7 @@ func setGlobals() {
 	js.Global().Set("deadAttribute", int(deadAttribute))
 	js.Global().Set("visibleAttribute", int(visibleAttribute))
 	js.Global().Set("vipAttribute", int(vipAttribute))
-	js.Global().Set("autoRespawnAttribute", int(autoRespawnAttribute))
+	js.Global().Set("fromLevelAttribute", int(fromLevelAttribute))
 
 	js.Global().Set("typeByteAttribute", int(typeByteAttribute))
 	js.Global().Set("subtypeByteAttribute", int(subtypeByteAttribute))

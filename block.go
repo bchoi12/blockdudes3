@@ -148,9 +148,11 @@ func (bb *BaseBlock) UpsertToGrid(g *Grid) {
 
 	for _, obj := range(bb.GetObjects()) {
 		obj.SetId(g.NextId(obj.GetSpace()))
+		obj.AddAttribute(fromLevelAttribute)
 		g.Upsert(obj)
 	}
 
 	bb.SetId(g.NextId(bb.GetSpace()))
+	bb.AddAttribute(fromLevelAttribute)
 	g.Upsert(bb)
 }

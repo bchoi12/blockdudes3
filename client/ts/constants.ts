@@ -78,7 +78,6 @@ declare var targetProp : number;
 declare var stateProp : number;
 declare var scoreProp : number;
 
-declare var initializedAttribute : number;
 declare var deletedAttribute : number;
 declare var attachedAttribute : number;
 declare var chargingAttribute : number;
@@ -89,7 +88,7 @@ declare var dashingAttribute : number;
 declare var deadAttribute : number;
 declare var visibleAttribute : number;
 declare var vipAttribute : number;
-declare var autoRespawnAttribute : number;
+declare var fromLevelAttribute : number;
 
 declare var typeByteAttribute : number;
 declare var subtypeByteAttribute : number;

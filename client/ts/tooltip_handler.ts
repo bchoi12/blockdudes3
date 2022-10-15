@@ -40,7 +40,7 @@ export class TooltipHandler implements InterfaceHandler {
 					break;
 				}
 
-				wrapper.delete(() => {
+				activeWrapper.delete(() => {
 					this._tooltips.delete(type);
 				})
 			}

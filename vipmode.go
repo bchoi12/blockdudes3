@@ -40,7 +40,7 @@ func (vm *VipMode) Update(g *Grid) {
 	if vm.state == lobbyGameState {
 		vm.teams = make(map[uint8][]*Player)
 		for _, player := range(players) {
-			player.AddAttribute(autoRespawnAttribute)
+			player.AddInternalAttribute(autoRespawnAttribute)
 			team, _ := player.GetByteAttribute(teamByteAttribute)
 			vm.teams[team] = append(vm.teams[team], player.(*Player))
 		}

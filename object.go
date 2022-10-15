@@ -30,6 +30,7 @@ type Object interface {
 	RemoveTTL()
 
 	AddAttribute(attribute AttributeType)
+	AddInternalAttribute(attribute AttributeType)
 	RemoveAttribute(attribute AttributeType)
 	HasAttribute(attribute AttributeType) bool
 	SetByteAttribute(attribute ByteAttributeType, byte uint8)
