@@ -21,7 +21,7 @@ type Level struct {
 
 func NewLevel() *Level {
 	return &Level {
-		id: unknownLevel,
+		id: lobbyLevel,
 		seed: 0,
 	}
 }
@@ -34,12 +34,10 @@ func (l Level) GetSeed() LevelSeedType {
 	return l.seed
 }
 
-// TODO: currently loading is done via WASM then sent redundantly over network & skipped
 func (l *Level) LoadLevel(id LevelIdType, seed LevelSeedType, grid *Grid) {
-	l.Clear(grid)
-
 	l.id = id
 	l.seed = seed
+	l.Clear(grid)
 
 	switch id {
 	case lobbyLevel:
@@ -84,15 +82,15 @@ func (l *Level) loadLobby(grid *Grid) {
 		r = building.GetRoof()
 		r.AddOpenings(rightCardinal)
 
+		pos := b.PosC(bottomCardinal)
 		portal := NewPortal(NewInitC(
-			grid.NextSpacedId(portalSpace),
-			NewVec2(b.Pos().X, b.Pos().Y + b.GetThickness()),
+			Id(portalSpace, 0),
+			NewVec2(pos.X, pos.Y + b.GetThickness()),
 			NewVec2(b.Dim().X / 2, 2),
 			bottomCardinal))
 		portal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[archBlock] / 2)
 		portal.SetTeam(1)
-		portal.AddAttribute(fromLevelAttribute)
-		grid.Upsert(portal)
+		b.AddObject(portal)
 	}
 
 	{
@@ -110,11 +108,11 @@ func (l *Level) loadLobby(grid *Grid) {
 
 		spawn := NewSpawn(NewInit(
 			Id(spawnSpace, 0),
-			NewVec2(b.Pos().X, b.Pos().Y + b.Dim().Y / 2),
-			NewVec2(1, 1),
+			b.Pos(),
+			NewVec2(6, 1),
 		))
-		spawn.AddAttribute(fromLevelAttribute)
-		grid.Upsert(spawn)
+		spawn.SetByteAttribute(teamByteAttribute, 0)
+		b.AddObject(spawn)
 
 		b = building.GetBlock(3)
 		b.AddOpenings(leftCardinal, rightCardinal)
@@ -135,15 +133,15 @@ func (l *Level) loadLobby(grid *Grid) {
 		r = building.GetRoof()
 		r.AddOpenings(leftCardinal)
 
+		pos := b.PosC(bottomCardinal)
 		portal := NewPortal(NewInitC(
-			grid.NextSpacedId(portalSpace),
-			NewVec2(b.Pos().X, b.Pos().Y + b.GetThickness()),
+			Id(portalSpace, 0),
+			NewVec2(pos.X, pos.Y + b.GetThickness()),
 			NewVec2(b.Dim().X / 2, 2),
 			bottomCardinal))
 		portal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[archBlock] / 2)
 		portal.SetTeam(2)
-		portal.AddAttribute(fromLevelAttribute)
-		grid.Upsert(portal)
+		b.AddObject(portal)
 	}
 }
 
@@ -162,13 +160,11 @@ func (l *Level) loadBirdTown(seed LevelSeedType, grid *Grid) {
 
 	growChance := NewGrowingChance(r, 70, 20)
 
-	numBuildings := 8
+	numBuildings := 5 + r.Intn(3)
 
 	l.blockGrid.SetYOffsets(2, 0)
 
 	for i := 0; i < numBuildings; i += 1 {
-		r.Seed(int64(seed) + int64(numBuildings * i))
-
 		gap := 0.0
 		if i == 0 {
 			gap = 20
@@ -204,35 +200,46 @@ func (l *Level) loadBirdTown(seed LevelSeedType, grid *Grid) {
 		}
 
 		if i == 0 {
-			r := building.GetRoof()
+			roof := building.GetRoof()
+			roof.LoadTemplate(weaponsBlockTemplate)
 			spawn := NewSpawn(NewInit(
-				Id(spawnSpace, 1),
-				NewVec2(r.Pos().X, r.Pos().Y + 2),
-				NewVec2(1, 1),
+				Id(spawnSpace, 0),
+				NewVec2(roof.Pos().X, roof.Pos().Y + 1),
+				NewVec2(6, 1),
 			))
-			spawn.AddAttribute(fromLevelAttribute)
-			grid.Upsert(spawn)
+			spawn.SetByteAttribute(teamByteAttribute, 1)
+			roof.AddObject(spawn)
 		}
 
 		if i == numBuildings - 1 {
-			r := building.GetRoof()
-			spawn := NewSpawn(NewInit(
-				Id(spawnSpace, 2),
-				NewVec2(r.Pos().X, r.Pos().Y + r.Dim().Y + 2),
-				NewVec2(1, 1),
-			))
-			spawn.AddAttribute(fromLevelAttribute)
-			grid.Upsert(spawn)
-
+			roof := building.GetRoof()
+			pos := roof.PosC(bottomCardinal)
 			goal := NewGoal(NewInitC(
-				grid.NextSpacedId(goalSpace),
-				NewVec2(r.Pos().X, r.Pos().Y + r.GetThickness()),
-				NewVec2(r.Dim().X / 2, 2),
+				Id(goalSpace, 0),
+				NewVec2(pos.X, pos.Y + roof.GetThickness()),
+				NewVec2(roof.Dim().X / 2, 2),
 				bottomCardinal))
 			goal.SetFloatAttribute(dimZFloatAttribute, blockDimZs[archBlock] / 2)
 			goal.SetTeam(1)
-			goal.AddAttribute(fromLevelAttribute)
-			grid.Upsert(goal)
+			roof.AddObject(goal)
+
+			building := l.blockGrid.AddBuilding(BuildingAttributes{
+				gap: defaultGap / 2,
+				blockType: archBlock,
+				color: colors[numBuildings % len(colors)],
+				secondaryColor: archWhite,
+				height: height,
+			})
+			backRoof := building.GetRoof()
+			backRoof.LoadTemplate(weaponsBlockTemplate)
+
+			spawn := NewSpawn(NewInit(
+				Id(spawnSpace, 0),
+				NewVec2(backRoof.Pos().X, backRoof.Pos().Y + 1),
+				NewVec2(6, 1),
+			))
+			spawn.SetByteAttribute(teamByteAttribute, 2)
+			backRoof.AddObject(spawn)
 		}
 	}
 

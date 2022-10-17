@@ -29,6 +29,7 @@ declare var leftVoiceType : number;
 declare var chatType : number;
 declare var keyType : number;
 
+declare var gameStateType : number;
 declare var objectDataType : number;
 declare var objectUpdateType : number;
 declare var playerInitType : number;

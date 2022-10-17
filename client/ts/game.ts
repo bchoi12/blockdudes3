@@ -67,6 +67,7 @@ class Game {
 	setup() : void {
 		this._sceneMap.setup();
 
+		connection.addHandler(gameStateType, (msg : { [k: string]: any }) => { this.updateGameState(msg); });
 		connection.addHandler(objectDataType, (msg : { [k: string]: any }) => { this.update(msg); });
 		connection.addHandler(objectUpdateType, (msg : { [k: string]: any }) => { this.update(msg); });
 		connection.addHandler(playerInitType, (msg : { [k: string]: any }) => { this.initPlayer(msg); });
@@ -167,10 +168,6 @@ class Game {
 				this._lastStateUpdate = Date.now();
 				this._lastSeqNum = seqNum;
 			}
-		} else {
-			if (Util.defined(msg.G)) {
-				this.parseGameInputMode(msg.G);
-			}
 		}
 
 		if (Util.defined(msg.Os)) {
@@ -178,7 +175,21 @@ class Game {
 		}
 	}
 
-	private parseGameInputMode(gameState : Object) : void {
+	private updateGameState(msg : { [k : string]: any }) : void {
+		if (!Util.defined(msg.G)) {
+			return;
+		}
+
+		const gameState = msg.G;
+		console.log(msg.G);
+		if (gameState.hasOwnProperty(stateProp)) {
+			this._state = gameState[stateProp];
+		}
+		if (gameState.hasOwnProperty(scoreProp)) {
+			this._teamScores = gameState[scoreProp];
+		}
+
+		/*
 		[1, 2].forEach((i) => {
 			if (gameState.hasOwnProperty(i)) {
 				const team = gameState[i];
@@ -187,23 +198,23 @@ class Game {
 				}
 			}
 		})
+		*/
 
-		if (gameState.hasOwnProperty(0)) {
-			const system = gameState[0];
-			if (system.hasOwnProperty(stateProp)) {
-				this._state = system[stateProp];
-				if (this._state === victoryGameState) {
-					// TODO: make this wasm variable
-					this._updateSpeed = 0.3;
-					ui.announce({
-						enabled: true,
-						text: this._teamScores[1] + " - " + this._teamScores[2],
-					});
-				} else {
-					this._updateSpeed = 1.0;
-					ui.announce({ enabled: false });
-				}
-			}
+		if (this._state === activeGameState) {
+			ui.announce({
+				enabled: true,
+				text: "hi",
+			});
+		} if (this._state === victoryGameState) {
+			// TODO: make this wasm variable
+			this._updateSpeed = 0.3;
+			ui.announce({
+				enabled: true,
+				text: this._teamScores[1] + " - " + this._teamScores[2],
+			});
+		} else {
+			this._updateSpeed = 1.0;
+			ui.announce({ enabled: false });
 		}
 	}
 
@@ -289,9 +300,6 @@ class Game {
 
 	private initLevel(msg : { [k: string]: any }) : void {
 		this.sceneMap().deleteIf((object : RenderObject) => {
-			if (object.attribute(fromLevelAttribute)) {
-				console.log("delete " + object.spacedId().toString());
-			}
 			return object.attribute(fromLevelAttribute);
 		})
 

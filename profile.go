@@ -15,6 +15,7 @@ type Profile interface {
 	DataMethods
 
 	Pos() Vec2
+	PosC(cardinal CardinalType) Vec2
 	SetPos(pos Vec2)
 	Dim() Vec2
 	SetDim(dim Vec2)
@@ -106,16 +107,36 @@ func NewBaseProfile(init Init) BaseProfile {
 	return bp
 }
 
-func (bp BaseProfile) Dim() Vec2 { return bp.dim }
-func (bp *BaseProfile) SetDim(dim Vec2) {
-	if bp.dim.ApproxEq(dim) {
-		return
-	}
-
-	bp.dim = dim
-	bp.dimFlag.Reset(true)
-}
 func (bp BaseProfile) Pos() Vec2 { return bp.pos }
+func (bp BaseProfile) PosC(cardinal CardinalType) Vec2 {
+	pos := bp.pos
+	halfWidth := bp.dim.X / 2
+	halfHeight := bp.dim.Y / 2
+
+	switch (cardinal) {
+	case leftCardinal:
+		pos.X -= halfWidth
+	case rightCardinal:
+		pos.X += halfWidth
+	case bottomCardinal:
+		pos.Y -= halfHeight
+	case topCardinal:
+		pos.Y += halfHeight
+	case bottomLeftCardinal:
+		pos.X -= halfWidth
+		pos.Y -= halfHeight
+	case bottomRightCardinal:
+		pos.X += halfWidth
+		pos.Y -= halfHeight
+	case topLeftCardinal:
+		pos.X -= halfWidth
+		pos.Y += halfHeight
+	case topRightCardinal:
+		pos.X += halfWidth
+		pos.Y += halfHeight
+	}
+	return pos 
+}
 func (bp *BaseProfile) SetPos(pos Vec2) {
 	if bp.pos.ApproxEq(pos) {
 		return
@@ -126,6 +147,15 @@ func (bp *BaseProfile) SetPos(pos Vec2) {
 		sp.SetPos(pos)
 	}
 	bp.posFlag.Reset(true)
+}
+func (bp BaseProfile) Dim() Vec2 { return bp.dim }
+func (bp *BaseProfile) SetDim(dim Vec2) {
+	if bp.dim.ApproxEq(dim) {
+		return
+	}
+
+	bp.dim = dim
+	bp.dimFlag.Reset(true)
 }
 func (bp BaseProfile) Vel() Vec2 { return bp.vel }
 func (bp *BaseProfile) SetVel(vel Vec2) {

@@ -132,11 +132,15 @@ func (p *Player) SetTeam(team uint8) {
 
 func (p *Player) SetSpawn(g *Grid) {
 	team, _ := p.GetByteAttribute(teamByteAttribute)
-	spawn := g.Get(Id(spawnSpace, IdType(team)))
-	if spawn == nil {
-		return
+
+	for _, spawn := range(g.GetObjects(spawnSpace)) {
+		if spawnTeam, ok := spawn.GetByteAttribute(teamByteAttribute); ok && team == spawnTeam {
+			pos := spawn.Pos()
+			pos.X += float64(int(p.GetId()) % int(spawn.Dim().X)) - spawn.Dim().X/2
+			p.SetInitPos(pos)
+			break
+		}
 	}
-	p.SetInitPos(spawn.Pos())
 }
 
 func (p *Player) Respawn() {
@@ -328,11 +332,9 @@ func (p *Player) checkCollisions(grid *Grid) {
 		case *Goal:
 			if !isWasm && p.HasAttribute(vipAttribute) && p.grounded {
 				team, _ := p.GetByteAttribute(teamByteAttribute)
-				if goalTeam, ok := object.GetByteAttribute(teamByteAttribute); !ok || team != goalTeam {
-					break
+				if spawnTeam, ok := object.GetByteAttribute(teamByteAttribute); ok && team == spawnTeam {
+					grid.SetWinningTeam(team)
 				}
-
-				grid.SignalVictory(team)
 			}
 		}
 	}

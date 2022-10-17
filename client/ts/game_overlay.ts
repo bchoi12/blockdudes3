@@ -16,7 +16,6 @@ export class GameOverlay extends SceneComponent {
 
 	private _vip : RenderObject;
 	private _vipPointer : RenderCustom;
-	private _gameActiveTracker : ChangeTracker<boolean>;
 
 	constructor() {
 		super();
@@ -25,7 +24,7 @@ export class GameOverlay extends SceneComponent {
 		this._vipPointer = new RenderCustom(this.nextId());
 		this._vipPointer.setMesh(this._pointerMesh);
 		this._vipPointer.setUpdate((mesh : THREE.Object3D, ts : number) => {
-			if (!Util.defined(this._vip) || this._vip.id() === game.id()) {
+			if (!Util.defined(this._vip)) {
 				mesh.visible = false;
 			} else {
 				let camera = renderer.cameraController();
@@ -49,17 +48,6 @@ export class GameOverlay extends SceneComponent {
 			}
 		});
 		this.addCustom(this._vipPointer);
-
-		this._gameActiveTracker = new ChangeTracker<boolean>(() => {
-			return game.state() === activeGameState;
-		}, (started : boolean) => {
-			if (started) {
-				this.initialize();
-			} else {
-				this.hide();
-			}
-		});
-		this._gameActiveTracker.set(false);
 	}
 
 	override postCamera() : boolean { return true; }
@@ -67,7 +55,15 @@ export class GameOverlay extends SceneComponent {
 	override update() : void {
 		super.update();
 
-		this._gameActiveTracker.check();
+		if (game.state() === activeGameState) {
+			if (Util.defined(this._vip) && (this._vip.deleted() || !this._vip.attribute(vipAttribute))) {
+				this._vip = null;
+			}
+
+			if (!Util.defined(this._vip)) {
+				this.initialize();
+			}
+		}
 	}
 
 	private initialize() : void {
@@ -78,9 +74,5 @@ export class GameOverlay extends SceneComponent {
 				break;
 			}
 		}
-	}
-
-	private hide() : void {
-		this._vip = null;
 	}
 }

@@ -15,6 +15,7 @@ const (
 	unknownGameUpdate GameUpdateType = iota
 	objectGameUpdate
 	levelGameUpdate
+	gameStateUpdate
 )
 
 type Game struct {
@@ -90,12 +91,18 @@ func (g *Game) ProcessKeyMsg(id IdType, keyMsg KeyMsg) {
 func (g *Game) Update() map[GameUpdateType]bool {
 	updates := make(map[GameUpdateType]bool)
 
-	if state, changed := g.grid.GetGameState(); changed {
-		if state == activeGameState {
-			seed := LevelSeedType(UnixMilli() % 3333333)
-			g.level.LoadLevel(birdTownLevel, seed, g.grid)
-			updates[levelGameUpdate] = true
-		}
+	state, stateChanged := g.grid.GetGameState()
+
+	if state == setupGameState {
+		mode := g.grid.GetGameModeConfig()
+		seed := LevelSeedType(UnixMilli() % 3333333)
+		g.level.LoadLevel(mode.levelId, seed, g.grid)
+		g.grid.SetGameState(mode.nextState)
+		updates[levelGameUpdate] = true
+	}
+
+	if stateChanged {
+		updates[gameStateUpdate] = true
 	}
 
 	now := time.Now()
@@ -169,21 +176,21 @@ func (g *Game) createObjectDataMsg() ObjectStateMsg {
 
 func (g *Game) createObjectUpdateMsg() (ObjectStateMsg, bool) {
 	updates := g.grid.GetObjectUpdates()
-	gameStateProps := g.grid.GetGameStateProps()
-	if len(updates) == 0 && len(gameStateProps) == 0 {
+	if len(updates) == 0 {
 		return ObjectStateMsg{}, false
 	}
 
 	msg := ObjectStateMsg {
 		T: objectUpdateType,
 		S: g.seqNum,
-	}
-
-	if len(updates) > 0 {
-		msg.Os = updates
-	}
-	if len(gameStateProps) > 0 {
-		msg.G = gameStateProps
+		Os: updates,
 	}
 	return msg, true
+}
+
+func (g *Game) createGameStateMsg() GameStateMsg {
+	return GameStateMsg{
+		T: gameStateType,
+		G: g.grid.GetGameStateProps(),
+	}
 }

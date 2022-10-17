@@ -23,7 +23,7 @@ type Grid struct {
 	unitLength int
 	unitHeight int
 
-	gameState GameState
+	gameMode GameMode
 
 	lastId map[SpaceType]IdType
 	objects map[SpacedId]Object
@@ -38,7 +38,7 @@ func NewGrid(unitLength int, unitHeight int) *Grid {
 		unitLength: unitLength,
 		unitHeight: unitHeight,
 
-		gameState: NewGameState(),
+		gameMode: NewVipMode(),
 
 		lastId: make(map[SpaceType]IdType, 0),
 		objects: make(map[SpacedId]Object, 0),
@@ -55,6 +55,12 @@ func (g *Grid) GetUnitLength() int {
 func (g *Grid) GetUnitHeight() int {
 	return g.unitHeight
 }
+
+func (g Grid) GetGameState() (GameStateType, bool) { return g.gameMode.GetState() }
+func (g Grid) GetGameModeConfig() GameModeConfig { return g.gameMode.GetConfig() }
+func (g *Grid) SetGameState(state GameStateType) { g.gameMode.SetState(state) }
+func (g *Grid) SetWinningTeam(team uint8) { g.gameMode.SetWinningTeam(team) }
+func (g Grid) GetGameStateProps() PropMap { return g.gameMode.GetUpdates().Props() }
 
 func (g *Grid) New(init Init) Object {
 	switch init.GetSpace() {
@@ -167,11 +173,10 @@ func (g *Grid) deleteCoords(sid SpacedId) {
 	}
 }
 
-func (g *Grid) GetGameState() (GameStateType, bool) {
-	return g.gameState.GetState()
-}
-
 func (g *Grid) Update(now time.Time) {
+	if !isWasm {
+		g.gameMode.Update(g)
+	}
 	gameState, _ := g.GetGameState()
 
 	for _, object := range(g.GetAllObjects()) {
@@ -198,8 +203,6 @@ func (g *Grid) Update(now time.Time) {
 	for _, object := range(g.GetAllObjects()) {
 		object.PostUpdate(g, now)
 	}
-
-	g.gameState.Update(g)
 }
 
 func (g *Grid) updateObject(object Object, now time.Time) {
@@ -323,14 +326,6 @@ func (g *Grid) GetObjectUpdates() ObjectPropMap {
 	}
 
 	return objects
-}
-
-func (g Grid) GetGameStateProps() SpacedPropMap {
-	return g.gameState.GetProps()
-}
-
-func (g *Grid) SignalVictory(team uint8) {
-	g.gameState.SignalVictory(team)
 }
 
 func (g *Grid) NextId(space SpaceType) IdType {

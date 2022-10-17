@@ -38,27 +38,29 @@ export class RenderPellet extends RenderProjectile {
 	override delete() : void {
 		super.delete();
 
-		const pos = this.pos3();
-		game.particles().emit(Particle.PELLET_SPARKS, 75, (object : THREE.InstancedMesh, ts : number) => {
-			const scale = object.scale.x + 5 * ts;
-			object.scale.set(scale, scale, scale);
-		}, {
-			position: this.pos3(),
-			scale: 0,
-			instances: {
-				posFn: () => {
-					let pos = new THREE.Vector3();
-					pos.setFromSphericalCoords(1.2, MathUtil.randomRange(0, Math.PI), MathUtil.randomRange(0, 2 * Math.PI));
-					return pos;
+		if (this.hasTarget()) {
+			const pos = this.pos3();
+			game.particles().emit(Particle.PELLET_SPARKS, 75, (object : THREE.InstancedMesh, ts : number) => {
+				const scale = object.scale.x + 5 * ts;
+				object.scale.set(scale, scale, scale);
+			}, {
+				position: this.pos3(),
+				scale: 0,
+				instances: {
+					posFn: () => {
+						let pos = new THREE.Vector3();
+						pos.setFromSphericalCoords(1.2, MathUtil.randomRange(0, Math.PI), MathUtil.randomRange(0, 2 * Math.PI));
+						return pos;
+					},
+					scaleFn: () => {
+						return new THREE.Vector3(0.08, 0.08, 0.08);
+					},
+					colorFn: () => {
+						return new THREE.Color(Util.randomElement(this._particleColors));
+					},
 				},
-				scaleFn: () => {
-					return new THREE.Vector3(0.08, 0.08, 0.08);
-				},
-				colorFn: () => {
-					return new THREE.Color(Util.randomElement(this._particleColors));
-				},
-			},
-		});
+			});
+		}
 	}
 
 	override setMesh(mesh : THREE.Object3D) {

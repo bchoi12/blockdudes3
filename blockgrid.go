@@ -78,10 +78,11 @@ func (bg *BlockGrid) AddBuilding(attributes BuildingAttributes) *Building {
 
 	currentPos := building.pos
 	for i := 0; i < len(building.blocks); i += 1 {
-		block := NewMainBlock(NewInit(
+		block := NewMainBlock(NewInitC(
 			Id(mainBlockSpace, 0),
 			currentPos,
 			blockSizes[mainBlockSpace][attributes.blockType],
+			bottomCardinal,
 		))
 		block.SetBlockType(attributes.blockType)
 		block.SetIntAttribute(colorIntAttribute, attributes.color)
@@ -91,10 +92,11 @@ func (bg *BlockGrid) AddBuilding(attributes BuildingAttributes) *Building {
 		currentPos.Y += block.Dim().Y
 
 		if i == len(building.blocks) - 1 {
-			roof := NewRoofBlock(NewInit(
+			roof := NewRoofBlock(NewInitC(
 				Id(roofBlockSpace, 0),
 				currentPos,
 				blockSizes[roofBlockSpace][attributes.blockType],
+				bottomCardinal,
 			))
 			roof.SetBlockType(attributes.blockType)
 			roof.SetIntAttribute(colorIntAttribute, attributes.color)

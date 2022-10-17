@@ -11,30 +11,10 @@ func NewMainBlock(init Init) *MainBlock {
 	return mb
 }
 
-func (mb *MainBlock) AddRoof() {
-	pos := mb.Pos()
-	pos.Y += mb.Dim().Y
-
-	roof := NewRoofBlock(NewInit(
-		Id(roofBlockSpace, 0),
-		pos,
-		blockSizes[roofBlockSpace][mb.GetBlockType()],
-	))
-	roof.SetBlockType(mb.GetBlockType())
-
-	if color, ok := mb.GetIntAttribute(colorIntAttribute); ok {
-		roof.SetIntAttribute(colorIntAttribute, color)
-	}
-	if color, ok := mb.GetIntAttribute(secondaryColorIntAttribute); ok {
-		roof.SetIntAttribute(secondaryColorIntAttribute, color)
-	}
-
-	mb.Append(roof)
-}
-
 func (mb *MainBlock) AddBalcony(dir Vec2) {
-	pos := mb.Pos()
+	pos := mb.PosC(bottomCardinal)
 	pos.X += FSign(dir.X) * mb.Dim().X / 2
+	pos.Y += blockSizes[balconyBlockSpace][mb.GetBlockType()].Y / 2
 
 	balc := NewBalconyBlock(NewInit(
 		Id(balconyBlockSpace, 0),
@@ -55,7 +35,7 @@ func (mb *MainBlock) AddBalcony(dir Vec2) {
 }
 
 func (mb *MainBlock) LoadTemplate(template BlockTemplate) {
-	pos := mb.InitPos()
+	pos := mb.PosC(bottomCardinal)
 	x := pos.X
 	y := pos.Y
 	dim := mb.Dim()
@@ -93,7 +73,7 @@ func (mb *MainBlock) LoadTemplate(template BlockTemplate) {
 }
 
 func (mb *MainBlock) LoadSidedTemplate(template SidedBlockTemplate, cardinal Cardinal) {
-	pos := mb.InitPos()
+	pos := mb.PosC(bottomCardinal)
 	x := pos.X
 	y := pos.Y
 	dim := mb.Dim()
@@ -147,7 +127,7 @@ func (mb *MainBlock) LoadSidedTemplate(template SidedBlockTemplate, cardinal Car
 func (mb *MainBlock) Load() {
 	mb.BaseBlock.Load()
 
-	pos := mb.InitPos()
+	pos := mb.PosC(bottomCardinal)
 	x := pos.X
 	y := pos.Y
 	dim := mb.Dim()

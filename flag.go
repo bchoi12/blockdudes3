@@ -8,13 +8,19 @@ type Flag struct {
 	flag *Optional
 	changed bool
 	ttl int
+	defaultTTL int
 }
 
 func NewFlag() *Flag {
+	return NewFlagTTL(flagDefaultTTL)
+}
+
+func NewFlagTTL(ttl int) *Flag {
 	return &Flag {
 		flag: NewOptional(),
 		changed: false,
 		ttl: 0,
+		defaultTTL: ttl,
 	}
 }
 
@@ -33,7 +39,7 @@ func (f *Flag) Set(flag bool) {
 func (f *Flag) Reset(flag bool) {
 	f.flag.Set(flag)
 	f.changed = true
-	f.ttl = flagDefaultTTL
+	f.ttl = f.defaultTTL
 }
 
 func (f *Flag) GetOnce() (bool, bool) {
@@ -52,4 +58,8 @@ func (f *Flag) Pop() (bool, bool) {
 
 	f.ttl -= 1
 	return f.flag.Value(), true
+}
+
+func (f Flag) Peek() bool {
+	return f.flag.Value()
 }

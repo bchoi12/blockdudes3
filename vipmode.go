@@ -11,19 +11,25 @@ const (
 
 type VipMode struct {
 	BaseGameMode
-
 	random *rand.Rand
-	teams map[uint8][]*Player
+
+	players map[SpacedId]Object
+	teams map[uint8][]Object
+	vip map[uint8]int
+	winningTeam uint8
 	restartTimer Timer
 }
 
 func NewVipMode() *VipMode {
 	mode := &VipMode {
 		BaseGameMode: NewBaseGameMode(),
-
 		random: rand.New(rand.NewSource(UnixMilli())),
-		teams: make(map[uint8][]*Player),
-		restartTimer: NewTimer(5 * time.Second),
+
+		players: make(map[SpacedId]Object),
+		teams: make(map[uint8][]Object),
+		vip: make(map[uint8]int),
+		winningTeam: 0,
+		restartTimer: NewTimer(3 * time.Second),
 	}
 	mode.SetState(lobbyGameState)
 	return mode
@@ -36,87 +42,225 @@ func (vm *VipMode) Update(g *Grid) {
 		return
 	}
 
-	players := g.GetObjects(playerSpace)
 	if vm.state == lobbyGameState {
-		vm.teams = make(map[uint8][]*Player)
+		if vm.firstFrame {
+			for _, player := range(g.GetObjects(playerSpace)) {
+				player.RemoveAttribute(vipAttribute)
+				player.AddInternalAttribute(autoRespawnAttribute)
+				player.SetByteAttribute(teamByteAttribute, 0)
+				player.SetIntAttribute(colorIntAttribute, teamColors[0])
+				player.(*Player).SetSpawn(g)
+				player.Respawn()
+			}
+		}
+
+		vm.teams = make(map[uint8][]Object)
+		players := g.GetObjects(playerSpace)
 		for _, player := range(players) {
-			player.AddInternalAttribute(autoRespawnAttribute)
 			team, _ := player.GetByteAttribute(teamByteAttribute)
-			vm.teams[team] = append(vm.teams[team], player.(*Player))
+			vm.teams[team] = append(vm.teams[team], player)
 		}
 
 		if len(vm.teams[0]) > 0 {
 			return
 		}
+
 		if len(vm.teams[1]) == 0 || len(vm.teams[2]) == 0 {
 			return
 		}
 
-		offense := uint8(vm.random.Intn(2) + 1)
-		vip := vm.random.Intn(len(vm.teams[offense]))
-		vm.teams[offense][vip].AddAttribute(vipAttribute)
+		vm.players = make(map[SpacedId]Object)
+		for _, player := range(players) {
+			vm.players[player.GetSpacedId()] = player
+		}
 
-		vm.SetState(activeGameState)
+		vm.teamScores[1], vm.teamScores[2] = 0, 0
+		vm.vip[1], vm.vip[2] = 0, 0
+		vm.config = GameModeConfig {
+			leftTeam: 1,
+			rightTeam: 2,
+			reverse: false,
+			nextState: activeGameState,
+			levelId: birdTownLevel,
+		}
+		vm.SetState(setupGameState)
 	} else if vm.state == activeGameState {
+		changed, valid := vm.checkChanges(g)
 		if vm.firstFrame {
-			// Start game
-			for _, player := range(players) {
+			for _, player := range(vm.players) {
+				player.RemoveAttribute(vipAttribute)
+			}
+
+			vm.winningTeam = 0
+			for _, player := range(vm.players) {
 				player.(*Player).SetSpawn(g)
-				// TODO: Respawn should be Object method, just reset Pos to InitPos
-				player.(*Player).Respawn()
+				player.Respawn()
 				player.RemoveAttribute(autoRespawnAttribute)
 			}
+
+			// TODO: split into helper fn
+			if changed {
+				vm.teams = make(map[uint8][]Object)
+				for _, player := range(vm.players) {
+					team, _ := player.GetByteAttribute(teamByteAttribute)
+					vm.teams[team] = append(vm.teams[team], player)
+				}
+			}
+
+			offense := vm.config.leftTeam
+			if vm.vip[offense] >= len(vm.teams[offense]) {
+				vm.vip[offense] = 0
+			}
+			vip := vm.vip[offense]
+			vm.teams[offense][vip].AddAttribute(vipAttribute)
+			vm.vip[offense] += 1
+		} else if !valid {
+			vm.config.levelId = lobbyLevel
+			vm.config.nextState = lobbyGameState
+			vm.SetState(setupGameState)
+			return
 		}
 
-		alive := make(map[uint8]int)
-		winningTeam := uint8(0)
-		for _, player := range(players) {
-			team, _ := player.GetByteAttribute(teamByteAttribute)
-			if team == 0 {
-				continue
-			}
-
-			if !player.HasAttribute(deadAttribute) {
-				alive[team] += 1
-			} else if player.HasAttribute(vipAttribute) {
-				winningTeam = vipModeTeams - team + 1
-			}
-		}
-
-		if winningTeam == 0 {
-			if alive[1] == 0 {
-				winningTeam = 2
-			}
-			if alive[2] == 0 {
-				winningTeam = 1
-			}
-		}
-
-		if winningTeam != 0 {
-			vm.SignalVictory(winningTeam)
+		vm.winningTeam = vm.getWinningTeam()
+		if vm.winningTeam != 0 {
+			vm.teamScores[vm.winningTeam] += 1
+			vm.SetState(victoryGameState)
 		}
 	} else if vm.state == victoryGameState {
+		if vm.firstFrame {
+			vm.restartTimer.Start()
+			return
+		}
 		if vm.restartTimer.On() {
 			return
 		}
 
-		for _, player := range(players) {
-			player.RemoveAttribute(vipAttribute)
+		if vm.teamScores[1] >= 7 || vm.teamScores[2] >= 7 {
+			vm.config.levelId = lobbyLevel
+			vm.config.nextState = lobbyGameState
+			vm.SetState(setupGameState)
+			return
 		}
-		vm.SetState(lobbyGameState)
+
+		resetLevel := false
+		if vm.config.leftTeam == 1 {
+			if vm.config.reverse {
+				vm.config.reverse = false
+				resetLevel = true
+			} else {
+				vm.swapSides(g)
+			}
+		} else if vm.config.leftTeam == 2 {
+			if vm.config.reverse {
+				vm.swapSides(g)
+			} else {
+				vm.config.reverse = true
+			}
+		}
+
+		if resetLevel {
+			vm.config.levelId = birdTownLevel
+			vm.config.nextState = activeGameState
+			vm.SetState(setupGameState)
+		} else {
+			vm.SetState(activeGameState)
+		}
 	}
 }
 
-func (vm *VipMode) SignalVictory(team uint8) {
+func (vm *VipMode) SetWinningTeam(team uint8) {
 	if vm.state != activeGameState || team == 0 {
 		return
 	}
 
-	vm.teamScores[team] += 1
-	vm.SetState(victoryGameState)
-	vm.restartTimer.Start()
+	vm.winningTeam = team
 }
 
 func (vm VipMode) GetTeamScores() map[uint8]int {
 	return vm.teamScores
+}
+
+func (vm VipMode) checkChanges(g *Grid) (bool, bool) {
+	changed := false
+	for sid, player := range(vm.players) {
+		if g.Get(sid) == nil || player.HasAttribute(deletedAttribute) {
+			delete(vm.players, sid)
+			changed = true
+		}
+	}
+
+	valid := vm.validGame()
+	return changed, valid
+}
+
+func (vm VipMode) validGame() bool {
+	teams := make(map[uint8]bool)
+	hasVip := false
+	for _, player := range(vm.players) {
+		team, _ := player.GetByteAttribute(teamByteAttribute)
+		teams[team] = true
+		hasVip = hasVip || player.HasAttribute(vipAttribute)
+
+		if teams[vm.config.leftTeam] && teams[vm.config.rightTeam] && hasVip {
+			return true
+		}
+	}
+	return false
+}
+
+func (vm VipMode) getWinningTeam() uint8 {
+	if vm.winningTeam != 0 {
+		return vm.winningTeam
+	}
+
+	hasVip := false
+	alive := make(map[uint8]int)
+
+	for _, player := range(vm.players) {
+		team, _ := player.GetByteAttribute(teamByteAttribute)
+		if team == 0 {
+			continue
+		}
+
+		if player.HasAttribute(vipAttribute) && !player.HasAttribute(deadAttribute) {
+			hasVip = true
+		}
+
+		if !player.HasAttribute(deadAttribute) {
+			alive[team] += 1
+		}
+	}
+
+	if !hasVip {
+		return vm.config.rightTeam
+	}
+
+	for i := uint8(1); i <= vipModeTeams; i +=1 {
+		if alive[i] == 0 {
+			return vm.getEnemyTeam(i)
+		}
+	}
+
+	return 0
+}
+
+func (vm VipMode) getEnemyTeam(team uint8) uint8 {
+	if team <= 0 || team > vipModeTeams {
+		return 0
+	}
+
+	return 3 - team
+}
+
+func (vm *VipMode) swapSides(g *Grid) {
+	vm.config.leftTeam, vm.config.rightTeam = vm.config.rightTeam, vm.config.leftTeam
+
+	for _, spawn := range(g.GetObjects(spawnSpace)) {
+		team, _ := spawn.GetByteAttribute(teamByteAttribute)
+		spawn.SetByteAttribute(teamByteAttribute, vm.getEnemyTeam(team))
+	}
+
+	for _, goal := range(g.GetObjects(goalSpace)) {
+		goal.SetByteAttribute(teamByteAttribute, vm.config.leftTeam)
+	}
 }

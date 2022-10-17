@@ -14,7 +14,7 @@ func NewBalconyBlock(init Init) *BalconyBlock {
 func (bb *BalconyBlock) Load() {
 	bb.BaseBlock.Load()
 
-	pos := bb.InitPos()
+	pos := bb.PosC(bottomCardinal)
 	x := pos.X
 	y := pos.Y
 	dim := bb.Dim()

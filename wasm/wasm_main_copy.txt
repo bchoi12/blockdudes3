@@ -60,12 +60,14 @@ func setGlobals() {
 	js.Global().Set("chatType", int(chatType))
 	js.Global().Set("keyType", int(keyType))
 
+	js.Global().Set("gameStateType", int(gameStateType))
 	js.Global().Set("objectDataType", int(objectDataType))
 	js.Global().Set("objectUpdateType", int(objectUpdateType))
 	js.Global().Set("playerInitType", int(playerInitType))
 	js.Global().Set("levelInitType", int(levelInitType))
 
 	js.Global().Set("lobbyGameState", int(lobbyGameState))
+	js.Global().Set("setupGameState", int(setupGameState))
 	js.Global().Set("activeGameState", int(activeGameState))
 	js.Global().Set("victoryGameState", int(victoryGameState))
 

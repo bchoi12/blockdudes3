@@ -35,6 +35,7 @@ const (
 	chatType
 	keyType
 
+	gameStateType
 	objectDataType
 	objectUpdateType
 	playerInitType
@@ -79,11 +80,15 @@ type ChatMsg struct {
 	M string
 }
 
+type GameStateMsg struct {
+	T MessageType
+	G PropMap
+}
+
 type ObjectStateMsg struct {
 	T MessageType
 	S SeqNumType
 	Os ObjectPropMap
-	G SpacedPropMap
 }
 
 type PlayerInitMsg struct {

@@ -61,51 +61,53 @@ export class RenderBolt extends RenderProjectile {
 
 		game.particles().delete(Particle.LASER, this._laser);
 
-		let sparkColors = [this.color()];
-		let rotation = new THREE.Quaternion();
-		rotation.setFromAxisAngle(new THREE.Vector3(0, 0, 1), this.dir().angle());
+		if (this.hasTarget()) {
+			let sparkColors = [this.color()];
+			let rotation = new THREE.Quaternion();
+			rotation.setFromAxisAngle(new THREE.Vector3(0, 0, 1), this.dir().angle());
 
-		game.particles().emit(Particle.LASER_SPARKS, 75, (object : THREE.InstancedMesh, ts : number) => {
-			for (let i = 0; i < object.count; ++i) {
-				let matrix = new THREE.Matrix4();
-				object.getMatrixAt(i, matrix);
-				let pos = new THREE.Vector3();
-				let rotation = new THREE.Quaternion();
-				let scale = new THREE.Vector3();
-				matrix.decompose(pos, rotation, scale);
-
-				scale.x += (2 + i / object.count) * ts;
-
-				let dir = new THREE.Vector3(1, 0, 0);
-				dir.applyQuaternion(rotation);
-				dir.multiplyScalar(-pos.length() - (7 + 3 * i / object.count) * ts);
-				pos = dir;
-
-				matrix.compose(pos, rotation, scale);
-				object.setMatrixAt(i, matrix);
-			}
-
-			if (object.instanceMatrix) {
-				object.instanceMatrix.needsUpdate = true;
-			}
-		}, {
-			position: this.pos3(),
-			scale: 1,
-			rotation: rotation,
-			instances: {
-				scaleFn: () => {
-					return new THREE.Vector3(0.1, 0.04, 0.04);
-				},
-				rotationFn: () => {
+			game.particles().emit(Particle.LASER_SPARKS, 75, (object : THREE.InstancedMesh, ts : number) => {
+				for (let i = 0; i < object.count; ++i) {
+					let matrix = new THREE.Matrix4();
+					object.getMatrixAt(i, matrix);
+					let pos = new THREE.Vector3();
 					let rotation = new THREE.Quaternion();
-					rotation.setFromAxisAngle(new THREE.Vector3(0, 0, 1), MathUtil.randomRange(-0.7, 0.7));
-					return rotation;
+					let scale = new THREE.Vector3();
+					matrix.decompose(pos, rotation, scale);
+
+					scale.x += (2 + i / object.count) * ts;
+
+					let dir = new THREE.Vector3(1, 0, 0);
+					dir.applyQuaternion(rotation);
+					dir.multiplyScalar(-pos.length() - (7 + 3 * i / object.count) * ts);
+					pos = dir;
+
+					matrix.compose(pos, rotation, scale);
+					object.setMatrixAt(i, matrix);
+				}
+
+				if (object.instanceMatrix) {
+					object.instanceMatrix.needsUpdate = true;
+				}
+			}, {
+				position: this.pos3(),
+				scale: 1,
+				rotation: rotation,
+				instances: {
+					scaleFn: () => {
+						return new THREE.Vector3(0.1, 0.04, 0.04);
+					},
+					rotationFn: () => {
+						let rotation = new THREE.Quaternion();
+						rotation.setFromAxisAngle(new THREE.Vector3(0, 0, 1), MathUtil.randomRange(-0.7, 0.7));
+						return rotation;
+					},
+					colorFn: () => {
+						return new THREE.Color(Util.randomElement(sparkColors));
+					},
 				},
-				colorFn: () => {
-					return new THREE.Color(Util.randomElement(sparkColors));
-				},
-			},
-		});
+			});
+		}
 
 		if (Util.defined(this._soundId)) {
 			renderer.fadeoutSound(Sound.TOM_SCREAM, this._soundId);

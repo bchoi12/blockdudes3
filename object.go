@@ -23,6 +23,8 @@ type Object interface {
 	GetOwner() SpacedId
 	SetOwner(sid SpacedId)
 
+	Respawn()
+
 	AddConnection(parent SpacedId, connection Connection)
 	GetConnections() map[SpacedId]Connection
 
@@ -109,7 +111,7 @@ func (o *BaseObject) PrepareUpdate(now time.Time) float64 {
 		o.lastUpdateTime = now
 	}
 
-	return Max(0, Min(ts, float64(frameMillis)))
+	return Max(0, Min(ts, float64(frameMillis) / 1000.0))
 }
 
 func (o *BaseObject) PreUpdate(grid *Grid, now time.Time) {

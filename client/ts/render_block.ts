@@ -20,6 +20,7 @@ export class RenderBlock extends RenderObject {
 
 	constructor(space : number, id : number) {
 		super(space, id);
+		this.disableAutoUpdatePos();
 		this._inside = false;
 		this._frontMaterials = new Map<THREE.Material, number>();
 	}
@@ -64,7 +65,10 @@ export class RenderBlock extends RenderObject {
 	}
 
 	containsObject(object : RenderObject) {
-		return this.contains(object.pos()) || this.bbox().intersectsBox(object.bbox());
+		if (!Util.defined(this._bbox)) {
+			return false;
+		}
+		return this.contains(object.pos()) || this._bbox.intersectsBox(object.bbox());
 	}
 
 	contains(pos : THREE.Vector2) {
@@ -134,6 +138,7 @@ export class RenderBlock extends RenderObject {
 			});
 
 			mesh.position.copy(this.pos3());
+			mesh.position.y -= this.dim().y / 2;
 
 			if (Util.defined(cb)) {
 				cb(mesh);
@@ -145,8 +150,8 @@ export class RenderBlock extends RenderObject {
 				const pos = this.pos();
 				const dim = this.dim();
 				this._bbox = new THREE.Box2(
-					new THREE.Vector2(pos.x - dim.x/2 - this._boxBuffer, pos.y - this._boxBuffer),
-					new THREE.Vector2(pos.x + dim.x/2 + this._boxBuffer, pos.y + dim.y + this._boxBuffer));
+					new THREE.Vector2(pos.x - dim.x/2 - this._boxBuffer, pos.y - dim.y/2 - this._boxBuffer),
+					new THREE.Vector2(pos.x + dim.x/2 + this._boxBuffer, pos.y + dim.y/2 + this._boxBuffer));
 			}
 		});
 	}

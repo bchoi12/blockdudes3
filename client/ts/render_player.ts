@@ -65,7 +65,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 			// @ts-ignore
 			this._pointer.material.color = new THREE.Color(this.intAttribute(colorIntAttribute));
 
-			if (this.spacedId().equals(renderer.cameraObject().spacedId())) {
+			if (this.spacedId().equals(renderer.cameraObject().spacedId()) && this.byteAttribute(teamByteAttribute) !== 0) {
 				ui.tooltip( { 
 					type: TooltipType.JOIN_TEAM,
 					ttl: 5000,
@@ -272,7 +272,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		if (this.id() !== game.id()) {
 			if (Util.defined(this._currentBlock)) {
-				if (!this._currentBlock.containsObject(this)) {
+				if (this._currentBlock.deleted() || !this._currentBlock.containsObject(this)) {
 					this._currentBlock = null;
 				}
 			}

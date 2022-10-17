@@ -1,17 +1,39 @@
 package main
 
+type GameStateType uint8
+const (
+	unknownGameState GameStateType = iota
+	lobbyGameState
+	setupGameState
+	activeGameState
+	victoryGameState
+)
+
 type GameMode interface {
-	Update(g * Grid)
+	DataMethods
+
+	GetConfig() GameModeConfig
 	GetState() (GameStateType, bool)
 	SetState(state GameStateType)
 
-	GetTeamScores() map[uint8]int
-	SignalVictory(team uint8)
+	Update(g * Grid)
+	SetWinningTeam(team uint8)
+}
+
+type GameModeConfig struct {
+	leftTeam uint8
+	rightTeam uint8
+	reverse bool
+
+	nextState GameStateType
+	levelId LevelIdType
 }
 
 type BaseGameMode struct {
+	config GameModeConfig
+
+	lastState GameStateType
 	state GameStateType
-	stateChanged bool
 	firstFrame bool
 
 	winningTeam uint8
@@ -20,29 +42,49 @@ type BaseGameMode struct {
 
 func NewBaseGameMode() BaseGameMode {
 	return BaseGameMode {
+		lastState: unknownGameState,
 		state: unknownGameState,
-		stateChanged: false,
 		firstFrame: false,
+
+		winningTeam: 0,
 		teamScores: make(map[uint8]int),
 	}
 }
 
 func (bgm *BaseGameMode) Update(g * Grid) {
-	if bgm.stateChanged {
-		bgm.stateChanged = false
-		bgm.firstFrame = true
-	} else {
-		bgm.firstFrame = false
-	}
+	bgm.firstFrame = bgm.lastState != bgm.state
+	bgm.lastState = bgm.state
+}
+
+func (bgm BaseGameMode) GetConfig() GameModeConfig {
+	return bgm.config
 }
 
 func (bgm BaseGameMode) GetState() (GameStateType, bool) {
-	return bgm.state, bgm.stateChanged
+	return bgm.state, bgm.state != bgm.lastState
 }
 
 func (bgm *BaseGameMode) SetState(state GameStateType) {
-	if bgm.state != state {
-		bgm.state = state
-		bgm.stateChanged = true
+	bgm.state = state
+}
+
+func (bgm* BaseGameMode) SetData(data Data) {
+	if data.Has(stateProp) {
+		bgm.SetState(data.Get(stateProp).(GameStateType))
 	}
+}
+
+func (bgm BaseGameMode) GetInitData() Data {
+	return NewData()
+}
+
+func (bgm BaseGameMode) GetData() Data {
+	return NewData()
+}
+
+func (bgm BaseGameMode) GetUpdates() Data {
+	data := NewData()
+	data.Set(stateProp, bgm.state)
+	data.Set(scoreProp, bgm.teamScores)
+	return data
 }
