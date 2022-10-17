@@ -10,15 +10,17 @@ import { MathUtil, Util } from './util.js'
 
 export class GameOverlay extends SceneComponent {
 	private readonly _pointerSize = 0.4;
-	private readonly _pointerMesh = new THREE.Mesh(
-		new THREE.ConeGeometry(this._pointerSize, this._pointerSize, 4, 1),
-		new THREE.MeshToonMaterial( { color: 0xFFFF00, depthWrite: false, depthTest: false, transparent: true }));
+	private readonly _pointerMesh;
 
 	private _vip : RenderObject;
 	private _vipPointer : RenderCustom;
 
 	constructor() {
 		super();
+
+		this._pointerMesh = new THREE.Mesh(
+			new THREE.ConeGeometry(this._pointerSize, this._pointerSize, 4, 1),
+			new THREE.MeshToonMaterial( { color: vipColor, depthWrite: false, depthTest: false, transparent: true }));
 
 		this._vip = null;
 		this._vipPointer = new RenderCustom(this.nextId());

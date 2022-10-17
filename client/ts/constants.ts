@@ -2,6 +2,11 @@
 declare var frameMillis : number;
 declare var wasmVersion : string;
 
+declare var neutralTeamColor : number;
+declare var leftTeamColor : number;
+declare var rightTeamColor : number;
+declare var vipColor : number;
+
 declare var leftCardinal : number;
 declare var rightCardinal : number;
 declare var bottomCardinal : number;
@@ -78,6 +83,7 @@ declare var targetProp : number;
 
 declare var stateProp : number;
 declare var scoreProp : number;
+declare var vipProp : number;
 
 declare var deletedAttribute : number;
 declare var attachedAttribute : number;
@@ -110,8 +116,8 @@ declare var intensityFloatAttribute : number;
 declare var distanceFloatAttribute : number;
 declare var fovFloatAttribute : number;
 
-declare var redTeam : number;
-declare var blueTeam : number;
+declare var leftTeam : number;
+declare var rightTeam : number;
 
 declare var spotLight : number;
 declare var pointLight : number;

@@ -33,6 +33,11 @@ func setGlobals() {
 	js.Global().Set("frameMillis", frameMillis)
 	js.Global().Set("wasmVersion", gameVersion)
 
+	js.Global().Set("neutralTeamColor", int(neutralTeamColor))
+	js.Global().Set("leftTeamColor", int(leftTeamColor))
+	js.Global().Set("rightTeamColor", int(rightTeamColor))
+	js.Global().Set("vipColor", int(vipColor))
+
 	js.Global().Set("leftCardinal", int(leftCardinal))
 	js.Global().Set("rightCardinal", int(rightCardinal))
 	js.Global().Set("bottomCardinal", int(bottomCardinal))
@@ -108,6 +113,7 @@ func setGlobals() {
 	js.Global().Set("targetProp", int(targetProp))
 	js.Global().Set("stateProp", int(stateProp))
 	js.Global().Set("scoreProp", int(scoreProp))
+	js.Global().Set("vipProp", int(vipProp))
 
 	js.Global().Set("deletedAttribute", int(deletedAttribute))
 	js.Global().Set("attachedAttribute", int(attachedAttribute))
@@ -140,8 +146,8 @@ func setGlobals() {
 	js.Global().Set("distanceFloatAttribute", int(distanceFloatAttribute))
 	js.Global().Set("fovFloatAttribute", int(fovFloatAttribute))
 
-	js.Global().Set("redTeam", int(redTeam))
-	js.Global().Set("blueTeam", int(blueTeam))
+	js.Global().Set("leftTeam", int(leftTeam))
+	js.Global().Set("rightTeam", int(rightTeam))
 
 	js.Global().Set("pointLight", int(pointLight))
 	js.Global().Set("spotLight", int(spotLight))

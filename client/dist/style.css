@@ -148,13 +148,23 @@ fieldset legend {
 	position: absolute;
 	display: none;
 	text-align: center;
-	width: 60%;
+	width: 100%;
 
 	top: 20%;
-	left: 20%;
+	padding-top: 0.75em;
+	padding-bottom: 0.75em;
 
   color: #f2f2f2;
-	font-size: 3em;
+
+	background: linear-gradient(to left, rgba(200, 200, 200, 0.1), rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.7) 60%, rgba(200, 200, 200, 0.1));
+}
+
+#div-main-announcement {
+	font-size: 2em;
+}
+
+#div-sub-announcement {
+	font-size: 1em;
 }
 
 #div-scoreboard {

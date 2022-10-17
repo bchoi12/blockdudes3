@@ -27,6 +27,7 @@ const (
 
 	stateProp
 	scoreProp
+	vipProp
 )
 
 type PropMap map[Prop]interface{}

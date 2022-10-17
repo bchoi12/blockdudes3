@@ -160,7 +160,7 @@ func (l *Level) loadBirdTown(seed LevelSeedType, grid *Grid) {
 
 	growChance := NewGrowingChance(r, 70, 20)
 
-	numBuildings := 5 + r.Intn(3)
+	numBuildings := 6 + r.Intn(3)
 
 	l.blockGrid.SetYOffsets(2, 0)
 

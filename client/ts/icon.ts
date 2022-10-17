@@ -58,4 +58,10 @@ export namespace Icon {
 		html.classList.add("fa-microphone-slash");
 		return html;
 	}
+
+	export function mouse() : HTMLElement {
+		let html = baseIcon();
+		html.classList.add("fa-computer-mouse");
+		return html;
+	}
 }

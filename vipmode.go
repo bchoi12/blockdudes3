@@ -15,7 +15,8 @@ type VipMode struct {
 
 	players map[SpacedId]Object
 	teams map[uint8][]Object
-	vip map[uint8]int
+	vip Object
+	nextVip map[uint8]int
 	winningTeam uint8
 	restartTimer Timer
 }
@@ -27,7 +28,8 @@ func NewVipMode() *VipMode {
 
 		players: make(map[SpacedId]Object),
 		teams: make(map[uint8][]Object),
-		vip: make(map[uint8]int),
+		vip: nil,
+		nextVip: make(map[uint8]int),
 		winningTeam: 0,
 		restartTimer: NewTimer(3 * time.Second),
 	}
@@ -75,7 +77,8 @@ func (vm *VipMode) Update(g *Grid) {
 		}
 
 		vm.teamScores[1], vm.teamScores[2] = 0, 0
-		vm.vip[1], vm.vip[2] = 0, 0
+		vm.nextVip[1], vm.nextVip[2] = 0, 0
+		vm.vip = nil
 		vm.config = GameModeConfig {
 			leftTeam: 1,
 			rightTeam: 2,
@@ -108,12 +111,14 @@ func (vm *VipMode) Update(g *Grid) {
 			}
 
 			offense := vm.config.leftTeam
-			if vm.vip[offense] >= len(vm.teams[offense]) {
-				vm.vip[offense] = 0
+			if vm.nextVip[offense] >= len(vm.teams[offense]) {
+				vm.nextVip[offense] = 0
 			}
-			vip := vm.vip[offense]
-			vm.teams[offense][vip].AddAttribute(vipAttribute)
-			vm.vip[offense] += 1
+			vipIndex := vm.nextVip[offense]
+			vm.nextVip[offense] += 1
+
+			vm.vip = vm.teams[offense][vipIndex]
+			vm.vip.AddAttribute(vipAttribute)
 		} else if !valid {
 			vm.config.levelId = lobbyLevel
 			vm.config.nextState = lobbyGameState
@@ -176,8 +181,13 @@ func (vm *VipMode) SetWinningTeam(team uint8) {
 	vm.winningTeam = team
 }
 
-func (vm VipMode) GetTeamScores() map[uint8]int {
-	return vm.teamScores
+func (vm VipMode) GetUpdates() Data {
+	data := vm.BaseGameMode.GetUpdates()
+
+	if vm.vip != nil {
+		data.Set(vipProp, vm.vip.GetSpacedId())
+	}
+	return data
 }
 
 func (vm VipMode) checkChanges(g *Grid) (bool, bool) {

@@ -80,6 +80,7 @@ export class InputHandler implements InterfaceHandler {
 		this.mapKey(options.rightKeyCode, rightKey);
 		this.mapKey(options.jumpKeyCode, jumpKey);
 		this.mapKey(options.interactKeyCode, interactKey);
+		this.mapKey(options.mouseClickKeyCode, mouseClick);
 		this.mapKey(options.altMouseClickKeyCode, altMouseClick);		
 	}
 

@@ -30,7 +30,11 @@ export class KeyBindingsHandler implements InterfaceHandler {
 			(keyCode : number) => { options.interactKeyCode = keyCode; },
 			() => { return options.interactKeyCode });
 		this.addKeyBind(
-			"Use equip",
+			"Use weapon (LMB)",
+			(keyCode : number) => { options.mouseClickKeyCode = keyCode; },
+			() => { return options.mouseClickKeyCode });
+		this.addKeyBind(
+			"Use equip (RMB)",
 			(keyCode : number) => { options.altMouseClickKeyCode = keyCode; },
 			() => { return options.altMouseClickKeyCode });
 

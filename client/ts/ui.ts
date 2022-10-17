@@ -30,15 +30,18 @@ export enum InputMode {
 
 export enum TooltipType {
 	UNKNOWN = 0,
-	HELLO = 1,
-	PICKUP = 2,
-	JOIN_TEAM = 3,
-	GOAL = 4,
+	PICKUP = 1,
+	JOIN_TEAM = 2,
+	GOAL = 3,
 }
 
-export interface TooltipName {
-	text : string
-	color? : string
+export enum AnnouncementType {
+	UNKNOWN = 0,
+	WELCOME = 1,
+	PROTECT = 2,
+	REACH = 3,
+	ELIMINATE = 4,
+	SCORE = 5,
 }
 
 class UI {

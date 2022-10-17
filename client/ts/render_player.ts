@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 
 import { game } from './game.js'
+import { SpecialName } from './html.js'
 import { loader, Model } from './loader.js'
 import { Particle, Particles } from './particles.js'
 import { RenderAnimatedObject } from './render_animated_object.js'
@@ -12,7 +13,7 @@ import { RenderWeapon } from './render_weapon.js'
 import { renderer } from './renderer.js'
 import { SpriteCreator } from './sprite_creator.js'
 import { ChangeTracker } from './tracker.js'
-import { ui, TooltipType, TooltipName } from './ui.js'
+import { ui, TooltipType } from './ui.js'
 import { LogUtil, MathUtil, Util } from './util.js'
 
 // enum name has to be the same as value
@@ -96,7 +97,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 						buffer: 0.1,
 						color: Util.colorString(this.color()),
 						shadow: "white",
-						shadowBlur: 20,
+						shadowBlur: 10,
 					});
 
 					let offset = new THREE.Vector3(
@@ -154,7 +155,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 			}
 			if (vip) {
 				// @ts-ignore
-				this._pointer.material.color = new THREE.Color(0xFFFF00);
+				this._pointer.material.color = new THREE.Color(vipColor);
 			} else {
 				// @ts-ignore
 				this._pointer.material.color = new THREE.Color(this.color());
@@ -503,22 +504,22 @@ export class RenderPlayer extends RenderAnimatedObject {
 		});
 	}
 
-	private getTeamName() : TooltipName {
+	private getTeamName() : SpecialName {
 		switch(this.byteAttribute(teamByteAttribute)) {
-		case redTeam:
+		case leftTeam:
 			return {
-				text: "red team",
-				color: "#FF0000",
+				text: "left team",
+				color: Util.colorString(leftTeamColor),
 			};
-		case blueTeam:
+		case rightTeam:
 			return {
-				text: "blue team",
-				color: "#0000FF"
+				text: "right team",
+				color: Util.colorString(rightTeamColor),
 			}
 		default:
 			return {
 				text: "neutral team",
-				color: "#333333",
+				color: Util.colorString(neutralTeamColor),
 			}
 		}
 	}

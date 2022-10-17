@@ -1,4 +1,6 @@
+
 import { Html, HtmlWrapper } from './html.js'
+import { Icon } from './icon.js'
 import { KeyNames } from './key_names.js'
 import { options } from './options.js'
 import { ui } from './ui.js'
@@ -22,6 +24,7 @@ export class KeyBindWrapper extends HtmlWrapper {
 		this._nameElm = Html.div();
 		this._nameElm.style.float = "left";
 		this._nameElm.textContent = name;
+
 		this.elm().appendChild(this._nameElm);
 		this._keyElm = Html.div();
 		this._keyElm.style.float = "right";

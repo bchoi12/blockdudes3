@@ -10,7 +10,8 @@ import { RenderPlayer } from './render_player.js'
 import { renderer } from './renderer.js'
 import { SceneComponent, SceneComponentType } from './scene_component.js'
 import { SceneMap } from './scene_map.js'
-import { ui, TooltipType } from './ui.js'
+import { SpacedId } from './spaced_id.js'
+import { ui, AnnouncementType, TooltipType } from './ui.js'
 import { LogUtil, Util } from './util.js'
 
 export enum GameInputMode {
@@ -151,11 +152,12 @@ class Game {
 			}
 		}, frameMillis);
 
-		this.setInputMode(GameInputMode.GAME);
-		ui.tooltip({
-			type: TooltipType.HELLO,
-			ttl: 5000,
+		ui.announce({
+			type: AnnouncementType.WELCOME,
+			ttl: 4000,
 		})
+
+		this.setInputMode(GameInputMode.GAME);
 		LogUtil.d("Initializing player with id " + this._id);
 	}
 
@@ -181,7 +183,6 @@ class Game {
 		}
 
 		const gameState = msg.G;
-		console.log(msg.G);
 		if (gameState.hasOwnProperty(stateProp)) {
 			this._state = gameState[stateProp];
 		}
@@ -189,32 +190,68 @@ class Game {
 			this._teamScores = gameState[scoreProp];
 		}
 
-		/*
-		[1, 2].forEach((i) => {
-			if (gameState.hasOwnProperty(i)) {
-				const team = gameState[i];
-				if (team.hasOwnProperty(scoreProp)) {
-					this._teamScores[i] = team[scoreProp];
-				}
-			}
-		})
-		*/
+		let vipId : SpacedId;
+		if (gameState.hasOwnProperty(vipProp)) {
+			vipId = SpacedId.fromMessage(gameState[vipProp]);
+		} else {
+			vipId = SpacedId.invalidId();
+		}
 
 		if (this._state === activeGameState) {
-			ui.announce({
-				enabled: true,
-				text: "hi",
-			});
-		} if (this._state === victoryGameState) {
+			if (vipId.valid()) {
+				if (vipId.id() === game.id()) {
+					ui.announce({
+						type: AnnouncementType.REACH,
+						ttl: 4000,
+						names: [{
+							text: "exit portal",
+							color: Util.colorString(vipColor),
+						}],
+					});
+				} else {
+					const self = this.player();
+					const vip = this.player(vipId.id());
+
+					if (Util.defined(self) && Util.defined(vip)) {
+						if (self.byteAttribute(teamByteAttribute) === vip.byteAttribute(teamByteAttribute)) {
+							ui.announce({
+								type: AnnouncementType.PROTECT,
+								ttl: 4000,
+								names: [{
+									text: vip.name(),
+									color: Util.colorString(vipColor),
+								}],
+							});
+						} else {
+							ui.announce({
+								type: AnnouncementType.ELIMINATE,
+								ttl: 4000,
+								names: [{
+									text: "VIP",
+									color: Util.colorString(vipColor),
+								}],
+							});
+						}
+					}
+				}
+			}
+		}
+
+		if (this._state === victoryGameState) {
 			// TODO: make this wasm variable
 			this._updateSpeed = 0.3;
 			ui.announce({
-				enabled: true,
-				text: this._teamScores[1] + " - " + this._teamScores[2],
+				type: AnnouncementType.SCORE,
+				ttl: 4000,
+				names: [{
+					text: this._teamScores[leftTeam],
+				},
+				{
+					text: this._teamScores[rightTeam],
+				}]
 			});
 		} else {
 			this._updateSpeed = 1.0;
-			ui.announce({ enabled: false });
 		}
 	}
 

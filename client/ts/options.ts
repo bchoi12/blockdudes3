@@ -7,6 +7,7 @@ class Options {
 	public rightKeyCode : number;
 	public jumpKeyCode : number;
 	public interactKeyCode : number;
+	public mouseClickKeyCode : number;
 	public altMouseClickKeyCode : number;
 
 	public scoreboardKeyCode : number;
@@ -32,6 +33,7 @@ class Options {
 		this.rightKeyCode = 68;
 		this.jumpKeyCode = 32;
 		this.interactKeyCode = 69;
+		this.mouseClickKeyCode = -1;
 		this.altMouseClickKeyCode = 16;
 
 		this.pauseKeyCode = 27;

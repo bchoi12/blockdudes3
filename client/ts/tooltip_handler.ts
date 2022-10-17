@@ -1,16 +1,16 @@
 import { game } from './game.js'
-import { Html } from './html.js'
+import { Html, SpecialName } from './html.js'
 import { InterfaceHandler } from './interface_handler.js'
 import { options } from './options.js'
 import { TooltipWrapper } from './tooltip_wrapper.js'
-import { ui, InputMode, TooltipType, TooltipName } from './ui.js'
+import { ui, InputMode, TooltipType } from './ui.js'
 import { Util } from './util.js'
 
 export interface Tooltip {
 	type : TooltipType
 	// default is 1 sec
 	ttl? : number
-	names? : Array<TooltipName>
+	names? : Array<SpecialName>
 }
 
 export class TooltipHandler implements InterfaceHandler {
@@ -60,26 +60,14 @@ export class TooltipHandler implements InterfaceHandler {
 
 	private getHtml(tooltip : Tooltip) : string{
 		switch (tooltip.type) {
-		case TooltipType.HELLO:
-			return "Hello!<br>Welcome to birdtown";
 		case TooltipType.PICKUP:
-			return "Press " + this.formatName(tooltip.names[0]) + " to pickup " + this.formatName(tooltip.names[1]);
+			return "Press " + Html.formatName(tooltip.names[0]) + " to pickup " + Html.formatName(tooltip.names[1]);
 		case TooltipType.JOIN_TEAM:
-			return "Joined the " + this.formatName(tooltip.names[0]) + "<br>Go team!";
+			return "Joined the " + Html.formatName(tooltip.names[0]);
 		case TooltipType.GOAL:
-			return "Prevent the " + this.formatName(tooltip.names[0]) + " from reaching this goal";
+			return "Prevent the " + Html.formatName(tooltip.names[0]) + " from reaching this goal";
 		default:
 			return "testing 123";
 		}
-	}
-
-	private formatName(name : TooltipName) : string {
-		let span = Html.span();
-		span.textContent = name.text;
-		span.style.fontWeight = "bold";
-		if (name.color) {
-			span.style.color = name.color;
-		}
-		return span.outerHTML;
 	}
 }

@@ -1,3 +1,4 @@
+import { Util } from './util.js'
 
 export class SpacedId {
 	private _space : number;
@@ -8,9 +9,19 @@ export class SpacedId {
 		this._id = id;
 	}
 
+	static fromMessage(message : any) {
+		if (!Util.defined(message.S) || !Util.defined(message.Id)) {
+			return SpacedId.invalidId();
+		}
+
+		return new SpacedId(message.S, message.Id);
+	}
+
 	static invalidId() {
 		return new SpacedId(0, 0);
 	}
+
+
 
 	space() : number { return this._space; }
 	id() : number { return this._id; }

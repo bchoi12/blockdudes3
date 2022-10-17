@@ -1,6 +1,13 @@
 package main
 
 const (
+	neutralTeamColor int = 0x333333
+	leftTeamColor int = 0xff0000
+	rightTeamColor int = 0x0000ff
+	vipColor int = 0xffff00
+)
+
+const (
 	archRed int = 0xfc1f0f
 	archOrange int = 0xfc910f
 	archYellow int = 0xfcf40f

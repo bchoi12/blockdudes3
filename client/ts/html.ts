@@ -22,6 +22,8 @@ export namespace Html {
 	export const classTooltip = "tooltip";
 	export const classTooltipShow = "tooltip-show";
 	export const divAnnouncement = "div-announcement";
+	export const divMainAnnouncement = "div-main-announcement";
+	export const divSubAnnouncement = "div-sub-announcement";
 	export const divScoreboard = "div-scoreboard";
 
 	export const divPause = "div-pause";
@@ -106,6 +108,16 @@ export namespace Html {
 	export function trimmedValue(inputElm : HTMLInputElement) : string {
 		return inputElm.value.trim()
 	}
+
+	export function formatName(name : SpecialName) : string {
+		let span = Html.span();
+		span.textContent = name.text;
+		span.style.fontWeight = "bold";
+		if (name.color) {
+			span.style.color = name.color;
+		}
+		return span.outerHTML;
+	}
 }
 
 export class HtmlWrapper {
@@ -122,4 +134,9 @@ export class HtmlWrapper {
 			this._elm.removeChild(this._elm.firstChild);
 		}
 	}
+}
+
+export interface SpecialName {
+	text : string
+	color? : string
 }

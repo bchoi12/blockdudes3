@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 
 import { game } from './game.js'
+import { SpecialName } from './html.js'
 import { options } from './options.js'
 import { Particle } from './particles.js'
 import { RenderCustom } from './render_custom.js'
 import { RenderObject } from './render_object.js'
-import { ui, TooltipType, TooltipName } from './ui.js'
+import { ui, TooltipType } from './ui.js'
 import { Util } from './util.js'
 
 export class RenderPortal extends RenderObject {
@@ -127,7 +128,7 @@ export class RenderPortal extends RenderObject {
 						ttl: 500,
 						names: [{
 							text: "VIP",
-							color: "#FFF000",
+							color: Util.colorString(vipColor),
 						}]
 					})
 				}

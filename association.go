@@ -3,14 +3,14 @@ package main
 type TeamType uint8
 const (
 	unknownTeam TeamType = iota
-	redTeam
-	blueTeam
+	leftTeam
+	rightTeam
 )
 
 var teamColors = map[uint8]int {
-	0: 0x333333,
-	1: 0xFF0000,
-	2: 0x0000FF,
+	0: neutralTeamColor,
+	1: leftTeamColor,
+	2: rightTeamColor,
 }
 
 type Association struct {

@@ -85,7 +85,7 @@ func NewGoal(init Init) *Goal {
 
 func (g *Goal) SetTeam(team uint8) {
 	g.SetByteAttribute(teamByteAttribute, team)
-	g.SetIntAttribute(colorIntAttribute, 0xffff00)
+	g.SetIntAttribute(colorIntAttribute, vipColor)
 }
 
 type Spawn struct {
