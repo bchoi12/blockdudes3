@@ -154,7 +154,7 @@ class Game {
 
 		ui.announce({
 			type: AnnouncementType.WELCOME,
-			ttl: 4000,
+			ttl: 5000,
 		})
 
 		this.setInputMode(GameInputMode.GAME);
@@ -242,7 +242,7 @@ class Game {
 			this._updateSpeed = 0.3;
 			ui.announce({
 				type: AnnouncementType.SCORE,
-				ttl: 4000,
+				ttl: 3000,
 				names: [{
 					text: this._teamScores[leftTeam],
 				},

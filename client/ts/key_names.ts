@@ -262,11 +262,10 @@ export class KeyNames {
 	static get(keyCode : number) : string {
 		keyCode = Math.floor(keyCode);
 		if (keyCode < 0 || keyCode >= 256) {
-			return "INVALID";
+			return "";
 		}
 
 		let key = this._keys[keyCode];
-
 		if (key.length > 0) {
 			return key;
 		}

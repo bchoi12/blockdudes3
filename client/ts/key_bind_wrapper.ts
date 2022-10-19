@@ -60,9 +60,6 @@ export class KeyBindWrapper extends HtmlWrapper {
 			this._keyElm.textContent = "[Press a key]";
 		} else {
 			let key = KeyNames.get(this._getKey());
-			if (key.length === 0) {
-				key = "?";
-			}
 			this._keyElm.textContent = "[" + key + "]";
 		}
 	}

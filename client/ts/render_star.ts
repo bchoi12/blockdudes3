@@ -8,7 +8,7 @@ import { RenderProjectile } from './render_projectile.js'
 import { MathUtil, Util } from './util.js'
 
 export class RenderStar extends RenderProjectile {
-	private readonly _prismGeometry = new THREE.ExtrudeGeometry(new THREE.Shape([
+	private static readonly prismGeometry = new THREE.ExtrudeGeometry(new THREE.Shape([
 		new THREE.Vector2(0, 0),
 		new THREE.Vector2(-0.1, 0),
 		new THREE.Vector2(-0.1, 0.2),
@@ -41,7 +41,7 @@ export class RenderStar extends RenderProjectile {
 		this._materials.push(new THREE.MeshLambertMaterial({ color: colorPair[1] }));
 
 		for (let i = 0; i < 4; ++i) {
-			const prismMesh = new THREE.Mesh(this._prismGeometry, new THREE.MeshLambertMaterial({ color: colorPair[i % 2]}));
+			const prismMesh = new THREE.Mesh(RenderStar.prismGeometry, new THREE.MeshLambertMaterial({ color: colorPair[i % 2]}));
 			prismMesh.rotation.z = i * Math.PI / 2;
 			group.add(prismMesh)
 		}
