@@ -64,7 +64,7 @@ func NewPlayer(init Init) *Player {
 	profile.AddSubProfile(bodySubProfile, subProfile)
 
 	overlapOptions := NewColliderOptions()
-	overlapOptions.SetSpaces(wallSpace, pickupSpace, portalSpace, goalSpace)
+	overlapOptions.SetSpaces(wallSpace, pickupSpace, portalSpace)
 	profile.SetOverlapOptions(overlapOptions)
 
 	snapOptions := NewColliderOptions()
@@ -226,7 +226,7 @@ func (p *Player) Update(grid *Grid, now time.Time) {
 	if p.KeyDown(jumpKey) {
 		if p.jumpGraceTimer.On() {
 			p.jumpGraceTimer.Stop()
-			vel.Y = Max(0, vel.Y) + jumpVel
+			vel.Y = jumpVel
 			p.jumpTimer.Start()
 		} else if p.KeyPressed(jumpKey) && p.HasAttribute(canDoubleJumpAttribute) {
 			vel.Y = jumpVel
@@ -327,13 +327,6 @@ func (p *Player) checkCollisions(grid *Grid) {
 			if !isWasm && p.grounded {
 				if team, ok := object.GetByteAttribute(teamByteAttribute); ok {
 					p.SetTeam(team)
-				}
-			}
-		case *Goal:
-			if !isWasm && p.HasAttribute(vipAttribute) && p.grounded {
-				team, _ := p.GetByteAttribute(teamByteAttribute)
-				if spawnTeam, ok := object.GetByteAttribute(teamByteAttribute); ok && team == spawnTeam {
-					grid.SetWinningTeam(team)
 				}
 			}
 		}

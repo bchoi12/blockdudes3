@@ -194,9 +194,7 @@ func (l *Level) loadBirdTown(seed LevelSeedType, grid *Grid) {
 			if i > 0 {
 				b.AddOpenings(leftCardinal)
 			}
-			if i < numBuildings - 1 {
-				b.AddOpenings(rightCardinal)
-			}
+			b.AddOpenings(rightCardinal)
 		}
 
 		if i == 0 {

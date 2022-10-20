@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	shortRange time.Duration = 800 * time.Millisecond
-	mediumRange time.Duration = 1000 * time.Millisecond
+	tinyRange time.Duration = 500 * time.Millisecond
+	shortRange time.Duration = 700 * time.Millisecond
+	mediumRange time.Duration = 900 * time.Millisecond
 	longRange time.Duration = 1200 * time.Millisecond
 )
 
@@ -19,7 +20,7 @@ func NewPellet(init Init) *Pellet {
 	pellet := &Pellet {
 		Projectile: NewProjectile(NewCircleObject(init)),
 	}
-	pellet.SetTTL(shortRange)
+	pellet.SetTTL(tinyRange)
 	pellet.SetDamage(10)
 	return pellet
 }
@@ -100,7 +101,7 @@ func NewStar(init Init) *Star {
 		size: NewVec2(1, 1),
 		color: color,
 	})
-	star.SetDamage(20)
+	star.SetDamage(25)
 	star.SetSticky(true)
 	star.SetIntAttribute(colorIntAttribute, color)
 	star.SetIntAttribute(secondaryColorIntAttribute, starSecondary)

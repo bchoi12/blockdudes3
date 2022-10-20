@@ -91,9 +91,9 @@ func (e *Equip) SetType(equipType EquipType, equipSubtype EquipType) {
 	}
 }
 
-func (e *Equip) Update(grid *Grid, now time.Time) {
+func (e *Equip) PostUpdate(grid *Grid, now time.Time) {
 	e.PrepareUpdate(now)
-	e.BaseObject.Update(grid, now)
+	e.BaseObject.PostUpdate(grid, now)
 
 	owner := grid.Get(e.GetOwner())
 	if owner != nil {

@@ -12,11 +12,16 @@ import { Util } from './util.js'
 export class RenderPortal extends RenderObject {
 	private readonly _platformHeight = 0.05;
 
+	private _charge : number;
+
 	private _bbox : THREE.Box2;
 	private _particles : RenderCustom;
 
 	constructor(space : number, id : number) {
 		super(space, id);
+
+		this._charge = 0;
+
 		this.disableAutoUpdatePos();
 	}
 
@@ -46,9 +51,9 @@ export class RenderPortal extends RenderObject {
 				let scale = new THREE.Vector3();
 				matrix.decompose(pos, rotation, scale);
 
-				pos.y += 0.3 * ts;
+				pos.y += (0.3 + 0.5 * this._charge) * ts;
 				if (pos.y > 1) {
-					pos.y = 0;
+					pos.y -= 1;
 				}
 				scale.y = initScale.y - 0.5 * pos.y * initScale.y;
 
@@ -56,9 +61,9 @@ export class RenderPortal extends RenderObject {
 				object.setMatrixAt(i, matrix);
 
 				let color = new THREE.Color();
-				color.r = Math.min(1, originalColor.r + 1.2 * pos.y);
-				color.g = Math.min(1, originalColor.g + 1.2 * pos.y);
-				color.b = Math.min(1, originalColor.b + 1.2 * pos.y);
+				color.r = Math.min(1, originalColor.r + (1.2 + 0.5 * this._charge) * pos.y);
+				color.g = Math.min(1, originalColor.g + (1.2 + 0.5 * this._charge) * pos.y);
+				color.b = Math.min(1, originalColor.b + (1.2 + 0.5 * this._charge) * pos.y);
 				object.setColorAt(i, color);
 			}
 
@@ -115,8 +120,16 @@ export class RenderPortal extends RenderObject {
 	override update() : void {
 		super.update();
 
-		if (!this.initialized()) {
+		if (!this.hasMesh()) {
 			return;
+		}
+
+		if (this.hasAttribute(chargingAttribute) && !this.attribute(chargedAttribute)) {
+			if (this.attribute(chargingAttribute)) {
+				this._charge += this.timestep();
+			} else {
+				this._charge = 0;
+			}
 		}
 
 		const player = game.player();

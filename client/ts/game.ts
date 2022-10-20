@@ -155,6 +155,9 @@ class Game {
 		ui.announce({
 			type: AnnouncementType.WELCOME,
 			ttl: 5000,
+			names: [{
+				text: game.player().name(),
+			}]
 		})
 
 		this.setInputMode(GameInputMode.GAME);

@@ -34,8 +34,6 @@ export class AnnouncementHandler implements InterfaceHandler {
 	}
 
 	announce(announcement : Announcement) {
-		console.log(announcement);
-
 		this._announcements.push(announcement);
 		if (!this._active) {
 			this.popAnnouncement();
@@ -66,7 +64,7 @@ export class AnnouncementHandler implements InterfaceHandler {
 	private getHtmls(announcement : Announcement) : Array<string> {
 		switch (announcement.type) {
 		case AnnouncementType.WELCOME:
-			return ["Welcome to Birdtown", ""];
+			return ["Welcome " + Html.formatName(announcement.names[0]), ""];
 		case AnnouncementType.PROTECT:
 			return ["Escort " + Html.formatName(announcement.names[0]) + " to the exit portal", "Or eliminate the other team"];
 		case AnnouncementType.REACH:

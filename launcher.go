@@ -64,12 +64,13 @@ func NewLauncher(weapon *Weapon, space SpaceType) *Launcher {
 
 	switch space {
 	case pelletSpace:
-		l.maxAmmo = 1
-		l.reloadTimer.SetDuration(500 * time.Millisecond)
+		l.maxAmmo = 2
+		l.ammoTimer.SetDuration(200 * time.Millisecond)
+		l.reloadTimer.SetDuration(800 * time.Millisecond)
 		l.projectileSize = NewVec2(0.2, 0.2)
 		l.projectileVel = 30
 		l.projectileNumber = 4
-		l.projectileSpread = 0.02 * math.Pi
+		l.projectileSpread = 0.025 * math.Pi
 	case boltSpace:
 		l.maxAmmo = 3
 		l.ammoTimer.SetDuration(100 * time.Millisecond)

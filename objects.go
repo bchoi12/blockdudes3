@@ -75,17 +75,68 @@ func (p *Portal) SetTeam(team uint8) {
 
 type Goal struct {
 	BaseObject
+	chargeTimer Timer
 }
 
 func NewGoal(init Init) *Goal {
-	return &Goal {
+	g := &Goal {
 		BaseObject: NewRec2Object(init),
+		chargeTimer: NewTimer(3 * time.Second),
 	}
+
+	overlapOptions := NewColliderOptions()
+	overlapOptions.SetSpaces(playerSpace)
+	g.SetOverlapOptions(overlapOptions)
+
+	return g
 }
 
 func (g *Goal) SetTeam(team uint8) {
 	g.SetByteAttribute(teamByteAttribute, team)
 	g.SetIntAttribute(colorIntAttribute, vipColor)
+}
+
+func (g *Goal) Update(grid *Grid, now time.Time) {
+	if isWasm {
+		return
+	}
+
+	g.PrepareUpdate(now)
+	g.BaseObject.Update(grid, now)
+
+	colliders := grid.GetColliders(g)
+	hasPlayer := false
+	team, _ := g.GetByteAttribute(teamByteAttribute)
+	for len(colliders) > 0 {
+		collider := PopObject(&colliders)
+		switch object := collider.(type) {
+		case *Player:
+			if object.HasAttribute(vipAttribute) && object.grounded {
+				if playerTeam, ok := object.GetByteAttribute(teamByteAttribute); ok && playerTeam == team {
+					hasPlayer = true
+				}
+			}
+		}
+	}
+
+	if hasPlayer != g.HasAttribute(chargingAttribute) {
+		if hasPlayer {
+			g.AddAttribute(chargingAttribute)
+			g.chargeTimer.Start()
+		} else {
+			g.RemoveAttribute(chargingAttribute)
+			g.RemoveAttribute(chargedAttribute)
+			g.chargeTimer.Stop()
+		}
+	}
+
+	if g.HasAttribute(chargingAttribute) && g.chargeTimer.Finished() {
+		g.AddAttribute(chargedAttribute)
+	}
+
+	if g.HasAttribute(chargedAttribute) {
+		grid.SetWinningTeam(team)
+	}
 }
 
 type Spawn struct {
