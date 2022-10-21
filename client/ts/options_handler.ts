@@ -1,6 +1,7 @@
 import { Html } from './html.js'
 import { InputMode } from './ui.js'
 import { InterfaceHandler } from './interface_handler.js'
+import { OptionWrapper } from './option_wrapper.js'
 import { options } from './options.js'
 import { renderer } from './renderer.js'
 
@@ -8,28 +9,8 @@ export class OptionsHandler implements InterfaceHandler {
 
 	private _optionsElm : HTMLElement;
 
-	private _pointerLockInputElm : HTMLInputElement;
-	private _shadowsInputElm : HTMLInputElement;
-	private _effectsInputElm : HTMLInputElement;
-	private _antialiasingElm : HTMLElement;
-	private _antialiasingInputElm : HTMLInputElement;
-
-	private _extrapolationInputElm : HTMLInputElement;
-	private _soundVolumeInputElm : HTMLInputElement;
-	private _resolutionInputElm : HTMLInputElement;
-
 	constructor() {
 		this._optionsElm = Html.elm(Html.fieldsetOptions);
-
-		this._pointerLockInputElm = Html.inputElm(Html.inputPointerLock);
-		this._shadowsInputElm = Html.inputElm(Html.inputShadows);
-		this._effectsInputElm = Html.inputElm(Html.inputEffects);
-		this._antialiasingElm = Html.elm(Html.optionsAntialiasing);
-		this._antialiasingInputElm = Html.inputElm(Html.inputAntialiasing);
-
-		this._extrapolationInputElm = Html.inputElm(Html.inputExtrapolation);
-		this._soundVolumeInputElm = Html.inputElm(Html.inputSoundVolume);
-		this._resolutionInputElm = Html.inputElm(Html.inputResolution);
 	}
 
 	setup() : void {
@@ -37,49 +18,120 @@ export class OptionsHandler implements InterfaceHandler {
 			e.stopPropagation();
 		};
 
-		this._pointerLockInputElm.checked = options.enablePointerLock;
-		this._shadowsInputElm.checked = options.enableShadows;
-		this._effectsInputElm.checked = options.enableEffects;
-		this._antialiasingInputElm.checked = options.enableAntialiasing;
+		let pointerLock = new OptionWrapper({
+			id: "input-pointer-lock",
+			type: "checkbox",
+			label: "Enable in-game cursor",
 
-		this._extrapolationInputElm.value = "" + options.extrapolateWeight;
-		this._soundVolumeInputElm.value = "" + options.soundVolume;
-		this._resolutionInputElm.value = "" + options.resolution;
+			getOption: () => {
+				return options.enablePointerLock;
+			},
+			setOption: (value : boolean) => {
+				options.enablePointerLock = value;
+			},
+		})
+		this._optionsElm.appendChild(pointerLock.elm());
 
-		this._pointerLockInputElm.onchange = () => {
-			options.enablePointerLock = this._pointerLockInputElm.checked;
-		};
-		this._shadowsInputElm.onchange = () => {
-			options.enableShadows = this._shadowsInputElm.checked;
-			renderer.reset();
-		};
-		this._effectsInputElm.onchange = () => {
-			options.enableEffects = this._effectsInputElm.checked;
-		};
-		this._antialiasingInputElm.onchange = () => {
-			options.enableAntialiasing = this._antialiasingInputElm.checked;
-		};
+		let shadows = new OptionWrapper({
+			id: "input-shadows",
+			type: "checkbox",
+			label: "Enable shadows",
 
-		this._extrapolationInputElm.onchange = () => {
-			const weight = Math.min(1, Math.max(0, Number(this._extrapolationInputElm.value)));
-			options.extrapolateWeight = weight;
-		};
-		this._soundVolumeInputElm.onchange = () => {
-			const volume = Math.min(1, Math.max(0, Number(this._soundVolumeInputElm.value)));
-			options.soundVolume = volume;
-		};
-		this._resolutionInputElm.onchange = () => {
-			const scale = Math.min(1, Math.max(0.25, Number(this._resolutionInputElm.value)));
-			options.resolution = scale;
-			renderer.resize();
-		};
+			getOption: () => {
+				return options.enableShadows;
+			},
+			setOption: (value : boolean) => {
+				options.enableShadows = value;
+				renderer.reset();
+			},
+		})
+		this._optionsElm.appendChild(shadows.elm());
+
+		let effects = new OptionWrapper({
+			id: "input-effects",
+			type: "checkbox",
+			label: "Enable special effects",
+
+			getOption: () => {
+				return options.enableEffects;
+			},
+			setOption: (value : boolean) => {
+				options.enableEffects = value;
+			},
+		})
+		this._optionsElm.appendChild(effects.elm());
+
+		let antiAliasing = new OptionWrapper({
+			id: "input-anti-aliasing",
+			type: "checkbox",
+			label: "Enable anti-aliasing",
+
+			getOption: () => {
+				return options.enableAntialiasing;
+			},
+			setOption: (value : boolean) => {
+				options.enableAntialiasing = value;
+			},
+		})
+		this._optionsElm.appendChild(antiAliasing.elm());
+
+		let extrapolation = new OptionWrapper({
+			id: "input-extrapolation",
+			type: "range",
+			label: "Client-side prediction",
+
+			min: 0,
+			max: 1,
+			step: 0.01,
+
+			getOption: () => {
+				return options.extrapolateWeight;
+			},
+			setOption: (value : number) => {
+				options.extrapolateWeight = value;
+			},
+		})
+		this._optionsElm.appendChild(extrapolation.elm());
+
+		let soundVolume = new OptionWrapper({
+			id: "input-sound-volume",
+			type: "range",
+			label: "Sound volume",
+
+			min: 0,
+			max: 1,
+			step: 0.01,
+
+			getOption: () => {
+				return options.soundVolume;
+			},
+			setOption: (value : number) => {
+				options.soundVolume = value;
+			},
+		})
+		this._optionsElm.appendChild(soundVolume.elm());
+
+		let resolution = new OptionWrapper({
+			id: "input-resolution",
+			type: "range",
+			label: "Resolution",
+
+			min: 0.6,
+			max: 1,
+			step: 0.01,
+
+			getOption: () => {
+				return options.resolution;
+			},
+			setOption: (value : number) => {
+				options.resolution = value;
+				renderer.resize();
+			},
+		})
+		this._optionsElm.appendChild(resolution.elm());
 	}
 
-	reset() : void {
+	reset() : void {}
 
-	}
-
-	changeInputMode(mode : InputMode) : void {
-
-	}
+	changeInputMode(mode : InputMode) : void {}
 }

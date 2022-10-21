@@ -8,6 +8,14 @@ import { SpacedId } from './spaced_id.js'
 import { Timer } from './timer.js'
 import { MathUtil, Util } from './util.js'
 
+export enum CameraMode {
+	UNKNOWN = 0,
+	PLAYER = 1,
+	TEAM = 2,
+	ANY_PLAYER = 3,
+	FREE = 4,
+}
+
 export class CameraController {
 	// screen length = 25
 	private readonly _horizontalFov = 45.2397;
@@ -34,7 +42,7 @@ export class CameraController {
 		this._camera = new THREE.PerspectiveCamera(20, aspect, 1, 200);
 		this._object = null;
 		this._target = new THREE.Vector3();
-		this._anchor = new THREE.Vector3(22, 10, 0);
+		this._anchor = new THREE.Vector3();
 
 		this._width = 0;
 		this._height = 0;
@@ -67,6 +75,8 @@ export class CameraController {
 			this._orbitControls.enableRotate = true;
 			this._orbitControls.enablePan =  true;
 			this._orbitControls.enableZoom = true;
+			// @ts-ignore
+			this._orbitControls.listenToKeyEvents(window);
 			this._orbitControls.target.copy(this._anchor);
 		}
 
@@ -78,7 +88,26 @@ export class CameraController {
 		this.setAnchor(object.pos3());
 	}
 
-	setAnchor(anchor: THREE.Vector3) : void {
+	enablePan(pan : THREE.Vector3) : void {
+		this._pan = pan.clone();
+		this._pan.y = MathUtil.clamp(-4, this._pan.y, 4);
+		this._panTimer.start();
+	}
+
+	disablePan() : void {
+		this._panTimer.reverse(2);
+	}
+
+	setAspect(aspect : number) {
+		this._camera.aspect = aspect;
+		this._camera.fov = Math.atan(Math.tan(this._horizontalFov * Math.PI / 360) / this._camera.aspect) * 360 / Math.PI;
+		this._camera.updateProjectionMatrix();
+
+		this._width = 2 * this._cameraOffset.z * Math.tan(this._horizontalFov * Math.PI / 360);
+		this._height = 2 * this._cameraOffset.z * Math.tan(this._camera.fov * Math.PI / 360);
+	}
+
+	private setAnchor(anchor: THREE.Vector3) : void {
 		this._anchor = anchor.clone();
 
 		if (this._free) {
@@ -108,24 +137,5 @@ export class CameraController {
 
 		this._camera.position.y = Math.max(this._cameraMinY + this._cameraOffset.y, this._camera.position.y);
 		this._camera.lookAt(this._target);
-	}
-
-	enablePan(pan : THREE.Vector3) : void {
-		this._pan = pan.clone();
-		this._pan.y = MathUtil.clamp(-4, this._pan.y, 4);
-		this._panTimer.start();
-	}
-
-	disablePan() : void {
-		this._panTimer.reverse(2);
-	}
-
-	setAspect(aspect : number) {
-		this._camera.aspect = aspect;
-		this._camera.fov = Math.atan(Math.tan(this._horizontalFov * Math.PI / 360) / this._camera.aspect) * 360 / Math.PI;
-		this._camera.updateProjectionMatrix();
-
-		this._width = 2 * this._cameraOffset.z * Math.tan(this._horizontalFov * Math.PI / 360);
-		this._height = 2 * this._cameraOffset.z * Math.tan(this._camera.fov * Math.PI / 360);
 	}
 }

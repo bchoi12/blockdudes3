@@ -89,6 +89,16 @@ func (vm *VipMode) Update(g *Grid) {
 		vm.SetState(setupGameState)
 	} else if vm.state == activeGameState {
 		changed, valid := vm.checkChanges(g)
+
+		// TODO: split into helper fn
+		if changed {
+			vm.teams = make(map[uint8][]Object)
+			for _, player := range(vm.players) {
+				team, _ := player.GetByteAttribute(teamByteAttribute)
+				vm.teams[team] = append(vm.teams[team], player)
+			}
+		}
+
 		if vm.firstFrame {
 			for _, player := range(vm.players) {
 				player.RemoveAttribute(vipAttribute)
@@ -99,15 +109,6 @@ func (vm *VipMode) Update(g *Grid) {
 				player.(*Player).SetSpawn(g)
 				player.Respawn()
 				player.RemoveAttribute(autoRespawnAttribute)
-			}
-
-			// TODO: split into helper fn
-			if changed {
-				vm.teams = make(map[uint8][]Object)
-				for _, player := range(vm.players) {
-					team, _ := player.GetByteAttribute(teamByteAttribute)
-					vm.teams[team] = append(vm.teams[team], player)
-				}
 			}
 
 			offense := vm.config.leftTeam

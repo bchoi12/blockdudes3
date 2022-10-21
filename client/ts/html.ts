@@ -1,5 +1,7 @@
 export namespace Html {
 
+	export const classTextButton = "text-button";
+
 	export const divGame = "div-game";
 
 	export const divLogin = "div-login";
@@ -31,17 +33,9 @@ export namespace Html {
 	export const fieldsetClients = "fieldset-clients";
 
 	export const fieldsetOptions = "fieldset-options";
-	export const optionsAntialiasing = "options-antialiasing";
-	export const inputPointerLock = "input-pointer-lock";
-	export const inputShadows = "input-shadows";
-	export const inputEffects = "input-effects";
-	export const inputDynamicLighting = "input-dynamic-lighting";
-	export const inputAntialiasing = "input-antialiasing";
-	export const inputExtrapolation = "input-extrapolation";
-	export const inputSoundVolume = "input-sound-volume";
-	export const inputResolution = "input-resolution";
 
 	export const fieldsetKeyBindings = "fieldset-key-bindings";
+	export const classKeyBinding = "key-binding";
 
 	export const cursor = "cursor";
 
@@ -52,6 +46,8 @@ export namespace Html {
 	export function div() : HTMLElement { return document.createElement("div"); }
 	export function span() : HTMLElement { return document.createElement("span"); }
 	export function br() : HTMLElement { return document.createElement("br"); }
+	export function input() : HTMLInputElement { return <HTMLInputElement>document.createElement("input"); }
+	export function label() : HTMLElement { return document.createElement("label"); }
 	export function audio() : HTMLAudioElement { return <HTMLAudioElement>document.createElement("audio"); }
 	export function button() : HTMLElement { return document.createElement("button"); }
 	export function icon() : HTMLElement { return document.createElement("i"); }

@@ -11,7 +11,7 @@ import { Util } from './util.js'
 
 export class RenderBlock extends RenderObject {
 	private readonly _boxBuffer = -0.5;
-	private readonly _minOpacity = 0.1;
+	private readonly _minOpacity = 0.05;
 
 	private _inside : boolean;
 	private _bbox : THREE.Box2;
@@ -46,12 +46,14 @@ export class RenderBlock extends RenderObject {
 
 		this._frontMaterials.forEach((opacity, mat) => {
 			if (options.enableEffects) {
+				mat.visible = true;
+				mat.opacity = Math.min(opacity, Math.max(this._minOpacity, mat.opacity + this.timestep() * (this._inside ? -5 : 5)));
 				if (this._inside && !mat.transparent) {
 					mat.transparent = true;
 				}
-				mat.opacity = Math.min(opacity, Math.max(this._minOpacity, mat.opacity + this.timestep() * (this._inside ? -3 : 5)));
 			} else {
 				mat.visible = !this._inside;
+				mat.opacity = opacity;
 			}
 		});
 

@@ -21,6 +21,7 @@ export class GameOverlay extends SceneComponent {
 		this._pointerMesh = new THREE.Mesh(
 			new THREE.ConeGeometry(this._pointerSize, this._pointerSize, 4, 1),
 			new THREE.MeshToonMaterial( { color: vipColor, depthWrite: false, depthTest: false, transparent: true }));
+		this._pointerMesh.visible = false;
 
 		this._vip = null;
 		this._vipPointer = new RenderCustom(this.nextId());

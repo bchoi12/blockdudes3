@@ -44,7 +44,7 @@ func (b *Booster) Update(grid *Grid, now time.Time) {
 	enabled := player.HasAttribute(canJumpAttribute)
 	if enabled {
 		b.canBoost = true
-		b.doubleJumpReset = true
+		// b.doubleJumpReset = true
 	}
 
 	if !b.canBoost || b.timer.On() {

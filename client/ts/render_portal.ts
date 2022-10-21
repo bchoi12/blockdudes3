@@ -61,9 +61,9 @@ export class RenderPortal extends RenderObject {
 				object.setMatrixAt(i, matrix);
 
 				let color = new THREE.Color();
-				color.r = Math.min(1, originalColor.r + (1.2 + 0.5 * this._charge) * pos.y);
-				color.g = Math.min(1, originalColor.g + (1.2 + 0.5 * this._charge) * pos.y);
-				color.b = Math.min(1, originalColor.b + (1.2 + 0.5 * this._charge) * pos.y);
+				color.r = Math.min(1, originalColor.r + (1.2 + 0.8 * this._charge) * pos.y);
+				color.g = Math.min(1, originalColor.g + (1.2 + 0.8 * this._charge) * pos.y);
+				color.b = Math.min(1, originalColor.b + (1.2 + 0.8 * this._charge) * pos.y);
 				object.setColorAt(i, color);
 			}
 
