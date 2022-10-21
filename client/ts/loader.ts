@@ -18,6 +18,7 @@ export enum Model {
 
 	ROCKET = "ROCKET",
 
+	COWBOY_HAT = "COWBOY_HAT",
 	JETPACK = "JETPACK",
 	HEADBAND = "HEADBAND",
 	SCOUTER = "SCOUTER",
@@ -49,6 +50,7 @@ class Loader {
 		Model.SNIPER,
 		Model.STAR_GUN,
 		Model.ROCKET,
+		Model.COWBOY_HAT,
 		Model.JETPACK,
 		Model.HEADBAND,
 		Model.SCOUTER,
@@ -153,6 +155,7 @@ class Loader {
 			case Model.BAZOOKA:
 			case Model.SNIPER:
 			case Model.STAR_GUN:
+			case Model.COWBOY_HAT:
 			case Model.JETPACK:
 			case Model.HEADBAND:
 			case Model.SCOUTER:

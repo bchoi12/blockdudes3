@@ -64,10 +64,11 @@ func (w *Weapon) SetType(equipType EquipType, equipSubtype EquipType) {
 	}
 
 	switch equipType {
-	case uziWeapon:
-	case grapplingHookWeapon:
 	case bazookaWeapon:
 		w.SetShotOffset(NewVec2(0.3, 0))
+	case uziWeapon:
+	case grapplingHookWeapon:
+		w.SetShotOffset(NewVec2(0.5, 0))
 	case sniperWeapon:
 		w.SetShotOffset(NewVec2(0.6, 0))
 	case starWeapon:

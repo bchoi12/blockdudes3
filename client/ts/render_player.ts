@@ -345,7 +345,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 		const type = equip.byteAttribute(subtypeByteAttribute);
 		let equipPos;
-		if (type === jetpackEquip) {
+		if (type === grapplingHookWeapon) {
+			equipPos = this.mesh().getObjectByName("equip-head");
+		}if (type === jetpackEquip) {
 			equipPos = this.mesh().getObjectByName("equip-back");
 		} else if (type === boosterEquip) {
 			equipPos = this.mesh().getObjectByName("equip-forehead");

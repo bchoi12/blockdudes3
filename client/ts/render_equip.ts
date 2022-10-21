@@ -67,7 +67,15 @@ export class RenderEquip extends RenderObject {
 	}
 
 	private loadMesh() : void {
-		if (this._equipType === jetpackEquip) {
+		if (this._equipType === grapplingHookWeapon) {
+			loader.load(Model.COWBOY_HAT, (mesh : THREE.Mesh) => {
+				if (this.hasMesh() && this.mesh().parent) {
+					this.mesh().parent.remove(this.mesh());
+				}
+				this.setMesh(mesh);
+				this._player.setEquip(this);
+			});
+		} else if (this._equipType === jetpackEquip) {
 			loader.load(Model.JETPACK, (mesh : THREE.Mesh) => {
 				this._emit = mesh.getObjectByName("emit");
 				this._fire = mesh.getObjectByName("fire");
