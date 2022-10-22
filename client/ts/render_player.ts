@@ -66,7 +66,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 			// @ts-ignore
 			this._pointer.material.color = new THREE.Color(this.intAttribute(colorIntAttribute));
 
-			if (this.spacedId().equals(renderer.cameraObject().spacedId()) && this.byteAttribute(teamByteAttribute) !== 0) {
+			if (Util.defined(renderer.cameraObject()) && this.spacedId().equals(renderer.cameraObject().spacedId()) && this.byteAttribute(teamByteAttribute) !== 0) {
 				ui.tooltip( { 
 					type: TooltipType.JOIN_TEAM,
 					ttl: 5000,
@@ -162,7 +162,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 			}
 		});
 		this._panTracker = new ChangeTracker<boolean>(() => {
-			return this.spacedId().equals(renderer.cameraController().objectId())
+			return this.id() === game.id()
+				&& this.id() === renderer.cameraObject().id()
+				&& !this.attribute(deadAttribute)
 				&& Util.defined(this.weapon())
 				&& this.weapon().byteAttribute(subtypeByteAttribute) === chargerEquip
 				&& game.keys().keyDown(altMouseClick);

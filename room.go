@@ -204,9 +204,9 @@ func (r *Room) initClient(client *Client) error {
 
 	playerId := Id(playerSpace, client.id)
 	if !r.game.Has(playerId) {
+
 		player := r.game.Add(NewInit(playerId, NewVec2(0, 0), NewVec2(0.8, 1.44))).(*Player)
 		player.SetInitProp(nameProp, client.GetDisplayName())
-
 		player.SetTeam(0)
 		player.SetSpawn(r.game.GetGrid())
 		player.Respawn()

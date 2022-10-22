@@ -28,6 +28,7 @@ const (
 	stateProp
 	scoreProp
 	vipProp
+	teamsProp
 )
 
 type PropMap map[Prop]interface{}

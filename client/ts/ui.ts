@@ -33,6 +33,7 @@ export enum TooltipType {
 	PICKUP = 1,
 	JOIN_TEAM = 2,
 	GOAL = 3,
+	SPECTATING = 4,
 }
 
 export enum AnnouncementType {

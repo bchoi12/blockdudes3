@@ -151,7 +151,7 @@ func (h *GrapplingHook) Update(grid *Grid, now time.Time) {
 		h.connected = true
 		h.RemoveTTL()
 		connection := NewAttractConnection(h.attractFactor)
-		connection.SetDistance(Min(1, h.Offset(player).Len() / 4))
+		connection.SetDistance(Min(0.5, h.Offset(player).Len() / 4))
 		player.AddConnection(h.GetSpacedId(), connection)
 		grid.Upsert(h)	
 	}

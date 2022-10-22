@@ -66,6 +66,8 @@ export class TooltipHandler implements InterfaceHandler {
 			return "Joined the " + Html.formatName(tooltip.names[0]);
 		case TooltipType.GOAL:
 			return "Prevent the " + Html.formatName(tooltip.names[0]) + " from reaching this goal";
+		case TooltipType.SPECTATING:
+			return "Spectating " + Html.formatName(tooltip.names[0]);
 		default:
 			return "testing 123";
 		}

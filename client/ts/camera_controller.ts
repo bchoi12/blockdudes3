@@ -1,20 +1,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
+import { CameraMode } from './renderer.js'
+import { game } from './game.js'
 import { Html } from './html.js'
 import { Interp } from './interp.js'
 import { RenderObject } from './render_object.js'
 import { SpacedId } from './spaced_id.js'
 import { Timer } from './timer.js'
 import { MathUtil, Util } from './util.js'
-
-export enum CameraMode {
-	UNKNOWN = 0,
-	PLAYER = 1,
-	TEAM = 2,
-	ANY_PLAYER = 3,
-	FREE = 4,
-}
 
 export class CameraController {
 	// screen length = 25
@@ -25,11 +19,13 @@ export class CameraController {
 	private readonly _panTiming = 250; // ms
 
 	private _camera : THREE.PerspectiveCamera;
-	private _free : boolean;
+	private _mode : CameraMode;
+
 	private _orbitControls : OrbitControls;
 	private _object : RenderObject;
 	private _target : THREE.Vector3;
 	private _anchor : THREE.Vector3;
+	private _index : number;
 
 	private _width : number;
 	private _height : number;
@@ -40,9 +36,18 @@ export class CameraController {
 
 	constructor(aspect : number) {
 		this._camera = new THREE.PerspectiveCamera(20, aspect, 1, 200);
+		this._mode = CameraMode.PLAYER;
+
+		this._orbitControls = new OrbitControls(this._camera, Html.elm(Html.divOverlays));
+		this._orbitControls.enableRotate = true;
+		this._orbitControls.enablePan =  true;
+		this._orbitControls.enableZoom = true;
+		// @ts-ignore
+		this._orbitControls.listenToKeyEvents(window);
 		this._object = null;
 		this._target = new THREE.Vector3();
 		this._anchor = new THREE.Vector3();
+		this._index = 0;
 
 		this._width = 0;
 		this._height = 0;
@@ -53,12 +58,12 @@ export class CameraController {
 		this._panInterp.capMax(true);
 		this._panInterp.setFn((x: number) => { return -(x * x) + 2 * x; })
 
-		this.setFree(false);
 		this.setAnchor(this._anchor);
 		this.setAspect(aspect);
 	}
 
 	camera() : THREE.PerspectiveCamera { return this._camera; }
+	mode() : CameraMode { return this._mode }
 	object() : RenderObject { return this._object; }
 	objectId() : SpacedId { return Util.defined(this._object) ? this._object.spacedId() : SpacedId.invalidId(); }
 	target() : THREE.Vector3 { return this._target; }
@@ -69,23 +74,35 @@ export class CameraController {
 	width() : number { return this._width; }
 	height() : number { return this._height; }
 
-	setFree(free : boolean) : void {
-		if (free && !Util.defined(this._orbitControls)) {
-			this._orbitControls = new OrbitControls(this._camera, Html.elm(Html.divOverlays));
-			this._orbitControls.enableRotate = true;
-			this._orbitControls.enablePan =  true;
-			this._orbitControls.enableZoom = true;
-			// @ts-ignore
-			this._orbitControls.listenToKeyEvents(window);
-			this._orbitControls.target.copy(this._anchor);
+	update() : void {
+		switch (this._mode) {
+		case CameraMode.PLAYER:
+		case CameraMode.TEAM:
+		case CameraMode.ANY_PLAYER:
+			if (!Util.defined(this._object)) {
+				this.setObject();
+			}
+			
+			if (Util.defined(this._object)) {
+				this.setAnchor(this._object.pos3());
+			}
+			break;
+		case CameraMode.FREE:
+			this._orbitControls.update();
+			break;
 		}
-
-		this._free = free;
 	}
 
-	setObject(object : RenderObject) : void {
-		this._object = object;
-		this.setAnchor(object.pos3());
+	setMode(mode : CameraMode) {
+		if (this._mode !== mode) {
+			this._mode = mode;
+			this.setObject();
+		}
+	}
+
+	incrementIndex(inc : number) {
+		this._index += inc;
+		this.setObject();
 	}
 
 	enablePan(pan : THREE.Vector3) : void {
@@ -107,13 +124,36 @@ export class CameraController {
 		this._height = 2 * this._cameraOffset.z * Math.tan(this._camera.fov * Math.PI / 360);
 	}
 
+	private setObject() : void {
+		switch (this._mode) {
+		case CameraMode.PLAYER:
+			this._object = game.player();
+			break;
+		case CameraMode.TEAM:
+			const player = game.player();
+			if (Util.defined(player)) {
+				const team = player.byteAttribute(teamByteAttribute);
+				const teams = game.teams();
+
+				const teammates = teams[team];
+				if (!Util.defined(teammates)) {
+					break;
+				}
+
+				this._object = game.sceneMap().get(playerSpace, teammates[this.safeIndex(teammates.length)]);
+			}
+			break;
+		case CameraMode.ANY_PLAYER:
+			const players = game.sceneMap().getMap(playerSpace);
+			const keys = Array.from(players.keys());
+ 				const key = keys[this.safeIndex(keys.length)];
+			this._object = players.get(key);
+			break;
+		}
+	}
+
 	private setAnchor(anchor: THREE.Vector3) : void {
 		this._anchor = anchor.clone();
-
-		if (this._free) {
-			this._orbitControls.update();
-			return;
-		}
 
 		this._target = this._anchor.clone();
 		this._target.add(this._lookAtOffset);
@@ -137,5 +177,16 @@ export class CameraController {
 
 		this._camera.position.y = Math.max(this._cameraMinY + this._cameraOffset.y, this._camera.position.y);
 		this._camera.lookAt(this._target);
+	}
+
+	private safeIndex(size : number) : number {
+		let index = this._index;
+		if (index < 0) {
+			index = size - 1;
+		} else {
+			index = index % size;
+		}
+
+		return index;
 	}
 }

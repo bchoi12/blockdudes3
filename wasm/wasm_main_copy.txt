@@ -111,9 +111,11 @@ func setGlobals() {
 	js.Global().Set("keysProp", int(keysProp))
 	js.Global().Set("ownerProp", int(ownerProp))
 	js.Global().Set("targetProp", int(targetProp))
+
 	js.Global().Set("stateProp", int(stateProp))
 	js.Global().Set("scoreProp", int(scoreProp))
 	js.Global().Set("vipProp", int(vipProp))
+	js.Global().Set("teamsProp", int(teamsProp))
 
 	js.Global().Set("deletedAttribute", int(deletedAttribute))
 	js.Global().Set("attachedAttribute", int(attachedAttribute))

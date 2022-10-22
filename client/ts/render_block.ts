@@ -10,7 +10,7 @@ import { renderer } from './renderer.js'
 import { Util } from './util.js'
 
 export class RenderBlock extends RenderObject {
-	private readonly _boxBuffer = -0.5;
+	private readonly _boxBuffer = -0.2;
 	private readonly _minOpacity = 0.05;
 
 	private _inside : boolean;
@@ -37,7 +37,7 @@ export class RenderBlock extends RenderObject {
 		}
 
 		const object = renderer.cameraObject();
-		if (object !== null) {
+		if (Util.defined(object)) {
 			this._inside = this.containsObject(object);
 		} else {
 			const anchor = renderer.cameraAnchor();

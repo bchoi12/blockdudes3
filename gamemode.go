@@ -36,6 +36,9 @@ type BaseGameMode struct {
 	state GameStateType
 	firstFrame bool
 
+	players map[SpacedId]Object
+	teams map[uint8][]Object
+
 	winningTeam uint8
 	teamScores map[uint8]int
 }
@@ -45,6 +48,9 @@ func NewBaseGameMode() BaseGameMode {
 		lastState: unknownGameState,
 		state: unknownGameState,
 		firstFrame: false,
+
+		players: make(map[SpacedId]Object),
+		teams: make(map[uint8][]Object),
 
 		winningTeam: 0,
 		teamScores: make(map[uint8]int),
@@ -86,5 +92,14 @@ func (bgm BaseGameMode) GetUpdates() Data {
 	data := NewData()
 	data.Set(stateProp, bgm.state)
 	data.Set(scoreProp, bgm.teamScores)
+
+	teams := make(map[uint8][]IdType)
+	for team, players := range(bgm.teams) {
+		for _, player := range(players) {
+			teams[team] = append(teams[team], player.GetId())
+		}
+	}
+	data.Set(teamsProp, teams)
+
 	return data
 }

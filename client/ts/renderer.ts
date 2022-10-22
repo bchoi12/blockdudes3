@@ -13,6 +13,14 @@ import { options } from './options.js'
 import { RenderObject } from './render_object.js'
 import { Util } from './util.js'
 
+export enum CameraMode {
+	UNKNOWN = 0,
+	PLAYER = 1,
+	TEAM = 2,
+	ANY_PLAYER = 3,
+	FREE = 4,
+}
+
 class Renderer {
 	private readonly _elmRenderer = "canvas-game";
 

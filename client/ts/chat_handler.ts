@@ -5,7 +5,7 @@ import { game } from './game.js'
 import { Html } from './html.js'
 import { InterfaceHandler } from './interface_handler.js'
 import { options } from './options.js'
-import { renderer } from './renderer.js'
+import { renderer, CameraMode } from './renderer.js'
 import { SceneComponentType } from './scene_component.js'
 import { ui, InputMode } from './ui.js'
 import { Util } from './util.js'
@@ -114,11 +114,11 @@ export class ChatHandler implements InterfaceHandler {
 			}
 			break;
 		case "/free":
-			renderer.cameraController().setFree(true);
+			renderer.cameraController().setMode(CameraMode.FREE);
 			ui.print("Disable in-game cursor to pan and rotate.")
 			break;
-		case "/fix":
-			renderer.cameraController().setFree(false);
+		case "/player":
+			renderer.cameraController().setMode(CameraMode.PLAYER);
 			break;
 		case "/nolights":
 			game.sceneMap().clear(lightSpace);

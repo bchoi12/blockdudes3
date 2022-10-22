@@ -6,32 +6,17 @@ import { renderer } from './renderer.js'
 import { ui } from './ui.js'
 
 export class Keys {
-	
-	private _lastKeys : Set<number>;
 	private _keys : Set<number>;
+	private _lastKeys : Set<number>;
 
 	constructor() {
-		this._lastKeys = new Set();
 		this._keys = new Set();
+		this._lastKeys = new Set();
 	}
 
 	snapshotKeys() : void {
 		this._lastKeys = new Set(this._keys);
-		this._keys = ui.getKeys();
-	}
-
-	changed() : boolean {
-		if (this._lastKeys.size !== this._keys.size) {
-			return true;
-		}
-
-		for (let it = this._keys.values(), val = null; val = it.next().value;) {
-		    if (!this._lastKeys.has(val)) {
-		    	return true;
-		    }
-		}
-
-		return false;
+		this._keys = new Set(ui.getKeys());
 	}
 
 	keyMsg(keySeqNum : number) : { [k: string]: any } {
@@ -50,6 +35,21 @@ export class Keys {
 		};
 		return msg;
 	}
+
+	changed() : boolean {
+		if (this._lastKeys.size !== this._keys.size) {
+			return true;
+		}
+
+		for(let key of this._keys) {
+			if (!this._lastKeys.has(key)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 
 	keyPressed(key : number) : boolean { return this._keys.has(key) && !this._lastKeys.has(key); }
 	keyDown(key : number) : boolean { return this._keys.has(key); }

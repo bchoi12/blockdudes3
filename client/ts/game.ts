@@ -1,13 +1,14 @@
 import * as THREE from 'three';
 
 import { connection } from './connection.js'
+import { GameState } from './game_state.js'
 import { Keys } from './keys.js'
 import { Model, loader } from './loader.js'
 import { options } from './options.js'
 import { Particles } from './particles.js'
 import { RenderObject } from './render_object.js'
 import { RenderPlayer } from './render_player.js'
-import { renderer } from './renderer.js'
+import { renderer, CameraMode } from './renderer.js'
 import { SceneComponent, SceneComponentType } from './scene_component.js'
 import { SceneMap } from './scene_map.js'
 import { SpacedId } from './spaced_id.js'
@@ -23,7 +24,7 @@ export enum GameInputMode {
 
 class Game {
 	private _id : number;
-	private _state : number;
+	private _state : GameState;
 	private _inputMode : GameInputMode;
 
 	// TODO: move to SceneMap
@@ -31,7 +32,6 @@ class Game {
 	private _updateSpeed : number;
 
 	private _sceneMap : SceneMap;
-	private _teamScores : Map<number, number>;
 	private _keys : Keys;
 	private _keySeqNum : number;
 	private _lastSeqNum : number;
@@ -43,13 +43,12 @@ class Game {
 
 	constructor() {
 		this._id = -1;
-		this._state = 0;
+		this._state = new GameState();
 		this._inputMode = GameInputMode.UNKNOWN;
 		this._timeOfDay = 0;
 		this._updateSpeed = 1;
 
 		this._sceneMap = new SceneMap();
-		this._teamScores = new Map<number, number>();
 		this._keys = new Keys();
 		this._keySeqNum = 0;
 		this._lastSeqNum = 0;
@@ -78,7 +77,8 @@ class Game {
 	hasId() : boolean { return this._id >= 0; }
 	id() : number { return this._id; }
 	player(id? : number) : RenderPlayer { return <RenderPlayer>this._sceneMap.get(playerSpace, Util.defined(id) ? id : this.id()); }
-	state() : number { return this._state; }
+	state() : number { return this._state.state(); }
+	teams() : Map<number, Array<number>> { return this._state.teams(); }
 	inputMode() : GameInputMode { return this._inputMode; }
 	timeOfDay() : number { return this._timeOfDay; }
 	updateSpeed() : number { return this._updateSpeed; }
@@ -89,9 +89,10 @@ class Game {
 	particles() : Particles { return this._sceneMap.getComponentAsAny(SceneComponentType.PARTICLES); }
 	sceneComponent(type : SceneComponentType) : SceneComponent { return this._sceneMap.getComponent(type); }
 
+	setUpdateSpeed(updateSpeed : number) : void { this._updateSpeed = updateSpeed; }
+	setInputMode(inputMode : GameInputMode) : void { this._inputMode = inputMode; }
+	setTimeOfDay(timeOfDay : number) : void { this._timeOfDay = timeOfDay; }
 	startRender() : void { this.animate(); }
-	setInputMode(inputMode : GameInputMode) { this._inputMode = inputMode; }
-	setTimeOfDay(timeOfDay : number) { this._timeOfDay = timeOfDay; }
 
 	flushAdded() : number {
 		const copy = this._numObjectsAdded;
@@ -114,6 +115,7 @@ class Game {
 	private animate() : void {
 		if (this.inputMode() === GameInputMode.GAME) {
 			this._keys.snapshotKeys();
+			this.sendKeys();
 			this.extrapolateState();
 		}
 		this.sceneMap().update()
@@ -130,36 +132,7 @@ class Game {
 
 	private initPlayer(msg : { [k: string]: any }) : void {
 		this._id = msg.Id;
-		for (const [stringId, data] of Object.entries(msg.Ps) as [string, any]) {
-			const id = Number(stringId);
-
-			if (this.sceneMap().has(playerSpace, id) || this.sceneMap().deleted(playerSpace, id)) {
-				LogUtil.w("Scene map already contains initialized or deleted player!");
-				return;
-			}
-			this.sceneMap().new(playerSpace, id);
-			this.sceneMap().setData(playerSpace, id, data);
-		}
-
-		connection.addSender(keyType, () => {
-			if (this.inputMode() !== GameInputMode.GAME || !connection.ready()) return;
-
-			this._keySeqNum++;
-			const msg = this._keys.keyMsg(this._keySeqNum);
-			connection.sendData(msg);
-			if (this._keys.changed()) {
-				connection.send(msg);
-			}
-		}, frameMillis);
-
-		ui.announce({
-			type: AnnouncementType.WELCOME,
-			ttl: 5000,
-			names: [{
-				text: game.player().name(),
-			}]
-		})
-
+		renderer.cameraController().setMode(CameraMode.ANY_PLAYER);
 		this.setInputMode(GameInputMode.GAME);
 		LogUtil.d("Initializing player with id " + this._id);
 	}
@@ -185,77 +158,7 @@ class Game {
 			return;
 		}
 
-		const gameState = msg.G;
-		if (gameState.hasOwnProperty(stateProp)) {
-			this._state = gameState[stateProp];
-		}
-		if (gameState.hasOwnProperty(scoreProp)) {
-			this._teamScores = gameState[scoreProp];
-		}
-
-		let vipId : SpacedId;
-		if (gameState.hasOwnProperty(vipProp)) {
-			vipId = SpacedId.fromMessage(gameState[vipProp]);
-		} else {
-			vipId = SpacedId.invalidId();
-		}
-
-		if (this._state === activeGameState) {
-			if (vipId.valid()) {
-				if (vipId.id() === game.id()) {
-					ui.announce({
-						type: AnnouncementType.REACH,
-						ttl: 4000,
-						names: [{
-							text: "exit portal",
-							color: Util.colorString(vipColor),
-						}],
-					});
-				} else {
-					const self = this.player();
-					const vip = this.player(vipId.id());
-
-					if (Util.defined(self) && Util.defined(vip)) {
-						if (self.byteAttribute(teamByteAttribute) === vip.byteAttribute(teamByteAttribute)) {
-							ui.announce({
-								type: AnnouncementType.PROTECT,
-								ttl: 4000,
-								names: [{
-									text: vip.name(),
-									color: Util.colorString(vipColor),
-								}],
-							});
-						} else {
-							ui.announce({
-								type: AnnouncementType.ELIMINATE,
-								ttl: 4000,
-								names: [{
-									text: "VIP",
-									color: Util.colorString(vipColor),
-								}],
-							});
-						}
-					}
-				}
-			}
-		}
-
-		if (this._state === victoryGameState) {
-			// TODO: make this wasm variable
-			this._updateSpeed = 0.3;
-			ui.announce({
-				type: AnnouncementType.SCORE,
-				ttl: 3000,
-				names: [{
-					text: this._teamScores[leftTeam],
-				},
-				{
-					text: this._teamScores[rightTeam],
-				}]
-			});
-		} else {
-			this._updateSpeed = 1.0;
-		}
+		this._state.update(msg.G);
 	}
 
 	private parseObjectPropMap(objectPropMap : Map<number, any>, seqNum : number) {
@@ -276,14 +179,6 @@ class Game {
 				this.sceneMap().setData(space, id, object, seqNum);
 				this._numUpdates++;
 			}
-		}
-	}
-
-	private updateKeys() : void {
-		if (this.sceneMap().has(playerSpace, this.id())) {
-			const keyMsg = this._keys.keyMsg(this._keySeqNum);
-			keyMsg.Key.K = Util.arrayToString(keyMsg.Key.K);
-			wasmUpdateKeys(this.id(), keyMsg.Key);
 		}
 	}
 
@@ -326,8 +221,14 @@ class Game {
 			return;
 		}
 
-		wasmSetData(playerSpace, this.id(), player.data());
-		this.updateKeys();
+		if (options.extrapolateWeight === 0) {
+			wasmSetData(playerSpace, this.id(), player.data());
+		}
+
+		const keyMsg = this._keys.keyMsg(this._keySeqNum);
+		keyMsg.Key.K = Util.arrayToString(keyMsg.Key.K);
+		wasmUpdateKeys(this.id(), keyMsg.Key);
+
 		player.setData(JSON.parse(wasmGetData(playerSpace, this.id())));
 		player.update();
 
@@ -343,6 +244,7 @@ class Game {
 			return object.attribute(fromLevelAttribute);
 		})
 
+		// TODO: make this announcement
 		LogUtil.d("Loading level " + msg.L + " with seed " + msg.S);
 
 		const level = JSON.parse(wasmLoadLevel(msg.L, msg.S));
@@ -358,12 +260,56 @@ class Game {
 	}
 
 	private updateCamera() : void {
-		if (!this.hasId()) return;
-		if (!this.sceneMap().has(playerSpace, this.id())) return;
+		if (!this.hasId()) {
+			return;
+		}
 
+		const player = game.player();
 		let camera = renderer.cameraController();
-		const player = this.sceneMap().get(playerSpace, this.id());
-		camera.setObject(player);
+
+		if (!Util.defined(player)) {
+			camera.setMode(CameraMode.ANY_PLAYER);
+		} else {
+			if (player.attribute(deadAttribute)) {
+				camera.setMode(CameraMode.TEAM);
+			} else {
+				camera.setMode(CameraMode.PLAYER);
+			}
+		}
+
+		if (camera.mode() === CameraMode.TEAM || camera.mode() === CameraMode.ANY_PLAYER) {
+			if (this._keys.keyPressed(rightKey)) {
+				camera.incrementIndex(1);
+			} else if (this._keys.keyPressed(leftKey)) {
+				camera.incrementIndex(-1);
+			}
+
+			const object = camera.object();
+			if (Util.defined(object)) {
+				ui.tooltip({
+					type: TooltipType.SPECTATING,
+					names: [object.specialName()],
+				})
+			}
+		}
+
+		camera.update();
+	}
+
+	private sendKeys() : void {
+		if (!connection.ready()) {
+			return;
+		}
+		if (!Util.defined(game.player()) || game.player().attribute(deadAttribute)) {
+			return;
+		}
+
+		this._keySeqNum++;
+		const keyMsg = this._keys.keyMsg(this._keySeqNum);
+		connection.sendData(keyMsg);
+		if (this._keys.changed()) {
+			connection.send(keyMsg);
+		}
 	}
 }
 

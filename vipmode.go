@@ -13,11 +13,8 @@ type VipMode struct {
 	BaseGameMode
 	random *rand.Rand
 
-	players map[SpacedId]Object
-	teams map[uint8][]Object
 	vip Object
 	nextVip map[uint8]int
-	winningTeam uint8
 	restartTimer Timer
 }
 
@@ -26,11 +23,8 @@ func NewVipMode() *VipMode {
 		BaseGameMode: NewBaseGameMode(),
 		random: rand.New(rand.NewSource(UnixMilli())),
 
-		players: make(map[SpacedId]Object),
-		teams: make(map[uint8][]Object),
 		vip: nil,
 		nextVip: make(map[uint8]int),
-		winningTeam: 0,
 		restartTimer: NewTimer(3 * time.Second),
 	}
 	mode.SetState(lobbyGameState)
@@ -118,6 +112,7 @@ func (vm *VipMode) Update(g *Grid) {
 			vipIndex := vm.nextVip[offense]
 			vm.nextVip[offense] += 1
 
+			// TODO: fix nullptr, vm.teams can be empty
 			vm.vip = vm.teams[offense][vipIndex]
 			vm.vip.AddAttribute(vipAttribute)
 		} else if !valid {

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { game } from './game.js'
+import { SpecialName } from './html.js'
 import { Message } from './message.js'
 import { RenderMesh } from './render_mesh.js'
 import { renderer } from './renderer.js'
@@ -61,6 +62,25 @@ export class RenderObject extends RenderMesh {
 	space() : number { return this._space; }
 	id() : number { return this._id; }
 	spacedId() : SpacedId { return this._sid; }
+	specialName() : SpecialName {
+		let text;
+		if (this.hasName()) {
+			text = this.name();
+		} else {
+			text = this.spacedId().toString();
+		}
+
+		let color;
+		if (this.hasColor()) {
+			color = this.color();
+		} else {
+			color = 0xFFFFFF;
+		}
+		return {
+			text: text,
+			color: color,
+		}
+	}
 	msg() : Message { return this._msg; }
 	data() : { [k: string]: any } { return this._msg.data(); }
 	lastSeqNum() : number { return this._msg.lastSeqNum(); }

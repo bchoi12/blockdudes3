@@ -84,6 +84,7 @@ declare var targetProp : number;
 declare var stateProp : number;
 declare var scoreProp : number;
 declare var vipProp : number;
+declare var teamsProp : number;
 
 declare var deletedAttribute : number;
 declare var attachedAttribute : number;
