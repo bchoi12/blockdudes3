@@ -12,7 +12,7 @@ func NewBomb(init Init) *Bomb {
 	bomb := &Bomb {
 		BaseObject: NewCircleObject(init),
 	}
-	bomb.SetTTL(1200 * time.Millisecond)
+	bomb.SetVariableTTL(1200 * time.Millisecond)
 	return bomb
 }
 

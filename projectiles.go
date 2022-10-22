@@ -20,7 +20,7 @@ func NewPellet(init Init) *Pellet {
 	pellet := &Pellet {
 		Projectile: NewProjectile(NewCircleObject(init)),
 	}
-	pellet.SetTTL(tinyRange)
+	pellet.SetVariableTTL(tinyRange)
 	pellet.SetDamage(10)
 	return pellet
 }
@@ -41,7 +41,7 @@ func NewBolt(init Init) *Bolt {
 	bolt := &Bolt {
 		Projectile: NewProjectile(NewBaseObject(init, profile)),
 	}
-	bolt.SetTTL(shortRange)
+	bolt.SetVariableTTL(shortRange)
 	bolt.SetDamage(10)
 	bolt.SetIntAttribute(colorIntAttribute, boltColor)
 	return bolt
@@ -52,7 +52,7 @@ func (b *Bolt) AddAttribute(attribute AttributeType) {
 
 	if attribute == chargedAttribute {
 		b.SetIntAttribute(colorIntAttribute, chargedBoltColor)
-		b.SetTTL(longRange)
+		b.SetVariableTTL(longRange)
 		b.SetDamage(80)
 		b.SetExplosionOptions(ExplosionOptions {
 			explode: true,
@@ -71,7 +71,7 @@ func NewRocket(init Init) *Rocket {
 		Projectile: NewProjectile(NewCircleObject(init)),
 	}
 	rocket.SetMaxSpeed(80)
-	rocket.SetTTL(mediumRange)
+	rocket.SetVariableTTL(mediumRange)
 	rocket.SetExplosionOptions(ExplosionOptions {
 		explode: true,
 		size: NewVec2(4, 4),
@@ -95,7 +95,7 @@ func NewStar(init Init) *Star {
 	r := rand.New(rand.NewSource(UnixMilli()))
 	color := starColors[r.Intn(len(starColors))]
 
-	star.SetTTL(shortRange)
+	star.SetVariableTTL(shortRange)
 	star.SetExplosionOptions(ExplosionOptions {
 		explode: true,
 		size: NewVec2(1, 1),
@@ -121,7 +121,7 @@ func NewGrapplingHook(init Init) *GrapplingHook {
 		attractFactor: 4,
 	}
 
-	hook.SetTTL(shortRange)
+	hook.SetVariableTTL(shortRange)
 	hook.SetDamage(0)
 	hook.SetSticky(true)
 	return hook
@@ -138,6 +138,13 @@ func (h *GrapplingHook) Update(grid *Grid, now time.Time) {
 	if player == nil || player.HasAttribute(deadAttribute) {
 		grid.Delete(h.GetSpacedId())
 		return
+	}
+
+	if h.connected {
+		if h.collider == nil || h.collider.HasAttribute(deadAttribute) {
+			grid.Delete(h.GetSpacedId())
+			return
+		}
 	}
 
 	if player != nil && !h.connected {

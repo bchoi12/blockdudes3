@@ -28,7 +28,8 @@ type Object interface {
 	AddConnection(parent SpacedId, connection Connection)
 	GetConnections() map[SpacedId]Connection
 
-	SetTTL(duration time.Duration)
+	SetConstantTTL(duration time.Duration)
+	SetVariableTTL(duration time.Duration)
 	RemoveTTL()
 
 	AddAttribute(attribute AttributeType)
@@ -123,6 +124,7 @@ func (o *BaseObject) Update(grid *Grid, now time.Time) {
 
 func (o *BaseObject) PostUpdate(grid *Grid, now time.Time) {
 	o.Attachment.PostUpdate(grid, now)
+	o.Expiration.PostUpdate(o.updateSpeed)
 }
 
 func (o *BaseObject) OnDelete(grid *Grid) {

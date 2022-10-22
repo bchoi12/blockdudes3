@@ -19,7 +19,7 @@ func NewExplosion(init Init) *Explosion {
 	overlapOptions := NewColliderOptions()
 	overlapOptions.SetSpaces(playerSpace)
 	explosion.SetOverlapOptions(overlapOptions)
-	explosion.SetTTL(300 * time.Millisecond)
+	explosion.SetVariableTTL(300 * time.Millisecond)
 	explosion.SetIntAttribute(colorIntAttribute, 0xffffff)
 	return explosion
 }
