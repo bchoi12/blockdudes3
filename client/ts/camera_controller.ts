@@ -10,6 +10,7 @@ import { SpacedId } from './spaced_id.js'
 import { Timer } from './timer.js'
 import { MathUtil, Util } from './util.js'
 
+// TODO: rename Spectator?
 export class CameraController {
 	// screen length = 25
 	private readonly _horizontalFov = 45.2397;
@@ -25,6 +26,8 @@ export class CameraController {
 	private _object : RenderObject;
 	private _target : THREE.Vector3;
 	private _anchor : THREE.Vector3;
+
+	private _seek : number;
 	private _index : number;
 
 	private _width : number;
@@ -47,6 +50,8 @@ export class CameraController {
 		this._object = null;
 		this._target = new THREE.Vector3();
 		this._anchor = new THREE.Vector3();
+
+		this._seek = 1;
 		this._index = 0;
 
 		this._width = 0;
@@ -100,7 +105,8 @@ export class CameraController {
 		}
 	}
 
-	incrementIndex(inc : number) {
+	seek(inc : number) {
+		this._seek = inc > 0 ? 1 : -1;
 		this._index += inc;
 		this.setObject();
 	}
@@ -125,28 +131,45 @@ export class CameraController {
 	}
 
 	private setObject() : void {
+		let player;
+
 		switch (this._mode) {
 		case CameraMode.PLAYER:
 			this._object = game.player();
 			break;
 		case CameraMode.TEAM:
-			const player = game.player();
+			player = game.player();
 			if (Util.defined(player)) {
 				const team = player.byteAttribute(teamByteAttribute);
-				const teams = game.teams();
+				const teams = game.gameState().teams();
 
 				const teammates = teams[team];
 				if (!Util.defined(teammates)) {
 					break;
 				}
 
-				this._object = game.sceneMap().get(playerSpace, teammates[this.safeIndex(teammates.length)]);
+				let indices = new Set<number>();
+				while (true) {
+					this._index = this.safeIndex(teammates.length);
+					if (indices.has(this._index)) {
+						break;
+					}
+					
+					indices.add(this._index);
+					this._object = game.sceneMap().get(playerSpace, teammates[this._index]);
+
+					if (!Util.defined(this._object) || this._object.id() === game.id()) {
+						this._index += this._seek;
+					} else if (Util.defined(this._object)) {
+						break;
+					}
+				}
 			}
 			break;
 		case CameraMode.ANY_PLAYER:
 			const players = game.sceneMap().getMap(playerSpace);
 			const keys = Array.from(players.keys());
- 				const key = keys[this.safeIndex(keys.length)];
+ 			const key = keys[this.safeIndex(keys.length)];
 			this._object = players.get(key);
 			break;
 		}

@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 
 import { game } from './game.js'
-import { SpecialName } from './html.js'
 import { Message } from './message.js'
 import { RenderMesh } from './render_mesh.js'
 import { renderer } from './renderer.js'
 import { SpacedId } from './spaced_id.js'
+import { SpecialName } from './special_name.js'
 import { Util } from './util.js'
 
 export class RenderObject extends RenderMesh {
@@ -72,9 +72,9 @@ export class RenderObject extends RenderMesh {
 
 		let color;
 		if (this.hasColor()) {
-			color = this.color();
+			color = Util.colorString(this.color());
 		} else {
-			color = 0xFFFFFF;
+			color = "#FFFFFF";
 		}
 		return {
 			text: text,

@@ -1,8 +1,9 @@
 import { game } from './game.js'
-import { Html, SpecialName } from './html.js'
+import { Html } from './html.js'
 import { InterfaceHandler } from './interface_handler.js'
 import { options } from './options.js'
 import { ScoreWrapper } from './score_wrapper.js'
+import { SpecialName } from './special_name.js'
 import { ui, AnnouncementType, InputMode } from './ui.js'
 
 export interface Announcement {

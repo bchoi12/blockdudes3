@@ -84,6 +84,7 @@ func NewPlayer(init Init) *Player {
 	}
 
 	player.SetByteAttribute(typeByteAttribute, 0)
+	player.AddInternalAttribute(autoRespawnAttribute)
 	return player
 }
 
@@ -97,14 +98,11 @@ func (p *Player) SetData(data Data) {
 	if data.Size() == 0 {
 		return
 	}
+
 	p.BaseObject.SetData(data)
 	if data.Has(keysProp) {
 		p.SetKeys(data.Get(keysProp).(map[KeyType]bool))
 	}
-}
-
-func (p Player) Dead() bool {
-	return p.Health.Dead()
 }
 
 func (p *Player) UpdateScore(g *Grid) {

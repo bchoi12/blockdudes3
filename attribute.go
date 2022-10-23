@@ -4,6 +4,8 @@ type AttributeType uint8
 const (
 	unknownAttribute AttributeType = iota
 
+	initializedAttribute
+	autoRespawnAttribute
 	deletedAttribute
 	attachedAttribute
 	chargingAttribute
@@ -15,10 +17,6 @@ const (
 	visibleAttribute
 	vipAttribute
 	fromLevelAttribute
-
-	// Internal
-	initializedAttribute
-	autoRespawnAttribute
 )
 
 type ByteAttributeType uint8

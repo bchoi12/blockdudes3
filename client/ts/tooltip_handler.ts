@@ -1,7 +1,9 @@
 import { game } from './game.js'
-import { Html, SpecialName } from './html.js'
+import { Html } from './html.js'
 import { InterfaceHandler } from './interface_handler.js'
+import { KeyNames } from './key_names.js'
 import { options } from './options.js'
+import { SpecialName, SpecialNames } from './special_name.js'
 import { TooltipWrapper } from './tooltip_wrapper.js'
 import { ui, InputMode, TooltipType } from './ui.js'
 import { Util } from './util.js'
@@ -61,13 +63,14 @@ export class TooltipHandler implements InterfaceHandler {
 	private getHtml(tooltip : Tooltip) : string{
 		switch (tooltip.type) {
 		case TooltipType.PICKUP:
-			return "Press " + Html.formatName(tooltip.names[0]) + " to pickup " + Html.formatName(tooltip.names[1]);
+			return "Press [" + KeyNames.get(options.interactKeyCode) + "] to pickup " + Html.formatName(tooltip.names[0]);
 		case TooltipType.JOIN_TEAM:
 			return "Joined the " + Html.formatName(tooltip.names[0]);
-		case TooltipType.GOAL:
-			return "Prevent the " + Html.formatName(tooltip.names[0]) + " from reaching this goal";
+		case TooltipType.PREVENT_VIP:
+			return "Prevent the " + Html.formatName(SpecialNames.vip()) + " from reaching this goal";
 		case TooltipType.SPECTATING:
-			return "Spectating " + Html.formatName(tooltip.names[0]);
+			return "Spectating " + Html.formatName(tooltip.names[0])
+				+ "<br>[" + KeyNames.get(options.leftKeyCode) + "/" + KeyNames.get(options.rightKeyCode) + "]: switch players";
 		default:
 			return "testing 123";
 		}

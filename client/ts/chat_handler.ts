@@ -102,9 +102,11 @@ export class ChatHandler implements InterfaceHandler {
 			connection.disconnectWebRTC();
 			break;
 		case "/t":
-			if (pieces.length === 2) {
-				game.setTimeOfDay(Number(pieces[1]));
+			if (pieces.length !== 2) {
+				ui.print("Expected 1 argument")
 			}
+
+			game.setTimeOfDay(Number(pieces[1]));
 			break;
 		case "/pos":
 			const player = game.sceneMap().get(playerSpace, game.id());
@@ -113,15 +115,27 @@ export class ChatHandler implements InterfaceHandler {
 				ui.print("x: " + pos.x + ", y: " + pos.y);
 			}
 			break;
-		case "/free":
-			renderer.cameraController().setMode(CameraMode.FREE);
-			ui.print("Disable in-game cursor to pan and rotate.")
-			break;
-		case "/player":
-			renderer.cameraController().setMode(CameraMode.PLAYER);
-			break;
-		case "/nolights":
-			game.sceneMap().clear(lightSpace);
+		case "/spectate":
+			if (pieces.length !== 2) {
+				ui.print("Expected 1 argument")
+				break;
+			}
+			switch (pieces[1].toLowerCase()) {
+			case "free":
+				renderer.cameraController().setMode(CameraMode.FREE);
+				break;
+			case "any":
+				renderer.cameraController().setMode(CameraMode.ANY_PLAYER);
+				break;
+			case "team":
+				renderer.cameraController().setMode(CameraMode.TEAM);
+				break;
+			case "player": 
+				renderer.cameraController().setMode(CameraMode.PLAYER);
+				break;
+			default:
+				ui.print("Unsupported spectate option: " + pieces[1]);
+			}
 			break;
 		case "/nowalls":
 			game.sceneMap().clear(wallSpace);

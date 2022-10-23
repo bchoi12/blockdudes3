@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 
 import { game } from './game.js'
-import { SpecialName } from './html.js'
 import { KeyNames } from './key_names.js'
 import { Model, loader } from './loader.js'
 import { options } from './options.js'
 import { RenderObject } from './render_object.js'
 import { renderer } from './renderer.js'
+import { SpecialName } from './special_name.js'
 import { ui, TooltipType } from './ui.js'
 import { Util } from './util.js'
 
@@ -56,9 +56,7 @@ export class RenderPickup extends RenderObject {
 				ui.tooltip( { 
 					type: TooltipType.PICKUP,
 					ttl: 500,
-					names: [{
-						text: "[" + KeyNames.get(options.interactKeyCode) + "]",
-					}, this.getWeaponName()],
+					names: [this.getWeaponName()],
 				});
 			}
 		}

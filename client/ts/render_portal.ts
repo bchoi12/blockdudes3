@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 
 import { game } from './game.js'
-import { SpecialName } from './html.js'
 import { options } from './options.js'
 import { Particle } from './particles.js'
 import { RenderCustom } from './render_custom.js'
 import { RenderObject } from './render_object.js'
+import { SpecialNames } from './special_name.js'
 import { ui, TooltipType } from './ui.js'
 import { Util } from './util.js'
 
@@ -137,12 +137,8 @@ export class RenderPortal extends RenderObject {
 			if (this._bbox.containsPoint(player.pos()) || this._bbox.intersectsBox(player.bbox())) {
 				if (this.space() === goalSpace && player.byteAttribute(teamByteAttribute) !== this.byteAttribute(teamByteAttribute)) {
 					ui.tooltip({
-						type: TooltipType.GOAL,
+						type: TooltipType.PREVENT_VIP,
 						ttl: 500,
-						names: [{
-							text: "VIP",
-							color: Util.colorString(vipColor),
-						}]
 					})
 				}
 			}

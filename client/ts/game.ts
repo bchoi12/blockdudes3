@@ -77,8 +77,8 @@ class Game {
 	hasId() : boolean { return this._id >= 0; }
 	id() : number { return this._id; }
 	player(id? : number) : RenderPlayer { return <RenderPlayer>this._sceneMap.get(playerSpace, Util.defined(id) ? id : this.id()); }
+	gameState() : GameState { return this._state; }
 	state() : number { return this._state.state(); }
-	teams() : Map<number, Array<number>> { return this._state.teams(); }
 	inputMode() : GameInputMode { return this._inputMode; }
 	timeOfDay() : number { return this._timeOfDay; }
 	updateSpeed() : number { return this._updateSpeed; }
@@ -221,9 +221,8 @@ class Game {
 			return;
 		}
 
-		if (options.extrapolateWeight === 0) {
-			wasmSetData(playerSpace, this.id(), player.data());
-		}
+		// Don't delete this, it updates dir
+		wasmSetData(playerSpace, this.id(), player.data());
 
 		const keyMsg = this._keys.keyMsg(this._keySeqNum);
 		keyMsg.Key.K = Util.arrayToString(keyMsg.Key.K);
@@ -279,16 +278,17 @@ class Game {
 
 		if (camera.mode() === CameraMode.TEAM || camera.mode() === CameraMode.ANY_PLAYER) {
 			if (this._keys.keyPressed(rightKey)) {
-				camera.incrementIndex(1);
+				camera.seek(1);
 			} else if (this._keys.keyPressed(leftKey)) {
-				camera.incrementIndex(-1);
+				camera.seek(-1);
 			}
 
 			const object = camera.object();
-			if (Util.defined(object)) {
+			if (Util.defined(object) && object.id() !== this.id()) {
 				ui.tooltip({
 					type: TooltipType.SPECTATING,
 					names: [object.specialName()],
+					ttl: 250,
 				})
 			}
 		}

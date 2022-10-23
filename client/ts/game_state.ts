@@ -1,6 +1,7 @@
 
 import { game } from './game.js'
 import { SpacedId } from './spaced_id.js'
+import { SpecialNames } from './special_name.js'
 import { ui, AnnouncementType } from './ui.js'
 import { Util } from './util.js'
 
@@ -51,10 +52,7 @@ export class GameState {
 					ui.announce({
 						type: AnnouncementType.REACH,
 						ttl: 4000,
-						names: [{
-							text: "exit portal",
-							color: Util.colorString(vipColor),
-						}],
+						names: [SpecialNames.goal()],
 					});
 				} else {
 					const self = game.player();
@@ -74,10 +72,7 @@ export class GameState {
 							ui.announce({
 								type: AnnouncementType.ELIMINATE,
 								ttl: 4000,
-								names: [{
-									text: "VIP",
-									color: Util.colorString(vipColor),
-								}],
+								names: [SpecialNames.vip()],
 							});
 						}
 					}

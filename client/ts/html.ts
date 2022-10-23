@@ -1,3 +1,5 @@
+import { SpecialName } from './special_name.js'
+
 export namespace Html {
 
 	export const classTextButton = "text-button";
@@ -130,9 +132,4 @@ export class HtmlWrapper {
 			this._elm.removeChild(this._elm.firstChild);
 		}
 	}
-}
-
-export interface SpecialName {
-	text : string
-	color? : string
 }
