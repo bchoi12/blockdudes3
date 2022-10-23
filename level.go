@@ -162,7 +162,7 @@ func (l *Level) loadBirdTown(seed LevelSeedType, grid *Grid) {
 
 	numBuildings := 6 + r.Intn(3)
 
-	l.blockGrid.SetYOffsets(2, 0)
+	l.blockGrid.SetYOffsets(2, -1)
 
 	for i := 0; i < numBuildings; i += 1 {
 		gap := 0.0

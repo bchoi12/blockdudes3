@@ -163,10 +163,9 @@ export class RenderPlayer extends RenderAnimatedObject {
 		});
 		this._panTracker = new ChangeTracker<boolean>(() => {
 			return this.id() === game.id()
-				&& this.id() === renderer.cameraObject().id()
+				&& (Util.defined(renderer.cameraObject()) && this.id() === renderer.cameraObject().id())
 				&& !this.attribute(deadAttribute)
-				&& Util.defined(this.weapon())
-				&& this.weapon().byteAttribute(subtypeByteAttribute) === chargerEquip
+				&& (Util.defined(this.weapon()) && this.weapon().byteAttribute(subtypeByteAttribute) === chargerEquip)
 				&& game.keys().keyDown(altMouseClick);
 		}, (pan : boolean) => {
 			let camera = renderer.cameraController();

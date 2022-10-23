@@ -105,6 +105,10 @@ func (p *Player) SetData(data Data) {
 	}
 }
 
+func (p Player) Dead() bool {
+	return p.Health.Dead()
+}
+
 func (p *Player) UpdateScore(g *Grid) {
 	if deaths, ok := p.GetIntAttribute(deathIntAttribute); ok {
 		p.SetIntAttribute(deathIntAttribute, deaths + 1)
