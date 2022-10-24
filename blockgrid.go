@@ -111,7 +111,7 @@ func (bg *BlockGrid) AddBuilding(attributes BuildingAttributes) *Building {
 	return building
 }
 
-func (bg *BlockGrid) Connect() {
+func (bg *BlockGrid) Connect(r *rand.Rand) {
 	for i := 0; i < len(bg.buildings); i += 1 {
 		building := bg.buildings[i]
 		var prevBuilding, nextBuilding *Building
@@ -136,15 +136,51 @@ func (bg *BlockGrid) Connect() {
 				block.AddBalcony(NewVec2(1, 0))
 			}
 
-			if nextBlock != nil && block.GetOpening(rightCardinal) {
+			if nextBlock != nil && block.GetOpening(leftCardinal) && block.GetOpening(rightCardinal) {
 				if !nextBlock.GetOpening(leftCardinal) {
-					if len(building.blocks) > j + 1 && len(nextBuilding.blocks) > j + 1 && !block.GetOpening(bottomRightCardinal) {
+					if len(building.blocks) >= j + 1 && len(nextBuilding.blocks) >= len(building.blocks) && !block.AnyOpenings(bottomLeftCardinal, bottomCardinal, bottomRightCardinal) {
 						block.LoadSidedTemplate(stairsSidedBlockTemplate, NewRightCardinal())
-						building.blocks[j + 1].AddOpenings(bottomRightCardinal)
-						nextBuilding.blocks[j + 1].AddOpenings(leftCardinal, rightCardinal)
+
+						if len(building.blocks) > j + 1 {
+							building.blocks[j].AddOpenings(topCardinal)
+							building.blocks[j + 1].AddOpenings(bottomRightCardinal)
+						} else {
+							roof := building.GetRoof()
+							roof.AddOpenings(bottomRightCardinal, rightCardinal)
+						}
+
+						if len(nextBuilding.blocks) > j + 1 {
+							nextBuilding.blocks[j + 1].AddOpenings(leftCardinal, rightCardinal)
+						} else {
+							roof := nextBuilding.GetRoof()
+							roof.AddOpenings(leftCardinal)
+						}
 					} else {
 						nextBlock.AddOpenings(leftCardinal, rightCardinal)
 					}
+					continue
+				} else {
+					if len(building.blocks) >= j + 1 && len(nextBuilding.blocks) >= len(building.blocks) && !block.AnyOpenings(bottomLeftCardinal, bottomCardinal, bottomRightCardinal) && r.Intn(100) < 50 {
+						block.LoadSidedTemplate(stairsSidedBlockTemplate, NewRightCardinal())
+						nextBlock.RemoveOpenings(leftCardinal)
+
+						if len(building.blocks) > j + 1 {
+							building.blocks[j].AddOpenings(topCardinal)
+							building.blocks[j + 1].AddOpenings(bottomRightCardinal)
+						} else {
+							roof := building.GetRoof()
+							roof.AddOpenings(bottomRightCardinal, rightCardinal)
+						}
+
+						if len(nextBuilding.blocks) > j + 1 {
+							nextBuilding.blocks[j].RemoveOpenings(leftCardinal, rightCardinal)
+							nextBuilding.blocks[j + 1].AddOpenings(leftCardinal, rightCardinal)
+						} else {
+							roof := nextBuilding.GetRoof()
+							roof.AddOpenings(leftCardinal)
+						}
+					}
+					continue
 				}
 			}
 		}
@@ -162,7 +198,7 @@ func (bg *BlockGrid) Connect() {
 func (bg *BlockGrid) Randomize(r *rand.Rand) {
 	for _, building := range(bg.buildings) {
 		for _, block := range(building.blocks) {
-			if block.AnyOpenings(leftCardinal, rightCardinal) && !block.AnyOpenings(bottomLeftCardinal, bottomCardinal, bottomRightCardinal) && r.Intn(100) < 15 {
+			if block.AnyOpenings(leftCardinal, rightCardinal) && !block.AnyOpenings(bottomLeftCardinal, bottomCardinal, bottomRightCardinal) && r.Intn(100) < 20 {
 				block.LoadTemplate(tableBlockTemplate)
 			}
 		}

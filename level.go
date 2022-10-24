@@ -160,7 +160,7 @@ func (l *Level) loadBirdTown(seed LevelSeedType, grid *Grid) {
 
 	growChance := NewGrowingChance(r, 70, 20)
 
-	numBuildings := 6 + r.Intn(3)
+	numBuildings := 7 + r.Intn(3)
 
 	l.blockGrid.SetYOffsets(2, -1)
 
@@ -202,10 +202,11 @@ func (l *Level) loadBirdTown(seed LevelSeedType, grid *Grid) {
 			roof.LoadTemplate(weaponsBlockTemplate)
 			spawn := NewSpawn(NewInit(
 				Id(spawnSpace, 0),
-				NewVec2(roof.Pos().X, roof.Pos().Y + 1),
+				NewVec2(roof.Pos().X, roof.Pos().Y + 2),
 				NewVec2(6, 1),
 			))
 			spawn.SetByteAttribute(teamByteAttribute, 1)
+			spawn.SetInitDir(NewVec2(1, 0))
 			roof.AddObject(spawn)
 		}
 
@@ -233,14 +234,15 @@ func (l *Level) loadBirdTown(seed LevelSeedType, grid *Grid) {
 
 			spawn := NewSpawn(NewInit(
 				Id(spawnSpace, 0),
-				NewVec2(backRoof.Pos().X, backRoof.Pos().Y + 1),
+				NewVec2(backRoof.Pos().X, backRoof.Pos().Y + 2),
 				NewVec2(6, 1),
 			))
 			spawn.SetByteAttribute(teamByteAttribute, 2)
+			spawn.SetInitDir(NewVec2(-1, 0))
 			backRoof.AddObject(spawn)
 		}
 	}
 
-	l.blockGrid.Connect()
+	l.blockGrid.Connect(r)
 	l.blockGrid.Randomize(r)
 }

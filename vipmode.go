@@ -7,6 +7,7 @@ import (
 
 const (
 	vipModeTeams uint8 = 2
+	vipMaxScore int = 7
 )
 
 type VipMode struct {
@@ -136,7 +137,7 @@ func (vm *VipMode) Update(g *Grid) {
 			return
 		}
 
-		if vm.teamScores[1] >= 7 || vm.teamScores[2] >= 7 {
+		if vm.teamScores[1] >= vipMaxScore || vm.teamScores[2] >= vipMaxScore {
 			vm.config.levelId = lobbyLevel
 			vm.config.nextState = lobbyGameState
 			vm.SetState(setupGameState)

@@ -39,9 +39,6 @@ export class RenderBlock extends RenderObject {
 		const object = renderer.cameraObject();
 		if (Util.defined(object)) {
 			this._inside = this.containsObject(object);
-		} else {
-			const anchor = renderer.cameraAnchor();
-			this._inside = this.contains(new THREE.Vector2(anchor.x, anchor.y));
 		}
 
 		this._frontMaterials.forEach((opacity, mat) => {
@@ -151,9 +148,18 @@ export class RenderBlock extends RenderObject {
 			if (this._frontMaterials.size > 0) {
 				const pos = this.pos();
 				const dim = this.dim();
-				this._bbox = new THREE.Box2(
-					new THREE.Vector2(pos.x - dim.x/2 - this._boxBuffer, pos.y - dim.y/2 - this._boxBuffer),
-					new THREE.Vector2(pos.x + dim.x/2 + this._boxBuffer, pos.y + dim.y/2 + this._boxBuffer));
+
+				let bottomLeft = new THREE.Vector2(pos.x - dim.x/2 - this._boxBuffer, pos.y - dim.y/2 - this._boxBuffer);
+				let topRight = new THREE.Vector2(pos.x + dim.x/2 + this._boxBuffer, pos.y + dim.y/2 + this._boxBuffer);
+
+				if (opening.anyBottom()) {
+					bottomLeft.y -= dim.y;
+				}
+				if (opening.anyTop()) {
+					topRight.y += dim.y;
+				}
+
+				this._bbox = new THREE.Box2(bottomLeft, topRight);
 			}
 		});
 	}

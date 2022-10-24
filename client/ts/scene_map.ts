@@ -19,6 +19,7 @@ import { RenderPlayer } from './render_player.js'
 import { RenderPortal } from './render_portal.js'
 import { RenderRocket } from './render_rocket.js'
 import { RenderRoofBlock } from './render_roof_block.js'
+import { RenderSpawn } from './render_spawn.js'
 import { RenderStar } from './render_star.js'
 import { RenderWall } from './render_wall.js'
 import { RenderWeapon } from './render_weapon.js'
@@ -165,7 +166,7 @@ export class SceneMap {
 		} else if (space === portalSpace || space === goalSpace) {
 			renderObj = new RenderPortal(space, id);
 		} else if (space === spawnSpace) {
-			renderObj = new RenderObject(space, id);
+			renderObj = new RenderSpawn(space, id);
 		} else {
 			console.error("Unable to construct object for type " + space);
 			return null;

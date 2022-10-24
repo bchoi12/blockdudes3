@@ -39,6 +39,8 @@ func (rb *RoofBlock) LoadTemplate(template BlockTemplate) {
 		sniper.SetByteAttribute(typeByteAttribute, uint8(sniperWeapon))
 		sniper.SetByteAttribute(subtypeByteAttribute, uint8(chargerEquip))
 		rb.objects = append(rb.objects, sniper)
+
+		rb.occupied.AddAll(bottomLeftCardinal, bottomCardinal, bottomRightCardinal) 
 	}
 }
 
@@ -54,8 +56,19 @@ func (rb *RoofBlock) Load() {
 
 	switch (rb.GetBlockType()) {
 	case archBlock:
-		floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, rb.GetThickness()), bottomCardinal)
-		rb.objects = append(rb.objects, NewWall(floor))
+		if rb.openings.AnyBottom() {
+			if !rb.openings.Get(bottomLeftCardinal) {
+				left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2(width / 2, rb.GetThickness()), bottomLeftCardinal)
+				rb.objects = append(rb.objects, NewWall(left))
+			}
+			if !rb.openings.Get(bottomRightCardinal) {
+				right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2(width / 2, rb.GetThickness()), bottomRightCardinal)
+				rb.objects = append(rb.objects, NewWall(right))
+			}
+		} else {
+			floor := NewInitC(Id(wallSpace, 0), pos, NewVec2(width, rb.GetThickness()), bottomCardinal)
+			rb.objects = append(rb.objects, NewWall(floor))
+		}
 
 		if !rb.openings.Get(leftCardinal) {
 			left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2(rb.GetThickness(), 1), bottomLeftCardinal)

@@ -34,12 +34,12 @@ export class RenderStar extends RenderProjectile {
 		super.initialize();
 
 		const dim = this.dim();
-		const group = new THREE.Group();
 		const colorPair = [this.color(), this.secondaryColor()];
 
 		this._materials.push(new THREE.MeshLambertMaterial({ color: colorPair[0] }));
 		this._materials.push(new THREE.MeshLambertMaterial({ color: colorPair[1] }));
 
+		let group = new THREE.Group();
 		for (let i = 0; i < 4; ++i) {
 			const prismMesh = new THREE.Mesh(RenderStar.prismGeometry, new THREE.MeshLambertMaterial({ color: colorPair[i % 2]}));
 			prismMesh.rotation.z = i * Math.PI / 2;

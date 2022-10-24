@@ -46,7 +46,13 @@ export class GameState {
 			this._vipId = SpacedId.fromMessage(gameState[vipProp]);
 		}
 
+		if (this._state === lobbyGameState) {
+			game.setTimeOfDay(0);
+		}
+
 		if (this._state === activeGameState) {
+			game.setTimeOfDay(((this._teamScores[1] + this._teamScores[2]) % 6) / 6);
+
 			if (this._vipId.valid()) {
 				if (this._vipId.id() === game.id()) {
 					ui.announce({

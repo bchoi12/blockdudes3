@@ -50,4 +50,12 @@ export class Cardinal {
 	anyRight() {
 		return this.get(rightCardinal) || this.get(topRightCardinal) || this.get(bottomRightCardinal);
 	}
+
+	anyBottom() {
+		return this.get(bottomCardinal) || this.get(bottomLeftCardinal) || this.get(bottomRightCardinal);
+	}
+
+	anyTop() {
+		return this.get(topCardinal) || this.get(topLeftCardinal) || this.get(topRightCardinal);
+	}
 }

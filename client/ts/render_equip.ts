@@ -138,32 +138,30 @@ export class RenderEquip extends RenderObject {
 	}
 
 	private updateBooster(state : number) : void {
-		// TODO: need triggers to make this better
-		/*
-		if (state === activePartState) {
-			const weapon = this._player.weapon();
-
-			if (!Util.defined(weapon)) {
-				return;
-			}
-
-			// TODO: fix weapon dir and use it here
-			const angle = this._player.dir().angle();
-			let offset = new THREE.Vector3(-1, 0, 0);
-			offset.applyEuler(new THREE.Euler(0, 0, angle));
-
-			let pos = this._player.pos3();
-			pos.add(offset.clone().multiplyScalar(0.5));
-
-			game.particles().emit(Particle.SMOKE_RING, 400, (object : THREE.Mesh, ts : number) => {
-				object.scale.multiplyScalar(0.95);
-				object.position.add(offset.clone().multiplyScalar(20 * object.scale.x * ts));
-			}, {
-				position: pos,
-				scale: 0.4,
-				rotation: new THREE.Euler(0, Math.PI / 2 + Math.sign(this._player.weapon().dir().x) * 0.2, Math.PI / 2),
-			});
+		if (!Util.defined(this._player)) {
+			return;
 		}
-		*/
+
+		// TODO: need triggers to make this better
+		if (state === activePartState) {
+			const playerPos = this._player.pos3();
+
+
+			for (let i = 0; i < 6; ++i) {
+				let scale = MathUtil.randomRange(0.2, 0.6);
+
+				let pos = playerPos.clone();
+				pos.x += MathUtil.randomRange(-0.2, 0.2);
+				pos.y += MathUtil.randomRange(-0.2, 0.2);
+				pos.z += MathUtil.randomRange(-0.2, 0.2);
+
+				game.particles().emit(Particle.FINE_SMOKE, 750, (mesh : THREE.Object3D, ts : number) => {
+					mesh.scale.multiplyScalar(0.9);
+				}, {
+					position: pos,
+					scale: scale,
+				});
+			}
+		}
 	}
 }

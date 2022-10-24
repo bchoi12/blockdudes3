@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	jetpackMaxJuice int = 100
+	jetpackMaxJuice int = 80
 )
 
 type Jetpack struct {
@@ -54,7 +54,7 @@ func (j *Jetpack) Update(grid *Grid, now time.Time) {
 
 	j.state = activePartState
 	jet := NewVec2(0, 1)
-	scale := Clamp(0.4, -0.5 * (player.Vel().Y - 2) + 2, 3) 
+	scale := Clamp(0.5, -0.5 * (player.Vel().Y - 2) + 2, 3) 
 	jet.Scale(scale)
 	player.AddForce(jet)
 	j.juice -= 1

@@ -26,7 +26,7 @@ export class RenderGrapplingHook extends RenderProjectile {
 	override initialize() : void {
 		super.initialize();
 
-		const group = new THREE.Group();
+		let group = new THREE.Group();
 
 		this._ropeGeometry = new THREE.BufferGeometry();
 		let ropeLine = new THREE.Line(this._ropeGeometry, RenderGrapplingHook.lineMaterial);

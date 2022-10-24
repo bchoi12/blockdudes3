@@ -47,7 +47,21 @@ func (c *Cardinal) Add(cardinal CardinalType) {
 		return
 	}
 
-	c.mask = c.mask ^ (0b1 << (cardinal - 1))
+	c.mask = c.mask | (0b1 << (cardinal - 1))
+}
+
+func (c *Cardinal) AddAll(cardinals ...CardinalType) {
+	for _, cardinal := range(cardinals) {
+		c.Add(cardinal)
+	}
+}
+
+func (c *Cardinal) Remove(cardinal CardinalType) {
+	if cardinal == unknownCardinal {
+		return
+	}
+
+	c.mask = c.mask & (^(0b1 << (cardinal - 1)))
 }
 
 func (c Cardinal) Get(cardinal CardinalType) bool {

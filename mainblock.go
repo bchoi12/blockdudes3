@@ -63,12 +63,20 @@ func (mb *MainBlock) LoadTemplate(template BlockTemplate) {
 		sniper.SetByteAttribute(subtypeByteAttribute, uint8(chargerEquip))
 		mb.objects = append(mb.objects, sniper)
 
+		mb.occupied.AddAll(bottomLeftCardinal, bottomCardinal, bottomRightCardinal)
+
 	case tableBlockTemplate:
+		if mb.occupied.Get(bottomCardinal) || mb.AnyOpenings(bottomCardinal, bottomLeftCardinal, bottomRightCardinal) {
+			break
+		}
+
 		table := NewWall(NewInitC(Id(wallSpace, 0), NewVec2(x, y + mb.thick), NewVec2(3, 1), bottomCardinal))
 		table.SetByteAttribute(subtypeByteAttribute, uint8(tableWallSubtype))
 		table.AddAttribute(visibleAttribute)
 		table.SetIntAttribute(colorIntAttribute, tableColor)
 		mb.objects = append(mb.objects, table)
+
+		mb.occupied.Add(bottomCardinal)
 	}
 }
 
@@ -120,6 +128,8 @@ func (mb *MainBlock) LoadSidedTemplate(template SidedBlockTemplate, cardinal Car
 			}
 
 			mb.objects = append(mb.objects, stair)
+
+			mb.occupied.AddAll(bottomLeftCardinal, bottomCardinal, bottomRightCardinal)
 		}
 	}
 }
@@ -140,10 +150,16 @@ func (mb *MainBlock) Load() {
 			if !mb.openings.Get(bottomLeftCardinal) {
 				left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2(width / 2, mb.thick), bottomLeftCardinal)
 				mb.objects = append(mb.objects, NewWall(left))
+			} else {
+				left := NewInitC(Id(wallSpace, 0), NewVec2(x - width / 2, y), NewVec2(mb.thick, mb.thick), bottomLeftCardinal)
+				mb.objects = append(mb.objects, NewWall(left))
 			}
 
 			if !mb.openings.Get(bottomRightCardinal) {
 				right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2(width / 2, mb.thick), bottomRightCardinal)
+				mb.objects = append(mb.objects, NewWall(right))
+			} else {
+				right := NewInitC(Id(wallSpace, 0), NewVec2(x + width / 2, y), NewVec2(mb.thick, mb.thick), bottomRightCardinal)
 				mb.objects = append(mb.objects, NewWall(right))
 			}
 		} else {

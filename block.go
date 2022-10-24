@@ -47,6 +47,7 @@ type Block interface {
 	SetBlockType(blockType BlockType)
 
 	AddOpenings(cardinals ...CardinalType)
+	RemoveOpenings(cardinals ...CardinalType)
 	AnyOpenings(cardinals ...CardinalType) bool
 	GetOpening(cardinal CardinalType) bool
 
@@ -60,9 +61,11 @@ type BaseBlock struct {
 
 	blockType BlockType
 	openings Cardinal
+	occupied Cardinal
 	thick float64
 	sideOpening float64
 
+	link SpacedId
 	addonBlocks []Block
 	objects []Object
 }
@@ -73,9 +76,11 @@ func NewBaseBlock(init Init) BaseBlock {
 
 		blockType: unknownBlock,
 		openings: NewCardinal(),
+		occupied: NewCardinal(),
 		thick: 0,
 		sideOpening: 0,
 
+		link: InvalidId(),
 		addonBlocks: make([]Block, 0),
 		objects: make([]Object, 0),
 	}
@@ -114,6 +119,13 @@ func (bb *BaseBlock) SetBlockType(blockType BlockType) {
 func (bb *BaseBlock) AddOpenings(cardinals ...CardinalType) {
 	for _, cardinal := range(cardinals) {
 		bb.openings.Add(cardinal)
+	}
+	bb.SetByteAttribute(openingByteAttribute, bb.openings.ToByte())
+}
+
+func (bb *BaseBlock) RemoveOpenings(cardinals ...CardinalType) {
+	for _, cardinal := range(cardinals) {
+		bb.openings.Remove(cardinal)
 	}
 	bb.SetByteAttribute(openingByteAttribute, bb.openings.ToByte())
 }

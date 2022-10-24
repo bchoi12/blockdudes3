@@ -86,14 +86,14 @@ export class RenderPlayer extends RenderAnimatedObject {
 
 			let lostHealth = Math.round(lastHealth - health);
 			if (lostHealth > 0) {
-				let scale = Math.max(lostHealth / 25, 1);
+				let scale = MathUtil.clamp(1, lostHealth / 40, 2);
 				this._lastHit = Date.now();
 				this._hitDuration = scale * 0.2;
 
 				if (this.hasPos()) {
 					let damageText = SpriteCreator.text("" + Math.round(lastHealth - health), {
 						fontFace: "Impact",
-						fontSize: 96,
+						fontSize: 128,
 						buffer: 0.1,
 						color: Util.colorString(this.color()),
 						shadow: "white",
@@ -108,21 +108,20 @@ export class RenderPlayer extends RenderAnimatedObject {
 					damageText.position.copy(this.pos3());
 					damageText.position.add(offset);
 
-					let softScale = Math.max(1, 0.5 * scale);
 					let vel = new THREE.Vector3(
-						offset.x * softScale,
-						offset.y * softScale,
-						offset.z * softScale,
+						offset.x * scale,
+						offset.y * scale,
+						offset.z * scale,
 					);
-					damageText.scale.x *= softScale
-					damageText.scale.y *= softScale;
+					damageText.scale.x *= scale
+					damageText.scale.y *= scale;
 
-					game.particles().emitObject(damageText, 1000 * softScale, (object : THREE.Object3D, ts : number) => {
+					game.particles().emitObject(damageText, 800 * scale, (object : THREE.Object3D, ts : number) => {
 						object.position.x += vel.x * ts;
 						object.position.y += vel.y * ts;
 
-						object.scale.x += 0.3 * vel.y * ts;
-						object.scale.y += 0.3 * vel.y * ts;
+						object.scale.x += 0.6 * vel.y * ts;
+						object.scale.y += 0.6 * vel.y * ts;
 						if (object.scale.x < 0) {
 							object.scale.x = 0;
 						}
@@ -281,7 +280,7 @@ export class RenderPlayer extends RenderAnimatedObject {
 			if (!Util.defined(this._currentBlock)) {
 				const blocks = game.sceneMap().getMap(mainBlockSpace);
 				blocks.forEach((block : RenderBlock) => {
-					if (block.contains(this.pos())) {
+					if (block.containsObject(this)) {
 						this._currentBlock = block;
 					}
 				});
