@@ -80,6 +80,7 @@ func setGlobals() {
 	js.Global().Set("mainBlockSpace", int(mainBlockSpace))
 	js.Global().Set("balconyBlockSpace", int(balconyBlockSpace))
 	js.Global().Set("roofBlockSpace", int(roofBlockSpace))
+	js.Global().Set("hutBlockSpace", int(hutBlockSpace))
 	js.Global().Set("wallSpace", int(wallSpace))
 	js.Global().Set("lightSpace", int(lightSpace))
 	js.Global().Set("explosionSpace", int(explosionSpace))

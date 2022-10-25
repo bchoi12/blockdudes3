@@ -11,6 +11,28 @@ func NewRoofBlock(init Init) *RoofBlock {
 	return rb
 }
 
+func (rb *RoofBlock) AddHut() {
+	pos := rb.PosC(bottomCardinal)
+	pos.Y += rb.GetThickness()
+
+	hut := NewHutBlock(NewInitC(
+		Id(hutBlockSpace, 0),
+		pos,
+		blockSizes[hutBlockSpace][rb.GetBlockType()],
+		bottomCardinal,
+	))
+	hut.SetBlockType(rb.GetBlockType())
+
+	if color, ok := rb.GetIntAttribute(colorIntAttribute); ok {
+		hut.SetIntAttribute(colorIntAttribute, color)
+	}
+	if color, ok := rb.GetIntAttribute(secondaryColorIntAttribute); ok {
+		hut.SetIntAttribute(secondaryColorIntAttribute, color)
+	}
+
+	rb.Append(hut)
+}
+
 func (rb *RoofBlock) LoadTemplate(template BlockTemplate) {
 	pos := rb.PosC(bottomCardinal)
 	x := pos.X

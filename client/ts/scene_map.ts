@@ -10,6 +10,7 @@ import { RenderBolt } from './render_bolt.js'
 import { RenderEquip } from './render_equip.js'
 import { RenderExplosion } from './render_explosion.js'
 import { RenderGrapplingHook } from './render_grappling_hook.js'
+import { RenderHutBlock } from './render_hut_block.js'
 import { RenderLight } from './render_light.js'
 import { RenderMainBlock } from './render_main_block.js'
 import { RenderObject } from './render_object.js'
@@ -141,6 +142,8 @@ export class SceneMap {
 			renderObj = new RenderBalconyBlock(space, id);
 		} else if (space === roofBlockSpace) {
 			renderObj = new RenderRoofBlock(space, id);
+		} else if (space === hutBlockSpace) {
+			renderObj = new RenderHutBlock(space, id);
 		} else if (space === wallSpace) {
 			renderObj = new RenderWall(space, id);
 		} else if (space === explosionSpace) {

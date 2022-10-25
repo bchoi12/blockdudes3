@@ -35,8 +35,10 @@ export class RenderPickup extends RenderObject {
 	override setMesh(mesh : THREE.Object3D) {
 		super.setMesh(mesh);
 
-		mesh.rotation.x = this.id() * 0.15 * Math.PI
-		mesh.rotation.y = this.id() * 0.3 * Math.PI
+		mesh.position.z = -2;
+
+		mesh.rotation.x = this.id() * 0.15 * Math.PI;
+		mesh.rotation.y = this.id() * 0.3 * Math.PI;
 
 		if (options.enableShadows) {
 			mesh.receiveShadow = true;

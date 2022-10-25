@@ -83,7 +83,7 @@ func NewLauncher(weapon *Weapon, space SpaceType) *Launcher {
 		l.maxAmmo = 1
 		l.reloadTimer.SetDuration(1000 * time.Millisecond)
 		l.projectileSize = NewVec2(0.5, 0.5)
-		l.projectileVel = 0
+		l.projectileVel = 5
 		l.projectileRelativeSpeed = true
 		l.projectileAcc = 50
 	case starSpace:

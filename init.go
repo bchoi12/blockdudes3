@@ -8,6 +8,7 @@ const (
 	mainBlockSpace
 	roofBlockSpace
 	balconyBlockSpace
+	hutBlockSpace
 	wallSpace
 	lightSpace
 	explosionSpace

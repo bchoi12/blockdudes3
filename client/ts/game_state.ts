@@ -6,6 +6,7 @@ import { ui, AnnouncementType } from './ui.js'
 import { Util } from './util.js'
 
 export class GameState {
+	private readonly _times = new Array<number>(0, 0.2, 0.4, 0.6, 0.8, 1, 0.8, 0.6, 0.4, 0.2);
 
 	private _state : number;
 	private _teams : Map<number, Array<number>>;
@@ -51,7 +52,7 @@ export class GameState {
 		}
 
 		if (this._state === activeGameState) {
-			game.setTimeOfDay(((this._teamScores[1] + this._teamScores[2]) % 6) / 6);
+			game.setTimeOfDay(this._times[(this._teamScores[1] + this._teamScores[2]) % this._times.length]);
 
 			if (this._vipId.valid()) {
 				if (this._vipId.id() === game.id()) {

@@ -15,6 +15,7 @@ const (
 	archBlue int = 0x0fdcfc
 	archPurple int = 0x910ffc
 	archWhite int = 0xffffff
+	archGray int = 0x444444
 
 	boltColor int = 0xffa610
 	chargedBoltColor int = 0x10b3ff

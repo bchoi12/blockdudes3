@@ -72,6 +72,8 @@ func (g *Grid) New(init Init) Object {
 		return NewBalconyBlock(init)
 	case roofBlockSpace:
 		return NewRoofBlock(init)
+	case hutBlockSpace:
+		return NewHutBlock(init)
 	case wallSpace:
 		return NewWall(init)
 	case explosionSpace:

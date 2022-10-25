@@ -71,7 +71,7 @@ func (l *Level) loadLobby(grid *Grid) {
 		building := l.blockGrid.AddBuilding(BuildingAttributes{
 			gap: 0,
 			blockType: archBlock,
-			color: 0x444444,
+			color: archRed,
 			secondaryColor: archWhite,
 			height: 3,
 		})
@@ -97,7 +97,7 @@ func (l *Level) loadLobby(grid *Grid) {
 		building := l.blockGrid.AddBuilding(BuildingAttributes{
 			gap: 0,
 			blockType: archBlock,
-			color: 0x444444,
+			color: archGray,
 			secondaryColor: archWhite,
 			height: 4,
 		})
@@ -122,7 +122,7 @@ func (l *Level) loadLobby(grid *Grid) {
 		building := l.blockGrid.AddBuilding(BuildingAttributes{
 			gap: 0,
 			blockType: archBlock,
-			color: 0x444444,
+			color: archBlue,
 			secondaryColor: archWhite,
 			height: 3,
 		})

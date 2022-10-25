@@ -30,6 +30,9 @@ var blockSizes = map[SpaceType]map[BlockType]Vec2 {
 	balconyBlockSpace: {
 		archBlock: NewVec2(3, 2),
 	},
+	hutBlockSpace: {
+		archBlock: NewVec2(5, 4),
+	},
 }
 
 var blockDimZs = map[BlockType]float64 {

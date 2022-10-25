@@ -42,9 +42,9 @@ export class CameraController {
 		this._mode = CameraMode.PLAYER;
 
 		this._orbitControls = new OrbitControls(this._camera, Html.elm(Html.divOverlays));
-		this._orbitControls.enableRotate = true;
-		this._orbitControls.enablePan =  true;
-		this._orbitControls.enableZoom = true;
+		this._orbitControls.enableRotate = false;
+		this._orbitControls.enablePan =  false;
+		this._orbitControls.enableZoom = false;
 		// @ts-ignore
 		this._orbitControls.listenToKeyEvents(window);
 		this._object = null;
@@ -171,6 +171,11 @@ export class CameraController {
 			const keys = Array.from(players.keys());
  			const key = keys[this.safeIndex(keys.length)];
 			this._object = players.get(key);
+			break;
+		case CameraMode.FREE:
+			this._orbitControls.enableRotate = true;
+			this._orbitControls.enablePan =  true;
+			this._orbitControls.enableZoom = true;
 			break;
 		}
 	}

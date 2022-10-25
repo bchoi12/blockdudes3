@@ -48,6 +48,7 @@ declare var playerSpace : number;
 declare var mainBlockSpace : number;
 declare var balconyBlockSpace : number;
 declare var roofBlockSpace : number;
+declare var hutBlockSpace : number;
 declare var wallSpace : number;
 declare var lightSpace : number;
 declare var explosionSpace : number;

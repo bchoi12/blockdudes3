@@ -185,12 +185,24 @@ func (bg *BlockGrid) Connect(r *rand.Rand) {
 			}
 		}
 
-		r := building.GetRoof()
+		roof := building.GetRoof()
 		if prevBuilding != nil && len(prevBuilding.blocks) > len(building.blocks) && prevBuilding.blocks[len(building.blocks)].GetOpening(rightCardinal) {
-			r.AddOpenings(leftCardinal)
+			roof.AddOpenings(leftCardinal)
 		}
 		if nextBuilding != nil && len(nextBuilding.blocks) > len(building.blocks) && nextBuilding.blocks[len(building.blocks)].GetOpening(leftCardinal) {
-			r.AddOpenings(rightCardinal)
+			roof.AddOpenings(rightCardinal)
+		}
+
+		if !roof.AnyOpenings(bottomLeftCardinal, bottomRightCardinal, bottomCardinal) && nextBuilding != nil {
+			if len(nextBuilding.blocks) > len(building.blocks) + 1 {
+				roof.AddHut()
+			} else if len(nextBuilding.blocks) > len(building.blocks) && r.Intn(100) < 75 {
+				roof.AddHut()
+			} else if len(nextBuilding.blocks) == len(building.blocks) && r.Intn(100) < 50 {
+				roof.AddHut()
+			} else if r.Intn(100) < 10 {
+				roof.AddHut()
+			}
 		}
 	}
 }

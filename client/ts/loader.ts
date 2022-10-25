@@ -26,6 +26,7 @@ export enum Model {
 	ARCH_BASE = "ARCH_BASE",
 	ARCH_ROOF = "ARCH_ROOF",
 	ARCH_BALCONY = "ARCH_BALCONY",
+	ARCH_HUT = "ARCH_HUT",
 	TABLE = "TABLE",
 
 	BEACH_BALL = "BEACH_BALL",
@@ -57,6 +58,7 @@ class Loader {
 		Model.ARCH_BASE,
 		Model.ARCH_ROOF,
 		Model.ARCH_BALCONY,
+		Model.ARCH_HUT,
 		Model.TABLE,
 	];
 
@@ -171,6 +173,7 @@ class Loader {
 			case Model.ARCH_BASE:
 			case Model.ARCH_ROOF:
 			case Model.ARCH_BALCONY:
+			case Model.ARCH_HUT:
 			case Model.TABLE:
 			case Model.POTTED_TREE:
 			case Model.BEACH_BALL:
