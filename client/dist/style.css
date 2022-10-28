@@ -83,6 +83,7 @@ fieldset legend {
 	height: 8em;
 
 	overflow-y: scroll;
+  scrollbar-width: none;
 }
 #input-message {
 	padding: 2px;
@@ -273,4 +274,4 @@ fieldset legend {
 ::-webkit-scrollbar {
     width: 0px;
     background: transparent; /* make scrollbar transparent */
-} 
+}

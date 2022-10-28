@@ -193,6 +193,7 @@ func (bg *BlockGrid) Connect(r *rand.Rand) {
 			roof.AddOpenings(rightCardinal)
 		}
 
+		/*
 		if !roof.AnyOpenings(bottomLeftCardinal, bottomRightCardinal, bottomCardinal) && nextBuilding != nil {
 			if len(nextBuilding.blocks) > len(building.blocks) + 1 {
 				roof.AddHut()
@@ -204,6 +205,7 @@ func (bg *BlockGrid) Connect(r *rand.Rand) {
 				roof.AddHut()
 			}
 		}
+		*/
 	}
 }
 

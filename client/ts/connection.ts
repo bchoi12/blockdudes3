@@ -193,6 +193,7 @@ class Connection {
 			this._dc.close();
 		}
 		this._dc = this._wrtc.createDataChannel("data", dataChannelConfig);
+		this._dc.binaryType = "arraybuffer";
 		this._candidates = new Array<RTCIceCandidate>();
 
 		this._wrtc.onconnectionstatechange = (event) => {
@@ -248,8 +249,22 @@ class Connection {
 	    this._wrtc.addIceCandidate(new RTCIceCandidate(options));
 	}
 
-	private handlePayload(payload : any) {
-		const bytes = new Uint8Array(payload);
+	private async handlePayload(payload : any) {
+		let bytes;
+
+		if (payload instanceof Blob) {	
+			bytes = new Uint8Array(await payload.arrayBuffer());
+		} else if (payload instanceof ArrayBuffer) {
+			bytes = new Uint8Array(payload);
+		} else {
+			console.error("Unknown payload type: " + (typeof payload));
+		}
+
+		if (bytes.length === 0) {
+			console.error("Decoded empty payload");
+			return;
+		}
+
 		const msg : any = decode(bytes);
 
 		if (Util.isDev()) {
