@@ -35,7 +35,7 @@ export class RenderExplosion extends RenderObject {
 			const material = new THREE.MeshLambertMaterial({color: this.color() });
 			// Add a random number for overlapping explosions
 			mesh = new THREE.Mesh(new THREE.SphereGeometry(radius + (this.id() % 5) * 0.01, 12, 8), material);
-			renderer.playSound(Sound.EXPLOSION, this.pos());
+			renderer.playSound(Sound.EXPLOSION, {pos: this.pos3()});
 		} else {
 			mesh = new THREE.Object3D();
 
@@ -83,7 +83,7 @@ export class RenderExplosion extends RenderObject {
 				},
 			});
 
-			renderer.playSound(Sound.PEW, this.pos());
+			renderer.playSound(Sound.PEW, {pos: this.pos()});
 		}
 
 		this.setMesh(mesh);

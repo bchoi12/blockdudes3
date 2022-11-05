@@ -80,14 +80,14 @@ export class Lighting extends SceneComponent {
 			this._sunLight.castShadow = true;
 		}
 
-		const side = 20;
-		this._sunLight.shadow.camera = new THREE.OrthographicCamera(-side, side, side, -side, 0.1, 500 );
+		const side = 30;
+		this._sunLight.shadow.camera = new THREE.OrthographicCamera(-side, side, side, -side, 0.1, 300 );
 		this._sunLight.shadow.mapSize.width = this._shadowMapWidth;
 		this._sunLight.shadow.mapSize.height = this._shadowMapHeight;
 		this._sunLight.shadow.bias = this._shadowBias;
 		this.addObject(this._sunLight);
 		this.addObject(this._sunLight.target);
-		
+	
 		this._hemisphereLight = new THREE.HemisphereLight(0xfdfbfd, 0x333333, 0);
 		this.addObject(this._hemisphereLight);
 

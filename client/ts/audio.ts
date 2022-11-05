@@ -1,6 +1,11 @@
+import * as THREE from 'three';
+
 import {Howl} from 'howler';
 
 import { options } from './options.js'
+import { RenderObject } from './render_object.js'
+import { renderer } from './renderer.js'
+import { Util } from './util.js'
 
 export enum Sound {
 	UNKNOWN,
@@ -22,6 +27,18 @@ export enum SystemSound {
 	UNKNOWN,
 }
 
+export interface SoundProperties {
+	object? : RenderObject;
+	pos? : THREE.Vector2|THREE.Vector3;
+}
+
+interface CurrentSound {
+	sound : Sound;
+	howl : Howl;
+	id : number;
+	properties : SoundProperties;
+}
+
 export class Audio {
 	private readonly _soundPrefix = "./sound/";
 	private readonly _musicPrefix = "./music/";
@@ -29,6 +46,7 @@ export class Audio {
 
 	private _sound : Map<Sound, Howl>;
 	private _music : Map<Music, Howl>;
+	private _currentSounds : Set<CurrentSound>;
 
 	constructor() {
 		this._sound = new Map<Sound, Howl>();
@@ -42,46 +60,48 @@ export class Audio {
 
 		this._music = new Map<Music, Howl>();
 		this.registerMusic(Music.PIANO, this._musicPrefix + "piano.mp3");
+
+		this._currentSounds = new Set<CurrentSound>();
 	}
 
-	getSound(sound : Sound) : Howl {
-		return this._sound.get(sound);
+	update() : void {
+		for (let currentSound of this._currentSounds) {
+			if (!currentSound.howl.playing()) {
+				this._currentSounds.delete(currentSound);
+				continue;
+			}
+
+			if (!this.hasPos(currentSound.properties)) {
+				this.stopSound(currentSound.sound, currentSound.id);
+				this._currentSounds.delete(currentSound);
+				continue;
+			}
+
+			this.adjustVolume(currentSound.howl, currentSound.id, this.getPos(currentSound.properties));
+		}
+
 	}
 
-	playSystemSound(sound : Sound) : number {
-		const howl = this._sound.get(sound);
-		howl.volume(options.soundVolume);
-		return howl.play();
-	}
-
-	playSound(sound : Sound, dist : THREE.Vector2) : number {
+	playSound(sound : Sound, properties : SoundProperties) : number {
 		if (!document.hasFocus()) {
 			return -1;
 		}
 
 		const howl = this._sound.get(sound);
 		const id = howl.play();
-		this.adjustVolume(howl, dist.lengthSq(), id);
-		howl.stereo(Math.min(1, Math.max(-1, dist.x / 10)), id);
+		this.adjustVolume(howl, id, this.getPos(properties));
+
+		this._currentSounds.add({
+			sound: sound,
+			howl: howl,
+			id: id,
+			properties: properties,
+		});
+
 		return id;
 	}
 
-	playSound3D(sound : Sound, dist : THREE.Vector3) : number {
-		if (!document.hasFocus()) {
-			return -1;
-		}
-
-		const howl = this._sound.get(sound);
-		const id = howl.play();	
-		this.adjustVolume(howl, dist.lengthSq(), id);
-		howl.stereo(Math.min(1, Math.max(-1, dist.x / 10)));
-		return id;
-	}
-
-	adjustSoundDist(sound : Sound, dist : THREE.Vector2, id : number) : void {
-		this.adjustVolume(this._sound.get(sound), dist.lengthSq(), id);
-	}
-
+	// TODO: this doesn't seem to work
 	fadeoutSound(sound : Sound, id : number) : void {
 		const howl = this._sound.get(sound);
 		howl.fade(howl.volume(id), 0, 1000 * (howl.duration() - howl.seek()), id);
@@ -91,16 +111,64 @@ export class Audio {
 		this._sound.get(sound).stop(id);
 	}
 
-	private adjustVolume(howl : Howl, distSq : number, id : number) {
+	private distVector(pos : THREE.Vector2|THREE.Vector3) : THREE.Vector2|THREE.Vector3 {
+		const anchor = renderer.cameraAnchor();
+		if (pos instanceof THREE.Vector2) {
+			return new THREE.Vector2(pos.x - anchor.x, pos.y - anchor.y);
+		}
+
+		return new THREE.Vector3(pos.x - anchor.x, pos.y - anchor.y, pos.z - anchor.z);
+	}
+
+	private hasPos(properties : SoundProperties) : boolean {
+		if (properties.object) {
+			if (!Util.defined(properties.object)) {
+				return false;
+			}
+			if (!properties.object.hasPos()) {
+				return false;
+			}
+			if (properties.object.deleted()) {
+				return false;
+			}
+
+			return true;
+		}
+
+		if (properties.pos) {
+			return true;
+		}
+		return false;
+	}
+
+	private getPos(properties : SoundProperties) : THREE.Vector3 {
+		if (Util.defined(properties.object)) {
+			return properties.object.pos3();
+		}
+
+		if (properties.pos instanceof THREE.Vector2) {
+			return new THREE.Vector3(properties.pos.x, properties.pos.y, 0);
+		}
+
+		if (properties.pos instanceof THREE.Vector3) {
+			return properties.pos.clone();
+		}
+
+		return renderer.cameraAnchor();
+	}
+
+	private adjustVolume(howl : Howl, id : number, pos : THREE.Vector2|THREE.Vector3) {
 		if (id < 0) {
 			return;
 		}
 
-		if (distSq <= this._distThresholdSq) {
+		const dist = this.distVector(pos);
+		if (dist.lengthSq() <= this._distThresholdSq) {
 			howl.volume(options.soundVolume, id);
 		} else {
-			howl.volume(options.soundVolume * this._distThresholdSq / distSq, id);
+			howl.volume(options.soundVolume * this._distThresholdSq / dist.lengthSq(), id);
 		}
+		howl.stereo(Math.min(1, Math.max(-1, dist.x / 10)), id);
 	}
 
 	private registerSound(sound : Sound, srcFile : string) : void {

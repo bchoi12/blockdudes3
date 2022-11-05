@@ -22,7 +22,6 @@ export class RenderStar extends RenderProjectile {
 		super(space, id);
 
 		this._materials = new Array<THREE.MeshLambertMaterial>();
-
 		this.setSound(Sound.THROW);
 	}
 

@@ -5,7 +5,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 
-import { Audio, Sound } from './audio.js'
+import { Audio, Sound, SoundProperties } from './audio.js'
 import { CameraController } from './camera_controller.js'
 import { game } from './game.js'
 import { Html } from './html.js'
@@ -122,6 +122,8 @@ class Renderer {
 			this._renderer.render(game.sceneMap().scene(), this._cameraController.camera());
 		}
 		this._renderCounter++;
+
+		this._audio.update();
 	}
 	fps() : number { return this._fps; }
 
@@ -130,19 +132,9 @@ class Renderer {
 	cameraAnchor() : THREE.Vector3 { return this._cameraController.anchor(); }
 	cameraTarget() : THREE.Vector3 { return this._cameraController.target(); }
 
-	playSystemSound(sound : Sound) : number { return this._audio.playSystemSound(sound); }
-	playSound(sound : Sound, pos : THREE.Vector2) : number {
-		const dist = new THREE.Vector2(pos.x - this._cameraController.anchor().x, pos.y - this._cameraController.anchor().y);
-		return this._audio.playSound(sound, dist);
-	}
-	playSound3D(sound : Sound, pos : THREE.Vector3) : number {
-		const dist = pos.clone();
-		dist.sub(this._cameraController.anchor());
-		return this._audio.playSound3D(sound, dist);
-	}
-	adjustSoundPos(sound : Sound, id : number, pos : THREE.Vector2) : void {
-		const dist = new THREE.Vector2(pos.x - this._cameraController.anchor().x, pos.y - this._cameraController.anchor().y);
-		return this._audio.adjustSoundDist(sound, dist, id);
+	audio() : Audio { return this._audio; }
+	playSound(sound : Sound, source : SoundProperties) : void {
+		this._audio.playSound(sound, source);
 	}
 	fadeoutSound(sound : Sound, id : number) : void { this._audio.fadeoutSound(sound, id); }
 	stopSound(sound : Sound, id : number) : void { this._audio.stopSound(sound, id); }

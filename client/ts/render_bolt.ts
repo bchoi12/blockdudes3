@@ -24,9 +24,9 @@ export class RenderBolt extends RenderProjectile {
 		super.initialize();
 
 		if (this.attribute(chargedAttribute)) {
-			this._soundId = renderer.playSound(Sound.TOM_SCREAM, this.pos());
+			renderer.playSound(Sound.TOM_SCREAM, {object: this});
 		} else {
-			renderer.playSound(Sound.LASER, this.pos());
+			renderer.playSound(Sound.LASER, {object: this});
 		}
 
 		const color = new THREE.Color(this.color());
@@ -108,10 +108,6 @@ export class RenderBolt extends RenderProjectile {
 				},
 			});
 		}
-
-		if (Util.defined(this._soundId)) {
-			renderer.fadeoutSound(Sound.TOM_SCREAM, this._soundId);
-		}
 	}
 
 	override setMesh(mesh : THREE.Object3D) {
@@ -136,10 +132,6 @@ export class RenderBolt extends RenderProjectile {
 
 		if (!this.hasMesh()) {
 			return;
-		}
-
-		if (Util.defined(this._soundId)) {
-			renderer.adjustSoundPos(Sound.TOM_SCREAM, this._soundId, this.pos());
 		}
 	}
 }

@@ -36,7 +36,7 @@ export class RenderProjectile extends RenderObject {
 		}
 
 		if (Util.defined(this._sound)) {
-			renderer.playSound(this._sound, this.pos());
+			renderer.playSound(this._sound, {object: this});
 		}
 	}
 

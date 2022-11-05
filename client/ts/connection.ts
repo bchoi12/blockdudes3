@@ -251,7 +251,6 @@ class Connection {
 
 	private async handlePayload(payload : any) {
 		let bytes;
-
 		if (payload instanceof Blob) {	
 			bytes = new Uint8Array(await payload.arrayBuffer());
 		} else if (payload instanceof ArrayBuffer) {
