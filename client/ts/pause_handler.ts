@@ -7,23 +7,30 @@ export class PauseHandler implements InterfaceHandler {
 	private _pauseElm : HTMLElement;
 	private _continueElm : HTMLElement;
 
+	private _canPause : boolean;
+
 	constructor() {
 		this._pauseElm = Html.elm(Html.divPause);
 		this._continueElm = Html.elm(Html.pauseContinue);
+
+		this._canPause = true;
 	}
 
 	setup() : void {
-		window.addEventListener("blur", (e : any) => {
-			if (ui.inputMode() !== InputMode.GAME) {
-				return;
-			}
-			ui.changeInputMode(InputMode.PAUSE);
+		document.addEventListener("keyup", (e : any) => {
+			if (e.keyCode !== options.pauseKeyCode) return;
+
+			this._canPause = true;
 		});
 
 		document.addEventListener("keydown", (e : any) => {
-			if (e.repeat || e.keyCode !== options.pauseKeyCode) return;
+			if (!this._canPause || e.keyCode !== options.pauseKeyCode) return;
 
-			if (ui.inputMode() === InputMode.GAME) {
+			this._canPause = false;
+
+			if (ui.inputMode() === InputMode.CHAT) {
+				ui.changeInputMode(InputMode.GAME);
+			} else if (ui.inputMode() === InputMode.GAME) {
 				ui.changeInputMode(InputMode.PAUSE);
 			} else if (ui.inputMode() === InputMode.PAUSE) {
 				ui.changeInputMode(InputMode.GAME);

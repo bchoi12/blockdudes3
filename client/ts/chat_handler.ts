@@ -33,9 +33,6 @@ export class ChatHandler implements InterfaceHandler {
 			if (e.keyCode === options.chatKeyCode) {
 				this.chatKeyPressed();
 			}
-			if (e.keyCode === options.pauseKeyCode && ui.inputMode() === InputMode.CHAT) {
-				ui.changeInputMode(InputMode.GAME);
-			}
 		});
 	}
 

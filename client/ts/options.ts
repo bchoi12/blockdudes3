@@ -34,7 +34,7 @@ class Options {
 		this.rightKeyCode = 68;
 		this.jumpKeyCode = 32;
 		this.interactKeyCode = 69;
-		this.mouseClickKeyCode = -1;
+		this.mouseClickKeyCode = 83;
 		this.altMouseClickKeyCode = 16;
 
 		this.pauseKeyCode = 27;

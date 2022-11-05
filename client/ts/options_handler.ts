@@ -25,11 +25,6 @@ export class OptionsHandler implements InterfaceHandler {
 			label: "Enable fullscreen",
 
 			getOption: () => {
-				if (!Util.defined(document.fullscreenElement)) {
-					options.enableFullscreen = false;
-				} else {
-					options.enableFullscreen = true;
-				}
 				return options.enableFullscreen;
 			},
 			setOption: (value: boolean) => {
@@ -157,7 +152,6 @@ export class OptionsHandler implements InterfaceHandler {
 		if (mode !== InputMode.PAUSE) {
 			if (options.enableFullscreen) {
 				let elm = document.documentElement;
-
 				elm.requestFullscreen();
 			} else {
 				document.exitFullscreen();
