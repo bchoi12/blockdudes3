@@ -14,6 +14,7 @@ class Options {
 	public pauseKeyCode : number;
 	public chatKeyCode : number;
 
+	public enableFullscreen : boolean;
 	public enablePointerLock : boolean;
 	public enableShadows : boolean;
 	public enableEffects : boolean;
@@ -40,6 +41,7 @@ class Options {
 		this.chatKeyCode = 13;
 		this.scoreboardKeyCode = 9;
 
+		this.enableFullscreen = false;
 		this.enablePointerLock = true;
 		this.enableShadows = true;
 		this.enableEffects = true;

@@ -4,6 +4,7 @@ import { InterfaceHandler } from './interface_handler.js'
 import { OptionWrapper } from './option_wrapper.js'
 import { options } from './options.js'
 import { renderer } from './renderer.js'
+import { Util } from './util.js'
 
 export class OptionsHandler implements InterfaceHandler {
 
@@ -18,6 +19,25 @@ export class OptionsHandler implements InterfaceHandler {
 			e.stopPropagation();
 		};
 
+		let fullscreen = new OptionWrapper({
+			id: "input-fullscreen",
+			type: "checkbox",
+			label: "Enable fullscreen",
+
+			getOption: () => {
+				if (!Util.defined(document.fullscreenElement)) {
+					options.enableFullscreen = false;
+				} else {
+					options.enableFullscreen = true;
+				}
+				return options.enableFullscreen;
+			},
+			setOption: (value: boolean) => {
+				options.enableFullscreen = value;
+			},
+		});
+		this._optionsElm.appendChild(fullscreen.elm());
+
 		let pointerLock = new OptionWrapper({
 			id: "input-pointer-lock",
 			type: "checkbox",
@@ -29,7 +49,7 @@ export class OptionsHandler implements InterfaceHandler {
 			setOption: (value : boolean) => {
 				options.enablePointerLock = value;
 			},
-		})
+		});
 		this._optionsElm.appendChild(pointerLock.elm());
 
 		let shadows = new OptionWrapper({
@@ -44,7 +64,7 @@ export class OptionsHandler implements InterfaceHandler {
 				options.enableShadows = value;
 				renderer.reset();
 			},
-		})
+		});
 		this._optionsElm.appendChild(shadows.elm());
 
 		let effects = new OptionWrapper({
@@ -58,7 +78,7 @@ export class OptionsHandler implements InterfaceHandler {
 			setOption: (value : boolean) => {
 				options.enableEffects = value;
 			},
-		})
+		});
 		this._optionsElm.appendChild(effects.elm());
 
 		let antiAliasing = new OptionWrapper({
@@ -72,7 +92,7 @@ export class OptionsHandler implements InterfaceHandler {
 			setOption: (value : boolean) => {
 				options.enableAntialiasing = value;
 			},
-		})
+		});
 		this._optionsElm.appendChild(antiAliasing.elm());
 
 		let extrapolation = new OptionWrapper({
@@ -90,7 +110,7 @@ export class OptionsHandler implements InterfaceHandler {
 			setOption: (value : number) => {
 				options.extrapolateWeight = value;
 			},
-		})
+		});
 		this._optionsElm.appendChild(extrapolation.elm());
 
 		let soundVolume = new OptionWrapper({
@@ -108,7 +128,7 @@ export class OptionsHandler implements InterfaceHandler {
 			setOption: (value : number) => {
 				options.soundVolume = value;
 			},
-		})
+		});
 		this._optionsElm.appendChild(soundVolume.elm());
 
 		let resolution = new OptionWrapper({
@@ -127,11 +147,21 @@ export class OptionsHandler implements InterfaceHandler {
 				options.resolution = value;
 				renderer.resize();
 			},
-		})
+		});
 		this._optionsElm.appendChild(resolution.elm());
 	}
 
 	reset() : void {}
 
-	changeInputMode(mode : InputMode) : void {}
+	changeInputMode(mode : InputMode) : void {
+		if (mode !== InputMode.PAUSE) {
+			if (options.enableFullscreen) {
+				let elm = document.documentElement;
+
+				elm.requestFullscreen();
+			} else {
+				document.exitFullscreen();
+			}
+		}
+	}
 }
