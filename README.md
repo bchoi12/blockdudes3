@@ -21,6 +21,8 @@ Needs polish, but fully playable with lots of technical features. I'm also explo
 
 ![devlog 45](https://raw.githubusercontent.com/bchoi12/blockdudes3/master/screenshots/devlog45.png)
 
+![devlog 50](https://raw.githubusercontent.com/bchoi12/blockdudes3/master/screenshots/devlog50.png)
+
 ### Game engine features
  * built with Golang and deployed to Google Cloud
  * also compiled as a WASM binary to support client-side prediction
