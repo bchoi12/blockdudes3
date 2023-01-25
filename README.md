@@ -41,19 +41,19 @@ Needs polish, but fully playable with lots of technical features. I'm also explo
  * optimized rendering for older machines (e.g. 40 FPS on my 9 year old laptop)
  * custom framework for dynamically adding modular UI elements to the page
 
-Known issues:
+### Known issues
  * Firefox and Safari are not supported
 
 ## Credits
 
-Game Engine
+### Game Engine
  * [golang](https://go.dev/)
  * [Google Cloud](https://cloud.google.com/) and [Heroku](https://www.heroku.com/) for hosting
  * [Gorilla Websocket](https://github.com/gorilla/websocket) for reliable communication and signaling for P2P connections
  * [Pion WebRTC](https://github.com/pion/webrtc) for low latency communication
  * [vmihailenco msgpack](github.com/vmihailenco/msgpack/v5) for data compression
 
-Client
+### Client
  * [TypeScript](https://www.typescriptlang.org/)
  * [three.js](https://threejs.org/) for 3D rendering
  * [WebAssembly](https://webassembly.org/) for client-side prediction
@@ -63,6 +63,6 @@ Client
  * [Howler](https://howlerjs.com/) for audio
  * [webpack](https://webpack.js.org/) for bundling code
 
- Offline
+ ### Others
  * [Blender](https://www.blender.org/) for art
  * [Github](https://github.com/) for version control
