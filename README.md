@@ -21,7 +21,7 @@ Needs polish, but fully playable with lots of technical features. I'm also explo
 
 ![devlog 45](https://raw.githubusercontent.com/bchoi12/blockdudes3/master/screenshots/devlog45.png)
 
-### Game engine features:
+### Game engine features
  * built with Golang and deployed to Google Cloud
  * also compiled as a WASM binary to support client-side prediction
  * game state is serialized and compressed before being sent over network
@@ -29,12 +29,12 @@ Needs polish, but fully playable with lots of technical features. I'm also explo
  * uses a basic spatial grid for fast object lookups
  * seeded pseudo-random modular level generation for unlimited variations of birdtowns
 
-### Networking features:
+### Networking features
  * able to run many concurrent games each at 62hz tickrate with support for 10+ players per room
  * custom server-authoritative netcode using a synchronized TCP channel (websocket) and UDP-like channel (WebRTC data connection)
  * fully functional text chat and peer-to-peer voice chat for all players
 
-### Client (browser) features:
+### Client (browser) features
  * nearly instant load times due to small footprint (<10Mb for all assets)
  * supports all Chromium-based browsers with no additional setup required
  * custom particle system with support for instanced geometry and geometry caching
